@@ -7,9 +7,15 @@ longest_match() and inflate_fast().
 
 Use instructions
 ----------------
-Copy these files into the zlib source directory, then run the
-appropriate makefile, as suggested below.
+Assemble using MASM, and copy the object files into the zlib source
+directory, then run the appropriate makefile, as suggested below.  You can
+donwload MASM from here:
 
+    http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=7a1c9da0-0510-44a2-b042-7ef370530c64
+
+You can also get objects files here:
+
+    http://www.winimage.com/zLibDll/zlib124_masm_obj.zip
 
 Build instructions
 ------------------

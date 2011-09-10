@@ -27,7 +27,7 @@
 #  define NO_GZCOMPRESS
 #endif
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #  include <io.h>
 #  define vsnprintf _vsnprintf
 #endif

@@ -1,7 +1,7 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.4 (13 Mar 2010)
+Changes in 1.2.4 (14 Mar 2010)
 - Fix VER3 extraction in configure for no fourth subversion
 - Update zlib.3, add docs to Makefile.in to make .pdf out of it
 - Add zlib.3.pdf to distribution
@@ -30,6 +30,8 @@ Changes in 1.2.4 (13 Mar 2010)
 - Fix name change from inflate.h in contrib/inflate86/inffas86.c
 - Check if temporary file exists before removing in make_vms.com [Zinser]
 - Fix make install and uninstall for --static option
+- Fix usage of _MSC_VER in gzguts.h and zutil.h [Truta]
+- Update readme.txt in contrib/masmx64 and masmx86 to assemble
 
 Changes in 1.2.3.9 (21 Feb 2010)
 - Expunge gzio.c

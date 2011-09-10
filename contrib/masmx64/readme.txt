@@ -12,7 +12,10 @@ inffasx64.asm and inffas8664.c were written by Chris Anderson, by optimizing
 
 Use instructions
 ----------------
-Copy these files into the zlib source directory.
+Assemble the .asm files using MASM and put the object files into the zlib source
+directory.  You can also get object files here:
+
+     http://www.winimage.com/zLibDll/zlib124_masm_obj.zip
 
 define ASMV and ASMINF in your project. Include inffas8664.c in your source tree,
 and inffasx64.obj and gvmat64.obj as object to link.

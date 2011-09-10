@@ -115,9 +115,7 @@ EXPORTS
 
 ; zlib1 v1.2.4 added:
         adler32_combine                         @140
-        adler32_combine64                       @141
         crc32_combine                           @142
-        crc32_combine64                         @143
         deflateSetHeader                        @144
         deflateTune                             @145
         gzbuffer                                @146
@@ -125,10 +123,6 @@ EXPORTS
         gzclose_w                               @148
         gzdirect                                @149
         gzoffset                                @150
-        gzoffset64                              @151
-        gzopen64                                @152
-        gzseek64                                @153
-        gztell64                                @154
         inflateGetHeader                        @156
         inflateMark                             @157
         inflatePrime                            @158

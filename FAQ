@@ -25,7 +25,7 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
  4. compress() returns Z_BUF_ERROR.
 
-    Make sure that before the call of compress, the length of the compressed
+    Make sure that before the call of compress(), the length of the compressed
     buffer is equal to the available size of the compressed buffer and not
     zero.  For Visual Basic, check that this parameter is passed by reference
     ("as any"), not by value ("as long").
@@ -108,8 +108,8 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
 16. Can zlib decode Flate data in an Adobe PDF file?
 
-    Yes. See http://www.fastio.com/ (ClibPDF), or http://www.pdflib.com/ .
-    To modify PDF forms, see http://sourceforge.net/projects/acroformtool/ .
+    Yes. See http://www.pdflib.com/ . To modify PDF forms, see
+    http://sourceforge.net/projects/acroformtool/ .
 
 17. Why am I getting this "register_frame_info not found" error on Solaris?
 
@@ -152,8 +152,8 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
     Yes.  However any library routines that zlib uses and any application-
     provided memory allocation routines must also be thread-safe.  zlib's gz*
     functions use stdio library routines, and most of zlib's functions use the
-    library memory allocation routines by default.  zlib's Init functions allow
-    for the application to provide custom memory allocation routines.
+    library memory allocation routines by default.  zlib's *Init* functions
+    allow for the application to provide custom memory allocation routines.
 
     Of course, you should only operate on any given zlib or gzip stream from a
     single thread at a time.
@@ -354,7 +354,7 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
     No.  The files in contrib are not part of zlib.  They were contributed by
     other authors and are provided as a convenience to the user within the zlib
-    distribution.  Each of the items in contrib have their own license.
+    distribution.  Each item in contrib has its own license.
 
 43. Is zlib subject to export controls?  What is its ECCN?
 

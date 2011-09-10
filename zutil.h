@@ -17,7 +17,7 @@
 #include "zlib.h"
 
 #ifdef STDC
-#  if !(defined(_WIN32_WCE) && defined(_MSV_VER))
+#  if !(defined(_WIN32_WCE) && defined(_MSC_VER))
 #    include <stddef.h>
 #  endif
 #  include <string.h>
