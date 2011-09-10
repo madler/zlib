@@ -13,7 +13,8 @@
 
 struct internal_state {int dummy;}; /* for buggy compilers */
 
-#define Z_BUFSIZE 4096
+#define Z_BUFSIZE       16384
+#define Z_PRINTF_BUFSIZE 4096
 
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
@@ -506,7 +507,7 @@ int ZEXPORT gzwrite (file, buf, len)
 
 int ZEXPORTVA gzprintf (gzFile file, const char *format, /* args */ ...)
 {
-    char buf[Z_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     va_list va;
     int len;
 
@@ -531,7 +532,7 @@ int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
     int a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
 	a11, a12, a13, a14, a15, a16, a17, a18, a19, a20;
 {
-    char buf[Z_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     int len;
 
 #ifdef HAS_snprintf

@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.0.9, Feb 16th, 1998
+  version 1.1.0, Feb 24th, 1998
 
   Copyright (C) 1995-1998 Jean-loup Gailly and Mark Adler
 
@@ -37,7 +37,7 @@ extern "C" {
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "1.0.9"
+#define ZLIB_VERSION "1.1.0"
 
 /* 
      The 'zlib' compression library provides in-memory compression and

@@ -1,6 +1,17 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.1 (24 Feb 98)
+- do not return STREAM_END prematurely in inflate (John Bowler)
+- revert to the zlib 1.0.8 inflate to avoid the gcc 2.8.0 bug (Jeremy Buhler)
+- compile with -DFASTEST to get compression code optimized for speed only
+- in minigzip, try mmap'ing the input file first (Miguel Albrecht)
+- increase size of I/O buffers in minigzip.c and gzio.c (not a big gain
+  on Sun but significant on HP)
+
+- add a pointer to experimental unzip library in README (Gilles Vollant)
+- initialize variable gcc in configure (Chris Herborth)
+
 Changes in 1.0.9 (17 Feb 1998)
 - added gzputs and gzgets functions
 - do not clear eof flag in gzseek (Mark Diekhans)

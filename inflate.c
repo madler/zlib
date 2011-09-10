@@ -229,6 +229,7 @@ int f;
         r = f;
       if (r != Z_STREAM_END)
         return r;
+      r = f;
       inflate_blocks_reset(z->state->blocks, z, &z->state->sub.check.was);
       if (z->state->nowrap)
       {
@@ -322,7 +323,8 @@ z_streamp z;
   /* search */
   while (n && m < 4)
   {
-    if (*p == (Byte)(m < 2 ? 0 : (Byte)0xff))
+    static const Byte mark[4] = {0, 0, 0xff, 0xff};
+    if (*p == mark[m])
       m++;
     else if (*p)
       m = 0;

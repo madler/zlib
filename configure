@@ -27,6 +27,7 @@ prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-$prefix}
 shared_ext='.so'
 shared=0
+gcc=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 
@@ -114,7 +115,6 @@ if test $shared -eq 0; then
   LDSHARED="$CC"
   echo Building static library $LIBS version $VER with $CC.
 fi
-rm -f $test.[co] $test$shared_ext
 
 if test -f /usr/include/unistd.h; then
   CFLAGS="$CFLAGS -DHAVE_UNISTD_H"
@@ -123,6 +123,23 @@ fi
 if test ! -f /usr/include/errno.h; then
   CFLAGS="$CFLAGS -DNO_ERRNO_H"
 fi
+
+cat > $test.c <<EOF
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+caddr_t hello() {
+  return mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0); 
+}
+EOF
+if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  CFLAGS="$CFLAGS -DUSE_MMAP"
+  echo Checking for mmap support... Yes.
+else
+  echo Checking for mmap support... No.
+fi
+
+rm -f $test.[co] $test$shared_ext
 
 # udpate Makefile
 sed < Makefile.in "

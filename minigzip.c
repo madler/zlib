@@ -25,6 +25,11 @@
    extern void exit  OF((int));
 #endif
 
+#ifdef USE_MMAP
+#  include <sys/types.h>
+#  include <sys/mman.h>
+#  include <sys/stat.h>
+#endif
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32)
 #  include <fcntl.h>
@@ -53,7 +58,7 @@
 #endif
 #define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
 
-#define BUFLEN 4096
+#define BUFLEN      16384
 #define MAX_NAME_LEN 1024
 
 #ifdef MAXSEG_64K
@@ -65,12 +70,15 @@
 
 char *prog;
 
-void error           OF((const char *msg));
-void gz_compress     OF((FILE   *in, gzFile out));
-void gz_uncompress   OF((gzFile in, FILE   *out));
-void file_compress   OF((char  *file, char *mode));
-void file_uncompress OF((char  *file));
-int  main            OF((int argc, char *argv[]));
+void error            OF((const char *msg));
+void gz_compress      OF((FILE   *in, gzFile out));
+#ifdef USE_MMAP
+int  gz_compress_mmap OF((FILE   *in, gzFile out));
+#endif
+void gz_uncompress    OF((gzFile in, FILE   *out));
+void file_compress    OF((char  *file, char *mode));
+void file_uncompress  OF((char  *file));
+int  main             OF((int argc, char *argv[]));
 
 /* ===========================================================================
  * Display error message and exit
@@ -85,6 +93,7 @@ void error(msg)
 /* ===========================================================================
  * Compress input to output then close both files.
  */
+
 void gz_compress(in, out)
     FILE   *in;
     gzFile out;
@@ -93,6 +102,12 @@ void gz_compress(in, out)
     int len;
     int err;
 
+#ifdef USE_MMAP
+    /* Try first compressing with mmap. If mmap fails (minigzip used in a
+     * pipe), use the normal fread loop.
+     */
+    if (gz_compress_mmap(in, out) == Z_OK) return;
+#endif
     for (;;) {
         len = fread(buf, 1, sizeof(buf), in);
         if (ferror(in)) {
@@ -106,6 +121,43 @@ void gz_compress(in, out)
     fclose(in);
     if (gzclose(out) != Z_OK) error("failed gzclose");
 }
+
+#ifdef USE_MMAP /* MMAP version, Miguel Albrecht <malbrech@eso.org> */
+
+/* Try compressing the input file at once using mmap. Return Z_OK if
+ * if success, Z_ERRNO otherwise.
+ */
+int gz_compress_mmap(in, out)
+    FILE   *in;
+    gzFile out;
+{
+    int len;
+    int err;
+    int ifd = fileno(in);
+    caddr_t buf;    /* mmap'ed buffer for the entire input file */
+    off_t buf_len;  /* length of the input file */
+    struct stat sb;
+
+    /* Determine the size of the file, needed for mmap: */
+    if (fstat(ifd, &sb) < 0) return Z_ERRNO;
+    buf_len = sb.st_size;
+    if (buf_len <= 0) return Z_ERRNO;
+
+    /* Now do the actual mmap: */
+    buf = mmap((caddr_t) 0, buf_len, PROT_READ, MAP_SHARED, ifd, (off_t)0); 
+    if (buf == (caddr_t)(-1)) return Z_ERRNO;
+
+    /* Compress the whole file at once: */
+    len = gzwrite(out, (char *)buf, (unsigned)buf_len);
+
+    if (len != (int)buf_len) error(gzerror(out, &err));
+
+    munmap(buf, buf_len);
+    fclose(in);
+    if (gzclose(out) != Z_OK) error("failed gzclose");
+    return Z_OK;
+}
+#endif /* USE_MMAP */
 
 /* ===========================================================================
  * Uncompress input to output then close both files.

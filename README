@@ -1,4 +1,4 @@
-zlib 1.0.9 is a general purpose data compression library.  All the code
+zlib 1.1.0 is a general purpose data compression library.  All the code
 is thread safe.  The data format used by the zlib library
 is described by RFCs (Request for Comments) 1950 to 1952 in the files 
 ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
@@ -25,21 +25,15 @@ Mark Nelson wrote an article about zlib for the Jan. 1997 issue of
 Dr. Dobb's Journal; a copy of the article is available in
 http://web2.airmail.net/markn/articles/zlibtool/zlibtool.htm
 
-The changes made in version 1.0.9 are documented in the file ChangeLog.
-The main changes since 1.0.8 are:
+The changes made in version 1.1.0 are documented in the file ChangeLog.
+The main changes since 1.0.9 are:
 
-- added gzputs and gzgets functions
-- do not clear eof flag in gzseek (Mark Diekhans)
-- fix gzseek for files in transparent mode (Mark Diekhans)
-- do not assume that vsprintf returns the number of bytes written (Jens Krinke)
-- replace EXPORT with ZEXPORT to avoid conflict with other programs
-- added compress2 in zconf.h, zlib.def, zlib.dnt
-- new asm code from Gilles Vollant in contrib/asm386
-- simplify the inflate code (Mark):
- . Replace ZALLOC's in huft_build() with single ZALLOC in inflate_blocks_new()
- . ZALLOC the length list in inflate_trees_fixed() instead of using stack
- . ZALLOC the value area for huft_build() instead of using stack
- . Simplify Z_FINISH check in inflate()
+- do not return STREAM_END prematurely in inflate (John Bowler)
+- revert to the zlib 1.0.8 inflate to avoid the gcc 2.8.0 bug (Jeremy Buhler)
+- compile with -DFASTEST to get compression code optimized for speed only
+- in minigzip, try mmap'ing the input file first (Miguel Albrecht)
+- increase size of I/O buffers in minigzip.c and gzio.c (not a big gain
+  on Sun but significant on HP)
 
 
 Unsupported third party contributions are provided in directory "contrib".
@@ -55,6 +49,11 @@ ftp://ftp.cis.ufl.edu/pub/perl/CPAN/modules/by-module/Compress/Compress-Zlib*
 A Python interface to zlib written by A.M. Kuchling <amk@magnet.com>
 is available from the Python Software Association sites, such as:
 ftp://ftp.python.org/pub/python/contrib/Encoding/zlib*.tar.gz
+
+An experimental package to read files in .zip format, written on top of
+zlib by Gilles Vollant <info@winimage.com>, is available at
+http://www.winimage.com/zLibDll/unzip.html
+
 
 Notes for some targets:
 
@@ -83,7 +82,7 @@ Notes for some targets:
   writes to pointers are atomic. Also the functions zalloc and zfree passed
   to deflateInit must be multi-threaded in this case.
 
-- gzdopen is not supported on RISCOS, BEOS and Mac
+- gzdopen is not supported on RISCOS, BEOS and by some Mac compilers.
 
 - For Turbo C the small model is supported only with reduced performance to
   avoid any far allocation; it was tested with -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3

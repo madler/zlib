@@ -23,7 +23,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.9
+VER=1.1.0
 LIBS=libz.a
 SHAREDLIB=libz.so
 
