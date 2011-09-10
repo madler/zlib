@@ -47,9 +47,9 @@ The package zlib-1.2.4-win32-x86.zip contains the following files:
   zdll.lib         Install these files into the compilers' LIB path if linking
   zdll.exp         a compiled program to the zlib1.dll binary
 
-  zlib.lib         Install these files into the compilers' LIB path if linking
-  zlib.pdb         a compiled program to the zlib1.dll binary (zlib.pdb ensures
-                   that the resulting program may be debugged)
+  zlib.lib         Install these files into the compilers' LIB path to link zlib
+  zlib.pdb         into compiled programs, without zlib1.dll runtime dependency
+                   (zlib.pdb provides debugging info to the compile time linker)
 
   zlib1.dll        Install this binary shared library into the system PATH, or
                    the program's runtime directory (where the .exe resides)

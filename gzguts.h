@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-#if _LARGEFILE64_SOURCE == 1
+#if _LARGEFILE64_SOURCE
 #  ifndef _LARGEFILE_SOURCE
 #    define _LARGEFILE_SOURCE 1
 #  endif
@@ -56,10 +56,18 @@
 #  endif
 #endif
 
-#if _LARGEFILE64_SOURCE == 1
+#if _LARGEFILE64_SOURCE
 #  define z_off64_t off64_t
 #else
 #  define z_off64_t z_off_t
+#endif
+
+/* provide prototypes for these when building zlib without LFS */
+#if _LARGEFILE64_SOURCE+0 != 1 || _LFS64_LARGEFILE+0 != 1
+    ZEXTERN gzFile ZEXPORT gzopen64 OF((const char *, const char *));
+    ZEXTERN z_off_t ZEXPORT gzseek64 OF((gzFile, off_t, int));
+    ZEXTERN z_off_t ZEXPORT gztell64 OF((gzFile));
+    ZEXTERN z_off_t ZEXPORT gzoffset64 OF((gzFile));
 #endif
 
 /* default i/o buffer size -- double this for output when reading */

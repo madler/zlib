@@ -26,13 +26,13 @@ CFLAGS=-O
 
 SFLAGS=-O
 
-LDFLAGS=-L. libz.a
+TEST_LDFLAGS=-L. libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.4.1
+SHAREDLIBV=libz.so.1.2.4.2
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIBV)
 
@@ -136,17 +136,17 @@ minigzip64.o: minigzip.c zlib.h zconf.h
 	-@mv objs/$*.o $@
 
 $(SHAREDLIBV): $(PIC_OBJS)
-	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC)
+	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
 	-@rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS)
 
 minigzip$(EXE): minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
 	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV)
@@ -155,10 +155,10 @@ minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
 	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV)
 
 example64$(EXE): example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example64.o $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip64.o $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi

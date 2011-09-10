@@ -45,6 +45,7 @@ VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
 AR=${AR-"${CROSS_PREFIX}ar"}
 AR_RC="${AR} rc"
 RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
+NM=${NM-"nm"}
 LDCONFIG=${LDCONFIG-"ldconfig"}
 LDSHAREDLIBC="${LDSHAREDLIBC-"-lc"}"
 prefix=${prefix-/usr/local}
@@ -505,7 +506,7 @@ fi
 CPP=${CPP-"$CC -E"}
 case $CFLAGS in
   *ASMV*)
-    if test "`nm $test.o | grep _hello`" = ""; then
+    if test "`$NM $test.o | grep _hello`" = ""; then
       CPP="$CPP -DNO_UNDERLINE"
       echo Checking for underline in external names... No.
     else

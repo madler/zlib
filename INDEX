@@ -22,7 +22,6 @@ msdos/          makefiles for MSDOS
 nintendods/     makefile for Nintendo DS
 old/            makefiles for various architectures and zlib documentation
                 files that have not yet been updated for zlib 1.2.x
-projects/       projects for various Integrated Development Environments
 qnx/            makefiles for QNX
 watcom/         makefiles for OpenWatcom
 win32/          makefiles for Windows

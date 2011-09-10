@@ -1,8 +1,8 @@
 /*
  * puff.c
- * Copyright (C) 2002-2008 Mark Adler
+ * Copyright (C) 2002-2010 Mark Adler
  * For conditions of distribution and use, see copyright notice in puff.h
- * version 2.0, 25 Jul 2008
+ * version 2.1, 4 Apr 2010
  *
  * puff.c is a simple inflate written to be an unambiguous way to specify the
  * deflate format.  It is not written for speed but rather simplicity.  As a
@@ -67,6 +67,8 @@
  *                      - Add option in TEST code for puff to write the data
  *                      - Add option in TEST code to skip input bytes
  *                      - Allow TEST code to read from piped stdin
+ * 2.1   4 Apr 2010     - Avoid variable initialization for happier compilers
+ *                      - Avoid unsigned comparisons for even happier compilers
  */
 
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
@@ -516,8 +518,7 @@ local int fixed(struct state *s)
     static int virgin = 1;
     static short lencnt[MAXBITS+1], lensym[FIXLCODES];
     static short distcnt[MAXBITS+1], distsym[MAXDCODES];
-    static struct huffman lencode = {lencnt, lensym};
-    static struct huffman distcode = {distcnt, distsym};
+    static struct huffman lencode, distcode;
 
     /* build fixed huffman tables if first call (may not be thread safe) */
     if (virgin) {
@@ -539,6 +540,12 @@ local int fixed(struct state *s)
         for (symbol = 0; symbol < MAXDCODES; symbol++)
             lengths[symbol] = 5;
         construct(&distcode, lengths, MAXDCODES);
+
+        /* construct lencode and distcode */
+        lencode.count = lencnt;
+        lencode.symbol = lensym;
+        distcode.count = distcnt;
+        distcode.symbol = distsym;
 
         /* do this just once */
         virgin = 0;
@@ -643,10 +650,15 @@ local int dynamic(struct state *s)
     short lengths[MAXCODES];            /* descriptor code lengths */
     short lencnt[MAXBITS+1], lensym[MAXLCODES];         /* lencode memory */
     short distcnt[MAXBITS+1], distsym[MAXDCODES];       /* distcode memory */
-    struct huffman lencode = {lencnt, lensym};          /* length code */
-    struct huffman distcode = {distcnt, distsym};       /* distance code */
+    struct huffman lencode, distcode;   /* length and distance codes */
     static const short order[19] =      /* permutation of code length codes */
         {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
+
+    /* construct lencode and distcode */
+    lencode.count = lencnt;
+    lencode.symbol = lensym;
+    distcode.count = distcnt;
+    distcode.symbol = distsym;
 
     /* get number of lengths in each table, check lengths */
     nlen = bits(s, 5) + 257;
@@ -869,7 +881,8 @@ local void *load(char *name, size_t *len)
 
 int main(int argc, char **argv)
 {
-    int ret, skip = 0, put = 0;
+    int ret, put = 0;
+    unsigned skip = 0;
     char *arg, *name = NULL;
     unsigned char *source = NULL, *dest;
     size_t len = 0;
@@ -881,7 +894,7 @@ int main(int argc, char **argv)
             if (arg[1] == 'w' && arg[2] == 0)
                 put = 1;
             else if (arg[1] >= '0' && arg[1] <= '9')
-                skip = atoi(arg + 1);
+                skip = (unsigned)atoi(arg + 1);
             else {
                 fprintf(stderr, "invalid option %s\n", arg);
                 return 3;
