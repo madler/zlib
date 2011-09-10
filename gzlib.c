@@ -147,6 +147,14 @@ local gzFile gz_open(path, fd, mode)
         return NULL;
     }
 
+    /* save the path name for error messages */
+    state->path = malloc(strlen(path) + 1);
+    if (state->path == NULL) {
+        free(state);
+        return NULL;
+    }
+    strcpy(state->path, path);
+
     /* open the file with the appropriate mode (or just use fd) */
     state->fd = fd != -1 ? fd :
         open(path,
@@ -169,14 +177,6 @@ local gzFile gz_open(path, fd, mode)
     }
     if (state->mode == GZ_APPEND)
         state->mode = GZ_WRITE;         /* simplify later checks */
-
-    /* save the path name for error messages */
-    state->path = malloc(strlen(path) + 1);
-    if (state->path == NULL) {
-        free(state);
-        return NULL;
-    }
-    strcpy(state->path, path);
 
     /* save the current position for rewinding (only if reading) */
     if (state->mode == GZ_READ) {
@@ -450,7 +450,8 @@ const char * ZEXPORT gzerror(file, errnum)
         return NULL;
 
     /* return error information */
-    *errnum = state->err;
+    if (errnum != NULL)
+        *errnum = state->err;
     return state->msg == NULL ? "" : state->msg;
 }
 

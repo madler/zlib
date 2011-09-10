@@ -13,8 +13,10 @@ $! 0.01 20060120 First version to receive a number
 $! 0.02 20061008 Adapt to new Makefile.in
 $! 0.03 20091224 Add support for large file check
 $! 0.04 20100110 Add new gzclose, gzlib, gzread, gzwrite
+$! 0.05 20100221 Exchange zlibdefs.h by zconf.h.in
 $!
 $ on error then goto err_exit
+$ set proc/parse=ext
 $!
 $ true  = 1
 $ false = 0
@@ -38,7 +40,7 @@ $ v_file   = "zlib.h"
 $ ccopt   = ""
 $ lopts   = ""
 $ dnsrl   = ""
-$ aconf_in_file = "config.hin"
+$ aconf_in_file = "zconf.h.in#zconf.h_in"
 $ conf_check_string = ""
 $ linkonly = false
 $ optfile  = name + ".opt"
@@ -104,13 +106,16 @@ $   i = i + 1
 $   goto find_aconf
 $ endif
 $ open/read/err=aconf_err aconf_in 'fname'
-$ open/write aconf zlibdefs.h
+$ open/write aconf zconf.h
 $ACONF_LOOP:
 $ read/end_of_file=aconf_exit aconf_in line
 $ work = f$edit(line, "compress,trim")
 $ if f$extract(0,6,work) .nes. "#undef"
 $ then
-$   write aconf line
+$   if f$extract(0,12,work) .nes. "#cmakedefine"
+$   then
+$       write aconf line
+$   endif
 $ else
 $   cdef = f$element(1," ",work)
 $   gosub check_config

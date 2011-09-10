@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.9
+SHAREDLIBV=libz.so.1.2.4
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIB) $(SHAREDLIBV)
 
@@ -193,6 +193,18 @@ uninstall:
 	cd $(DESTDIR)$(man3dir); rm -f zlib.3
 	cd $(DESTDIR)$(pkgconfigdir); rm -f zlib.pc
 
+docs: zlib.3.pdf
+
+zlib.3.pdf: zlib.3
+	groff -mandoc -f H -T ps zlib.3 | ps2pdf - zlib.3.pdf
+
+zconf.h.in: zconf.h.cmakein
+	sed "/^#cmakedefine/D" < zconf.h.cmakein > zconf.h.in
+	touch -r zconf.h.cmakein zconf.h.in
+
+zconf: zconf.h.in
+	cp -p zconf.h.in zconf.h
+
 mostlyclean: clean
 clean:
 	rm -f *.o *.lo *~ \
@@ -203,10 +215,11 @@ clean:
 	rm -rf objs
 
 maintainer-clean: distclean
-distclean: clean
-	rm -f Makefile zconf.h zlib.pc
+distclean: clean zconf docs
+	rm -f Makefile zlib.pc
 	-@rm -f .DS_Store
 	-@printf 'all:\n\t-@echo "Use ./configure first.  Thank you."\n' > Makefile
+	-@printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile
 	-@touch -r Makefile.in Makefile
 
 tags:

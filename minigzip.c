@@ -262,6 +262,11 @@ void file_compress(file, mode)
     FILE  *in;
     gzFile out;
 
+    if (strlen(file) + strlen(GZ_SUFFIX) >= sizeof(outfile)) {
+        fprintf(stderr, "%s: filename too long\n", prog);
+        exit(1);
+    }
+
     strcpy(outfile, file);
     strcat(outfile, GZ_SUFFIX);
 
@@ -291,7 +296,12 @@ void file_uncompress(file)
     char *infile, *outfile;
     FILE  *out;
     gzFile in;
-    uInt len = (uInt)strlen(file);
+    size_t len = strlen(file);
+
+    if (len + strlen(GZ_SUFFIX) >= sizeof(buf)) {
+        fprintf(stderr, "%s: filename too long\n", prog);
+        exit(1);
+    }
 
     strcpy(buf, file);
 
@@ -322,7 +332,8 @@ void file_uncompress(file)
 
 
 /* ===========================================================================
- * Usage:  minigzip [-d] [-f] [-h] [-r] [-1 to -9] [files...]
+ * Usage:  minigzip [-c] [-d] [-f] [-h] [-r] [-1 to -9] [files...]
+ *   -c : write to standard output
  *   -d : decompress
  *   -f : compress with Z_FILTERED
  *   -h : compress with Z_HUFFMAN_ONLY
@@ -334,17 +345,30 @@ int main(argc, argv)
     int argc;
     char *argv[];
 {
+    int copyout = 0;
     int uncompr = 0;
     gzFile file;
-    char outmode[20];
+    char *bname, outmode[20];
 
     strcpy(outmode, "wb6 ");
 
     prog = argv[0];
+    bname = strrchr(argv[0], '/');
+    if (bname)
+      bname++;
+    else
+      bname = argv[0];
     argc--, argv++;
 
+    if (!strcmp(bname, "gunzip"))
+      uncompr = 1;
+    else if (!strcmp(bname, "zcat"))
+      copyout = uncompr = 1;
+
     while (argc > 0) {
-      if (strcmp(*argv, "-d") == 0)
+      if (strcmp(*argv, "-c") == 0)
+        copyout = 1;
+      else if (strcmp(*argv, "-d") == 0)
         uncompr = 1;
       else if (strcmp(*argv, "-f") == 0)
         outmode[3] = 'f';
@@ -374,11 +398,36 @@ int main(argc, argv)
             gz_compress(stdin, file);
         }
     } else {
+        if (copyout) {
+            SET_BINARY_MODE(stdout);
+        }
         do {
             if (uncompr) {
-                file_uncompress(*argv);
+                if (copyout) {
+                    file = gzopen(*argv, "rb");
+                    if (file == NULL)
+                        fprintf(stderr, "%s: can't gzopen %s\n", prog, *argv);
+                    else
+                        gz_uncompress(file, stdout);
+                } else {
+                    file_uncompress(*argv);
+                }
             } else {
-                file_compress(*argv, outmode);
+                if (copyout) {
+                    FILE * in = fopen(*argv, "rb");
+
+                    if (in == NULL) {
+                        perror(*argv);
+                    } else {
+                        file = gzdopen(fileno(stdout), outmode);
+                        if (file == NULL) error("can't gzdopen stdout");
+
+                        gz_compress(in, file);
+                    }
+
+                } else {
+                    file_compress(*argv, outmode);
+                }
             }
         } while (argv++, --argc);
     }

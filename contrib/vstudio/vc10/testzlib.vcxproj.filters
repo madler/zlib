@@ -27,9 +27,6 @@
     <ClCompile Include="..\..\..\deflate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\masmx86\gvmat32c.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\infback.c">
       <Filter>Source Files</Filter>
     </ClCompile>

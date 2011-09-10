@@ -1,7 +1,7 @@
+LIBRARY
+; zlib data compression and ZIP file I/O library
 
-VERSION		1.23
-
-HEAPSIZE	1048576,8192
+VERSION		1.24
 
 EXPORTS
         adler32                                  @1
@@ -90,25 +90,47 @@ EXPORTS
         unzGoToFilePos                           @101
 
         fill_win32_filefunc                      @110
-        fill_win32_filefunc64                    @111
-        fill_win32_filefunc64A                   @112
-        fill_win32_filefunc64W                   @113
 
-; quick hack by hkuno@microhouse.co.jp
-        unzOpen64                         @120
-        unzOpen2_64                       @121
-        unzGetGlobalInfo64                @122
-        unzGetCurrentFileInfo64           @124
-        unzGetCurrentFileZStreamPos64     @125
-        unztell64                         @126
-        unzGetFilePos64                   @127
-        unzGoToFilePos64                  @128
+; zlibwapi v1.2.4 added:
+        fill_win32_filefunc64                   @111
+        fill_win32_filefunc64A                  @112
+        fill_win32_filefunc64W                  @113
 
-        zipOpen64                         @130
-        zipOpen2_64                       @131
-        zipOpenNewFileInZip64             @132
-        zipOpenNewFileInZip2_64           @133
-        zipOpenNewFileInZip3_64           @134
-        zipOpenNewFileInZip4_64           @135
-        zipCloseFileInZipRaw64            @136
-; end hack
+        unzOpen64                               @120
+        unzOpen2_64                             @121
+        unzGetGlobalInfo64                      @122
+        unzGetCurrentFileInfo64                 @124
+        unzGetCurrentFileZStreamPos64           @125
+        unztell64                               @126
+        unzGetFilePos64                         @127
+        unzGoToFilePos64                        @128
+
+        zipOpen64                               @130
+        zipOpen2_64                             @131
+        zipOpenNewFileInZip64                   @132
+        zipOpenNewFileInZip2_64                 @133
+        zipOpenNewFileInZip3_64                 @134
+        zipOpenNewFileInZip4_64                 @135
+        zipCloseFileInZipRaw64                  @136
+
+; zlib1 v1.2.4 added:
+        adler32_combine                         @140
+        adler32_combine64                       @141
+        crc32_combine                           @142
+        crc32_combine64                         @143
+        deflateSetHeader                        @144
+        deflateTune                             @145
+        gzbuffer                                @146
+        gzclose_r                               @147
+        gzclose_w                               @148
+        gzdirect                                @149
+        gzoffset                                @150
+        gzoffset64                              @151
+        gzopen64                                @152
+        gzseek64                                @153
+        gztell64                                @154
+        inflateGetHeader                        @156
+        inflateMark                             @157
+        inflatePrime                            @158
+        inflateReset2                           @159
+        inflateUndermine                        @160

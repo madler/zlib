@@ -52,14 +52,73 @@
 #define save_r13        (64-LocalVarsSize)(%rsp)
 #define save_r15        (80-LocalVarsSize)(%rsp)
 
+
+.globl	match_init, longest_match
+
 /*
  * On AMD64 the first argument of a function (in our case -- the pointer to
  * deflate_state structure) is passed in %rdi, hence our offsets below are
  * all off of that.
  */
+
+/* you can check the structure offset by running
+
+#include <stdlib.h>
+#include <stdio.h>
+#include "deflate.h"
+
+void print_depl()
+{
+deflate_state ds;
+deflate_state *s=&ds;
+printf("size pointer=%u\n",(int)sizeof(void*));
+
+printf("#define dsWSize         (%3u)(%%rdi)\n",(int)(((char*)&(s->w_size))-((char*)s)));
+printf("#define dsWMask         (%3u)(%%rdi)\n",(int)(((char*)&(s->w_mask))-((char*)s)));
+printf("#define dsWindow        (%3u)(%%rdi)\n",(int)(((char*)&(s->window))-((char*)s)));
+printf("#define dsPrev          (%3u)(%%rdi)\n",(int)(((char*)&(s->prev))-((char*)s)));
+printf("#define dsMatchLen      (%3u)(%%rdi)\n",(int)(((char*)&(s->match_length))-((char*)s)));
+printf("#define dsPrevMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->prev_match))-((char*)s)));
+printf("#define dsStrStart      (%3u)(%%rdi)\n",(int)(((char*)&(s->strstart))-((char*)s)));
+printf("#define dsMatchStart    (%3u)(%%rdi)\n",(int)(((char*)&(s->match_start))-((char*)s)));
+printf("#define dsLookahead     (%3u)(%%rdi)\n",(int)(((char*)&(s->lookahead))-((char*)s)));
+printf("#define dsPrevLen       (%3u)(%%rdi)\n",(int)(((char*)&(s->prev_length))-((char*)s)));
+printf("#define dsMaxChainLen   (%3u)(%%rdi)\n",(int)(((char*)&(s->max_chain_length))-((char*)s)));
+printf("#define dsGoodMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->good_match))-((char*)s)));
+printf("#define dsNiceMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->nice_match))-((char*)s)));
+}
+
+*/
+
+
+/*
+  to compile for XCode 3.2 on MacOSX x86_64
+  - run "gcc -g -c -DXCODE_MAC_X64_STRUCTURE amd64-match.S"
+ */
+
+
+#ifndef CURRENT_LINX_XCODE_MAC_X64_STRUCTURE
+#define dsWSize		( 68)(%rdi)
+#define dsWMask		( 76)(%rdi)
+#define dsWindow	( 80)(%rdi)
+#define dsPrev		( 96)(%rdi)
+#define dsMatchLen	(144)(%rdi)
+#define dsPrevMatch	(148)(%rdi)
+#define dsStrStart	(156)(%rdi)
+#define dsMatchStart	(160)(%rdi)
+#define dsLookahead	(164)(%rdi)
+#define dsPrevLen	(168)(%rdi)
+#define dsMaxChainLen	(172)(%rdi)
+#define dsGoodMatch	(188)(%rdi)
+#define dsNiceMatch	(192)(%rdi)
+
+#else 
+
 #ifndef STRUCT_OFFSET
 #	define STRUCT_OFFSET	(0)
 #endif
+
+
 #define dsWSize		( 56 + STRUCT_OFFSET)(%rdi)
 #define dsWMask		( 64 + STRUCT_OFFSET)(%rdi)
 #define dsWindow	( 72 + STRUCT_OFFSET)(%rdi)
@@ -74,7 +133,10 @@
 #define dsGoodMatch	(180 + STRUCT_OFFSET)(%rdi)
 #define dsNiceMatch	(184 + STRUCT_OFFSET)(%rdi)
 
-.globl	match_init, longest_match
+#endif
+
+
+
 
 .text
 
@@ -222,7 +284,9 @@ LoopEntry:	cmpw	-1(%windowbestlen, %curmatch), %scanendw
  * straightforward "rep cmpsb" would not drastically degrade
  * performance -- unrolling it, for example, makes no difference.
  */
+
 #undef USE_SSE	/* works, but is 6-7% slower, than non-SSE... */
+
 LoopCmps:
 #ifdef USE_SSE
 		/* Preload the SSE registers */
@@ -244,29 +308,55 @@ LoopCmps:
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
-		add	$16, %rdx
+		
+		/* this is the only iteration of the loop with a possibility of having
+		   incremented rdx by 0x108 (each loop iteration add 16*4 = 0x40 
+		   and (0x40*4)+8=0x108 */
+		add	$8, %rdx
+		jz LenMaximum
+		add	$8, %rdx
+
+		
 		pmovmskb %xmm3, %rax
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
+		
+		
 		add	$16, %rdx
+
+
 		pmovmskb %xmm5, %rax
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
+		
 		add	$16, %rdx
+
+
 		pmovmskb %xmm7, %rax
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
+		
 		add	$16, %rdx
+		
 		jmp	LoopCmps
 LeaveLoopCmps:	add	%rax, %rdx
 #else
 		mov	(%windowbestlen, %rdx), %rax
 		xor	(%prev, %rdx), %rax
 		jnz	LeaveLoopCmps
-		add	$8, %rdx
+		
+		mov	8(%windowbestlen, %rdx), %rax
+		xor	8(%prev, %rdx), %rax
+		jnz	LeaveLoopCmps8
+
+		mov	16(%windowbestlen, %rdx), %rax
+		xor	16(%prev, %rdx), %rax
+		jnz	LeaveLoopCmps16
+				
+		add	$24, %rdx
 		jnz	LoopCmps
 		jmp	LenMaximum
 #	if 0
@@ -274,10 +364,15 @@ LeaveLoopCmps:	add	%rax, %rdx
  * This three-liner is tantalizingly simple, but bsf is a slow instruction,
  * and the complicated alternative down below is quite a bit faster. Sad...
  */
+
 LeaveLoopCmps:	bsf	%rax, %rax /* find the first non-zero bit */
 		shrl	$3, %eax /* divide by 8 to get the byte */
 		add	%rax, %rdx
 #	else
+LeaveLoopCmps16:
+		add	$8, %rdx
+LeaveLoopCmps8:
+		add	$8, %rdx
 LeaveLoopCmps:	testl   $0xFFFFFFFF, %eax /* Check the first 4 bytes */
 		jnz     Check16
 		add     $4, %rdx

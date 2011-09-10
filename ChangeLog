@@ -1,6 +1,31 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.4 (11 Mar 2010)
+- Fix VER3 extraction in configure for no fourth subversion
+- Update zlib.3, add docs to Makefile.in to make .pdf out of it
+- Add zlib.3.pdf to distribution
+- Don't set error code in gzerror() if passed pointer is NULL
+- Apply destination directory fixes to CMakeLists.txt [Lowman]
+- Move #cmakedefine's to a new zconf.in.cmakein
+- Restore zconf.h for builds that don't use configure or cmake
+- Add distclean to dummy Makefile for convenience
+- Update and improve INDEX, README, and FAQ
+- Update CMakeLists.txt for the return of zconf.h [Lowman]
+- Update contrib/vstudio/vc9 and vc10 [Vollant]
+- Change libz.dll.a back to libzdll.a in win32/Makefile.gcc
+- Apply license and readme changes to contrib/asm686 [Raiter]
+- Check file name lengths and add -c option in minigzip.c [Li]
+- Update contrib/amd64 and contrib/masmx86/ [Vollant]
+- Avoid use of "eof" parameter in trees.c to not shadow library variable
+- Update make_vms.com for removal of zlibdefs.h [Zinser]
+- Update assembler code and vstudio projects in contrib [Vollant]
+- Remove outdated assembler code contrib/masm686 and contrib/asm586
+- Remove old vc7 and vc8 from contrib/vstudio
+- Update win32/Makefile.msc, add ZLIB_VER_SUBREVISION [Rowe]
+- Fix memory leaks in gzclose_r() and gzclose_w(), file leak in gz_open()
+- Add contrib/gcc_gvmat64 for longest_match and inflate_fast [Vollant]
+
 Changes in 1.2.3.9 (21 Feb 2010)
 - Expunge gzio.c
 - Move as400 build information to old
@@ -256,7 +281,7 @@ Changes in 1.2.2.4 (11 July 2005)
   compile
 - Fix some spelling errors in comments [Betts]
 - Correct inflateInit2() error return documentation in zlib.h
-- Added zran.c example of compressed data random access to examples
+- Add zran.c example of compressed data random access to examples
   directory, shows use of inflatePrime()
 - Fix cast for assignments to strm->state in inflate.c and infback.c
 - Fix zlibCompileFlags() in zutil.c to use 1L for long shifts [Oberhumer]

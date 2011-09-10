@@ -523,8 +523,9 @@ int ZEXPORT gzclose_w(file)
     (void)deflateEnd(&(state->strm));
     free(state->out);
     free(state->in);
-    ret += close(state->fd);
     gz_error(state, Z_OK, NULL);
+    free(state->path);
+    ret += close(state->fd);
     free(state);
     return ret ? Z_ERRNO : Z_OK;
 }

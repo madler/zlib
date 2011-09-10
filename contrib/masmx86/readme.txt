@@ -14,8 +14,8 @@ appropriate makefile, as suggested below.
 Build instructions
 ------------------
 * With Microsoft C and MASM:
-nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="gvmat32c.obj gvmat32.obj inffas32.obj"
+nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="match686.obj inffas32.obj"
 
 * With Borland C and TASM:
-make -f win32/Makefile.bor LOCAL_ZLIB="-DASMV -DASMINF" OBJA="gvmat32c.obj gvmat32.obj inffas32.obj" OBJPA="+gvmat32c.obj+gvmat32.obj+inffas32.obj"
+make -f win32/Makefile.bor LOCAL_ZLIB="-DASMV -DASMINF" OBJA="match686.obj inffas32.obj" OBJPA="+match686c.obj+match686.obj+inffas32.obj"
 

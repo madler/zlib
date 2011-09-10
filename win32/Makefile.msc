@@ -21,10 +21,10 @@ AS = ml
 LD = link
 AR = lib
 RC = rc
-CFLAGS  = -nologo -MD -O2 -Oy- $(LOC)
+CFLAGS  = -nologo -MD -W3 -O2 -Oy- -Zi -Fd"zlib" $(LOC)
 WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
-ASFLAGS = -coff
-LDFLAGS = -nologo -debug -release
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no -opt:ref
 ARFLAGS = -nologo
 RCFLAGS = /dWIN32 /r
 
@@ -44,7 +44,7 @@ $(IMPLIB): $(SHAREDLIB)
 
 $(SHAREDLIB): win32/zlib.def $(OBJS) $(OBJA) zlib1.res
 	$(LD) $(LDFLAGS) -def:win32/zlib.def -dll -implib:$(IMPLIB) \
-	  -out:$@ $(OBJS) $(OBJA) zlib1.res
+	  -out:$@ -base:0x5A4C0000 $(OBJS) $(OBJA) zlib1.res
 	if exist $@.manifest \
 	  mt -nologo -manifest $@.manifest -outputresource:$@;2
 

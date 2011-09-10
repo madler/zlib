@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.3.9 Copyright 1995-2010 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.2.4 Copyright 1995-2010 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -1433,21 +1433,21 @@ local void fill_window(s)
  * Flush the current block, with given end-of-file flag.
  * IN assertion: strstart is set to the end of the current match.
  */
-#define FLUSH_BLOCK_ONLY(s, eof) { \
+#define FLUSH_BLOCK_ONLY(s, last) { \
    _tr_flush_block(s, (s->block_start >= 0L ? \
                    (charf *)&s->window[(unsigned)s->block_start] : \
                    (charf *)Z_NULL), \
                 (ulg)((long)s->strstart - s->block_start), \
-                (eof)); \
+                (last)); \
    s->block_start = s->strstart; \
    flush_pending(s->strm); \
    Tracev((stderr,"[FLUSH]")); \
 }
 
 /* Same but force premature exit if necessary. */
-#define FLUSH_BLOCK(s, eof) { \
-   FLUSH_BLOCK_ONLY(s, eof); \
-   if (s->strm->avail_out == 0) return (eof) ? finish_started : need_more; \
+#define FLUSH_BLOCK(s, last) { \
+   FLUSH_BLOCK_ONLY(s, last); \
+   if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
 }
 
 /* ===========================================================================
