@@ -20,7 +20,7 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
  3. Where can I get a Visual Basic interface to zlib?
 
     See
-        * http://www.winimage.com/zLibDll/cmp-z-it.zip
+        * http://www.winimage.com/zLibDll/
         * http://www.dogma.net/markn/articles/zlibtool/zlibtool.htm
         * contrib/visual-basic.txt in the zlib distribution
 
@@ -147,11 +147,14 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 22. The license says that altered source versions must be "plainly marked". So
     what exactly do I need to do to meet that requirement?
 
-    You need to append something the ZLIB_VERSION string in zlib.h. For
-    example, if the version of the base zlib you are altering is "1.2.3", then
-    you could change the string to "1.2.3-fred-mods-v3". You should not change
-    it to "1.2.4" or "1.2.3.1" since the zlib authors would like to reserve
-    those forms of the version for their own use.
+    You need to change the ZLIB_VERSION and ZLIB_VERNUM #defines in zlib.h. In
+    particular, the final version number needs to be changed to "f", and an
+    identification string should be appended to ZLIB_VERSION. Version numbers
+    x.x.x.f are reserved for modifications to zlib by others than the zlib
+    maintainers. For example, if the version of the base zlib you are altering
+    is "1.2.3.4", then in zlib.h you should change ZLIB_VERNUM to 0x123f, and
+    ZLIB_VERSION to something like "1.2.3.f-zachary-mods-v3". You can also
+    update the version strings in deflate.c and inftrees.c.
 
     For altered source distributions, you should also note the origin and
     nature of the changes in zlib.h, as well as in ChangeLog and README, along
@@ -161,8 +164,8 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
     Note that distributing a compiled zlib library along with zlib.h and
     zconf.h is also a source distribution, and so you should change
-    ZLIB_VERSION and note the origin and nature of the changes in zlib.h as you
-    would for a full source distribution.
+    ZLIB_VERSION and ZLIB_VERNUM and note the origin and nature of the changes
+    in zlib.h as you would for a full source distribution.
 
 23. Will zlib work on a big-endian or little-endian architecture, and can I
     exchange compressed data between them?
@@ -212,12 +215,20 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 30. Can zlib work with greater than 4 GB of data?
 
     Yes. inflate() and deflate() will process any amount of data correctly.
-    However the strm.total_in and strm_total_out counters may be limited to
-    4 GB. The application can easily set up its own counters updated after each
-    call of inflate() or deflate() to count beyond 4 GB. compress() and
-    uncompress() may be limited to 4 GB, since they operate in a single call
-    using unsigned long lengths. gzseek() and gztell() may be limited to 4 GB
-    depending on how zlib is compiled.
+    Each call of inflate() or deflate() is limited to input and output chunks
+    of the maximum value that can be stored in the compiler's "unsigned int"
+    type, but there is no limit to the number of chunks. Note however that the
+    strm.total_in and strm_total_out counters may be limited to 4 GB. These
+    counters are provided as a convenience and are not used internally by
+    inflate() or deflate(). The application can easily set up its own counters
+    updated after each call of inflate() or deflate() to count beyond 4 GB.
+    compress() and uncompress() may be limited to 4 GB, since they operate in a
+    single call. gzseek() and gztell() may be limited to 4 GB depending on how
+    zlib is compiled. See the zlibCompileFlags() function in zlib.h.
+
+    The word "may" appears several times above since there is a 4 GB limit
+    only if the compiler's "long" type is 32 bits. If the compiler's "long"
+    type is 64 bits, then the limit is 16 exabytes.
 
 31. Does zlib have any security vulnerabilities?
 
@@ -228,7 +239,7 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
     hand, if zlib is compiled to use snprintf() or vsnprintf(), which should
     normally be the case, then there is no vulnerability. The ./configure
     script will display warnings if an insecure variation of sprintf() will
-    be used by gzprintf(). Also the zlibCompileFlags() functions will return
+    be used by gzprintf(). Also the zlibCompileFlags() function will return
     information on what variant of sprintf() is used by gzprintf().
 
     If you don't have snprintf() or vsnprintf() and would like one, you can
@@ -262,9 +273,10 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
 35. How can I encrypt/decrypt zip files with zlib?
 
-    zlib doesn't support encryption. PKZIP encryption is very weak and can be
-    broken with freely available programs. To get strong encryption, use gpg
-    which already includes zlib compression.
+    zlib doesn't support encryption. The original PKZIP encryption is very weak
+    and can be broken with freely available programs. To get strong encryption,
+    use gpg ( http://www.gnupg.org/ ) which already includes zlib compression.
+    For PKZIP compatible "encryption", look at http://www.info-zip.org/
 
 36. What's the difference between the "gzip" and "deflate" HTTP 1.1 encodings?
 
@@ -280,6 +292,8 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
     for), using the "gzip" transfer encoding is probably more reliable due to
     an unfortunate choice of name on the part of the HTTP 1.1 authors.
 
+    Bottom line: use the gzip format for HTTP 1.1 encoding.
+
 37. Does zlib support the new "Deflate64" format introduced by PKWare?
 
     No. PKWare has apparently decided to keep that format proprietary, since
@@ -290,4 +304,4 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 38. Can you please sign these lengthy legal documents and fax them back to us
     so that we can use your software in our product?
 
-    No. Go away.
+    No. Go away. Shoo.

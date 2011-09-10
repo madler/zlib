@@ -828,7 +828,11 @@ extern int ZEXPORT unzLocateFile (file, szFileName, iCaseSensitivity)
     unz_s* s;
     int err;
 
-
+    /* We remember the 'current' position in the file so that we can jump
+     * back there if we fail.
+     */
+    unz_file_info cur_file_infoSaved;
+    unz_file_info_internal cur_file_info_internalSaved;
     uLong num_fileSaved;
     uLong pos_in_central_dirSaved;
 
@@ -843,25 +847,36 @@ extern int ZEXPORT unzLocateFile (file, szFileName, iCaseSensitivity)
     if (!s->current_file_ok)
         return UNZ_END_OF_LIST_OF_FILE;
 
+    /* Save the current state */
     num_fileSaved = s->num_file;
     pos_in_central_dirSaved = s->pos_in_central_dir;
+    cur_file_infoSaved = s->cur_file_info;
+    cur_file_info_internalSaved = s->cur_file_info_internal;
 
     err = unzGoToFirstFile(file);
 
     while (err == UNZ_OK)
     {
         char szCurrentFileName[UNZ_MAXFILENAMEINZIP+1];
-        unzGetCurrentFileInfo(file,NULL,
-                                szCurrentFileName,sizeof(szCurrentFileName)-1,
-                                NULL,0,NULL,0);
-        if (unzStringFileNameCompare(szCurrentFileName,
-                                        szFileName,iCaseSensitivity)==0)
-            return UNZ_OK;
-        err = unzGoToNextFile(file);
+        err = unzGetCurrentFileInfo(file,NULL,
+                                    szCurrentFileName,sizeof(szCurrentFileName)-1,
+                                    NULL,0,NULL,0);
+        if (err == UNZ_OK)
+        {
+            if (unzStringFileNameCompare(szCurrentFileName,
+                                            szFileName,iCaseSensitivity)==0)
+                return UNZ_OK;
+            err = unzGoToNextFile(file);
+        }
     }
 
+    /* We failed, so restore the state of the 'current file' to where we
+     * were.
+     */
     s->num_file = num_fileSaved ;
     s->pos_in_central_dir = pos_in_central_dirSaved ;
+    s->cur_file_info = cur_file_infoSaved;
+    s->cur_file_info_internal = cur_file_info_internalSaved;
     return err;
 }
 

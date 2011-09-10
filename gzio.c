@@ -506,7 +506,8 @@ int ZEXPORT gzungetc(c, file)
     s->back = c;
     s->stream.total_out--;
     s->last = (s->z_err == Z_STREAM_END);
-    if (s->z_eof) s->z_eof = 0;
+    if (s->last) s->z_err = Z_OK;
+    s->z_eof = 0;
     return c;
 }
 
@@ -812,7 +813,7 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
         if (s->outbuf == Z_NULL) return -1L;
     }
     if (offset && s->back != EOF) {
-        s->back == EOF;
+        s->back = EOF;
         s->stream.total_out++;
         offset--;
         if (s->last) s->z_err = Z_STREAM_END;

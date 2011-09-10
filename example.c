@@ -528,7 +528,7 @@ int main(argc, argv)
         fprintf(stderr, "warning: different zlib version\n");
     }
 
-    printf("zlib version %s = 0x%04x, compile flags = 0x%x\n",
+    printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
             ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
 
     compr    = (Byte*)calloc((uInt)comprLen, 1);

@@ -183,20 +183,21 @@
 #      define ZEXPORT   WINAPI _export
 #      define ZEXPORTVA FAR _cdecl _export
 #    else
-#      define ZEXPORT   WINAPI
+#      define ZEXPORT   FAR _cdecl
 #      define ZEXPORTVA FAR _cdecl
 #    endif
 #  else
      /* a fully Win32-compliant compiler */
-#    define ZEXPORT   WINAPI
 #    define ZEXPORTVA CDECL
 #    ifdef ZLIB_DLL
+#      define ZEXPORT WINAPI
 #      ifdef ZLIB_INTERNAL
 #        define ZEXTERN extern __declspec(dllexport)
 #      else
 #        define ZEXTERN extern __declspec(dllimport)
 #      endif
 #    else
+#      define ZEXPORT CDECL
 #      define ZEXTERN extern
 #    endif
 #  endif

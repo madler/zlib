@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32,ASMV"
+				PreprocessorDefinitions="WIN32,ZLIB_DLL,ASMV"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\DebugDll/zlibvc.pch"
@@ -76,7 +76,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32"
+				PreprocessorDefinitions="WIN32,ZLIB_DLL"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="0"
@@ -138,7 +138,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32,ASMV"
+				PreprocessorDefinitions="WIN32,ZLIB_DLL,ASMV"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="0"
@@ -200,7 +200,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32"
+				PreprocessorDefinitions="WIN32,ZLIB_DLL"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="0"
@@ -260,7 +260,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32,ASMV"
+				PreprocessorDefinitions="WIN32,ZLIB_DLL,ASMV"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="0"
@@ -379,9 +379,23 @@
 			</File>
 			<File
 				RelativePath=".\unzip.c">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="ZLIB_INTERNAL"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\zip.c">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="ZLIB_INTERNAL"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\zlib.rc">

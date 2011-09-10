@@ -1,5 +1,12 @@
 
                 ChangeLog file for zlib
+Changes in 1.2.0.3 (19 July 2003)
+- Fix silly error in gzungetc() implementation [Vollant]
+- Update contrib/minizip and contrib/vstudio [Vollant]
+- Fix printf format in example.c
+- Correct cdecl support in zconf.in.h [Anisimkov]
+- Minor FAQ updates
+
 Changes in 1.2.0.2 (13 July 2003)
 - Add ZLIB_VERNUM in zlib.h for numerical preprocessor comparisons
 - Attempt to avoid warnings in crc32.c for pointer-int conversion
@@ -31,8 +38,8 @@ Changes in 1.2.0.2 (13 July 2003)
     - Report 2 only for level == 6
 - Only deal with 64K limit when necessary at compile time [Truta]
 - Allow TOO_FAR check to be turned off at compile time [Truta]
-- Added gzclearerr() function [Souza]
-- Added gzungetc() function
+- Add gzclearerr() function [Souza]
+- Add gzungetc() function
 
 Changes in 1.2.0.1 (17 March 2003)
 - Add Z_RLE strategy for run-length encoding [Truta]

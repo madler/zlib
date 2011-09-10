@@ -22,8 +22,8 @@ CPPUSEPCHFLAG =
 FIRSTC = ADLER32.C   
 FIRSTCPP =             
 RC = rc
-CFLAGS_D_WDLL = /nologo /G2 /W3 /Zi /ALw /Od /D "_DEBUG" /D "WINDOWS" /D "ZLIB_DLL" /FR /GD /Fd"ZLIB.PDB"
-CFLAGS_R_WDLL = /nologo /W3 /ALw /O1 /D "NDEBUG" /D "WINDOWS" /D "ZLIB_DLL" /FR /GD 
+CFLAGS_D_WDLL = /nologo /G2 /W3 /Zi /ALw /Od /D "_DEBUG" /D "WINDOWS" /D "ZLIB_DLL" /D "ZLIB_INTERNAL" /FR /GD /Fd"ZLIB.PDB"
+CFLAGS_R_WDLL = /nologo /W3 /ALw /O1 /D "NDEBUG" /D "WINDOWS" /D "ZLIB_DLL" /D "ZLIB_INTERNAL" /FR /GD 
 LFLAGS_D_WDLL = /NOLOGO /ONERROR:NOEXE /NOD /PACKC:61440 /CO /NOE /ALIGN:16 /MAP:FULL
 LFLAGS_R_WDLL = /NOLOGO /ONERROR:NOEXE /NOD /PACKC:61440 /NOE /ALIGN:16 /MAP:FULL
 LIBS_D_WDLL = oldnames libw commdlg shell olecli olesvr ldllcew
@@ -74,7 +74,8 @@ COMPRESS_DEP = c:\zlib\zlib.h \
 	c:\zlib\zconf.h
 
 
-CRC32_DEP = c:\zlib\zlib.h \
+CRC32_DEP = c:\zlib\zutil.h \
+	c:\zlib\zlib.h \
 	c:\zlib\zconf.h \
 	c:\zlib\crc32.h
 
@@ -128,13 +129,15 @@ ZLIB16_RCDEP =
 ZIP_DEP = c:\zlib\zlib.h \
 	c:\zlib\zconf.h \
 	c:\zlib\zip.h \
-	c:\zlib\ioapi.h
+	c:\zlib\ioapi.h \
+	c:\zlib\crypt.h
 
 
 UNZIP_DEP = c:\zlib\zlib.h \
 	c:\zlib\zconf.h \
 	c:\zlib\unzip.h \
-	c:\zlib\ioapi.h
+	c:\zlib\ioapi.h \
+	c:\zlib\crypt.h
 
 
 INFBACK_DEP = c:\zlib\zutil.h \
