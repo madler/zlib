@@ -26,7 +26,8 @@ z_stream *z;
 int r;
 {
   uInt n;
-  Bytef *p, *q;
+  Bytef *p;
+  Bytef *q;
 
   /* local copies of source and destination pointers */
   p = z->next_out;

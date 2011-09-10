@@ -2,32 +2,51 @@
 # Copyright (C) 1995-1996 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h 
 
-# To compile and test, type:
+# To compile, or to compile and test, type:
+# 
 #   make -fmakefile.dj2;  make test -fmakefile.dj2
-
+# 
 # To install libz.a, zconf.h and zlib.h in the djgpp directories, type:
+# 
 #    make install -fmakefile.dj2
-# after first defining LIBRARY_PATH and INCLUDE_PATH in djgpp.env for [make].
-# Alternately these variables may be defined below.
+# 
+# after first defining LIBRARY_PATH and INCLUDE_PATH in djgpp.env as
+# in the sample below if the pattern of the DJGPP distribution is to
+# be followed.  Remember that, while <sp>'es around <=> are ignored in
+# makefiles, they are *not* in batch files or in djgpp.env.
+# - - - - -
+# [make]
+# INCLUDE_PATH=%\>;INCLUDE_PATH%%\DJDIR%\include
+# LIBRARY_PATH=%\>;LIBRARY_PATH%%\DJDIR%\lib
+# BUTT=-m486
+# - - - - -
+# Alternately, these variables may be defined below, overriding the values
+# in djgpp.env, as
+INCLUDE_PATH=c:\usr\include
 
 CC=gcc
 
 #CFLAGS=-MMD -O
 #CFLAGS=-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7
 #CFLAGS=-MMD -g -DDEBUG
-CFLAGS=-MMD -O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
-           -Wstrict-prototypes -Wmissing-prototypes
+CFLAGS=-MMD -O3 $(BUTT) -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
+             -Wstrict-prototypes -Wmissing-prototypes
+
+# If cp.exe is not found, replace with copy /Y .
+CP=cp -f
+# If install.exe is not found, replace with $(CP).
 INSTALL=install
+# The default value of RM is "rm -f."  If "rm.exe" is not found, uncomment:
+# RM=del
 LDLIBS=-L. -lz
 LD=$(CC) -s -o
 LDSHARED=$(CC)
 
-VER=1.0
+VER=1.0.2
+INCL=zlib.h zconf.h
 LIBS=libz.a
 
 AR=ar rcs
-# The default value of RM is "rm -f."  If "rm.exe" is not found, uncomment:
-# RM=del
 
 prefix=/usr/local
 exec_prefix = $(prefix)
@@ -36,10 +55,6 @@ OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o inffast.o
 
 TEST_OBJS = example.o minigzip.o
-
-DISTFILES = README Change.Log configur Makefile.in Makefile Makefile.msc \
-	    Makefile.bor Makefile.tc Make_vms.com descrip.mms zlib099.pat \
-	    *.bak *.old *.[ch]
 
 all: example.exe minigzip.exe
 
@@ -55,23 +70,27 @@ libz.a: $(OBJS)
 
 libz.so.$(VER): $(OBJS)
 	$(LDSHARED) -o $@ $(OBJS)
-	rm -f libz.so; ln -s $@ libz.so
+	$(RM) libz.so; ln -s $@ libz.so
 
 %.exe : %.o $(LIBS)
 	$(LD) $@ $< $(LDLIBS)
 
-# INCLUDE_PATH and LIBRARY_PATH were set for [make] in djgpp.env
+# INCLUDE_PATH and LIBRARY_PATH were set for [make] in djgpp.env .
 
-install: $(LIBS)
-	$(INSTALL) zlib.h zconf.h $(INCLUDE_PATH)
-	$(INSTALL) $(LIBS) $(LIBRARY_PATH)
+.PHONY : uninstall clean
+
+install: $(INCL) $(LIBS)
+	-@if not exist $(INCLUDE_PATH)\nul mkdir $(INCLUDE_PATH)
+	-@if not exist $(LIBRARY_PATH)\nul mkdir $(LIBRARY_PATH)
+	for %%f in ($(INCL)) do $(INSTALL) %%f $(INCLUDE_PATH)
+	for %%p in ($(LIBS)) do $(INSTALL) %%p $(LIBRARY_PATH)
 
 uninstall:
-	$(RM) $(LIBRARY_PATH)/$(LIBS)
-	$(RM) $(INCLUDE_PATH)/zlib.h $(INCLUDE_PATH)/zconf.h
+	for %%f in ($(INCL)) do $(RM) $(INCLUDE_PATH)\%%f
+	for %%p in ($(LIBS)) do $(RM) $(LIBRARY_PATH)\%%p
 
 clean:
-	$(RM) *.d *.o *.~ *.exe libz.a libz.so* foo.gz
+	for %%p in (*.d *.o *.exe libz.a libz.so*) do $(RM) %%p
 
 DEPS := $(wildcard *.d)
 ifneq ($(DEPS),)

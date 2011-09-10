@@ -1,6 +1,16 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.2 (23 May 96)
+- added Windows DLL support
+- added a function zlibVersion (for the DLL support)
+- fixed declarations using Bytef in infutil.c (pb with MSDOS medium model)
+- Bytef is define's instead of typedef'd only for Borland C
+- avoid reading uninitialized memory in example.c
+- mention in README that the zlib format is now RFC1950
+- updated Makefile.dj2
+- added algorithm.doc
+
 Changes in 1.0.1 (20 May 96) [1.0 skipped to avoid confusion]
 - fix array overlay in deflate.c which sometimes caused bad compressed data
 - fix inflate bug with empty stored block

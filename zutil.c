@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.12 1996/01/30 21:59:29 me Exp $ */
+/* $Id: zutil.c,v 1.15 1996/05/23 17:11:36 me Exp $ */
 
 #include <stdio.h>
 
@@ -14,8 +14,6 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 #ifndef STDC
 extern void exit OF((int));
 #endif
-
-const char *zlib_version = ZLIB_VERSION;
 
 const char *z_errmsg[10] = {
 "need dictionary",     /* Z_NEED_DICT       2  */
@@ -29,6 +27,11 @@ const char *z_errmsg[10] = {
 "incompatible version",/* Z_VERSION_ERROR (-6) */
 ""};
 
+
+char *zlibVersion()
+{
+    return ZLIB_VERSION;
+}
 
 void z_error (m)
     char *m;

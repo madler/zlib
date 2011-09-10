@@ -47,11 +47,11 @@
  *
  */
 
-/* $Id: deflate.c,v 1.12 1996/01/30 21:59:11 me Exp $ */
+/* $Id: deflate.c,v 1.13 1996/05/22 11:52:21 me Exp $ */
 
 #include "deflate.h"
 
-char deflate_copyright[] = " deflate 1.0.1 Copyright 1995-1996 Jean-loup Gailly ";
+char deflate_copyright[] = " deflate 1.0.2 Copyright 1995-1996 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot

@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zconf.h,v 1.12 1995/05/03 17:27:12 jloup Exp $ */
+/* $Id: zconf.h,v 1.18 1996/05/23 16:51:18 me Exp $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H
@@ -37,7 +37,7 @@
 #  define Byte		z_Byte
 #  define uInt		z_uInt
 #  define uLong		z_uLong
-/* #  define Bytef	z_Bytef */
+#  define Bytef	        z_Bytef
 #  define charf		z_charf
 #  define intf		z_intf
 #  define uIntf		z_uIntf
@@ -128,7 +128,8 @@
  * to define NO_MEMCPY in zutil.h.  If you don't need the mixed model,
  * just define FAR to be empty.
  */
-#if defined(M_I86SM) || defined(M_I86MM) /* MSC small or medium model */
+#if (defined(M_I86SM) || defined(M_I86MM)) && !defined(__32BIT__)
+   /* MSC small or medium model */
 #  define SMALL_MEDIUM
 #  ifdef _MSC_VER
 #    define FAR __far
@@ -137,14 +138,16 @@
 #  endif
 #endif
 #if defined(__BORLANDC__) && (defined(__SMALL__) || defined(__MEDIUM__))
+#  ifndef __32BIT__
 #    define SMALL_MEDIUM
 #    define FAR __far
+#  endif
 #endif
 #ifndef FAR
 #   define FAR
 #endif
 /* The Watcom compiler defines M_I86SM and __SMALL__ even in 32 bit mode */
-#if defined(__WATCOMC__) && defined(__386__)
+#if defined(__WATCOMC__) && defined(__386__) && defined(SMALL_MEDIUM)
 #  undef FAR
 #  define FAR
 #  undef SMALL_MEDIUM
@@ -154,8 +157,12 @@ typedef unsigned char  Byte;  /* 8 bits */
 typedef unsigned int   uInt;  /* 16 bits or more */
 typedef unsigned long  uLong; /* 32 bits or more */
 
-/* "typedef Byte  FAR Bytef;" doesn't work with Borland C/C++ */
-#define Bytef Byte  FAR 
+#if defined(__BORLANDC__) && defined(SMALL_MEDIUM)
+   /* Borland C/C++ ignores FAR inside typedef */
+#  define Bytef Byte FAR
+#else
+   typedef Byte  FAR Bytef;
+#endif
 typedef char  FAR charf;
 typedef int   FAR intf;
 typedef uInt  FAR uIntf;
@@ -167,6 +174,15 @@ typedef uLong FAR uLongf;
 #else
    typedef Byte FAR *voidpf;
    typedef Byte     *voidp;
+#endif
+
+
+/* Compile with -DZLIB_DLL for Windows DLL support */
+#if (defined(_WINDOWS) || defined(WINDOWS)) && defined(ZLIB_DLL)
+#  include <windows.h>
+#  define EXPORT  WINAPI
+#else
+#  define EXPORT
 #endif
 
 #endif /* _ZCONF_H */

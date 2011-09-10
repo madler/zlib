@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.13 1996/01/30 21:59:13 me Exp $ */
+/* $Id: example.c,v 1.16 1996/05/23 17:11:28 me Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -462,16 +462,19 @@ int main(argc, argv)
     uLong comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
     uLong uncomprLen = comprLen;
 
-    if (zlib_version[0] != ZLIB_VERSION[0]) {
+    if (zlibVersion()[0] != ZLIB_VERSION[0]) {
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);
 
-    } else if (strcmp(zlib_version, ZLIB_VERSION) != 0) {
+    } else if (strcmp(zlibVersion(), ZLIB_VERSION) != 0) {
         fprintf(stderr, "warning: different zlib version\n");
     }
 
-    compr    = (Byte*)malloc((uInt)comprLen);
-    uncompr  = (Byte*)calloc((uInt)uncomprLen, 1); /* must be cleared */
+    compr    = (Byte*)calloc((uInt)comprLen, 1);
+    uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);
+    /* compr and uncompr are cleared to avoid reading uninitialized
+     * data and to ensure that uncompr compresses well.
+     */
     if (compr == Z_NULL || uncompr == Z_NULL) {
         printf("out of memory\n");
 	exit(1);

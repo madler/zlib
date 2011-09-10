@@ -1,8 +1,9 @@
-zlib 1.0.1 is a general purpose data compression library.  All the code
+zlib 1.0.2 is a general purpose data compression library.  All the code
 is reentrant (thread safe).  The data format used by the zlib library
-is described in the files zlib-3.3.doc, deflate-1.3.doc and
-gzip-4.3.doc, available in various formats from
-ftp://swrinde.nde.swri.edu/pub/png/documents/zlib/
+is described by RFCs (Request for Comments) 1950 to 1952 in the files 
+ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
+format) and rfc1952.txt (gzip format). These documents are also available in
+other formats from ftp://ftp.uu.net/graphics/png/documents/zlib/zdoc-index.html
 
 All functions of the compression library are documented in the file
 zlib.h. A usage example of the library is given in the file example.c
@@ -18,9 +19,8 @@ makefiles such as Makefile.msc; for VMS, use Make_vms.com or descrip.mms.
 Questions about zlib should be sent to <zlib@quest.jpl.nasa.gov> or,
 if this fails, to the addresses given below in the Copyright section.
 
-The changes made in version 1.0.1 are documented in the file ChangeLog.
-Version number 1.0 was skipped to avoid confusion with version 0.99
-which had some references to 1.0 already. The main changes since 0.99 are:
+The changes made in version 1.0.2 are documented in the file ChangeLog.
+The main changes since 0.99 are:
 
 - fix array overlay in deflate.c which sometimes caused bad compressed data
 - fix inflate bug with empty stored block
@@ -30,6 +30,14 @@ which had some references to 1.0 already. The main changes since 0.99 are:
 - new makefiles for DJGPP (Makefile.dj2), 32-bit Borland (Makefile.b32),
   Watcom (Makefile.wat), Amiga SAS/C (Makefile.sas)
 - several portability improvements
+- added algorithm.doc
+- added Windows DLL support
+- added a function zlibVersion (for the DLL support)
+
+A Perl interface to zlib written by Paul Marquess <pmarquess@bfsec.bt.co.uk>
+is in the CPAN (Comprehensive Perl Archive Network) sites, such as:
+ftp://ftp.cis.ufl.edu/pub/perl/CPAN/modules/by-module/Compress/Compress-Zlib*
+
 
 Notes for some targets:
 
@@ -46,9 +54,10 @@ Notes for some targets:
 - zlib doesn't work on HP-UX 9.05 with one cc compiler (the one not
   accepting the -O option). It works with the other cc compiler.
 
-A Perl interface to zlib written by Paul Marquess <pmarquess@bfsec.bt.co.uk>
-is in the CPAN (Comprehensive Perl Archive Network) sites, such as:
-ftp://ftp.cis.ufl.edu/pub/perl/CPAN/modules/by-module/Compress/Compress-Zlib*
+- To build a Windows DLL version, include in a DLL project zlib.def, zlib.rc
+  and all .c files except example.c and minigzip.c; compile with -DZLIB_DLL
+  For help on building a zlib DLL, contact Alessandro Iacopetti
+  <iaco@cicladi.unial.it>
 
 
 Acknowledgments:

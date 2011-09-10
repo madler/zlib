@@ -6,7 +6,7 @@
 #include "zutil.h"
 #include "inftrees.h"
 
-char inflate_copyright[] = " inflate 1.0.1 Copyright 1995-1996 Mark Adler ";
+char inflate_copyright[] = " inflate 1.0.2 Copyright 1995-1996 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
