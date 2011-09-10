@@ -4,18 +4,20 @@
 # To use, do "make -fmakefile.tc"
 
 # WARNING: the small model is supported but only for small values of
-# MAX_WBITS and MAX_MEM_LEVEL. If you wish to reduce the memory
-# requirements (default 256K for big objects plus a few K), you can add
-# to CFLAGS below: -DMAX_MEM_LEVEL=7 -DMAX_WBITS=14
+# MAX_WBITS and MAX_MEM_LEVEL. For example:
+#    -DMAX_WBITS=11 -DDEF_WBITS=11 -DMAX_MEM_LEVEL=3
+# If you wish to reduce the memory requirements (default 256K for big
+# objects plus a few K), you can add to CFLAGS below: 
+#   -DMAX_MEM_LEVEL=7 -DMAX_WBITS=14
 # See zconf.h for details about the memory requirements.
 
 # ------------- Turbo C 2.0 -------------
 MODEL=-ml
-CFLAGS=-O2 -Z $(MODEL)
-CC=tcc
-LD=tcc
+CFLAGS=-O2 -G -Z $(MODEL)
+CC=tcc -I\tc\include
+LD=tcc -L\tc\lib
 LIB=tlib
-LDFLAGS=$(MODEL)
+LDFLAGS=$(MODEL) -f-
 O=.obj
 
 # variables
@@ -82,6 +84,7 @@ minigzip.obj: minigzip.c zlib.h zconf.h
 
 # we must cut the command line to fit in the MS/DOS 128 byte limit:
 zlib.lib: $(OBJ1) $(OBJ2)
+	del zlib.lib
 	$(LIB) zlib +$(OBJP1)
 	$(LIB) zlib +$(OBJP2)
 

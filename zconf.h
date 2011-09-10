@@ -28,14 +28,24 @@
 #if defined(MSDOS) && !defined(__32BIT__)
 #  define MAXSEG_64K
 #endif
+#ifdef MSDOS
+#  define UNALIGNED_OK
+#endif
+
 #ifndef STDC
 #  if defined(MSDOS) || defined(__STDC__) || defined(__cplusplus)
 #    define STDC
 #  endif
 #endif
 
-#if !defined(STDC) && !defined(const)
-#  define const
+#ifndef STDC
+#  ifndef const
+#    define const
+#  endif
+#endif
+
+#ifdef	__MWERKS__ /* Metrowerks CodeWarrior declares fileno() in unix.h */
+#  include <unix.h>
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */
@@ -67,29 +77,44 @@
 
                         /* Type declarations */
 
-#ifndef __P /* function prototypes */
+#ifndef OF /* function prototypes */
 #  ifdef STDC
-#    define __P(args)  args
+#    define OF(args)  args
 #  else
-#    define __P(args)  ()
+#    define OF(args)  ()
 #  endif
 #endif
 
-#ifndef Byte
-  typedef unsigned char  Byte;  /* 8 bits */
+#if defined(M_I86SM) || defined(M_I86MM) /* model independent MSC functions */
+#   define zstrcpy _fstrcpy
+#   define zstrcat _fstrcat
+#   define zstrlen _fstrlen
+#   define zstrcmp _fstrcmp
+#   define FAR __far
+#else
+#   define zstrcpy strcpy
+#   define zstrcat strcat
+#   define zstrlen strlen
+#   define zstrcmp strcmp
+#   define FAR
 #endif
-#ifndef uInt
-  typedef unsigned int   uInt;  /* 16 bits or more */
-#endif
-#ifndef uLong
-  typedef unsigned long  uLong; /* 32 bits or more */
-#endif
-#ifndef voidp
-#  ifdef STDC
-     typedef void *voidp;
-#  else
-     typedef Byte *voidp;
-#  endif
+ 
+typedef unsigned char  Byte;  /* 8 bits */
+typedef unsigned int   uInt;  /* 16 bits or more */
+typedef unsigned long  uLong; /* 32 bits or more */
+
+typedef Byte FAR Bytef;  
+typedef char FAR charf;  
+typedef int FAR intf;
+typedef uInt FAR uIntf;
+typedef uLong FAR uLongf;
+
+#ifdef STDC
+   typedef void FAR *voidp;
+   typedef void     *voidnp;
+#else
+   typedef Byte FAR *voidp;
+   typedef Byte     *voidnp;
 #endif
 
 #endif /* _ZCONF_H */

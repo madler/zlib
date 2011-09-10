@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: crc32.c,v 1.5 1995/05/01 13:55:46 jloup Exp $ */
+/* $Id: crc32.c,v 1.4 1995/04/14 14:55:12 jloup Exp $ */
 
 #include "zlib.h"
 
@@ -99,7 +99,7 @@ local uLong crc_table[] = {
 /* ========================================================================= */
 uLong crc32(crc, buf, len)
     uLong crc;
-    Byte *buf;
+    Bytef *buf;
     uInt len;
 {
     if (buf == Z_NULL) return 0L;

@@ -13,7 +13,7 @@
 #endif
 
 #ifndef __GO32__
-extern void exit  __P((int));
+extern void exit  OF((int));
 #endif
 
 #define BUFLEN 4096
@@ -31,13 +31,18 @@ extern void exit  __P((int));
     } \
 }
 
-char *hello = "hello world";
+char *hello = "hello, hello!";
+/* "hello world" would be more standard, but the repeated "hello"
+ * stresses the compression code better, sorry...
+ */
 
-void test_compress __P((void));
-void test_gzio     __P((char *out, char *in));
-void test_deflate  __P((Byte compr[]));
-void test_inflate  __P((Byte compr[]));
-void main          __P((int argc, char *argv[]));
+void test_compress OF((void));
+void test_gzio     OF((char *out, char *in));
+void test_deflate  OF((Byte compr[]));
+void test_inflate  OF((Byte compr[]));
+void test_flush    OF((Byte compr[]));
+void test_sync     OF((Byte compr[]));
+int  main          OF((int argc, char *argv[]));
 
 /* ===========================================================================
  * Test compress() and uncompress()
@@ -262,7 +267,7 @@ void test_sync(compr)
  * Usage:  example [output.gz  [input.gz]]
  */
 
-void main(argc, argv)
+int main(argc, argv)
     int argc;
     char *argv[];
 {
@@ -272,7 +277,7 @@ void main(argc, argv)
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);
 
-    } else if (strcmp(zlib_version, ZLIB_VERSION) != 0) {
+    } else if (zstrcmp(zlib_version, ZLIB_VERSION) != 0) {
         fprintf(stderr, "warning: different zlib version\n");
     }
     test_compress();
@@ -287,4 +292,5 @@ void main(argc, argv)
     test_sync(compr);
 
     exit(0);
+    return 0; /* to avoid warning */
 }

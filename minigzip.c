@@ -19,9 +19,9 @@
 #include "zlib.h"
 
 #ifndef __GO32__
-extern void exit  __P((int));
+extern void exit  OF((int));
 #endif
-extern int unlink __P((const char *));
+extern int unlink OF((const char *));
 
 #ifdef STDC
 #  include <string.h>
@@ -35,6 +35,13 @@ extern int unlink __P((const char *));
 #  define SET_BINARY_MODE(file)
 #endif
 
+#ifdef VMS
+#  define GZ_SUFFIX "-gz"
+#else
+#  define GZ_SUFFIX ".gz"
+#endif
+#define SUFFIX_LEN sizeof(GZ_SUFFIX)
+
 #define BUFLEN 4096
 #define MAX_NAME_LEN 1024
 
@@ -46,12 +53,12 @@ extern int unlink __P((const char *));
 
 char *prog;
 
-void error           __P((char *msg));
-void gz_compress     __P((FILE   *in, gzFile out));
-void gz_uncompress   __P((gzFile in, FILE   *out));
-void file_compress   __P((char  *file));
-void file_uncompress __P((char  *file));
-void main            __P((int argc, char *argv[]));
+void error           OF((char *msg));
+void gz_compress     OF((FILE   *in, gzFile out));
+void gz_uncompress   OF((gzFile in, FILE   *out));
+void file_compress   OF((char  *file));
+void file_uncompress OF((char  *file));
+int  main            OF((int argc, char *argv[]));
 
 /* ===========================================================================
  * Display error message and exit
@@ -124,14 +131,14 @@ void file_compress(file)
     gzFile out;
 
     strcpy(outfile, file);
-    strcat(outfile, ".gz");
+    strcat(outfile, GZ_SUFFIX);
 
     in = fopen(file, "rb");
     if (in == NULL) {
         perror(file);
         exit(1);
     }
-    out = gzopen(outfile, "wb");
+    out = gzopen(outfile, "wb"); /* use "wb9" for maximal compression */
     if (out == NULL) {
         fprintf(stderr, "%s: can't gzopen %s\n", prog, outfile);
         exit(1);
@@ -156,14 +163,14 @@ void file_uncompress(file)
 
     strcpy(buf, file);
 
-    if (len > 3 && strcmp(file+len-3, ".gz") == 0) {
+    if (len > SUFFIX_LEN && strcmp(file+len-SUFFIX_LEN, GZ_SUFFIX) == 0) {
         infile = file;
         outfile = buf;
         outfile[len-3] = '\0';
     } else {
         outfile = file;
         infile = buf;
-        strcat(infile, ".gz");
+        strcat(infile, GZ_SUFFIX);
     }
     in = gzopen(infile, "rb");
     if (in == NULL) {
@@ -186,7 +193,7 @@ void file_uncompress(file)
  * Usage:  minigzip [-d] [files...]
  */
 
-void main(argc, argv)
+int main(argc, argv)
     int argc;
     char *argv[];
 {
@@ -210,7 +217,7 @@ void main(argc, argv)
             if (file == NULL) error("can't gzdopen stdin");
             gz_uncompress(file, stdout);
         } else {
-            file = gzdopen(fileno(stdout), "wb");
+            file = gzdopen(fileno(stdout), "wb"); /* "wb9" for max compr. */
             if (file == NULL) error("can't gzdopen stdout");
             gz_compress(stdin, file);
         }
@@ -224,4 +231,5 @@ void main(argc, argv)
         } while (argv++, --argc);
     }
     exit(0);
+    return 0; /* to avoid warning */
 }

@@ -9,17 +9,19 @@
  */
 
 struct inflate_codes_state;
+typedef struct inflate_codes_state FAR inflate_codes_statef;
 
-extern struct inflate_codes_state *inflate_codes_new __P((
+extern inflate_codes_statef *inflate_codes_new OF((
     uInt, uInt,
     inflate_huft *, inflate_huft *,
     z_stream *));
 
-extern int inflate_codes __P((
-    struct inflate_blocks_state *,
+extern int inflate_codes OF((
+    inflate_blocks_statef *,
     z_stream *,
     int));
 
-extern void inflate_codes_free __P((
-    struct inflate_codes_state *,
+extern void inflate_codes_free OF((
+    inflate_codes_statef *,
     z_stream *));
+

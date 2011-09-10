@@ -13,8 +13,8 @@ struct internal_state {int dummy;}; /* for buggy compilers */
 
 #define Z_BUFSIZE 4096
 
-#define ALLOC(size) zcalloc((voidp)0, 1, size)
-#define TRYFREE(p) {if (p) zcfree((voidp)0, p);}
+#define ALLOC(size) malloc(size)
+#define TRYFREE(p) {if (p) free(p);}
 
 #define GZ_MAGIC_1 0x1f
 #define GZ_MAGIC_2 0x8b
@@ -46,10 +46,10 @@ typedef struct gz_stream {
 } gz_stream;
 
 
-local int    destroy __P((gz_stream *s));
-local gzFile gz_open __P((char *path, char *mode, int  fd));
-local void   putLong __P((FILE *file, uLong x));
-local uLong  getLong __P((Byte *buf));
+local int    destroy OF((gz_stream *s));
+local gzFile gz_open OF((char *path, char *mode, int  fd));
+local void   putLong OF((FILE *file, uLong x));
+local uLong  getLong OF((Bytef *buf));
 
  /* ===========================================================================
  * Cleanup then free the given gz_stream. Return a zlib error code.
@@ -77,7 +77,7 @@ local int destroy (s)
         err = Z_ERRNO;
     }
     if (s->z_err < 0) err = s->z_err;
-    zcfree((voidp)0, s);
+    TRYFREE(s);
     return err;
 }
 
@@ -96,6 +96,7 @@ local gzFile gz_open (path, mode, fd)
     int  fd;
 {
     int err;
+    int level = Z_DEFAULT_COMPRESSION; /* compression level */
     char *p = mode;
     gz_stream *s = (gz_stream *)ALLOC(sizeof(gz_stream));
 
@@ -123,22 +124,23 @@ local gzFile gz_open (path, mode, fd)
     do {
         if (*p == 'r') s->mode = 'r';
         if (*p == 'w') s->mode = 'w';
+        if (*p >= '1' && *p <= '9') level = *p - '0';
     } while (*p++);
     if (s->mode == '\0') return destroy(s), (gzFile)Z_NULL;
     
     if (s->mode == 'w') {
-        err = deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION,
+        err = deflateInit2(&(s->stream), level,
                            DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0);
         /* windowBits is passed < 0 to suppress zlib header */
 
-        s->stream.next_out = s->outbuf = ALLOC(Z_BUFSIZE);
+        s->stream.next_out = s->outbuf = (Byte*)ALLOC(Z_BUFSIZE);
 
         if (err != Z_OK || s->outbuf == Z_NULL) {
             return destroy(s), (gzFile)Z_NULL;
         }
     } else {
         err = inflateInit2(&(s->stream), -MAX_WBITS);
-        s->stream.next_in  = s->inbuf = ALLOC(Z_BUFSIZE);
+        s->stream.next_in  = s->inbuf = (Byte*)ALLOC(Z_BUFSIZE);
 
         if (err != Z_OK || s->inbuf == Z_NULL) {
             return destroy(s), (gzFile)Z_NULL;
@@ -232,7 +234,7 @@ gzFile gzdopen (fd, mode)
 */
 int gzread (file, buf, len)
     gzFile file;
-    voidp buf;
+    voidnp buf;
     unsigned len;
 {
     gz_stream *s = (gz_stream*)file;
@@ -240,7 +242,7 @@ int gzread (file, buf, len)
     if (s == NULL || s->mode != 'r') return Z_STREAM_ERROR;
 
     if (s->transparent) {
-        unsigned n = 0;
+        int n = 0;
         Byte *b = (Byte*)buf;
         /* Copy the first two (non-magic) bytes if not done already */
         while (s->stream.avail_in > 0 && len > 0) {
@@ -281,7 +283,7 @@ int gzread (file, buf, len)
     }
     len -= s->stream.avail_out;
     s->crc = crc32(s->crc, buf, len);
-    return len;
+    return (int)len;
 }
 
 /* ===========================================================================
@@ -290,7 +292,7 @@ int gzread (file, buf, len)
 */
 int gzwrite (file, buf, len)
     gzFile file;
-    voidp buf;
+    voidnp buf;
     unsigned len;
 {
     gz_stream *s = (gz_stream*)file;
@@ -312,12 +314,11 @@ int gzwrite (file, buf, len)
             s->stream.avail_out = Z_BUFSIZE;
         }
         s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
-
         if (s->z_err != Z_OK) break;
     }
     s->crc = crc32(s->crc, buf, len);
 
-    return len - s->stream.avail_in;
+    return (int)(len - s->stream.avail_in);
 }
 
 /* ===========================================================================
@@ -359,6 +360,7 @@ int gzflush (file, flush)
  
         if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
     }
+    fflush(s->file);
     return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
 }
 
@@ -380,10 +382,10 @@ local void putLong (file, x)
    Reads a long in LSB order from the given buffer
 */
 local uLong getLong (buf)
-    Byte *buf;
+    Bytef *buf;
 {
     uLong x = 0;
-    Byte *p = buf+4;
+    Bytef *p = buf+4;
 
     do {
         x <<= 8;
@@ -417,7 +419,7 @@ int gzclose (file)
         /* slide CRC and original size if they are at the end of inbuf */
         if ((n = s->stream.avail_in) < 8  && !s->z_eof) {
             Byte *p = s->inbuf;
-            Byte *q = s->stream.next_in;
+	    Bytef *q = s->stream.next_in;
             while (n--) { *p++ = *q++; };
 
             n = s->stream.avail_in;

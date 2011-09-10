@@ -20,9 +20,9 @@
    buffer.
 */
 int compress (dest, destLen, source, sourceLen)
-    Byte *dest;
-    uLong *destLen;
-    Byte *source;
+    Bytef *dest;
+    uLongf *destLen;
+    Bytef *source;
     uLong sourceLen;
 {
     z_stream stream;

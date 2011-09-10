@@ -1,4 +1,6 @@
-zlib 0.93 is a beta version of a general purpose compression library.
+zlib 0.94 is a beta version of a general purpose compression library.
+Unless new bugs are found it will be released again as the first official
+version (1.0). This version has no known bugs.
 
 The data format used by the zlib library is described in the
 files zlib-3.1.doc, deflate-1.1.doc and gzip-4.1.doc, available
@@ -10,31 +12,30 @@ which also tests that the library is working correctly.
 
 To compile all files and run the test program, just type: make test
 (For MSDOS, use one of the special makefiles such as Makefile.msc.)
-To install the zlib library (libgz.a) in /usr/local/lib, type: make install
-To install in a different directory, use for example: make install prefix=$HOME
+To install the zlib library (libz.a) in /usr/local/lib, type: make install
+To install in a different directory, use for example:
+  make install prefix=$HOME
 This will install in $HOME/lib instead of /usr/local/lib.
 
-The changes made in version 0.93 are documented in the file ChangeLog.
-The main changes since 0.9 are:
-- temporarily disable inline functions
-- make deflate deterministic
-- don't use signed char in inflate (not portable enough)
-- fix inflate memory leak for segmented architectures
-- Default MEM_LEVEL is 8 (not 9 for Unix) as documented in zlib.h
-- Document the memory requirements in zconf.h
-- added "make install"
-- added support for DJGPP and Pyramid
-- fix an inflate bug for stored blocks.
-- various speedups
+The changes made in version 0.94 are documented in the file ChangeLog.
+The main changes since 0.93 are:
+- support MSDOS small and medium model
+- fix deflate with flush (could sometimes generate bad output)
+- fix deflateReset (zlib header was incorrectly suppressed)
+- added support for VMS
+- allow a compression level in gzopen()
+- gzflush now calls fflush
+- For deflate with flush, flush even if no more input is provided.
+- rename libgz.a as libz.a
 
-On MSDOS, this version works in both large and small model. However
-small model compression works only for small values of MAX_MEM_LEVEL
-and MAX_WBITS (see zconf.h). Small model decompression should work up
-to MAX_WBITS=15.  This version of zlib does not support small or
-medium model with far allocation of big objects.
+For MSDOS, the small and medium models are supported only for Microsoft C.
+(It should be easy to support them for Borland C also, but I don't have
+a recent Borland compiler to test with.) The small model currently works
+for Turbo/Borland C but only with reduced performance to avoid any far
+allocation (tested with -DMAX_WBITS=11 -DDEF_WBITS=11 -DMAX_MEM_LEVEL=3).
 
 
-  Copyright (C) 1995 Jean-loup Gailly and Mark Adler
+ (C) 1995 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages

@@ -1,4 +1,21 @@
+
 		ChangeLog file for zlib
+
+Changes in 0.94 (13 Aug 95)
+- support MSDOS medium model
+- fix deflate with flush (could sometimes generate bad output)
+- fix deflateReset (zlib header was incorrectly suppressed)
+- added support for VMS
+- allow a compression level in gzopen()
+- gzflush now calls fflush
+- For deflate with flush, flush even if no more input is provided.
+- rename libgz.a as libz.a
+- work around a problem with gcc on Alpha (in INSERT_STRING)
+- don't use inline functions (problem with some gcc versions)
+- allow renaming of Byte, uInt, etc... with #define.
+- avoid warning about (unused) pointer before start of array in deflate.c
+- avoid various warnings in gzio.c, example.c, infblock.c, adler32.c, zutil.c
+- avoid reserved word 'new' in trees.c
 
 Changes in 0.93 (25 June 95)
 - temporarily disable inline functions

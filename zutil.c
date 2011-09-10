@@ -9,8 +9,10 @@
 
 #include "zutil.h"
 
+struct internal_state      {int dummy;}; /* for buggy compilers */
+
 #ifndef __GO32__
-extern void exit __P((int));
+extern void exit OF((int));
 #endif
 
 char *zlib_version = ZLIB_VERSION;
@@ -129,7 +131,7 @@ void  zcfree (voidp opaque, voidp ptr)
 }
 #endif /* __TURBOC__ */
 
-#if defined(M_I86CM) || defined(M_I86LM) /* MSC compact or large model */
+#if defined(MSDOS) && !defined(__TURBOC__)  /* MSC */
 
 #  define MY_ZCALLOC
 
@@ -150,14 +152,14 @@ void  zcfree (voidp opaque, voidp ptr)
     _hfree(ptr);
 }
 
-#endif /* defined(M_I86CM) || defined(M_I86LM) */
+#endif /* MSC */
 
 
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
 
 #ifndef __GO32__
-extern voidp calloc __P((uInt items, uInt size));
-extern void  free   __P((voidp ptr));
+extern voidp calloc OF((uInt items, uInt size));
+extern void  free   OF((voidp ptr));
 #endif
 
 voidp zcalloc (opaque, items, size)

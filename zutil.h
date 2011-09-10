@@ -15,11 +15,7 @@
 
 #include "zlib.h"
 
-/* #ifndef __GNUC__   disable inline for now */
-#  define inline
-/* #endif */
-
-#ifdef MSDOS
+#if defined(MSDOS) || defined(VMS)
 #   include <stddef.h>
 #   include <errno.h>
 #else
@@ -35,7 +31,9 @@
 /* compile with -Dlocal if your debugger can't find static symbols */
 
 typedef unsigned char  uch;
+typedef uch FAR uchf;
 typedef unsigned short ush;
+typedef ush FAR ushf;
 typedef unsigned long  ulg;
 
 extern char *z_errmsg[]; /* indexed by 1-zlib_error */
@@ -47,7 +45,9 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 
 #define DEFLATED   8
 
-#define DEF_WBITS 15
+#ifndef DEF_WBITS
+#  define DEF_WBITS 15
+#endif
 /* default windowBits for decompression. MAX_WBITS is for compression only */
 
 #if MAX_MEM_LEVEL >= 8
@@ -124,7 +124,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
          /* functions */
 
 #ifdef HAVE_STRERROR
-   extern char *strerror __P((int));
+   extern char *strerror OF((int));
 #  define zstrerror(errnum) strerror(errnum)
 #else
 #  define zstrerror(errnum) ""
@@ -137,11 +137,16 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY
-#  define zmemcpy memcpy
-#  define zmemzero(dest, len) memset(dest, 0, len)
+#  ifdef M_I86MM /* MSC medium model */
+#    define zmemcpy _fmemcpy
+#    define zmemzero(dest, len) _fmemset(dest, 0, len)
+#  else 
+#    define zmemcpy memcpy
+#    define zmemzero(dest, len) memset(dest, 0, len)
+#  endif
 #else
-   extern void zmemcpy  __P((Byte* dest, Byte* source, uInt len));
-   extern void zmemzero __P((Byte* dest, uInt len));
+   extern void zmemcpy  OF((Byte* dest, Byte* source, uInt len));
+   extern void zmemzero OF((Byte* dest, uInt len));
 #endif
 
 /* Diagnostic functions */
@@ -166,12 +171,12 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #endif
 
 
-typedef uLong (*check_func) __P((uLong check, Byte *buf, uInt len));
+typedef uLong (*check_func) OF((uLong check, Bytef *buf, uInt len));
 
-extern void z_error    __P((char *m));
+extern void z_error    OF((char *m));
 
-voidp zcalloc __P((voidp opaque, unsigned items, unsigned size));
-void  zcfree  __P((voidp opaque, voidp ptr));
+voidp zcalloc OF((voidp opaque, unsigned items, unsigned size));
+void  zcfree  OF((voidp opaque, voidp ptr));
 
 #define ZALLOC(strm, items, size) \
            (*((strm)->zalloc))((strm)->opaque, (items), (size))

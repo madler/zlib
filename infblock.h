@@ -9,23 +9,24 @@
  */
 
 struct inflate_blocks_state;
+typedef struct inflate_blocks_state FAR inflate_blocks_statef;
 
-extern struct inflate_blocks_state * inflate_blocks_new __P((
-    z_stream *,
-    check_func,                 /* check function */
-    uInt));                     /* window size */
+extern inflate_blocks_statef * inflate_blocks_new OF((
+    z_stream *z,
+    check_func c,               /* check function */
+    uInt w));                   /* window size */
 
-extern int inflate_blocks __P((
-    struct inflate_blocks_state *,
+extern int inflate_blocks OF((
+    inflate_blocks_statef *,
     z_stream *,
     int));                      /* initial return code */
 
-extern void inflate_blocks_reset __P((
-    struct inflate_blocks_state *,
+extern void inflate_blocks_reset OF((
+    inflate_blocks_statef *,
     z_stream *,
-    uLong *));                  /* check value on output */
+    uLongf *));                  /* check value on output */
 
-extern int inflate_blocks_free __P((
-    struct inflate_blocks_state *,
+extern int inflate_blocks_free OF((
+    inflate_blocks_statef *,
     z_stream *,
-    uLong *));                  /* check value on output */
+    uLongf *));                  /* check value on output */

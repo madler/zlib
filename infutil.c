@@ -4,7 +4,9 @@
  */
 
 #include "zutil.h"
+#include "infblock.h"
 #include "inftrees.h"
+#include "infcodes.h"
 #include "infutil.h"
 
 struct inflate_codes_state {int dummy;}; /* for buggy compilers */
@@ -19,12 +21,12 @@ uInt inflate_mask[] = {
 
 /* copy as much as possible from the sliding window to the output area */
 int inflate_flush(s, z, r)
-struct inflate_blocks_state *s;
+inflate_blocks_statef *s;
 z_stream *z;
 int r;
 {
   uInt n;
-  Byte *p, *q;
+  Bytef *p, *q;
 
   /* local copies of source and destination pointers */
   p = z->next_out;

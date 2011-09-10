@@ -62,9 +62,9 @@ local uInt border[] = { /* Order of the bit length code lengths */
 
 
 void inflate_blocks_reset(s, z, c)
-struct inflate_blocks_state *s;
+inflate_blocks_statef *s;
 z_stream *z;
-uLong *c;
+uLongf *c;
 {
   if (s->checkfn != Z_NULL)
     *c = s->check;
@@ -86,17 +86,17 @@ uLong *c;
 }
 
 
-struct inflate_blocks_state *inflate_blocks_new(z, c, w)
+inflate_blocks_statef *inflate_blocks_new(z, c, w)
 z_stream *z;
 check_func c;
 uInt w;
 {
-  struct inflate_blocks_state *s;
+  inflate_blocks_statef *s;
 
-  if ((s = (struct inflate_blocks_state *)ZALLOC
+  if ((s = (inflate_blocks_statef *)ZALLOC
        (z,1,sizeof(struct inflate_blocks_state))) == Z_NULL)
     return s;
-  if ((s->window = (Byte *)ZALLOC(z, 1, w)) == Z_NULL)
+  if ((s->window = (Bytef *)ZALLOC(z, 1, w)) == Z_NULL)
   {
     ZFREE(z, s);
     return Z_NULL;
@@ -111,16 +111,16 @@ uInt w;
 
 
 int inflate_blocks(s, z, r)
-struct inflate_blocks_state *s;
+inflate_blocks_statef *s;
 z_stream *z;
 int r;
 {
   uInt t;               /* temporary storage */
   uLong b;              /* bit buffer */
   uInt k;               /* bits in bit buffer */
-  Byte *p;              /* input data pointer */
+  Bytef *p;             /* input data pointer */
   uInt n;               /* bytes available there */
-  Byte *q;              /* output window write pointer */
+  Bytef *q;             /* output window write pointer */
   uInt m;               /* bytes to end of window or read pointer */
 
   /* copy input/output information to locals (UPDATE macro restores) */
@@ -179,7 +179,7 @@ int r;
       break;
     case LENS:
       NEEDBITS(32)
-      if ((~b) >> 16 != (b & 0xffff))
+      if (((~b) >> 16) != (b & 0xffff))
       {
         s->mode = BAD;
         z->msg = "invalid stored block lengths";
@@ -223,7 +223,7 @@ int r;
       t = 258 + (t & 0x1f) + ((t >> 5) & 0x1f);
       if (t < 19)
         t = 19;
-      if ((s->sub.trees.blens = (uInt*)ZALLOC(z, t, sizeof(uInt))) == Z_NULL)
+      if ((s->sub.trees.blens = (uIntf*)ZALLOC(z, t, sizeof(uInt))) == Z_NULL)
       {
         r = Z_MEM_ERROR;
         LEAVE
@@ -301,10 +301,10 @@ int r;
       {
         uInt bl, bd;
         inflate_huft *tl, *td;
-        struct inflate_codes_state *c;
+        inflate_codes_statef *c;
 
-        bl = 9;
-        bd = 6;
+        bl = 9;         /* must be <= 9 for lookahead assumptions */
+        bd = 6;         /* must be <= 9 for lookahead assumptions */
         t = s->sub.trees.table;
         t = inflate_trees_dynamic(257 + (t & 0x1f), 1 + ((t >> 5) & 0x1f),
                                   s->sub.trees.blens, &bl, &bd, &tl, &td, z);
@@ -373,9 +373,9 @@ int r;
 
 
 int inflate_blocks_free(s, z, c)
-struct inflate_blocks_state *s;
+inflate_blocks_statef *s;
 z_stream *z;
-uLong *c;
+uLongf *c;
 {
   inflate_blocks_reset(s, z, c);
   ZFREE(z, s->window);

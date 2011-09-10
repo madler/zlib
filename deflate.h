@@ -58,7 +58,7 @@ typedef struct ct_data_s {
         ush  dad;        /* father node in Huffman tree */
         ush  len;        /* length of bit string */
     } dl;
-} ct_data;
+} FAR ct_data;
 
 #define Freq fc.freq
 #define Code fc.code
@@ -71,10 +71,12 @@ typedef struct tree_desc_s {
     ct_data *dyn_tree;           /* the dynamic tree */
     int     max_code;            /* largest code with non zero frequency */
     static_tree_desc *stat_desc; /* the corresponding static tree */
-} tree_desc;
+} FAR tree_desc;
 
 typedef ush Pos;
+typedef Pos FAR Posf;
 typedef unsigned IPos;
+
 /* A Pos is an index in the character window. We use short instead of int to
  * save space in the various tables. IPos is used only for parameter passing.
  */
@@ -82,8 +84,8 @@ typedef unsigned IPos;
 typedef struct internal_state {
     z_stream *strm;      /* pointer back to this zlib stream */
     int   status;        /* as the name implies */
-    Byte *pending_buf;   /* output still pending */
-    Byte *pending_out;   /* next pending byte to output to the stream */
+    Bytef *pending_buf;  /* output still pending */
+    Bytef *pending_out;  /* next pending byte to output to the stream */
     int   pending;       /* nb of bytes in the pending buffer */
     uLong adler;         /* adler32 of uncompressed data */
     int   noheader;      /* suppress zlib header and adler32 */
@@ -96,7 +98,7 @@ typedef struct internal_state {
     uInt  w_bits;        /* log2(w_size)  (8..16) */
     uInt  w_mask;        /* w_size - 1 */
 
-    Byte *window;
+    Bytef *window;
     /* Sliding window. Input bytes are read into the second half of the window,
      * and move to the first half later to keep a dictionary of at least wSize
      * bytes. With this organization, matches are limited to a distance of
@@ -111,13 +113,13 @@ typedef struct internal_state {
      * is directly used as sliding window.
      */
 
-    Pos *prev;
+    Posf *prev;
     /* Link to older string with same hash index. To limit the size of this
      * array to 64K, this link is maintained only for the last 32K strings.
      * An index in this array is thus a window index modulo 32K.
      */
 
-    Pos *head; /* Heads of the hash chains or NIL. */
+    Posf *head; /* Heads of the hash chains or NIL. */
 
     uInt  ins_h;          /* hash index of string to be inserted */
     uInt  hash_size;      /* number of elements in hash table */
@@ -174,14 +176,14 @@ typedef struct internal_state {
      int nice_match; /* Stop searching when current match exceeds this */
 
                 /* used by trees.c: */
+    /* Didn't use ct_data typedef below to supress compiler warning */
+    struct ct_data_s dyn_ltree[HEAP_SIZE];   /* literal and length tree */
+    struct ct_data_s dyn_dtree[2*D_CODES+1]; /* distance tree */
+    struct ct_data_s bl_tree[2*BL_CODES+1];  /* Huffman tree for bit lengths */
 
-    ct_data dyn_ltree[HEAP_SIZE];   /* literal and length tree */
-    ct_data dyn_dtree[2*D_CODES+1]; /* distance tree */
-    ct_data bl_tree[2*BL_CODES+1];  /* Huffman tree for the bit lengths */
-
-    tree_desc l_desc;               /* descriptor for literal tree */
-    tree_desc d_desc;               /* descriptor for distance tree */
-    tree_desc bl_desc;              /* descriptor for bit length tree */
+    struct tree_desc_s l_desc;               /* desc. for literal tree */
+    struct tree_desc_s d_desc;               /* desc. for distance tree */
+    struct tree_desc_s bl_desc;              /* desc. for bit length tree */
 
     ush bl_count[MAX_BITS+1];
     /* number of codes at each bit length for an optimal tree */
@@ -197,7 +199,7 @@ typedef struct internal_state {
     /* Depth of each subtree used as tie breaker for trees of equal frequency
      */
 
-    uch *l_buf;           /* buffer for literals or lengths */
+    uchf *l_buf;          /* buffer for literals or lengths */
 
     uInt  lit_bufsize;
     /* Size of match buffer for literals/lengths.  There are 4 reasons for
@@ -221,7 +223,7 @@ typedef struct internal_state {
 
     uInt last_lit;      /* running index in l_buf */
 
-    ush *d_buf;
+    ushf *d_buf;
     /* Buffer for distances. To simplify the code, d_buf and l_buf have
      * the same number of elements. To use different lengths, an extra flag
      * array would be necessary.
@@ -245,8 +247,7 @@ typedef struct internal_state {
      * are always zero.
      */
 
-} deflate_state;
-
+} FAR deflate_state;
 
 /* Output a byte on the stream.
  * IN assertion: there is enough room in pending_buf.
@@ -265,9 +266,9 @@ typedef struct internal_state {
  */
 
         /* in trees.c */
-void ct_init       __P((deflate_state *s));
-int  ct_tally      __P((deflate_state *s, int dist, int lc));
-ulg ct_flush_block __P((deflate_state *s, char *buf, ulg stored_len, int eof));
-void ct_align      __P((deflate_state *s));
-void ct_stored_block __P((deflate_state *s, char *buf, ulg stored_len,
+void ct_init       OF((deflate_state *s));
+int  ct_tally      OF((deflate_state *s, int dist, int lc));
+ulg ct_flush_block OF((deflate_state *s, charf *buf, ulg stored_len, int eof));
+void ct_align      OF((deflate_state *s));
+void ct_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
                           int eof));

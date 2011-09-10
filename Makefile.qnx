@@ -2,14 +2,16 @@
 # Copyright (C) 1995 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h 
 
+# Modified slightly for QNX by Chris Herborth (chrish@qnx.com)
+
 CC=cc
-CFLAGS=-O
+CFLAGS=-4 -O -Q
 #use -O3 for gcc to take advantage of inlining
 #CFLAGS="-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7"
 #CFLAGS=-g -DDEBUG
 LDFLAGS=-L. -lz
 
-RANLIB=ranlib
+#RANLIB=ranlib
 
 prefix=/usr/local
 
@@ -24,34 +26,34 @@ test: all
 	./example
 	echo hello world | ./minigzip | ./minigzip -d 
 
-install: libz.a
+install: zlib.lib
 	-@mkdir $(prefix)/include
 	-@mkdir $(prefix)/lib
 	cp zlib.h zconf.h $(prefix)/include
 	chmod 644 $(prefix)/include/zlib.h $(prefix)/include/zconf.h
-	cp libz.a $(prefix)/lib
-	chmod 644 $(prefix)/lib/libz.a
+	cp zlib.lib $(prefix)/lib
+	chmod 644 $(prefix)/lib/zlib.lib
 
-libz.a: $(OBJS)
-	ar rc $@ $(OBJS)
-	$(RANLIB) $@
+zlib.lib: $(OBJS)
+	cc -A $@ $(OBJS)
+#	ar rc $@ $(OBJS)
+#	$(RANLIB) $@
 
-example: example.o libz.a
+example: example.o zlib.lib
 	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
 
-minigzip: minigzip.o libz.a
+minigzip: minigzip.o zlib.lib
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
 
 clean:
-	rm -f *.o example minigzip libz.a foo.gz
+	rm -f *.o example minigzip zlib.lib foo.gz
 
 zip:
-	zip -ul9 zlib README ChangeLog Makefile Make????.??? Makefile.?? \
-	  descrip.mms *.[ch]
+	zip -ul9 zlib README ChangeLog Makefile Makefile.??? Makefile.?? *.[ch]
 
 tgz:
 	cd ..; tar cfz zlib/zlib.tgz zlib/README zlib/ChangeLog zlib/Makefile \
-	  zlib/Make????.??? zlib/Makefile.?? zlib/descrip.mms zlib/*.[ch]
+		zlib/Makefile.??? zlib/Makefile.?? zlib/*.[ch]
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 

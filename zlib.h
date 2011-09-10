@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.93 June 25th, 1995.
+  version 0.94, Aug 13th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.93"
+#define ZLIB_VERSION "0.94"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -49,22 +49,22 @@
   (providing more output space) before each call.
 */
 
-typedef voidp (*alloc_func) __P((voidp opaque, uInt items, uInt size));
-typedef void  (*free_func)  __P((voidp opaque, voidp address));
+typedef voidp (*alloc_func) OF((voidp opaque, uInt items, uInt size));
+typedef void  (*free_func)  OF((voidp opaque, voidp address));
 
 struct internal_state;
 
 typedef struct z_stream_s {
-    Byte     *next_in;  /* next input byte */
+    Bytef    *next_in;  /* next input byte */
     uInt     avail_in;  /* number of bytes available at next_in */
     uLong    total_in;  /* total nb of input bytes read so far */
 
-    Byte     *next_out; /* next output byte should be put there */
+    Bytef    *next_out; /* next output byte should be put there */
     uInt     avail_out; /* remaining free space at next_out */
     uLong    total_out; /* total nb of bytes output so far */
 
     char     *msg;      /* last error message, NULL if no error */
-    struct internal_state *state; /* not visible by applications */
+    struct internal_state FAR *state; /* not visible by applications */
 
     alloc_func zalloc;  /* used to allocate the internal state */
     free_func  zfree;   /* used to free the internal state */
@@ -145,7 +145,7 @@ extern char *zlib_version;
 
                         /* basic functions */
 
-extern int deflateInit __P((z_stream *strm, int level));
+extern int deflateInit OF((z_stream *strm, int level));
 /* 
      Initializes the internal stream state for compression. The fields
    zalloc, zfree and opaque must be initialized before by the caller.
@@ -164,7 +164,7 @@ extern int deflateInit __P((z_stream *strm, int level));
 */
 
 
-extern int deflate __P((z_stream *strm, int flush));
+extern int deflate OF((z_stream *strm, int flush));
 /*
   Performs one or both of the following actions:
 
@@ -195,7 +195,10 @@ extern int deflate __P((z_stream *strm, int flush));
   is useful to allow the decompressor to synchronize if one compressed block
   has been damaged (see inflateSync below).  Flushing degrades compression and
   so should be used only when necessary.  Using Z_FULL_FLUSH too often can
-  seriously degrade the compression.
+  seriously degrade the compression. If deflate returns with avail_out == 0,
+  this function must be called again with the same value of the flush
+  parameter and more output space (updated avail_out), until the flush is
+  complete (deflate returns with non-zero avail_out).
 
     If the parameter flush is set to Z_FINISH, all pending input is processed,
   all pending output is flushed and deflate returns with Z_STREAM_END if there
@@ -223,7 +226,7 @@ extern int deflate __P((z_stream *strm, int flush));
 */
 
 
-extern int deflateEnd __P((z_stream *strm));
+extern int deflateEnd OF((z_stream *strm));
 /*
      All dynamically allocated data structures for this stream are freed.
    This function discards any unprocessed input and does not flush any
@@ -235,11 +238,11 @@ extern int deflateEnd __P((z_stream *strm));
 */
 
 
-extern int inflateInit __P((z_stream *strm));
+extern int inflateInit OF((z_stream *strm));
 /* 
      Initializes the internal stream state for decompression. The fields
    zalloc and zfree must be initialized before by the caller.  If zalloc and
-   zfree are set to Z_NULL, deflateInit updates them to use default allocation
+   zfree are set to Z_NULL, inflateInit updates them to use default allocation
    functions.
 
      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
@@ -249,7 +252,7 @@ extern int inflateInit __P((z_stream *strm));
 */
 
 
-extern int inflate __P((z_stream *strm, int flush));
+extern int inflate OF((z_stream *strm, int flush));
 /*
   Performs one or both of the following actions:
 
@@ -260,7 +263,7 @@ extern int inflate __P((z_stream *strm, int flush));
 
   - Provide more output starting at next_out and update next_out and avail_out
     accordingly.  inflate() always provides as much output as possible
-    (until no more input data or no more space in the output buffer).
+    (until there is no more input data or no more space in the output buffer).
 
   Before the call of inflate(), the application should ensure that at least
   one of the actions is possible, by providing more input and/or consuming
@@ -282,7 +285,9 @@ extern int inflate __P((z_stream *strm, int flush));
   output is flushed; avail_out must be large enough to hold all the
   uncompressed data. (The size of the uncompressed data may have been saved
   by the compressor for this purpose.) The next operation on this stream must
-  be inflateEnd to deallocate the decompression state.
+  be inflateEnd to deallocate the decompression state. The use of Z_FINISH
+  is never required, but can be used to inform inflate that a faster routine
+  may be used for the single inflate() call.
 
     inflate() returns Z_OK if some progress has been made (more input
   processed or more output produced), Z_STREAM_END if the end of the
@@ -296,7 +301,7 @@ extern int inflate __P((z_stream *strm, int flush));
 */
 
 
-extern int inflateEnd __P((z_stream *strm));
+extern int inflateEnd OF((z_stream *strm));
 /*
      All dynamically allocated data structures for this stream are freed.
    This function discards any unprocessed input and does not flush any
@@ -313,12 +318,12 @@ extern int inflateEnd __P((z_stream *strm));
     The following functions are needed only in some special applications.
 */
 
-extern int deflateInit2 __P((z_stream *strm,
-                             int  level,
-                             int  method,
-                             int  windowBits,
-                             int  memLevel,
-                             int  strategy));
+extern int deflateInit2 OF((z_stream *strm,
+                            int  level,
+                            int  method,
+                            int  windowBits,
+                            int  memLevel,
+                            int  strategy));
 /*   
      This is another version of deflateInit with more compression options. The
    fields next_in, zalloc and zfree must be initialized before by the caller.
@@ -368,8 +373,8 @@ extern int deflateInit2 __P((z_stream *strm,
    deflate().
 */
                             
-extern int deflateCopy __P((z_stream *dest,
-                            z_stream *source));
+extern int deflateCopy OF((z_stream *dest,
+                           z_stream *source));
 /*
      Sets the destination stream as a complete copy of the source stream.  If
    the source stream is using an application-supplied history buffer, a new
@@ -391,7 +396,7 @@ extern int deflateCopy __P((z_stream *dest,
    destination.
 */
 
-extern int deflateReset __P((z_stream *strm));
+extern int deflateReset OF((z_stream *strm));
 /*
      This function is equivalent to deflateEnd followed by deflateInit,
    but does not free and reallocate all the internal compression state.
@@ -402,8 +407,8 @@ extern int deflateReset __P((z_stream *strm));
    stream state was inconsistent (such as zalloc or state being NULL).
 */
 
-extern int inflateInit2 __P((z_stream *strm,
-                             int  windowBits));
+extern int inflateInit2 OF((z_stream *strm,
+                            int  windowBits));
 /*   
      This is another version of inflateInit with more compression options. The
    fields next_out, zalloc and zfree must be initialized before by the caller.
@@ -431,11 +436,11 @@ extern int inflateInit2 __P((z_stream *strm,
       inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was
    not enough memory, Z_STREAM_ERROR if a parameter is invalid (such as
    windowBits < 8). msg is set to null if there is no error message.
-   inflateInit2 does not perform any compression: this will be done by
+   inflateInit2 does not perform any decompression: this will be done by
    inflate().
 */
 
-extern int inflateSync __P((z_stream *strm));
+extern int inflateSync OF((z_stream *strm));
 /* 
     Skips invalid compressed data until the special marker (see deflate()
   above) can be found, or until all available input is skipped. No output
@@ -450,7 +455,7 @@ extern int inflateSync __P((z_stream *strm));
   until success or end of the input data.
 */
 
-extern int inflateReset __P((z_stream *strm));
+extern int inflateReset OF((z_stream *strm));
 /*
      This function is equivalent to inflateEnd followed by inflateInit,
    but does not free and reallocate all the internal decompression state.
@@ -471,8 +476,8 @@ extern int inflateReset __P((z_stream *strm));
    utility functions can easily be modified if you need special options.
 */
 
-extern int compress __P((Byte *dest,   uLong *destLen,
-                         Byte *source, uLong sourceLen));
+extern int compress OF((Bytef *dest,   uLongf *destLen,
+                        Bytef *source, uLong sourceLen));
 /*
      Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -486,8 +491,8 @@ extern int compress __P((Byte *dest,   uLong *destLen,
    buffer.
 */
 
-extern int uncompress __P((Byte *dest,   uLong *destLen,
-                           Byte *source, uLong sourceLen));
+extern int uncompress OF((Bytef *dest,   uLongf *destLen,
+                          Bytef *source, uLong sourceLen));
 /*
      Decompresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -505,21 +510,21 @@ extern int uncompress __P((Byte *dest,   uLong *destLen,
 */
 
 
-typedef voidp gzFile;
+typedef voidnp gzFile;
 
-extern gzFile gzopen  __P((char *path, char *mode));
+extern gzFile gzopen  OF((char *path, char *mode));
 /*
      Opens a gzip (.gz) file for reading or writing. The mode parameter
-   is as in fopen ("rb" or "wb"). gzopen can also be used to read a file
-   which is not in gzip format; in this case gzread will directly read from
-   the file without decompression.
+   is as in fopen ("rb" or "wb") but can also include a compression level
+   ("wb9").  gzopen can be used to read a file which is not in gzip format;
+   in this case gzread will directly read from the file without decompression.
      gzopen returns NULL if the file could not be opened or if there was
    insufficient memory to allocate the (de)compression state; errno
    can be checked to distinguish the two cases (if errno is zero, the
    zlib error is Z_MEM_ERROR).
 */
 
-extern gzFile gzdopen  __P((int fd, char *mode));
+extern gzFile gzdopen  OF((int fd, char *mode));
 /*
      gzdopen() associates a gzFile with the file descriptor fd.  File
    descriptors are obtained from calls like open, dup, creat, or pipe.
@@ -528,7 +533,7 @@ extern gzFile gzdopen  __P((int fd, char *mode));
    the (de)compression state.
 */
 
-extern int    gzread  __P((gzFile file, voidp buf, unsigned len));
+extern int    gzread  OF((gzFile file, voidnp buf, unsigned len));
 /*
      Reads the given number of uncompressed bytes from the compressed file.
    If the input file was not in gzip format, gzread copies the given number
@@ -536,14 +541,14 @@ extern int    gzread  __P((gzFile file, voidp buf, unsigned len));
      gzread returns the number of uncompressed bytes actually read (0 for
    end of file, -1 for error). */
 
-extern int    gzwrite __P((gzFile file, voidp buf, unsigned len));
+extern int    gzwrite OF((gzFile file, voidnp buf, unsigned len));
 /*
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of uncompressed bytes actually written
    (0 in case of error).
 */
 
-extern int    gzflush __P((gzFile file, int flush));
+extern int    gzflush OF((gzFile file, int flush));
 /*
      Flushes all pending output into the compressed file. The parameter
    flush is as in the deflate() function. The return value is the zlib
@@ -553,14 +558,14 @@ extern int    gzflush __P((gzFile file, int flush));
    degrade compression.
 */
 
-extern int    gzclose __P((gzFile file));
+extern int    gzclose OF((gzFile file));
 /*
      Flushes all pending output if necessary, closes the compressed file
    and deallocates all the (de)compression state. The return value is the zlib
    error number (see function gzerror below).
 */
 
-extern char*   gzerror __P((gzFile file, int *errnum));
+extern char*   gzerror OF((gzFile file, int *errnum));
 /*
      Returns the error message for the last error which occurred on the
    given compressed file. errnum is set to zlib error number. If an
@@ -577,7 +582,8 @@ extern char*   gzerror __P((gzFile file, int *errnum));
    compression library.
 */
 
-extern uLong adler32 __P((uLong adler, Byte *buf, uInt len));
+extern uLong adler32 OF((uLong adler, Bytef *buf, uInt len));
+
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. If buf is NULL, this function returns
@@ -593,7 +599,7 @@ extern uLong adler32 __P((uLong adler, Byte *buf, uInt len));
      if (adler != original_adler) error();
 */
 
-extern uLong crc32   __P((uLong crc, Byte *buf, uInt len));
+extern uLong crc32   OF((uLong crc, Bytef *buf, uInt len));
 /*
      Update a running crc with the bytes buf[0..len-1] and return the updated
    crc. If buf is NULL, this function returns the required initial value

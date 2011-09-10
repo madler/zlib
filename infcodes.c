@@ -5,9 +5,10 @@
 
 #include "zutil.h"
 #include "inftrees.h"
+#include "infblock.h"
+#include "infcodes.h"
 #include "infutil.h"
 #include "inffast.h"
-#include "infcodes.h"
 
 /* simplify the use of the inflate_huft type with some defines */
 #define base more.Base
@@ -55,14 +56,14 @@ struct inflate_codes_state {
 };
 
 
-struct inflate_codes_state *inflate_codes_new(bl, bd, tl, td, z)
+inflate_codes_statef *inflate_codes_new(bl, bd, tl, td, z)
 uInt bl, bd;
 inflate_huft *tl, *td;
 z_stream *z;
 {
-  struct inflate_codes_state *c;
+  inflate_codes_statef *c;
 
-  if ((c = (struct inflate_codes_state *)
+  if ((c = (inflate_codes_statef *)
        ZALLOC(z,1,sizeof(struct inflate_codes_state))) != Z_NULL)
   {
     c->mode = START;
@@ -77,7 +78,7 @@ z_stream *z;
 
 
 int inflate_codes(s, z, r)
-struct inflate_blocks_state *s;
+inflate_blocks_statef *s;
 z_stream *z;
 int r;
 {
@@ -86,12 +87,12 @@ int r;
   uInt e;               /* extra bits or operation */
   uLong b;              /* bit buffer */
   uInt k;               /* bits in bit buffer */
-  Byte *p;              /* input data pointer */
+  Bytef *p;             /* input data pointer */
   uInt n;               /* bytes available there */
-  Byte *q;              /* output window write pointer */
+  Bytef *q;             /* output window write pointer */
   uInt m;               /* bytes to end of window or read pointer */
-  Byte *f;              /* pointer to copy strings from */
-  struct inflate_codes_state *c = s->sub.decode.codes;  /* codes state */
+  Bytef *f;             /* pointer to copy strings from */
+  inflate_codes_statef *c = s->sub.decode.codes;  /* codes state */
 
   /* copy input/output information to locals (UPDATE macro restores) */
   LOAD
@@ -194,9 +195,15 @@ int r;
       Tracevv((stderr, "inflate:         distance %u\n", c->sub.copy.dist));
       c->mode = COPY;
     case COPY:          /* o: copying bytes in window, waiting for space */
+#ifndef __TURBOC__ /* Turbo C bug for following expression */
       f = (uInt)(q - s->window) < c->sub.copy.dist ?
           s->end - (c->sub.copy.dist - (q - s->window)) :
           q - c->sub.copy.dist;
+#else
+      f = q - c->sub.copy.dist;
+      if ((uInt)(q - s->window) < c->sub.copy.dist)
+        f = s->end - (c->sub.copy.dist - (q - s->window));
+#endif
       while (c->len)
       {
         NEEDOUT
@@ -231,7 +238,7 @@ int r;
 
 
 void inflate_codes_free(c, z)
-struct inflate_codes_state *c;
+inflate_codes_statef *c;
 z_stream *z;
 {
   ZFREE(z, c);

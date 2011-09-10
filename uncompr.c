@@ -23,9 +23,9 @@
    buffer, or Z_DATA_ERROR if the input data was corrupted.
 */
 int uncompress (dest, destLen, source, sourceLen)
-    Byte *dest;
-    uLong *destLen;
-    Byte *source;
+    Bytef *dest;
+    uLongf *destLen;
+    Bytef *source;
     uLong sourceLen;
 {
     z_stream stream;

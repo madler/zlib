@@ -37,7 +37,7 @@ struct internal_state {
   /* mode independent information */
   int  nowrap;          /* flag for no wrapper */
   uInt wbits;           /* log2(window size)  (8..15, defaults to 15) */
-  struct inflate_blocks_state
+  inflate_blocks_statef 
     *blocks;            /* current inflate_blocks state */
 
 };
@@ -84,7 +84,7 @@ int w;
     return Z_STREAM_ERROR;
   if (z->zalloc == Z_NULL) z->zalloc = zcalloc;
   if (z->zfree == Z_NULL) z->zfree = zcfree;
-  if ((z->state = (struct internal_state *)
+  if ((z->state = (struct internal_state FAR *)
        ZALLOC(z,1,sizeof(struct internal_state))) == Z_NULL)
     return Z_MEM_ERROR;
   z->state->blocks = Z_NULL;
@@ -235,7 +235,7 @@ int inflateSync(z)
 z_stream *z;
 {
   uInt n;       /* number of bytes to look at */
-  Byte *p;      /* pointer to bytes */
+  Bytef *p;     /* pointer to bytes */
   uInt m;       /* number of marker bytes found in a row */
   uLong r, w;   /* temporaries to save total_in and total_out */
 

@@ -5,9 +5,9 @@
 
 /* $Id: adler32.c,v 1.6 1995/05/03 17:27:08 jloup Exp $ */
 
-#include "zutil.h"
+#include "zlib.h"
 
-#define BASE 65521 /* largest prime smaller than 65536 */
+#define BASE 65521L /* largest prime smaller than 65536 */
 #define NMAX 5552
 /* NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1 */
 
@@ -20,7 +20,7 @@
 /* ========================================================================= */
 uLong adler32(adler, buf, len)
     uLong adler;
-    Byte *buf;
+    Bytef *buf;
     uInt len;
 {
     unsigned long s1 = adler & 0xffff;
