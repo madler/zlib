@@ -20,7 +20,6 @@ delphi/     by Cosmin Truta <cosmint@cs.ubbcluj.ro>
 
 infback9/   by Mark Adler <madler@alumni.caltech.edu>
         Unsupported diffs to infback to decode the deflate64 format
-        (Worse than that, it's not even tested)
 
 inflate86/  by Chris Anderson <christop@charm.net>
 	Tuned x86 gcc asm code to replace inflate_fast()

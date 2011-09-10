@@ -287,6 +287,13 @@ typedef uLong FAR uLongf;
 #  define  z_off_t long
 #endif
 
+#if defined(__MVS__)
+#define NO_vsnprintf
+#ifdef FAR
+#undef FAR
+#endif
+#endif
+
 /* MVS linker does not support external names larger than 8 bytes */
 #if defined(__MVS__)
 #   pragma map(deflateInit_,"DEIN")

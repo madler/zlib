@@ -1,6 +1,15 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.0.6 (13 September 2003)
+- Minor FAQ updates
+- Update contrib/minizip to 1.00 [Vollant]
+- Remove test of gz functions in example.c when GZ_COMPRESS defined [Truta]
+- Updated POSTINC comment for 68060 [Nikl]
+- Added contrib/infback9 with deflate64 decoding (unsupported)
+- For MVS define NO_vsnprintf and undefine FAR [van Burik]
+- Add pragma for fdopen on MVS [van Burik]
+
 Changes in 1.2.0.5 (8 September 2003)
 - Add infback9 diffs to contrib
 - Add OF to inflateBackEnd() declaration in zlib.h

@@ -19,6 +19,7 @@
    - none
    No measurable difference:
    - Pentium III (Anderson)
+   - 68060 (Nikl)
  */
 #ifdef POSTINC
 #  define OFF 0

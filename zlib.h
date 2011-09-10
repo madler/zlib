@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.0.5, September 8th, 2003
+  version 1.2.0.6, September 13th, 2003
 
   Copyright (C) 1995-2003 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.0.5"
-#define ZLIB_VERNUM 0x1205
+#define ZLIB_VERSION "1.2.0.6"
+#define ZLIB_VERNUM 0x1206
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -777,7 +777,7 @@ ZEXTERN int ZEXPORT inflateBack OF((z_stream FAR *strm,
 
      The in_desc and out_desc parameters of inflateBack() is passed as the
    first parameter of in() and out() respectively when they are called.  These
-   descriptors can be optinally used to pass any information that the caller-
+   descriptors can be optionally used to pass any information that the caller-
    supplied in() and out() functions need to do their job.
 
      On return, inflateBack() will set strm->next_in and strm->avail_in to

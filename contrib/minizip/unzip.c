@@ -1,5 +1,5 @@
 /* unzip.c -- IO for uncompress .zip files using zlib
-   Version 0.22, May 19th, 2003
+   Version 1.00, September 10th, 2003
 
    Copyright (C) 1998-2003 Gilles Vollant
 
@@ -88,7 +88,7 @@ woven in by Terry Thorsen 1/2003.
 
 
 const char unz_copyright[] =
-   " unzip 0.22 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
+   " unzip 1.00 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
 
 /* unz_file_info_interntal contain internal info about a file in zipfile*/
 typedef struct unz_file_info_internal_s

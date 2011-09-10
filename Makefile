@@ -28,7 +28,7 @@ LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.2.0.5
+VER=1.2.0.6
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -137,7 +137,7 @@ uninstall:
 mostlyclean: clean
 clean:
 	rm -f *.o *~ example minigzip libz.a libz.so* foo.gz so_locations \
-	   _match.s maketree
+	   _match.s maketree contrib/infback9/*.o
 
 maintainer-clean: distclean
 distclean: clean

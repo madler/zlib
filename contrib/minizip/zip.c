@@ -1,5 +1,7 @@
 /* zip.c -- IO on .zip files using zlib
-   Version 0.22, May 19th, 2003
+   Version 1.00, September 10th, 2003
+
+   Copyright (C) 1998-2003 Gilles Vollant
 
    Read zip.h for more info
 */
@@ -75,7 +77,7 @@
 #endif
 #endif
 const char zip_copyright[] =
-   " zip 0.22 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
+   " zip 1.00 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
 
 
 #define SIZEDATA_INDATABLOCK (4096-(4*4))

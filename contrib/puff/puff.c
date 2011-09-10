@@ -58,7 +58,7 @@
  *                      - Add FIXLCODES #define
  * 1.5   6 Apr 2002     - Minor comment fixes
  * 1.6   7 Aug 2002     - Minor format changes
- * 1.7   3 Mar 2002     - Added test code for distribution
+ * 1.7   3 Mar 2003     - Added test code for distribution
  *                      - Added zlib-like license
  */
 

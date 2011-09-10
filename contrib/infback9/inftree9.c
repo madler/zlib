@@ -1,15 +1,15 @@
-/* inftrees.c -- generate Huffman trees for efficient decoding
+/* inftree9.c -- generate Huffman trees for efficient decoding
  * Copyright (C) 1995-2003 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 #include "zutil.h"
-#include "inftrees.h"
+#include "inftree9.h"
 
 #define MAXBITS 15
 
-const char inflate_copyright[] =
-   " inflate 1.2.0.6 Copyright 1995-2003 Mark Adler ";
+const char inflate9_copyright[] =
+   " inflate9 1.2.0.6 Copyright 1995-2003 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -29,7 +29,7 @@ const char inflate_copyright[] =
    table index bits.  It will differ if the request is greater than the
    longest code or if it is less than the shortest code.
  */
-int inflate_table(type, lens, codes, table, bits, work)
+int inflate_table9(type, lens, codes, table, bits, work)
 codetype type;
 unsigned short FAR *lens;
 unsigned codes;
@@ -58,19 +58,21 @@ unsigned short FAR *work;
     unsigned short count[MAXBITS+1];    /* number of codes of each length */
     unsigned short offs[MAXBITS+1];     /* offsets in table for each length */
     static const unsigned short lbase[31] = { /* Length codes 257..285 base */
-        3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-        35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
+        3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17,
+        19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115,
+        131, 163, 195, 227, 3, 0, 0};
     static const unsigned short lext[31] = { /* Length codes 257..285 extra */
-        16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
-        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 65, 77};
-    static const unsigned short dbase[32] = { /* Distance codes 0..29 base */
-        1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
-        257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
-        8193, 12289, 16385, 24577, 0, 0};
-    static const unsigned short dext[32] = { /* Distance codes 0..29 extra */
-        16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22,
-        23, 23, 24, 24, 25, 25, 26, 26, 27, 27,
-        28, 28, 29, 29, 64, 64};
+        128, 128, 128, 128, 128, 128, 128, 128, 129, 129, 129, 129,
+        130, 130, 130, 130, 131, 131, 131, 131, 132, 132, 132, 132,
+        133, 133, 133, 133, 144, 65, 77};
+    static const unsigned short dbase[32] = { /* Distance codes 0..31 base */
+        1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49,
+        65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073,
+        4097, 6145, 8193, 12289, 16385, 24577, 32769, 49153};
+    static const unsigned short dext[32] = { /* Distance codes 0..31 extra */
+        128, 128, 128, 128, 129, 129, 130, 130, 131, 131, 132, 132,
+        133, 133, 134, 134, 135, 135, 136, 136, 137, 137, 138, 138,
+        139, 139, 140, 140, 141, 141, 142, 142};
 
     /*
        Process a set of code lengths to create a canonical Huffman code.  The

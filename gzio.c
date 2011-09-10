@@ -30,6 +30,11 @@ struct internal_state {int dummy;}; /* for buggy compilers */
 #  define Z_PRINTF_BUFSIZE 4096
 #endif
 
+#ifdef __MVS__
+#  pragma map (fdopen , "\174\174FDOPEN")
+   FILE *fdopen(int, const char *);
+#endif
+
 #ifndef STDC
 extern voidp  malloc OF((uInt size));
 extern void   free   OF((voidpf ptr));

@@ -120,7 +120,7 @@ int check_exist_file(filename)
 
 void do_banner()
 {
-    printf("MiniZip 0.22, demo of zLib + Zip package written by Gilles Vollant\n");
+    printf("MiniZip 1.00, demo of zLib + Zip package written by Gilles Vollant\n");
     printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 

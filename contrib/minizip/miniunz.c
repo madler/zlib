@@ -140,7 +140,7 @@ int makedir (newdir)
 
 void do_banner()
 {
-    printf("MiniUnz 0.22, demo of zLib + Unz package written by Gilles Vollant\n");
+    printf("MiniUnz 1.00, demo of zLib + Unz package written by Gilles Vollant\n");
     printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 

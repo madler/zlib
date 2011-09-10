@@ -1,3 +1,7 @@
+Change in 1.00: (10 sept 03)
+- rename to 1.00
+- cosmetic code change
+
 Change in 0.22: (19 May 03)
 - crypting support (unless you define NOCRYPT)
 - append file in existing zipfile

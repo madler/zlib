@@ -89,6 +89,9 @@ void test_gzio(fname, uncompr, uncomprLen)
     Byte *uncompr;
     uLong uncomprLen;
 {
+#ifdef NO_GZCOMPRESS
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
     int err;
     int len = (int)strlen(hello)+1;
     gzFile file;
@@ -159,6 +162,7 @@ void test_gzio(fname, uncompr, uncomprLen)
     }
 
     gzclose(file);
+#endif
 }
 
 /* ===========================================================================

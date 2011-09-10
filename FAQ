@@ -73,8 +73,7 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
 10. I need a Delphi interface to zlib.
 
-    See the directories contrib/delphi and contrib/delphi2 in the zlib
-    distribution.
+    See the contrib/delphi directory in the zlib distribution.
 
 11. Can zlib handle .zip archives?
 
