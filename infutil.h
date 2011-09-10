@@ -41,8 +41,6 @@ struct inflate_blocks_state {
       inflate_huft *tb;         /* bit length decoding tree */
     } trees;            /* if DTREE, decoding info for trees */
     struct {
-      inflate_huft *tl;
-      inflate_huft *td;         /* trees to free */
       inflate_codes_statef 
          *codes;
     } decode;           /* if CODES, current state */
@@ -52,6 +50,7 @@ struct inflate_blocks_state {
   /* mode independent information */
   uInt bitk;            /* bits in bit buffer */
   uLong bitb;           /* bit buffer */
+  inflate_huft *hufts;  /* single malloc for tree space */
   Bytef *window;        /* sliding window */
   Bytef *end;           /* one byte after sliding window */
   Bytef *read;          /* window read pointer */

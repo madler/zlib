@@ -1,4 +1,4 @@
-zlib 1.0.8 is a general purpose data compression library.  All the code
+zlib 1.0.9 is a general purpose data compression library.  All the code
 is thread safe.  The data format used by the zlib library
 is described by RFCs (Request for Comments) 1950 to 1952 in the files 
 ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
@@ -25,18 +25,22 @@ Mark Nelson wrote an article about zlib for the Jan. 1997 issue of
 Dr. Dobb's Journal; a copy of the article is available in
 http://web2.airmail.net/markn/articles/zlibtool/zlibtool.htm
 
-The changes made in version 1.0.8 are documented in the file ChangeLog.
-The main changes since 1.0.7 are:
+The changes made in version 1.0.9 are documented in the file ChangeLog.
+The main changes since 1.0.8 are:
 
-- fixed offsets in contrib/asm386/gvmat32.asm (Gilles Vollant)
-- fix gzgetc and gzputc for big endian systems (Markus Oberhumer)
-- added compress2() to allow setting the compression level
-- include sys/types.h to get off_t on some systems (Marc Lehmann & QingLong)
-- use constant arrays for the static trees in trees.c instead of computing
-  them at run time (thanks to Ken Raeburn for this suggestion). To create
-  trees.h, compile with GEN_TREES_H and run "make test".
-- check return code of example in "make test" and display result
-- pass minigzip command line options to file_compress
+- added gzputs and gzgets functions
+- do not clear eof flag in gzseek (Mark Diekhans)
+- fix gzseek for files in transparent mode (Mark Diekhans)
+- do not assume that vsprintf returns the number of bytes written (Jens Krinke)
+- replace EXPORT with ZEXPORT to avoid conflict with other programs
+- added compress2 in zconf.h, zlib.def, zlib.dnt
+- new asm code from Gilles Vollant in contrib/asm386
+- simplify the inflate code (Mark):
+ . Replace ZALLOC's in huft_build() with single ZALLOC in inflate_blocks_new()
+ . ZALLOC the length list in inflate_trees_fixed() instead of using stack
+ . ZALLOC the value area for huft_build() instead of using stack
+ . Simplify Z_FINISH check in inflate()
+
 
 Unsupported third party contributions are provided in directory "contrib".
 
@@ -65,9 +69,6 @@ Notes for some targets:
   See contrib/visual-basic.txt for more information.
   I don't know how to handle structures in Visual Basic, sorry.
 
-- "make test" fails on Solaris 2.6 with gcc 2.8.0. It works with cc and
-   with gcc 2.7.2.1.
-
 - For 64-bit Irix, deflate.c must be compiled without any optimization.
   With -O, one libpng test fails. The test works in 32 bit mode (with
   the -n32 compiler flag). The compiler bug has been reported to SGI.
@@ -75,11 +76,12 @@ Notes for some targets:
 - zlib doesn't work with gcc 2.6.3 on a DEC 3000/300LX under OSF/1 2.1   
   it works when compiled with cc.
 
-- zlib doesn't work on HP-UX 9.05 with one cc compiler (the one not
-  accepting the -O option). It works with the other cc compiler.
+- zlib doesn't work on HP-UX 9.05 with some versions of /bin/cc. It works
+  with other compilers. Use "make test" to check your compiler.
 
 - For shared memory multiprocessors, the decompression code assumes that
-  writes to pointers are atomic.
+  writes to pointers are atomic. Also the functions zalloc and zfree passed
+  to deflateInit must be multi-threaded in this case.
 
 - gzdopen is not supported on RISCOS, BEOS and Mac
 

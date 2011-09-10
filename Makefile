@@ -23,7 +23,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.8
+VER=1.0.9
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -44,7 +44,7 @@ DISTFILES = README INDEX ChangeLog configure Make*[a-z0-9] *.[ch] descrip.mms \
   algorithm.txt zlib.3 msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
   nt/Makefile.nt nt/zlib.dnt  contrib/README.contrib contrib/*.txt \
   contrib/asm386/*.asm contrib/asm386/*.c \
-  contrib/asm386/*.bat contrib/asm386/*.mak contrib/iostream/*.cpp \
+  contrib/asm386/*.bat contrib/asm386/zlibvc.d?? contrib/iostream/*.cpp \
   contrib/iostream/*.h  contrib/iostream2/*.h contrib/iostream2/*.cpp \
   contrib/untgz/Makefile contrib/untgz/*.c contrib/untgz/*.w32
 
@@ -77,12 +77,12 @@ minigzip: minigzip.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
 
 install: $(LIBS)
-	-@if [ ! $(prefix)/include  ]; then mkdir $(prefix)/include; fi
-	-@if [ ! $(exec_prefix)/lib ]; then mkdir $(exec_prefix)/lib; fi
+	-@if [ ! -d $(prefix)/include  ]; then mkdir $(prefix)/include; fi
+	-@if [ ! -d $(exec_prefix)/lib ]; then mkdir $(exec_prefix)/lib; fi
 	cp zlib.h zconf.h $(prefix)/include
 	chmod 644 $(prefix)/include/zlib.h $(prefix)/include/zconf.h
 	cp $(LIBS) $(exec_prefix)/lib
-	cd $(exec_prefix)/lib; chmod 644 $(LIBS)
+	cd $(exec_prefix)/lib; chmod 755 $(LIBS)
 	-@(cd $(exec_prefix)/lib; $(RANLIB) libz.a || true) >/dev/null 2>&1
 	cd $(exec_prefix)/lib; if test -f $(SHAREDLIB).$(VER); then \
 	  rm -f $(SHAREDLIB) $(SHAREDLIB).1; \
@@ -112,12 +112,14 @@ distclean:	clean
 
 zip:
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
+	rm -f test.c ztest*.c
 	v=`sed -n -e 's/\.//g' -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
 	zip -ul9 zlib$$v $(DISTFILES)
 	mv Makefile~ Makefile
 
 dist:
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
+	rm -f test.c ztest*.c
 	d=zlib-`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
 	rm -f $$d.tar.gz; \
 	if test ! -d ../$$d; then rm -f ../$$d; ln -s `pwd` ../$$d; fi; \

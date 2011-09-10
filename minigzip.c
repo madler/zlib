@@ -44,12 +44,14 @@
 #  define fileno(file) file->__file
 #endif
 
+#ifndef WIN32 /* unlink already in stdio.h for WIN32 */
+  extern int unlink OF((const char *));
+#endif
+
 #ifndef GZ_SUFFIX
 #  define GZ_SUFFIX ".gz"
 #endif
 #define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
-
-extern int unlink OF((const char *));
 
 #define BUFLEN 4096
 #define MAX_NAME_LEN 1024

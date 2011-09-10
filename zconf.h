@@ -30,6 +30,7 @@
 #  define inflateSyncPoint z_inflateSyncPoint
 #  define inflateReset	z_inflateReset
 #  define compress	z_compress
+#  define compress2	z_compress2
 #  define uncompress	z_uncompress
 #  define adler32	z_adler32
 #  define crc32		z_crc32
@@ -158,6 +159,29 @@
 #    define FAR __far
 #  endif
 #endif
+
+/* Compile with -DZLIB_DLL for Windows DLL support */
+#if (defined(_WINDOWS) || defined(WINDOWS)) && defined(ZLIB_DLL)
+#  ifdef FAR
+#    undef FAR
+#  endif
+#  include <windows.h>
+#  define ZEXPORT  WINAPI
+#  ifdef WIN32
+#    define ZEXPORTVA  WINAPIV
+#  else
+#    define ZEXPORTVA  FAR _cdecl _export
+#  endif
+#else
+#   if defined (__BORLANDC__) && defined (_Windows) && defined (__DLL__)
+#       define ZEXPORT _export
+#       define ZEXPORTVA _export
+#   else
+#       define ZEXPORT
+#       define ZEXPORTVA
+#   endif
+#endif
+
 #ifndef FAR
 #   define FAR
 #endif
@@ -196,26 +220,6 @@ typedef uLong FAR uLongf;
 #endif
 #ifndef z_off_t
 #  define  z_off_t long
-#endif
-
-/* Compile with -DZLIB_DLL for Windows DLL support */
-#if (defined(_WINDOWS) || defined(WINDOWS)) && defined(ZLIB_DLL)
-#  undef FAR
-#  include <windows.h>
-#  define EXPORT  WINAPI
-#  ifdef WIN32
-#    define EXPORTVA  WINAPIV
-#  else
-#    define EXPORTVA  FAR _cdecl _export
-#  endif
-#else
-#   if defined (__BORLANDC__) && defined (_Windows) && defined (__DLL__)
-#       define EXPORT _export
-#       define EXPORTVA _export
-#   else
-#       define EXPORT
-#       define EXPORTVA
-#   endif
 #endif
 
 /* MVS linker does not support external names larger than 8 bytes */

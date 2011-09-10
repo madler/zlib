@@ -26,7 +26,7 @@ const char *z_errmsg[10] = {
 ""};
 
 
-const char * EXPORT zlibVersion()
+const char * ZEXPORT zlibVersion()
 {
     return ZLIB_VERSION;
 }
@@ -49,7 +49,7 @@ void z_error (m)
 /* exported to allow conversion of error code to string for compress() and
  * uncompress()
  */
-const char * EXPORT zError(err)
+const char * ZEXPORT zError(err)
     int err;
 {
     return ERR_MSG(err);

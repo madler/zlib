@@ -1,6 +1,30 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.9 (17 Feb 1998)
+- added gzputs and gzgets functions
+- do not clear eof flag in gzseek (Mark Diekhans)
+- fix gzseek for files in transparent mode (Mark Diekhans)
+- do not assume that vsprintf returns the number of bytes written (Jens Krinke)
+- replace EXPORT with ZEXPORT to avoid conflict with other programs
+- added compress2 in zconf.h, zlib.def, zlib.dnt
+- new asm code from Gilles Vollant in contrib/asm386
+- simplify the inflate code (Mark):
+ . Replace ZALLOC's in huft_build() with single ZALLOC in inflate_blocks_new()
+ . ZALLOC the length list in inflate_trees_fixed() instead of using stack
+ . ZALLOC the value area for huft_build() instead of using stack
+ . Simplify Z_FINISH check in inflate()
+
+- Avoid gcc 2.8.0 comparison bug a little differently than zlib 1.0.8
+- in inftrees.c, avoid cc -O bug on HP (Farshid Elahi)
+- in zconf.h move the ZLIB_DLL stuff earlier to avoid problems with
+  the declaration of FAR (Gilles VOllant)
+- install libz.so* with mode 755 (executable) instead of 644 (Marc Lehmann)
+- read_buf buf parameter of type Bytef* instead of charf*
+- zmemcpy parameters are of type Bytef*, not charf* (Joseph Strout)
+- do not redeclare unlink in minigzip.c for WIN32 (John Bowler)
+- fix check for presence of directories in "make install" (Ian Willis)
+
 Changes in 1.0.8 (27 Jan 1998)
 - fixed offsets in contrib/asm386/gvmat32.asm (Gilles Vollant)
 - fix gzgetc and gzputc for big endian systems (Markus Oberhumer)

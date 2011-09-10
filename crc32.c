@@ -124,7 +124,7 @@ local const uLongf crc_table[256] = {
 /* =========================================================================
  * This function can be used by asm versions of crc32()
  */
-const uLongf * EXPORT get_crc_table()
+const uLongf * ZEXPORT get_crc_table()
 {
 #ifdef DYNAMIC_CRC_TABLE
   if (crc_table_empty) make_crc_table();
@@ -139,7 +139,7 @@ const uLongf * EXPORT get_crc_table()
 #define DO8(buf)  DO4(buf); DO4(buf);
 
 /* ========================================================================= */
-uLong EXPORT crc32(crc, buf, len)
+uLong ZEXPORT crc32(crc, buf, len)
     uLong crc;
     const Bytef *buf;
     uInt len;

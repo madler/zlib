@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.0.8 Copyright 1995-1998 Jean-loup Gailly ";
+   " deflate 1.0.9 Copyright 1995-1998 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -80,7 +80,7 @@ local block_state deflate_slow   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
 local void putShortMSB    OF((deflate_state *s, uInt b));
 local void flush_pending  OF((z_streamp strm));
-local int read_buf        OF((z_streamp strm, charf *buf, unsigned size));
+local int read_buf        OF((z_streamp strm, Bytef *buf, unsigned size));
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
       uInt longest_match  OF((deflate_state *s, IPos cur_match));
@@ -175,10 +175,10 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
  */
 #define CLEAR_HASH(s) \
     s->head[s->hash_size-1] = NIL; \
-    zmemzero((charf *)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
+    zmemzero((Bytef *)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
 
 /* ========================================================================= */
-int EXPORT deflateInit_(strm, level, version, stream_size)
+int ZEXPORT deflateInit_(strm, level, version, stream_size)
     z_streamp strm;
     int level;
     const char *version;
@@ -190,7 +190,7 @@ int EXPORT deflateInit_(strm, level, version, stream_size)
 }
 
 /* ========================================================================= */
-int EXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
+int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 		  version, stream_size)
     z_streamp strm;
     int  level;
@@ -276,7 +276,7 @@ int EXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 }
 
 /* ========================================================================= */
-int EXPORT deflateSetDictionary (strm, dictionary, dictLength)
+int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     z_streamp strm;
     const Bytef *dictionary;
     uInt  dictLength;
@@ -299,7 +299,7 @@ int EXPORT deflateSetDictionary (strm, dictionary, dictLength)
 	dictionary += dictLength - length; /* use the tail of the dictionary */
 #endif
     }
-    zmemcpy((charf *)s->window, dictionary, length);
+    zmemcpy(s->window, dictionary, length);
     s->strstart = length;
     s->block_start = (long)length;
 
@@ -317,7 +317,7 @@ int EXPORT deflateSetDictionary (strm, dictionary, dictLength)
 }
 
 /* ========================================================================= */
-int EXPORT deflateReset (strm)
+int ZEXPORT deflateReset (strm)
     z_streamp strm;
 {
     deflate_state *s;
@@ -347,7 +347,7 @@ int EXPORT deflateReset (strm)
 }
 
 /* ========================================================================= */
-int EXPORT deflateParams(strm, level, strategy)
+int ZEXPORT deflateParams(strm, level, strategy)
     z_streamp strm;
     int level;
     int strategy;
@@ -421,7 +421,7 @@ local void flush_pending(strm)
 }
 
 /* ========================================================================= */
-int EXPORT deflate (strm, flush)
+int ZEXPORT deflate (strm, flush)
     z_streamp strm;
     int flush;
 {
@@ -555,7 +555,7 @@ int EXPORT deflate (strm, flush)
 }
 
 /* ========================================================================= */
-int EXPORT deflateEnd (strm)
+int ZEXPORT deflateEnd (strm)
     z_streamp strm;
 {
     int status;
@@ -585,7 +585,7 @@ int EXPORT deflateEnd (strm)
  * To simplify the source, this is not supported for 16-bit MSDOS (which
  * doesn't have enough memory anyway to duplicate compression states).
  */
-int EXPORT deflateCopy (dest, source)
+int ZEXPORT deflateCopy (dest, source)
     z_streamp dest;
     z_streamp source;
 {
@@ -647,7 +647,7 @@ int EXPORT deflateCopy (dest, source)
  */
 local int read_buf(strm, buf, size)
     z_streamp strm;
-    charf *buf;
+    Bytef *buf;
     unsigned size;
 {
     unsigned len = strm->avail_in;
@@ -857,8 +857,8 @@ local void check_match(s, start, match, length)
     int length;
 {
     /* check that the match is indeed a match */
-    if (zmemcmp((charf *)s->window + match,
-                (charf *)s->window + start, length) != EQUAL) {
+    if (zmemcmp(s->window + match,
+                s->window + start, length) != EQUAL) {
         fprintf(stderr, " start %u, match %u, length %d\n",
 		start, match, length);
         do {
@@ -911,8 +911,7 @@ local void fill_window(s)
          */
         } else if (s->strstart >= wsize+MAX_DIST(s)) {
 
-            zmemcpy((charf *)s->window, (charf *)s->window+wsize,
-                   (unsigned)wsize);
+            zmemcpy(s->window, s->window+wsize, (unsigned)wsize);
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
             s->block_start -= (long) wsize;
@@ -956,8 +955,7 @@ local void fill_window(s)
          */
         Assert(more >= 2, "more < 2");
 
-        n = read_buf(s->strm, (charf *)s->window + s->strstart + s->lookahead,
-                     more);
+        n = read_buf(s->strm, s->window + s->strstart + s->lookahead, more);
         s->lookahead += n;
 
         /* Initialize the hash value now that we have some input: */

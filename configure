@@ -14,6 +14,10 @@
 #    (setenv prefix $HOME; setenv CC cc; setenv CFLAGS "-O4"; ./configure)
 # LDSHARED is the command to be used to create a shared library
 
+# Incorrect settings of CC or CFLAGS may prevent creating a shared library.
+# If you have problems, try without defining CC and CFLAGS before reporting
+# an error.
+
 LIBS=libz.a
 SHAREDLIB=libz.so
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
@@ -23,6 +27,8 @@ prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-$prefix}
 shared_ext='.so'
 shared=0
+old_cc="$CC"
+old_cflags="$CFLAGS"
 
 case "$1" in
   -s* | --s*) shared=1; shift;;
@@ -96,8 +102,11 @@ if test $shared -eq 1; then
     CFLAGS="$SFLAGS"
     LIBS="$SHAREDLIB.$VER"
     echo Building shared library $SHAREDLIB.$VER with $CC.
-  else
+  elif test -z "$old_cc" -a -z "$old_cflags"; then
     echo No shared library suppport.
+    shared=0;
+  else
+    echo 'No shared library suppport; try without defining CC and CFLAGS'
     shared=0;
   fi
 fi

@@ -7,7 +7,6 @@
  *     (assembly code is faster with a fixed wmask)
  *
  */
-//#pragma optimize("agt",on)
 
 #include "deflate.h"
 
@@ -15,65 +14,31 @@
 #include <windows.h>
 
 #ifdef ASMV
-
 #define NIL 0
 
-static unsigned int tot=0;
-static unsigned int totl0=0;
-static unsigned int totl0p0=0;
-static unsigned int ba0=0;
-static unsigned int ba1=0;
-static unsigned int cpta=0;
-static unsigned int cptb=0;
-
 #define UNALIGNED_OK
-#define gvshow(a,b,c,d)
-/*
-void gvshow(int chain_length,int len,int limit,ushf* prev)
-{
-static int ival=0;
-char sz[80];
-unsigned long i;
-int prev0=*prev;
-	ival++;
-	//wsprintf(sz,"call %u, len=%u, chain_length=%u\n",ival,len,chain_length);
-	//OutputDebugString(sz);
-	tot++;
-	if (limit==NIL)
-		totl0++;
-	if ((limit==NIL) && (prev0==0))
-		totl0p0++;
-	for (i=limit+1;i<32768;i++)
-	{
-		ush va=*(prev+i);
-		if (ba0>4000000000)
-		{
-			ba0+=10;
-		}
-		ba0++;
-		if ((va>limit) || (va==0))
-			continue;
-		ba1++;
-	}
-}
-*/
 
 
 /* if your C compiler don't add underline before function name,
 		define ADD_UNDERLINE_ASMFUNC */
 #ifdef ADD_UNDERLINE_ASMFUNC
-#define longest_match_asm7fff _longest_match_asm7fff
+#define longest_match_7fff _longest_match_7fff
 #endif
+
+
+
 void match_init()
 {
 }
+
+unsigned long cpudetect32();
 
 uInt longest_match_c(
     deflate_state *s,
     IPos cur_match);                             /* current match */
 
 
-uInt longest_match_asm7fff(
+uInt longest_match_7fff(
     deflate_state *s,
     IPos cur_match);                             /* current match */
 
@@ -81,9 +46,15 @@ uInt longest_match(
     deflate_state *s,
     IPos cur_match)                             /* current match */
 {
-    if (s->w_mask == 0x7fff)
-        return longest_match_asm7fff(s,cur_match);
-    return longest_match_c(s,cur_match);
+	static uInt iIsPPro=2;
+
+    if ((s->w_mask == 0x7fff) && (iIsPPro==0))
+        return longest_match_7fff(s,cur_match);
+
+	if (iIsPPro==2)
+		iIsPPro = (((cpudetect32()/0x100)&0xf)>=6) ? 1 : 0;
+
+	return longest_match_c(s,cur_match);
 }
 
 
@@ -222,7 +193,7 @@ uInt longest_match_c(s, cur_match)
     } while ((cur_match = prev[cur_match & wmask]) > limit
              && --chain_length != 0);
 
-    if ((uInt)best_len <= s->lookahead) return best_len;
+    if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
     return s->lookahead;
 }
 

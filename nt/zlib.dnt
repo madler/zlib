@@ -42,3 +42,6 @@ EXPORTS
     zError                         @36
     inflateSyncPoint               @37
     get_crc_table                  @38
+    compress2                      @39
+    gzputs                         @40
+    gzgets                         @41

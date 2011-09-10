@@ -50,7 +50,7 @@ struct internal_state {
 };
 
 
-int EXPORT inflateReset(z)
+int ZEXPORT inflateReset(z)
 z_streamp z;
 {
   if (z == Z_NULL || z->state == Z_NULL)
@@ -64,7 +64,7 @@ z_streamp z;
 }
 
 
-int EXPORT inflateEnd(z)
+int ZEXPORT inflateEnd(z)
 z_streamp z;
 {
   if (z == Z_NULL || z->state == Z_NULL || z->zfree == Z_NULL)
@@ -78,7 +78,7 @@ z_streamp z;
 }
 
 
-int EXPORT inflateInit2_(z, w, version, stream_size)
+int ZEXPORT inflateInit2_(z, w, version, stream_size)
 z_streamp z;
 int w;
 const char *version;
@@ -135,7 +135,7 @@ int stream_size;
 }
 
 
-int EXPORT inflateInit_(z, version, stream_size)
+int ZEXPORT inflateInit_(z, version, stream_size)
 z_streamp z;
 const char *version;
 int stream_size;
@@ -144,18 +144,19 @@ int stream_size;
 }
 
 
-#define NEEDBYTE {if(z->avail_in==0)return r; if (f != Z_FINISH) r = Z_OK;}
+#define NEEDBYTE {if(z->avail_in==0)return r;r=f;}
 #define NEXTBYTE (z->avail_in--,z->total_in++,*z->next_in++)
 
-int EXPORT inflate(z, f)
+int ZEXPORT inflate(z, f)
 z_streamp z;
 int f;
 {
   int r;
   uInt b;
 
-  if (z == Z_NULL || z->state == Z_NULL || z->next_in == Z_NULL || f < 0)
+  if (z == Z_NULL || z->state == Z_NULL || z->next_in == Z_NULL)
     return Z_STREAM_ERROR;
+  f = f == Z_FINISH ? Z_BUF_ERROR : Z_OK;
   r = Z_BUF_ERROR;
   while (1) switch (z->state->mode)
   {
@@ -190,7 +191,7 @@ int f;
       if (!(b & PRESET_DICT))
       {
         z->state->mode = BLOCKS;
-	break;
+        break;
       }
       z->state->mode = DICT4;
     case DICT4:
@@ -224,9 +225,10 @@ int f;
         z->state->sub.marker = 0;       /* can try inflateSync */
         break;
       }
+      if (r == Z_OK)
+        r = f;
       if (r != Z_STREAM_END)
-        return f == Z_FINISH && r == Z_OK ? Z_BUF_ERROR : r;
-      r = Z_OK;
+        return r;
       inflate_blocks_reset(z->state->blocks, z, &z->state->sub.check.was);
       if (z->state->nowrap)
       {
@@ -234,7 +236,6 @@ int f;
         break;
       }
       z->state->mode = CHECK4;
-      if (f == Z_FINISH) r = Z_BUF_ERROR;
     case CHECK4:
       NEEDBYTE
       z->state->sub.check.need = (uLong)NEXTBYTE << 24;
@@ -273,7 +274,7 @@ int f;
 }
 
 
-int EXPORT inflateSetDictionary(z, dictionary, dictLength)
+int ZEXPORT inflateSetDictionary(z, dictionary, dictLength)
 z_streamp z;
 const Bytef *dictionary;
 uInt  dictLength;
@@ -297,7 +298,7 @@ uInt  dictLength;
 }
 
 
-int EXPORT inflateSync(z)
+int ZEXPORT inflateSync(z)
 z_streamp z;
 {
   uInt n;       /* number of bytes to look at */
@@ -321,8 +322,7 @@ z_streamp z;
   /* search */
   while (n && m < 4)
   {
-    static const Byte mark[4] = {0, 0, 0xff, 0xff};
-    if (*p == mark[m])
+    if (*p == (Byte)(m < 2 ? 0 : (Byte)0xff))
       m++;
     else if (*p)
       m = 0;
@@ -355,7 +355,7 @@ z_streamp z;
  * decompressing, PPP checks that at the end of input packet, inflate is
  * waiting for these length bytes.
  */
-int EXPORT inflateSyncPoint(z)
+int ZEXPORT inflateSyncPoint(z)
 z_streamp z;
 {
   if (z == Z_NULL || z->state == Z_NULL || z->state->blocks == Z_NULL)

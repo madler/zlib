@@ -95,7 +95,11 @@ void test_gzio(out, in, uncompr, uncomprLen)
         exit(1);
     }
     gzputc(file, 'h');
-    if (gzprintf(file, "%s, %s!", "ello", "hello") != len-2) {
+    if (gzputs(file, "ello") != 4) {
+        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
+	exit(1);
+    }
+    if (gzprintf(file, ", %s!", "hello") != 8) {
         fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
 	exit(1);
     }
@@ -132,16 +136,17 @@ void test_gzio(out, in, uncompr, uncomprLen)
 	exit(1);
     }
 
-    uncomprLen = gzread(file, uncompr, (unsigned)uncomprLen);
-    if (uncomprLen != 7) {
-        fprintf(stderr, "gzread err after gzseek: %s\n", gzerror(file, &err));
+    gzgets(file, (char*)uncompr, uncomprLen);
+    uncomprLen = strlen((char*)uncompr);
+    if (uncomprLen != 6) { /* "hello!" */
+        fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
 	exit(1);
     }
     if (strcmp((char*)uncompr, hello+7)) {
-        fprintf(stderr, "bad gzread after gzseek\n");
+        fprintf(stderr, "bad gzgets after gzseek\n");
 	exit(1);
     } else {
-        printf("gzread() after gzseek: %s\n", uncompr);
+        printf("gzgets() after gzseek: %s\n", uncompr);
     }
 
     gzclose(file);

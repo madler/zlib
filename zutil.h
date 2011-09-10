@@ -208,7 +208,7 @@ extern const char *z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 
-typedef uLong (EXPORT *check_func) OF((uLong check, const Bytef *buf,
+typedef uLong (ZEXPORT *check_func) OF((uLong check, const Bytef *buf,
 				       uInt len));
 voidpf zcalloc OF((voidpf opaque, unsigned items, unsigned size));
 void   zcfree  OF((voidpf opaque, voidpf ptr));

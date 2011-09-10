@@ -18,7 +18,7 @@
 #define DO16(buf)   DO8(buf,0); DO8(buf,8);
 
 /* ========================================================================= */
-uLong EXPORT adler32(adler, buf, len)
+uLong ZEXPORT adler32(adler, buf, len)
     uLong adler;
     const Bytef *buf;
     uInt len;
