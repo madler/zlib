@@ -5,6 +5,7 @@
 # To compile and test, type:
 #   ./configure; make test
 # The call of configure is optional if you don't have special requirements
+# If you wish to build zlib as a shared library, use: ./configure -s
 
 # To install /usr/local/lib/libz.* and /usr/local/include/zlib.h, type:
 #    make install
@@ -22,7 +23,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.7
+VER=1.0.8
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -51,8 +52,13 @@ all: example minigzip
 
 test: all
 	@LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
-	./example ; \
-	echo hello world | ./minigzip | ./minigzip -d
+	echo hello world | ./minigzip | ./minigzip -d || \
+	  echo '		*** minigzip test FAILED ***' ; \
+	if ./example; then \
+	  echo '		*** zlib test OK ***'; \
+	else \
+	  echo '		*** zlib test FAILED ***'; \
+	fi
 
 libz.a: $(OBJS)
 	$(AR) $@ $(OBJS)
@@ -88,12 +94,16 @@ install: $(LIBS)
 # ldconfig is for Linux
 
 uninstall:
-	cd $(exec_prefix)/lib; rm -f $(LIBS); \
-	if test -f $(SHAREDLIB); then \
-	 v=`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p'<$(prefix)/include/zlib.h`;\
-	 rm -f $(SHAREDLIB).$$v $(SHAREDLIB); \
+	cd $(prefix)/include; \
+	v=$(VER); \
+	if test -f zlib.h; then \
+	  v=`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`; \
+          rm -f zlib.h zconf.h; \
+	fi; \
+	cd $(exec_prefix)/lib; rm -f libz.a; \
+	if test -f $(SHAREDLIB).$$v; then \
+	  rm -f $(SHAREDLIB).$$v $(SHAREDLIB) $(SHAREDLIB).1; \
 	fi
-	cdz $(prefix)/include; rm -f zlib.h zconf.h
 
 clean:
 	rm -f *.o *~ example minigzip libz.a libz.so* foo.gz
@@ -141,6 +151,6 @@ inflate.o: zutil.h zlib.h zconf.h infblock.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h
 infutil.o: zutil.h zlib.h zconf.h infblock.h inftrees.h infcodes.h infutil.h
 minigzip.o:  zlib.h zconf.h 
-trees.o: deflate.h zutil.h zlib.h zconf.h 
+trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
 uncompr.o: zlib.h zconf.h
 zutil.o: zutil.h zlib.h zconf.h  

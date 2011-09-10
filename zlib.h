@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.0.7, Jan 20th, 1998
+  version 1.0.8, Jan 27th, 1998
 
   Copyright (C) 1995-1998 Jean-loup Gailly and Mark Adler
 
@@ -37,7 +37,7 @@ extern "C" {
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "1.0.7"
+#define ZLIB_VERSION "1.0.8"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -614,6 +614,21 @@ extern int EXPORT compress OF((Bytef *dest,   uLongf *destLen,
    buffer.
 */
 
+extern int EXPORT compress2 OF((Bytef *dest,   uLongf *destLen,
+	 		        const Bytef *source, uLong sourceLen,
+				int level));
+/*
+     Compresses the source buffer into the destination buffer. The level
+   parameter has the same meaning as in deflateInit.  sourceLen is the byte
+   length of the source buffer. Upon entry, destLen is the total size of the
+   destination buffer, which must be at least 0.1% larger than sourceLen plus
+   12 bytes. Upon exit, destLen is the actual size of the compressed buffer.
+
+     compress2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+   memory, Z_BUF_ERROR if there was not enough room in the output buffer,
+   Z_STREAM_ERROR if the level parameter is invalid.
+*/
+
 extern int EXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
 				 const Bytef *source, uLong sourceLen));
 /*
@@ -842,9 +857,9 @@ extern int EXPORT inflateInit2_ OF((z_streamp strm, int  windowBits,
     struct internal_state {int dummy;}; /* hack for buggy compilers */
 #endif
 
-extern const char * EXPORT zError           OF((int err));
-extern int          EXPORT inflateSyncPoint OF((z_streamp z));
-extern uLongf *     EXPORT get_crc_table    OF((void));
+extern const char   * EXPORT zError           OF((int err));
+extern int            EXPORT inflateSyncPoint OF((z_streamp z));
+extern const uLongf * EXPORT get_crc_table    OF((void));
 
 #ifdef __cplusplus
 }

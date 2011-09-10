@@ -29,15 +29,23 @@ case "$1" in
   -h* | --h*) echo 'syntax: configure [ --shared ]'; exit 0;;
 esac
 
-test -z "$CC" && echo Checking for gcc...
 test=ztest$$
 cat > $test.c <<EOF
-int hello() { printf("hello\n"); }
+extern int getchar();
+int hello() {return getchar();}
 EOF
-if test -z "$CC" -o "$CC" = "gcc" && (gcc -c -O3 $test.c) 2>/dev/null; then
-  CC=gcc
+
+test -z "$CC" && echo Checking for gcc...
+cc=${CC-gcc}
+cflags=${CFLAGS-"-O3"}
+case "$cc" in
+  *gcc*) gcc=1;;
+esac
+
+if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
+  CC="$cc"
   SFLAGS=${CFLAGS-"-fPIC -O3"}
-  CFLAGS=${CFLAGS-"-O3"}
+  CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux) LDSHARED=${LDSHARED-"gcc -shared -Wl,-soname,libz.so.1"};;
   *)             LDSHARED=${LDSHARED-"gcc -shared"};;
@@ -65,7 +73,8 @@ else
 	     LDSHARED=${LDSHARED-"cc -dy -KPIC -G"};;
   HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
 	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
+#	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
+	     LDSHARED=${LDSHARED-"ld -b"}
 	     shared_ext='.sl'
 	     SHAREDLIB='libz.sl';;
   UNIX_System_V\ 4.2.0) 
@@ -108,14 +117,14 @@ fi
 
 # udpate Makefile
 sed < Makefile.in "
-/^CC *=/s,=.*,=$CC,
-/^CFLAGS *=/s/=.*/=$CFLAGS/
+/^CC *=/s%=.*%=$CC%
+/^CFLAGS *=/s%=.*%=$CFLAGS%
 /^LDSHARED *=/s%=.*%=$LDSHARED%
-/^LIBS *=/s,=.*,=$LIBS,
-/^SHAREDLIB *=/s,=.*,=$SHAREDLIB,
-/^AR *=/s,=.*,=$AR,
-/^RANLIB *=/s,=.*,=$RANLIB,
-/^VER *=/s/=.*/=$VER/
-/^prefix *=/s,=.*,=$prefix,
-/^exec_prefix *=/s,=.*,=$exec_prefix,
+/^LIBS *=/s%=.*%=$LIBS%
+/^SHAREDLIB *=/s%=.*%=$SHAREDLIB%
+/^AR *=/s%=.*%=$AR%
+/^RANLIB *=/s%=.*%=$RANLIB%
+/^VER *=/s%=.*%=$VER%
+/^prefix *=/s%=.*%=$prefix%
+/^exec_prefix *=/s%=.*%=$exec_prefix%
 " > Makefile

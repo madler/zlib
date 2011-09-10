@@ -53,17 +53,19 @@
 @lmtype				TYPEDEF         PROTO C :PTR , :SDWORD
 longest_match_c		PROTO           @lmtype
 
-	dep_max_chain_length	equ	70h
-	dep_window				equ	2ch
-	dep_strstart			equ	60h
-	dep_prev_length			equ 6ch
-	dep_nice_match			equ 84h
-	dep_w_size				equ	20h
-	dep_prev				equ	34h
-	dep_w_mask				equ	28h
-	dep_good_match			equ 80h
-	dep_match_start			equ	64h
-	dep_lookahead			equ	68h
+    ;  all the +4 offsets are due to the addition of pending_buf_size
+    ;  in the deflate_state structure since the asm code was first written
+    dep_chain_length    equ     70h+4
+    dep_window          equ     2ch+4
+    dep_strstart        equ     60h+4
+    dep_prev_length     equ     6ch+4
+    dep_nice_match      equ     84h+4
+    dep_w_size          equ     20h+4
+    dep_prev            equ     34h+4
+    dep_w_mask          equ     28h+4
+    dep_good_match      equ     80h+4
+    dep_match_start     equ     64h+4
+    dep_lookahead       equ     68h+4
 
 
 _TEXT   segment
@@ -461,4 +463,3 @@ _longest_match_asm7fff endp
 
 _TEXT   ends
 end
-					

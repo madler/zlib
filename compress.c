@@ -8,22 +8,22 @@
 #include "zlib.h"
 
 /* ===========================================================================
-     Compresses the source buffer into the destination buffer.  sourceLen is
-   the byte length of the source buffer. Upon entry, destLen is the total
-   size of the destination buffer, which must be at least 0.1% larger than
-   sourceLen plus 8 bytes. Upon exit, destLen is the actual size of the
-   compressed buffer.
-     This function can be used to compress a whole file at once if the
-   input file is mmap'ed.
-     compress returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_BUF_ERROR if there was not enough room in the output
-   buffer.
+     Compresses the source buffer into the destination buffer. The level
+   parameter has the same meaning as in deflateInit.  sourceLen is the byte
+   length of the source buffer. Upon entry, destLen is the total size of the
+   destination buffer, which must be at least 0.1% larger than sourceLen plus
+   12 bytes. Upon exit, destLen is the actual size of the compressed buffer.
+
+     compress2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+   memory, Z_BUF_ERROR if there was not enough room in the output buffer,
+   Z_STREAM_ERROR if the level parameter is invalid.
 */
-int EXPORT compress (dest, destLen, source, sourceLen)
+int EXPORT compress2 (dest, destLen, source, sourceLen, level)
     Bytef *dest;
     uLongf *destLen;
     const Bytef *source;
     uLong sourceLen;
+    int level;
 {
     z_stream stream;
     int err;
@@ -42,7 +42,7 @@ int EXPORT compress (dest, destLen, source, sourceLen)
     stream.zfree = (free_func)0;
     stream.opaque = (voidpf)0;
 
-    err = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
+    err = deflateInit(&stream, level);
     if (err != Z_OK) return err;
 
     err = deflate(&stream, Z_FINISH);
@@ -54,4 +54,15 @@ int EXPORT compress (dest, destLen, source, sourceLen)
 
     err = deflateEnd(&stream);
     return err;
+}
+
+/* ===========================================================================
+ */
+int EXPORT compress (dest, destLen, source, sourceLen)
+    Bytef *dest;
+    uLongf *destLen;
+    const Bytef *source;
+    uLong sourceLen;
+{
+    return compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 }

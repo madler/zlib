@@ -186,7 +186,8 @@ typedef uLong FAR uLongf;
 #endif
 
 #ifdef HAVE_UNISTD_H
-#  include <unistd.h> /* for SEEK_* and off_t */
+#  include <sys/types.h> /* for off_t */
+#  include <unistd.h>    /* for SEEK_* and off_t */
 #  define z_off_t  off_t
 #endif
 #ifndef SEEK_SET

@@ -1,6 +1,32 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.8 (27 Jan 1998)
+- fixed offsets in contrib/asm386/gvmat32.asm (Gilles Vollant)
+- fix gzgetc and gzputc for big endian systems (Markus Oberhumer)
+- added compress2() to allow setting the compression level
+- include sys/types.h to get off_t on some systems (Marc Lehmann & QingLong)
+- use constant arrays for the static trees in trees.c instead of computing
+  them at run time (thanks to Ken Raeburn for this suggestion). To create
+  trees.h, compile with GEN_TREES_H and run "make test".
+- check return code of example in "make test" and display result
+- pass minigzip command line options to file_compress
+- simplifying code of inflateSync to avoid gcc 2.8 bug
+
+- support CC="gcc -Wall" in configure -s (QingLong)
+- avoid a flush caused by ftell in gzopen for write mode (Ken Raeburn)
+- fix test for shared library support to avoid compiler warnings
+- zlib.lib -> zlib.dll in msdos/zlib.rc (Gilles Vollant)
+- check for TARGET_OS_MAC in addition to MACOS (Brad Pettit)
+- do not use fdopen for Metrowerks on Mac (Brad Pettit))
+- add checks for gzputc and gzputc in example.c
+- avoid warnings in gzio.c and deflate.c (Andreas Kleinert)
+- use const for the CRC table (Ken Raeburn)
+- fixed "make uninstall" for shared libraries
+- use Tracev instead of Trace in infblock.c
+- in example.c use correct compressed length for test_sync
+- suppress +vnocompatwarnings in configure for HPUX (not always supported)
+
 Changes in 1.0.7 (20 Jan 1998)
 - fix gzseek which was broken in write mode
 - return error for gzseek to negative absolute position
@@ -81,7 +107,6 @@ Changes in 1.0.6 (19 Jan 1998)
 - in Makefile.dj2, use copy and del instead of install and rm (Frank Donahoe)
 - Avoid expanded $Id$. Use "rcs -kb" or "cvs admin -kb" to avoid Id expansion.
 - check for unistd.h in configure (for off_t)
-- use Tracev instead of Trace in infblock.c
 - remove useless check parameter in inflate_blocks_free
 - avoid useless assignment of s->check to itself in inflate_blocks_new
 - do not flush twice in gzclose (thanks to Ken Raeburn)

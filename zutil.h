@@ -110,8 +110,16 @@ extern const char *z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE  0x05
 #endif
 
-#ifdef MACOS
+#if defined(MACOS) || defined(TARGET_OS_MAC)
 #  define OS_CODE  0x07
+#  ifndef fdopen
+#    define fdopen(fd,mode) NULL /* No fdopen() */
+#  endif
+#endif
+#if defined(__MWERKS__) && !defined(fdopen)
+#  if __dest_os != __be_os && __dest_os != __win32_os
+#    define fdopen(fd,mode) NULL
+#  endif
 #endif
 
 #ifdef __50SERIES /* Prime/PRIMOS */

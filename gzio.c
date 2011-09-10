@@ -150,7 +150,12 @@ local gzFile gz_open (path, mode, fd)
          */
         fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", gz_magic[0], gz_magic[1],
              Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
-	s->startpos = ftell(s->file);
+	s->startpos = 10L;
+	/* We use 10L instead of ftell(s->file) to because ftell causes an
+         * fflush on some systems. This version of the library doesn't use
+         * startpos anyway in write mode, so this initialization is not
+         * necessary.
+         */
     } else {
 	check_header(s); /* skip the .gz header */
 	s->startpos = (ftell(s->file) - s->stream.avail_in);
@@ -423,7 +428,7 @@ int EXPORT gzread (file, buf, len)
 int EXPORT gzgetc(file)
     gzFile file;
 {
-    int c;
+    unsigned char c;
 
     return gzread(file, &c, 1) == 1 ? c : -1;
 }
@@ -524,7 +529,9 @@ int EXPORT gzputc(file, c)
     gzFile file;
     int c;
 {
-    return gzwrite(file, &c, 1) == 1 ? c : -1;
+    unsigned char cc = (unsigned char) c; /* required for big endian systems */
+
+    return gzwrite(file, &cc, 1) == 1 ? (int)cc : -1;
 }
 
 
@@ -627,7 +634,7 @@ z_off_t EXPORT gzseek (file, offset, whence)
 
 	    offset -= size;
 	}
-	return s->stream.total_in;
+	return (z_off_t)s->stream.total_in;
 #endif
     }
     /* Rest of function is for reading only */
@@ -667,7 +674,7 @@ z_off_t EXPORT gzseek (file, offset, whence)
 	if (size <= 0) return -1L;
 	offset -= size;
     }
-    return s->stream.total_out;
+    return (z_off_t)s->stream.total_out;
 }
 
 /* ===========================================================================

@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.0.7 Copyright 1995-1998 Jean-loup Gailly ";
+   " deflate 1.0.8 Copyright 1995-1998 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -842,7 +842,7 @@ local uInt longest_match(s, cur_match)
     } while ((cur_match = prev[cur_match & wmask]) > limit
              && --chain_length != 0);
 
-    if ((uInt)best_len <= s->lookahead) return best_len;
+    if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
     return s->lookahead;
 }
 #endif /* ASMV */

@@ -66,7 +66,7 @@ char *prog;
 void error           OF((const char *msg));
 void gz_compress     OF((FILE   *in, gzFile out));
 void gz_uncompress   OF((gzFile in, FILE   *out));
-void file_compress   OF((char  *file));
+void file_compress   OF((char  *file, char *mode));
 void file_uncompress OF((char  *file));
 int  main            OF((int argc, char *argv[]));
 
@@ -135,8 +135,9 @@ void gz_uncompress(in, out)
  * Compress the given file: create a corresponding .gz file and remove the
  * original.
  */
-void file_compress(file)
+void file_compress(file, mode)
     char  *file;
+    char  *mode;
 {
     local char outfile[MAX_NAME_LEN];
     FILE  *in;
@@ -150,7 +151,7 @@ void file_compress(file)
         perror(file);
         exit(1);
     }
-    out = gzopen(outfile, "wb"); /* use "wb9" for maximal compression */
+    out = gzopen(outfile, mode);
     if (out == NULL) {
         fprintf(stderr, "%s: can't gzopen %s\n", prog, outfile);
         exit(1);
@@ -253,7 +254,7 @@ int main(argc, argv)
             if (uncompr) {
                 file_uncompress(*argv);
             } else {
-                file_compress(*argv);
+                file_compress(*argv, outmode);
             }
         } while (argv++, --argc);
     }

@@ -5,8 +5,7 @@ for help about these, not the zlib authors. Thanks.
 
 
 asm386/     by Gilles Vollant <info@winimage.com>
-	386 asm code replacing longest_match(). This code may be slower
-        than the C code if you have a good compiler.
+	386 asm code replacing longest_match(), for Visual C++ 4.2 and ML 6.11c
 
 iostream/   by Kevin Ruland <kevin@rodin.wustl.edu>
         A C++ I/O streams interface to the zlib gz* functions

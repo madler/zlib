@@ -82,7 +82,7 @@ uLongf *c;
   s->read = s->write = s->window;
   if (s->checkfn != Z_NULL)
     z->adler = s->check = (*s->checkfn)(0L, (const Bytef *)Z_NULL, 0);
-  Trace((stderr, "inflate:   blocks reset\n"));
+  Tracev((stderr, "inflate:   blocks reset\n"));
 }
 
 
@@ -104,7 +104,7 @@ uInt w;
   s->end = s->window + w;
   s->checkfn = c;
   s->mode = TYPE;
-  Trace((stderr, "inflate:   blocks allocated\n"));
+  Tracev((stderr, "inflate:   blocks allocated\n"));
   inflate_blocks_reset(s, z, Z_NULL);
   return s;
 }
@@ -139,7 +139,7 @@ int r;
       switch (t >> 1)
       {
         case 0:                         /* stored */
-          Trace((stderr, "inflate:     stored block%s\n",
+          Tracev((stderr, "inflate:     stored block%s\n",
                  s->last ? " (last)" : ""));
           DUMPBITS(3)
           t = k & 7;                    /* go to byte boundary */
@@ -147,7 +147,7 @@ int r;
           s->mode = LENS;               /* get length of stored block */
           break;
         case 1:                         /* fixed */
-          Trace((stderr, "inflate:     fixed codes block%s\n",
+          Tracev((stderr, "inflate:     fixed codes block%s\n",
                  s->last ? " (last)" : ""));
           {
             uInt bl, bd;
@@ -167,7 +167,7 @@ int r;
           s->mode = CODES;
           break;
         case 2:                         /* dynamic */
-          Trace((stderr, "inflate:     dynamic codes block%s\n",
+          Tracev((stderr, "inflate:     dynamic codes block%s\n",
                  s->last ? " (last)" : ""));
           DUMPBITS(3)
           s->mode = TABLE;
@@ -387,7 +387,7 @@ z_streamp z;
   inflate_blocks_reset(s, z, Z_NULL);
   ZFREE(z, s->window);
   ZFREE(z, s);
-  Trace((stderr, "inflate:   blocks freed\n"));
+  Tracev((stderr, "inflate:   blocks freed\n"));
   return Z_OK;
 }
 

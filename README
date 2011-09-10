@@ -1,15 +1,16 @@
-zlib 1.0.7 is a general purpose data compression library.  All the code
-is reentrant (thread safe).  The data format used by the zlib library
+zlib 1.0.8 is a general purpose data compression library.  All the code
+is thread safe.  The data format used by the zlib library
 is described by RFCs (Request for Comments) 1950 to 1952 in the files 
 ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
 format) and rfc1952.txt (gzip format). These documents are also available in
 other formats from ftp://ftp.uu.net/graphics/png/documents/zlib/zdoc-index.html
 
-All functions of the compression library are documented in the file
-zlib.h. A usage example of the library is given in the file example.c
-which also tests that the library is working correctly. Another
-example is given in the file minigzip.c. The compression library itself
-is composed of all source files except example.c and minigzip.c.
+All functions of the compression library are documented in the file zlib.h
+(volunteer to write man pages welcome, contact jloup@gzip.org). A usage
+example of the library is given in the file example.c which also tests that
+the library is working correctly. Another example is given in the file
+minigzip.c. The compression library itself is composed of all source files
+except example.c and minigzip.c.
 
 To compile all files and run the test program, follow the instructions
 given at the top of Makefile. In short "make test; make install"
@@ -24,18 +25,18 @@ Mark Nelson wrote an article about zlib for the Jan. 1997 issue of
 Dr. Dobb's Journal; a copy of the article is available in
 http://web2.airmail.net/markn/articles/zlibtool/zlibtool.htm
 
-The changes made in version 1.0.7 are documented in the file ChangeLog.
-The main changes since 1.0.6 are:
+The changes made in version 1.0.8 are documented in the file ChangeLog.
+The main changes since 1.0.7 are:
 
-- fix gzseek which was broken in write mode
-- return error for gzseek to negative absolute position
-- fix configure for Linux (Chun-Chung Chen)
-- increase stack space for MSC (Tim Wegner)
-- get_crc_table and inflateSyncPoint are EXPORTed (Gilles Vollant)
-- define EXPORTVA for gzprintf (Gilles Vollant)
-- added mini man page zlib.3 (Rick Rodgers) [volunteers to write full
-  man pages from zlib.h most welcome. write to jloup@gzip.org]
-- for contrib/untgz, fix makedir() and improve Makefile
+- fixed offsets in contrib/asm386/gvmat32.asm (Gilles Vollant)
+- fix gzgetc and gzputc for big endian systems (Markus Oberhumer)
+- added compress2() to allow setting the compression level
+- include sys/types.h to get off_t on some systems (Marc Lehmann & QingLong)
+- use constant arrays for the static trees in trees.c instead of computing
+  them at run time (thanks to Ken Raeburn for this suggestion). To create
+  trees.h, compile with GEN_TREES_H and run "make test".
+- check return code of example in "make test" and display result
+- pass minigzip command line options to file_compress
 
 Unsupported third party contributions are provided in directory "contrib".
 
@@ -64,6 +65,9 @@ Notes for some targets:
   See contrib/visual-basic.txt for more information.
   I don't know how to handle structures in Visual Basic, sorry.
 
+- "make test" fails on Solaris 2.6 with gcc 2.8.0. It works with cc and
+   with gcc 2.7.2.1.
+
 - For 64-bit Irix, deflate.c must be compiled without any optimization.
   With -O, one libpng test fails. The test works in 32 bit mode (with
   the -n32 compiler flag). The compiler bug has been reported to SGI.
@@ -74,7 +78,10 @@ Notes for some targets:
 - zlib doesn't work on HP-UX 9.05 with one cc compiler (the one not
   accepting the -O option). It works with the other cc compiler.
 
-- gzdopen is not supported on RISCOS
+- For shared memory multiprocessors, the decompression code assumes that
+  writes to pointers are atomic.
+
+- gzdopen is not supported on RISCOS, BEOS and Mac
 
 - For Turbo C the small model is supported only with reduced performance to
   avoid any far allocation; it was tested with -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
