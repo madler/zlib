@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.79  April 28th, 1995.
+  version 0.8 April 29th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.79"
+#define ZLIB_VERSION "0.8"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -191,25 +191,30 @@ extern int deflate __P((z_stream *strm, int flush));
   so should be used only when necessary.  Using Z_FULL_FLUSH too often can
   seriously degrade the compression.
 
-    If the parameter flush is set to Z_FINISH, all pending input is
-  processed and all pending output is flushed. The next operation on this
-  stream must be another call of deflate with Z_FINISH but no more input data
-  (unchanged avail_in) if this call returned with avail_out equal to zero,
-  or a call of deflateEnd to deallocate the compression state. Z_FINISH can
-  be used immediately after deflateInit if all the compression is to be
-  done in a single step. In this case, avail_out must be at least 0.1%
-  larger than avail_in plus 12 bytes.
+    If the parameter flush is set to Z_FINISH, all pending input is processed,
+  all pending output is flushed and deflate returns with Z_STREAM_END if there
+  was enough output space; if deflate returns with Z_OK, this function must be
+  called again with Z_FINISH and more output space (updated avail_out) but no
+  more input data, until it returns with Z_STREAM_END or an error. After
+  deflate has returned Z_STREAM_END, the only possible operations on the
+  stream are deflateReset or deflateEnd.
+  
+    Z_FINISH can be used immediately after deflateInit if all the compression
+  is to be done in a single step. In this case, avail_out must be at least
+  0.1% larger than avail_in plus 12 bytes.  If deflate does not return
+  Z_STREAM_END, then it must be called again as described above.
 
     deflate() may update data_type if it can make a good guess about
   the input data type (Z_ASCII or Z_BINARY). In doubt, the data is considered
   binary. This field is only for information purposes and does not affect
   the compression algorithm in any manner.
 
-    deflate() returns Z_OK if some progress has been made (more input processed
-  or more output produced), Z_STREAM_ERROR if the stream state was
-  inconsistent (for example if next_in or next_out was NULL), Z_BUF_ERROR if
-  no progress is possible or if there was not enough room in the output buffer
-  when Z_FINISH is used. ??? to be changed (use Z_STEAM_END) */
+    deflate() returns Z_OK if some progress has been made (more input
+  processed or more output produced), Z_STREAM_END if all input has been
+  consumed and all output has been produced (only when flush is set to
+  Z_FINISH), Z_STREAM_ERROR if the stream state was inconsistent (for example
+  if next_in or next_out was NULL), Z_BUF_ERROR if no progress is possible.
+*/
 
 
 extern int deflateEnd __P((z_stream *strm));
@@ -534,7 +539,8 @@ extern int    gzflush __P((gzFile file, int flush));
 /*
      Flushes all pending output into the compressed file. The parameter
    flush is as in the deflate() function. The return value is the zlib
-   error number (see function gzerror below).
+   error number (see function gzerror below). gzflush returns Z_OK if
+   the flush parameter is Z_FINISH and all output could be flushed.
      gzflush should be called only when strictly necessary because it can
    degrade compression.
 */

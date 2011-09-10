@@ -1,9 +1,14 @@
 		ChangeLog file for zlib
 
-Changes in 0.79 (28 April 95)
-- add fast inflate (inffast.c)
+Changes in 0.8 (29 April 95)
+- added fast inflate (inffast.c)
+- deflate(Z_FINISH) now returns Z_STREAM_END when done. Warning: this
+  is incompatible with previous versions of zlib which returned Z_OK.
+- work around a TurboC compiler bug (bad code for b << 0, see infutil.h)
+- gzread no longer reads one extra byte in certain cases
 - In gzio destroy(), don't reference a freed structure
 - avoid many warnings for MSDOS
+- avoid the ERROR symbol which is used by MS Windows
 
 Changes in 0.71 (14 April 95)
 - Fixed more MSDOS compilation problems :( There is still a bug with

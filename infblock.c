@@ -139,7 +139,7 @@ int r;
 	  break;
 	case 3:				/* illegal */
 	  DUMPBITS(3)
-	  s->mode = ERROR;
+	  s->mode = INF_ERROR;
 	  z->msg = "invalid block type";
 	  r = Z_DATA_ERROR;
 	  LEAVE
@@ -149,7 +149,7 @@ int r;
       NEEDBITS(32)
       if ((~b) >> 16 != (b & 0xffff))
       {
-        s->mode = ERROR;
+        s->mode = INF_ERROR;
 	z->msg = "invalid stored block lengths";
 	r = Z_DATA_ERROR;
 	LEAVE
@@ -172,7 +172,7 @@ int r;
 #ifndef PKZIP_BUG_WORKAROUND
       if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29)
       {
-        s->mode = ERROR;
+        s->mode = INF_ERROR;
         z->msg = "too many length or distance symbols";
 	r = Z_DATA_ERROR;
 	LEAVE
@@ -205,7 +205,7 @@ int r;
       {
         r = t;
 	if (r == Z_DATA_ERROR)
-	  s->mode = ERROR;
+	  s->mode = INF_ERROR;
 	LEAVE
       }
       s->sub.trees.index = 0;
@@ -240,7 +240,7 @@ int r;
 	  if (i + j > 258 + (t & 0x1f) + ((t >> 5) & 0x1f) ||
 	      (c == 16 && i < 1))
 	  {
-	    s->mode = ERROR;
+	    s->mode = INF_ERROR;
 	    z->msg = "invalid bit length repeat";
 	    r = Z_DATA_ERROR;
 	    LEAVE
@@ -267,7 +267,7 @@ int r;
 	if (t != Z_OK)
 	{
 	  if (t == (uInt)Z_DATA_ERROR)
-	    s->mode = ERROR;
+	    s->mode = INF_ERROR;
 	  r = t;
 	  LEAVE
 	}
@@ -289,8 +289,19 @@ int r;
       r = Z_OK;
       inflate_codes_free(s->sub.codes, z);
       LOAD
-      s->mode = s->last ? DRY : TYPE;
+      if (!s->last)
+      {
+        s->mode = TYPE;
       break;
+      }
+      if (k > 7)              /* return unused byte, if any */
+      {
+        Assert(k < 16, "inflate_codes grabbed too many bytes")
+        k -= 8;
+      n++;
+      p--;                    /* can always return one */
+      }
+      s->mode = DRY;
     case DRY:
       FLUSH
       if (s->read != s->write)
@@ -299,7 +310,7 @@ int r;
     case DONE:
       r = Z_STREAM_END;
       LEAVE
-    case ERROR:
+    case INF_ERROR:
       r = Z_DATA_ERROR;
       LEAVE
     default:
@@ -309,13 +320,11 @@ int r;
 }
 
 
-int inflate_blocks_free(s, z, c, e)
+int inflate_blocks_free(s, z, c)
 struct inflate_blocks_state *s;
 z_stream *z;
 uLong *c;
-int *e;
 {
-  *e = (int)(s->bitk > 7 ? (s->bitb >> (s->bitk & 7)) & 0xff : -1);
   if (s->checkfn != Z_NULL)
     *c = s->check;
   if (s->mode == BTREE || s->mode == DTREE)

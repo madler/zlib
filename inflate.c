@@ -22,7 +22,7 @@ struct internal_state {
       CHECK2,	/* two check bytes to go */
       CHECK1,	/* one check byte to go */
       DONE,	/* finished check, done */
-      ERROR}	/* got an error--stay here */
+      INF_ERROR}/* got an error--stay here */
     mode;		/* current inflate mode */
 
   /* mode dependent information */
@@ -92,7 +92,7 @@ int inflate(z, f)
 z_stream *z;
 int f;
 {
-  int r;
+  int r = f; /* to avoid warning about unused f */
   uInt b;
   uLong c;
 
@@ -105,13 +105,13 @@ int f;
       if (z->avail_in == 0) return r;  r = Z_OK;
       if (((z->state->sub.method = NEXTBYTE) & 0xf != DEFLATED))
       {
-        z->state->mode = ERROR;
+        z->state->mode = INF_ERROR;
 	z->msg = "unknown compression method";
 	return Z_DATA_ERROR;
       }
       if ((z->state->sub.method >> 4) + 8 > z->state->wbits)
       {
-        z->state->mode = ERROR;
+        z->state->mode = INF_ERROR;
 	z->msg = "invalid window size";
 	return Z_DATA_ERROR;
       }
@@ -120,13 +120,13 @@ int f;
       if (z->avail_in == 0) return r;  r = Z_OK;
       if ((b = NEXTBYTE) & 0x20)
       {
-        z->state->mode = ERROR;
+        z->state->mode = INF_ERROR;
 	z->msg = "invalid reserved bit";
 	return Z_DATA_ERROR;
       }
       if (((z->state->sub.method << 8) + b) % 31)
       {
-        z->state->mode = ERROR;
+        z->state->mode = INF_ERROR;
 	z->msg = "incorrect header check";
 	return Z_DATA_ERROR;
       }
@@ -140,23 +140,13 @@ int f;
     case BLOCKS:
       if ((r = inflate_blocks(z->state->sub.blocks, z, r)) != Z_STREAM_END)
         return r;
-      inflate_blocks_free(z->state->sub.blocks, z, &c, &r);
+      inflate_blocks_free(z->state->sub.blocks, z, &c);
       if (z->state->nowrap)
       {
-        if (r != -1)
-	  z->msg = "inflate bug--took one too many bytes";
-	z->state->mode = r == -1 ? DONE : ERROR;
+      z->state->mode = DONE;
 	break;
       }
       z->state->sub.check.was = c;
-      if (r != -1)
-      {
-	z->state->sub.check.need = (uLong)r << 24;
-        z->state->mode = CHECK3;
-        r = Z_OK;
-	break;
-      }
-      r = Z_OK;
       z->state->mode = CHECK4;
     case CHECK4:
       if (z->avail_in == 0) return r;  r = Z_OK;
@@ -175,14 +165,14 @@ int f;
       z->state->sub.check.need += (uLong)NEXTBYTE;
       if (z->state->sub.check.was != z->state->sub.check.need)
       {
-        z->state->mode = ERROR;
+        z->state->mode = INF_ERROR;
         z->msg = "incorrect data check";
 	return Z_DATA_ERROR;
       }
       z->state->mode = DONE;
     case DONE:
       return Z_STREAM_END;
-    case ERROR:
+    case INF_ERROR:
       return Z_DATA_ERROR;
     default:
       return Z_STREAM_ERROR;
@@ -194,12 +184,11 @@ int inflateEnd(z)
 z_stream *z;
 {
   uLong c;
-  int e;
 
   if (z == Z_NULL || z->state == Z_NULL || z->zfree == Z_NULL)
     return Z_STREAM_ERROR;
   if (z->state->mode == BLOCKS)
-    inflate_blocks_free(z->state->sub.blocks, z, &c, &e);
+    inflate_blocks_free(z->state->sub.blocks, z, &c);
   ZFREE(z, z->state);
   z->state = Z_NULL;
   return Z_OK;

@@ -383,6 +383,7 @@ uInt s;		/* size of item */
 {
   Assert(s == sizeof(inflate_huft) && n <= fixed_left,
          "inflate_trees falloc overflow");
+  if (q) s++; /* to make some compilers happy */
   fixed_left -= n;
   return (voidp)(fixed_mem + fixed_left);
 }
@@ -393,6 +394,7 @@ voidp q;
 voidp p;
 {
   Assert(0, "inflate_trees ffree called!");
+  if (q) q = p; /* to make some compilers happy */
 }
 
 

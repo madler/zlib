@@ -29,7 +29,7 @@
  *          Addison-Wesley, 1983. ISBN 0-201-06672-6.
  */
 
-/* $Id: trees.c,v 1.2 1995/04/10 16:21:44 jloup Exp $ */
+/* $Id: trees.c,v 1.3 1995/04/29 13:49:46 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -944,7 +944,7 @@ local void set_data_type(s)
     while (n < 7)        bin_freq += s->dyn_ltree[n++].Freq;
     while (n < 128)    ascii_freq += s->dyn_ltree[n++].Freq;
     while (n < LITERALS) bin_freq += s->dyn_ltree[n++].Freq;
-    s->data_type = bin_freq > (ascii_freq >> 2) ? BINARY : ASCII;
+    s->data_type = (Byte)(bin_freq > (ascii_freq >> 2) ? BINARY : ASCII);
 }
 
 /* ===========================================================================

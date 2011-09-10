@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zconf.h,v 1.8 1995/04/14 20:59:22 jloup Exp $ */
+/* $Id: zconf.h,v 1.9 1995/04/29 12:02:14 jloup Exp $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H
@@ -28,6 +28,9 @@
 #if defined(MSDOS) && !defined(__32BIT__)
 #  define MAXSEG_64K
 #endif
+#if !defined(STDC) && (defined(MSDOS) || defined(__STDC__))
+#  define STDC
+#endif
 
 #ifdef MAXSEG_64K
 #  define MAX_MEM_LEVEL 8
@@ -38,7 +41,7 @@
 			/* Type declarations */
 
 #ifndef __P /* function prototypes */
-#  if defined(__STDC__) || defined(MSDOS)
+#  ifdef STDC
 #    define __P(args)  args
 #  else
 #    define __P(args)  ()
@@ -55,7 +58,7 @@
   typedef unsigned long  uLong; /* 32 bits or more */
 #endif
 #ifndef voidp
-#  if defined(__STDC__) || defined(MSDOS)
+#  ifdef STDC
      typedef void *voidp;
 #  else
      typedef Byte *voidp;

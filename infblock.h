@@ -11,9 +11,9 @@
 struct inflate_blocks_state;
 
 extern struct inflate_blocks_state * inflate_blocks_new __P((
-    z_stream *,
-    check_func checkfn,               /* check function */
-    uInt));                     /* window size */
+    z_stream *z,
+    check_func c,               /* check function */
+    uInt w));                   /* window size */
 
 extern int inflate_blocks __P((
     struct inflate_blocks_state *,
@@ -23,5 +23,4 @@ extern int inflate_blocks __P((
 extern int inflate_blocks_free __P((
     struct inflate_blocks_state *,
     z_stream *,
-    uLong *,			/* check value on output */
-    int *));			/* possible leftover byte to return */
+    uLong *));                        /* check value on output */

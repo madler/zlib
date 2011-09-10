@@ -47,7 +47,7 @@
  *
  */
 
-/* $Id: deflate.c,v 1.4 1995/04/14 19:49:46 jloup Exp $ */
+/* $Id: deflate.c,v 1.5 1995/04/29 16:52:05 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -117,8 +117,10 @@ local void fill_window   __P((deflate_state *s));
 local int  deflate_fast  __P((deflate_state *s, int flush));
 local int  deflate_slow  __P((deflate_state *s, int flush));
 local void lm_init       __P((deflate_state *s));
-
 local int  longest_match __P((deflate_state *s, IPos cur_match));
+local void putShortMSB   __P((deflate_state *s, uInt b));
+local void flush_pending __P((z_stream *strm));
+local int read_buf       __P((z_stream *strm, char *buf, unsigned size));
 #ifdef ASMV
       void match_init __P((void)); /* asm code initialization */
 #endif
@@ -225,7 +227,7 @@ int deflateInit2 (strm, level, method, windowBits, memLevel, strategy)
 
     s->level = level;
     s->strategy = strategy;
-    s->method = method;
+    s->method = (Byte)method;
 
     return deflateReset(strm);
 }
@@ -265,8 +267,8 @@ local void putShortMSB (s, b)
     deflate_state *s;
     uInt b;
 {
-    put_byte(s, b >> 8);
-    put_byte(s, b & 0xff);
+    put_byte(s, (Byte)(b >> 8));
+    put_byte(s, (Byte)(b & 0xff));
 }   
 
 /* =========================================================================
@@ -346,17 +348,18 @@ int deflate (strm, flush)
     }
     Assert(strm->avail_out > 0, "bug2");
 
-    if (flush != Z_FINISH || strm->state->noheader) return Z_OK;
+    if (flush != Z_FINISH) return Z_OK;
+    if (strm->state->noheader) return Z_STREAM_END;
 
     /* Write the zlib trailer (adler32) */
-    putShortMSB(strm->state, strm->state->adler >> 16);
-    putShortMSB(strm->state, strm->state->adler & 0xffff);
+    putShortMSB(strm->state, (uInt)(strm->state->adler >> 16));
+    putShortMSB(strm->state, (uInt)(strm->state->adler & 0xffff));
     flush_pending(strm);
     /* If avail_out is zero, the application will call deflate again
      * to flush the rest.
      */
     strm->state->noheader = 1; /* write the trailer only once! */
-    return Z_OK;
+    return strm->state->pending != 0 ? Z_OK : Z_STREAM_END;
 }
 
 /* ========================================================================= */

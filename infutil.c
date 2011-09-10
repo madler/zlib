@@ -31,7 +31,7 @@ int r;
   q = s->read;
 
   /* compute number of bytes to copy as far as end of window */
-  n = (q <= s->write ? s->write : s->end) - q;
+  n = (uInt)((q <= s->write ? s->write : s->end) - q);
   if (n > z->avail_out) n = z->avail_out;
   if (n && r == Z_BUF_ERROR) r = Z_OK;
 
@@ -55,7 +55,7 @@ int r;
       s->write = s->window;
 
     /* compute bytes to copy */
-    n = s->write - q;
+    n = (uInt)(s->write - q);
     if (n > z->avail_out) n = z->avail_out;
     if (n && r == Z_BUF_ERROR) r = Z_OK;
 

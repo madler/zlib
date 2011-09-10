@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.5 1995/04/14 21:30:23 jloup Exp $ */
+/* $Id: zutil.c,v 1.6 1995/04/29 14:54:02 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -55,7 +55,7 @@ void zmemzero(dest, len)
 }
 #endif
 
-#if defined(MSDOS) && !defined(USE_CALLOC)
+#if defined(MSDOS) && !defined(__SMALL__) && !defined(M_I86SM)
 #  ifdef __TURBOC__
 
 /* Turbo C malloc() does not allow dynamic allocation of 64K bytes
@@ -84,7 +84,7 @@ local ptr_table table[MAX_PTR];
 
 voidp zcalloc (voidp opaque, unsigned items, unsigned size)
 {
-    voidp buf;
+    voidp buf = opaque; /* just to make some compilers happy */
     ulg bsize = (ulg)items*size;
 
     if (bsize < 65536L) {
@@ -121,6 +121,7 @@ void  zcfree (voidp opaque, voidp ptr)
 	next_ptr--;
 	return;
     }
+    ptr = opaque; /* just to make some compilers happy */
     z_error("zcfree: ptr not found");
 }
 
@@ -133,11 +134,13 @@ void  zcfree (voidp opaque, voidp ptr)
 
 voidp zcalloc (voidp opaque, unsigned items, unsigned size)
 {
+    if (opaque) opaque = 0; /* to make compiler happy */
     return _halloc((long)items, size);
 }
 
 void  zcfree (voidp opaque, voidp ptr)
 {
+    if (opaque) opaque = 0; /* to make compiler happy */
     _hfree(ptr);
 }
 

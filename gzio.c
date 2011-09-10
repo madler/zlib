@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* $Id: gzio.c,v 1.4 1995/04/14 14:50:52 jloup Exp $ */
+/* $Id: gzio.c,v 1.5 1995/04/29 17:13:56 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -46,7 +46,12 @@ typedef struct gz_stream {
 } gz_stream;
 
 
-/* ===========================================================================
+local int    destroy __P((gz_stream *s));
+local gzFile gz_open __P((char *path, char *mode, int  fd));
+local void   putLong __P((FILE *file, uLong x));
+local uLong  getLong __P((Byte *buf));
+
+ /* ===========================================================================
  * Cleanup then free the given gz_stream. Return a zlib error code.
  */
 local int destroy (s)
@@ -339,7 +344,7 @@ int gzflush (file, flush)
 	if (len != 0) {
 	    if (fwrite(s->outbuf, 1, len, s->file) != len) {
 		s->z_err = Z_ERRNO;
-		break;
+		return Z_ERRNO;
 	    }
 	    s->stream.next_out = s->outbuf;
 	    s->stream.avail_out = Z_BUFSIZE;
@@ -347,14 +352,14 @@ int gzflush (file, flush)
 	if (done) break;
 	s->z_err = deflate(&(s->stream), flush);
 
-	if (s->z_err != Z_OK) break;
-
-	/* deflate has finished flushing only when it hasn't used up
+        /* deflate has finished flushing only when it hasn't used up
          * all the available space in the output buffer: 
          */
-	done = (s->stream.avail_out != 0);
+        done = (s->stream.avail_out != 0 || s->z_err == Z_STREAM_END);
+ 
+	if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
     }
-    return s->z_err;
+    return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
 }
 
 /* ===========================================================================
@@ -395,12 +400,15 @@ int gzclose (file)
     gzFile file;
 {
     uInt n;
+    int err;
     gz_stream *s = (gz_stream*)file;
 
     if (s == NULL) return Z_STREAM_ERROR;
 
     if (s->mode == 'w') {
-	gzflush (file, Z_FINISH);
+	err = gzflush (file, Z_FINISH);
+	if (err != Z_OK) return destroy(file);
+
 	putLong (s->file, s->crc);
 	putLong (s->file, s->stream.total_in);
 

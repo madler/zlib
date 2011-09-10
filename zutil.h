@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: zutil.h,v 1.5 1995/04/14 21:22:38 jloup Exp $ */
+/* $Id: zutil.h,v 1.6 1995/04/29 15:52:16 jloup Exp $ */
 
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H
@@ -20,9 +20,8 @@
 #else
     extern int errno;
 #endif
-#ifdef __STDC__
+#ifdef STDC
 #  include <string.h>
-#  include <memory.h>
 #endif
 
 #ifndef local
@@ -66,7 +65,6 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define OS_CODE  0x00
 #  ifdef __TURBOC__
 #    include <alloc.h>
-#    define exit(n) _exit(n)
 #  else /* MSC */
 #    include <malloc.h>
 #  endif
@@ -125,7 +123,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define zstrerror(errnum) ""
 #endif
 
-#if defined(__STDC__) && !defined(HAVE_MEMCPY)
+#if defined(STDC) && !defined(HAVE_MEMCPY)
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY

@@ -3,10 +3,16 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.5 1995/04/14 20:35:56 jloup Exp $ */
+/* $Id: example.c,v 1.6 1995/04/29 16:53:46 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
+
+#ifdef STDC
+#  include <string.h>
+#endif
+
+extern void exit  __P((int));
 
 #define BUFLEN 4096
 
@@ -25,6 +31,12 @@
 
 char *hello = "hello world";
 
+void test_compress __P((void));
+void test_gzio     __P((char *out, char *in));
+void test_deflate  __P((Byte compr[]));
+void test_inflate  __P((Byte compr[]));
+void main          __P((int argc, char *argv[]));
+
 /* ===========================================================================
  * Test compress() and uncompress()
  */
@@ -37,15 +49,15 @@ void test_compress()
     int err;
     uLong len = strlen(hello)+1;
 
-    err = compress(compr, &comprLen, hello, len);
+    err = compress(compr, &comprLen, (Byte*)hello, len);
     CHECK_ERR(err, "compress");
 
-    strcpy(uncompr, "garbage");
+    strcpy((char*)uncompr, "garbage");
 
     err = uncompress(uncompr, &uncomprLen, compr, comprLen);
     CHECK_ERR(err, "uncompress");
 
-    if (strcmp(uncompr, hello)) {
+    if (strcmp((char*)uncompr, hello)) {
 	fprintf(stderr, "bad uncompress\n");
     } else {
 	printf("uncompress(): %s\n", uncompr);
@@ -80,7 +92,7 @@ void test_gzio(out, in)
     if (file == NULL) {
 	fprintf(stderr, "gzopen error\n");
     }
-    strcpy(uncompr, "garbage");
+    strcpy((char*)uncompr, "garbage");
 
     uncomprLen = gzread(file, uncompr, uncomprLen);
     if (uncomprLen != len) {
@@ -88,7 +100,7 @@ void test_gzio(out, in)
     }
     gzclose(file);
 
-    if (strcmp(uncompr, hello)) {
+    if (strcmp((char*)uncompr, hello)) {
 	fprintf(stderr, "bad gzread\n");
     } else {
 	printf("gzread(): %s\n", uncompr);
@@ -96,9 +108,9 @@ void test_gzio(out, in)
 }
 
 /* ===========================================================================
- * Test deflate() with small buffers, return the compressed length.
+ * Test deflate() with small buffers
  */
-uLong test_deflate(compr)
+void test_deflate(compr)
     Byte compr[];
 {
     z_stream c_stream; /* compression stream */
@@ -120,16 +132,15 @@ uLong test_deflate(compr)
 	CHECK_ERR(err, "deflate");
     }
     /* Finish the stream, still forcing small buffers: */
-    do {
+    for (;;) {
 	c_stream.avail_out = 1;
 	err = deflate(&c_stream, Z_FINISH);
+	if (err == Z_STREAM_END) break;
 	CHECK_ERR(err, "deflate");
-    } while (c_stream.avail_out == 0);
+    }
 
     err = deflateEnd(&c_stream);
     CHECK_ERR(err, "deflateEnd");
-
-    return c_stream.total_out;
 }
 
 /* ===========================================================================
@@ -142,7 +153,7 @@ void test_inflate(compr)
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy(uncompr, "garbage");
+    strcpy((char*)uncompr, "garbage");
 
     d_stream.zalloc = (alloc_func)0;
     d_stream.zfree = (free_func)0;
@@ -163,7 +174,7 @@ void test_inflate(compr)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    if (strcmp(uncompr, hello)) {
+    if (strcmp((char*)uncompr, hello)) {
 	fprintf(stderr, "bad inflate\n");
     } else {
 	printf("inflate(): %s\n", uncompr);
@@ -179,7 +190,6 @@ void main(argc, argv)
     char *argv[];
 {
     local Byte compr[BUFLEN];
-    uLong comprLen;
 
     if (zlib_version[0] != ZLIB_VERSION[0]) {
 	fprintf(stderr, "incompatible zlib version\n");
@@ -193,7 +203,7 @@ void main(argc, argv)
     test_gzio((argc > 1 ? argv[1] : "foo.gz"),
 	      (argc > 2 ? argv[2] : "foo.gz"));
 
-    comprLen = test_deflate(compr);
+    test_deflate(compr);
 
     test_inflate(compr);
 

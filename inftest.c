@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "zutil.h"
 
+void main __P((void));
+
 /* This test is in honor of Ed Hamrick who suggested that the interface
    to inflate be a byte at a time--this implements that, and is, of course,
    monumentally slow.  It has the virtue though of stressing the push-pull
@@ -61,7 +63,7 @@ void main()
       break;
   }
   inflateEnd(&z);
-  fprintf(stderr, "%d bytes in, %d bytes out\n", z.total_in, z.total_out);
+  fprintf(stderr, "%ld bytes in, %ld bytes out\n", z.total_in, z.total_out);
   if (z.msg != NULL)
     fprintf(stderr, "msg is <%s>\n", z.msg);
 }

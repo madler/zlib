@@ -13,15 +13,21 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.2 1995/04/14 20:03:12 jloup Exp $ */
+/* $Id: minigzip.c,v 1.3 1995/04/29 14:27:21 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
 
-extern void exit __P((int));
+extern void exit  __P((int));
+extern int unlink __P((const char *));
+
+#ifdef STDC
+#  include <string.h>
+#endif
 
 #ifdef MSDOS
-#  include <fcntl.h> /* ??? find where setmode declared */
+#  include <fcntl.h>
+#  include <io.h>
 #  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
 #  define SET_BINARY_MODE(file)
@@ -37,6 +43,13 @@ extern void exit __P((int));
  */
 
 char *prog;
+
+void error           __P((char *msg));
+void gz_compress     __P((FILE   *in, gzFile out));
+void gz_uncompress   __P((gzFile in, FILE   *out));
+void file_compress   __P((char  *file));
+void file_uncompress __P((char  *file));
+void main            __P((int argc, char *argv[]));
 
 /* ===========================================================================
  * Display error message and exit

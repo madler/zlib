@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: compress.c,v 1.4 1995/04/10 15:52:04 jloup Exp $ */
+/* $Id: compress.c,v 1.5 1995/04/29 17:18:43 jloup Exp $ */
 
 #include "zlib.h"
 
@@ -44,9 +44,9 @@ int compress (dest, destLen, source, sourceLen)
     if (err != Z_OK) return err;
 
     err = deflate(&stream, Z_FINISH);
-    if (err != Z_OK) {
+    if (err != Z_STREAM_END) {
 	deflateEnd(&stream);
-	return err;
+	return err == Z_OK ? Z_BUF_ERROR : err;
     }
     *destLen = stream.total_out;
 
