@@ -12,6 +12,7 @@ struct inflate_blocks_state;
 
 extern struct inflate_blocks_state * inflate_blocks_new __P((
     z_stream *,
+    check_func checkfn,               /* check function */
     uInt));                     /* window size */
 
 extern int inflate_blocks __P((

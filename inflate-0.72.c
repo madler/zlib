@@ -109,7 +109,7 @@ int f;
 	z->msg = "unknown compression method";
 	return Z_DATA_ERROR;
       }
-      if ((z->state->sub.method >> 4) + 8 > z->state->wbits)
+      if ((z->state->sub.method >> 4) > z->state->wbits)
       {
         z->state->mode = ERROR;
 	z->msg = "invalid window size";
@@ -132,9 +132,8 @@ int f;
       }
       z->state->mode = START;
     case START:
-      if ((z->state->sub.blocks = inflate_blocks_new(z,
-         z->state->nowrap ? Z_NULL : adler32,
-         1<< z->state->wbits)) == Z_NULL)
+      if ((z->state->sub.blocks =
+           inflate_blocks_new(z,1<< z->state->wbits)) == Z_NULL)
         return Z_MEM_ERROR;
       z->state->mode = BLOCKS;
     case BLOCKS:

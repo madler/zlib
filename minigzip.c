@@ -13,13 +13,15 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.1 1995/04/14 13:35:59 jloup Exp $ */
+/* $Id: minigzip.c,v 1.2 1995/04/14 20:03:12 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
 
+extern void exit __P((int));
+
 #ifdef MSDOS
-#  include <fcntl.h>
+#  include <fcntl.h> /* ??? find where setmode declared */
 #  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
 #  define SET_BINARY_MODE(file)
@@ -87,7 +89,7 @@ void gz_uncompress(in, out)
 	if (len < 0) error (gzerror(in, &err));
 	if (len == 0) break;
 
-	if (fwrite(buf, 1, len, out) != len) error("failed fwrite");
+	if (fwrite(buf, 1, len, out) != (uInt)len) error("failed fwrite");
     }
     if (fclose(out)) error("failed fclose");
 

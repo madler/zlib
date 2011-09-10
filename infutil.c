@@ -40,7 +40,8 @@ int r;
   z->total_out += n;
 
   /* update check information */
-  s->check = adler32(s->check, q, n);
+  if (s->checkfn != Z_NULL)
+    s->check = (*s->checkfn)(s->check, q, n);
 
   /* copy as far as end of window */
   while (n--) *p++ = *q++;
@@ -48,8 +49,10 @@ int r;
   /* see if more to copy at beginning of window */
   if (q == s->end)
   {
-    /* wrap source pointer */
+    /* wrap pointers */
     q = s->window;
+    if (s->write == s->end)
+      s->write = s->window;
 
     /* compute bytes to copy */
     n = s->write - q;
@@ -61,7 +64,8 @@ int r;
     z->total_out += n;
 
     /* update check information */
-    s->check = adler32(s->check, q, n);
+    if (s->checkfn != Z_NULL)
+      s->check = (*s->checkfn)(s->check, q, n);
 
     /* copy */
     while (n--) *p++ = *q++;

@@ -6,7 +6,7 @@ LDFLAGS=-L. -lgz
 RANLIB=ranlib
 
 OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
-       zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o
+       zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o inffast.o
 
 TEST_OBJS = example.o minigzip.o inftest.o
 
@@ -48,7 +48,8 @@ deflate.o: deflate.h zutil.h zlib.h zconf.h
 example.o: zlib.h zconf.h
 gzio.o: zutil.h zlib.h zconf.h
 infblock.o: zutil.h zlib.h zconf.h infblock.h inftrees.h infcodes.h infutil.h
-infcodes.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infcodes.h
+infcodes.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infcodes.h inffast.h
+inffast.o: zutil.h zlib.h zconf.h inftrees.h infutil.h inffast.h
 inflate.o: zutil.h zlib.h zconf.h infblock.h
 inftest.o: zutil.h zlib.h zconf.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h

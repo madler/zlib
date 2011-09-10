@@ -6,6 +6,7 @@
 #include "zutil.h"
 #include "inftrees.h"
 #include "infutil.h"
+#include "inffast.h"
 #include "infcodes.h"
 
 /* simplify the use of the inflate_huft type with some defines */
@@ -98,7 +99,19 @@ int r;
   while (1) switch (c->mode)
   {		/* waiting for "i:"=input, "o:"=output, "x:"=nothing */
     case START:		/* x: set up for LEN */
-      /* %%% check for avail in and out to do fast loop %%% */
+#ifndef SLOW
+      if (m >= 258 && n >= 10)
+      {
+        UPDATE
+	r = inflate_fast(c->lbits, c->dbits, c->ltree, c->dtree, s, z);
+	LOAD
+	if (r != Z_OK)
+	{
+	  c->mode = r == Z_STREAM_END ? WASH : BAD;
+	  break;
+	}
+      }
+#endif /* !SLOW */
       c->sub.code.need = c->lbits;
       c->sub.code.tree = c->ltree;
       c->mode = LEN;
@@ -112,14 +125,14 @@ int r;
         if (e == -128)		/* invalid code */
 	{
 	  c->mode = BAD;
-	  z->msg = "invalid huffman code";
+	  z->msg = "invalid literal/length code";
 	  r = Z_DATA_ERROR;
 	  LEAVE
 	}
 	e = -e;
 	if (e & 64)		/* end of block */
 	{
-	  c->mode = END;
+	  c->mode = WASH;
 	  break;
 	}
 	c->sub.code.need = e;
@@ -153,7 +166,7 @@ int r;
         if (e == -128)
 	{
 	  c->mode = BAD;
-	  z->msg = "invalid huffman code";
+	  z->msg = "invalid distance code";
 	  r = Z_DATA_ERROR;
 	  LEAVE
 	}
@@ -171,7 +184,7 @@ int r;
       DUMPBITS(j)
       c->mode = COPY;
     case COPY:		/* o: copying bytes in window, waiting for space */
-      f = q - s->window < c->sub.copy.dist ?
+      f = (uInt)(q - s->window) < c->sub.copy.dist ?
 	  s->end - (c->sub.copy.dist - (q - s->window)) :
 	  q - c->sub.copy.dist;
       while (c->len)

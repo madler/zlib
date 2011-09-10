@@ -3,11 +3,13 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.3 1995/04/10 09:52:26 jloup Exp $ */
+/* $Id: zutil.c,v 1.5 1995/04/14 21:30:23 jloup Exp $ */
 
 #include <stdio.h>
 
 #include "zutil.h"
+
+extern void exit __P((int));
 
 char *zlib_version = ZLIB_VERSION;
 
@@ -136,7 +138,7 @@ voidp zcalloc (voidp opaque, unsigned items, unsigned size)
 
 void  zcfree (voidp opaque, voidp ptr)
 {
-    return _hfree(ptr);
+    _hfree(ptr);
 }
 
 #  endif /* __TURBOC__ ? */

@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.7  April 14th, 1995.
+  version 0.79  April 28th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.7"
+#define ZLIB_VERSION "0.79"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -88,7 +88,7 @@ typedef struct z_stream_s {
 
    zalloc must return Z_NULL if there is not enough memory for the object.
    On 16-bit systems, the functions zalloc and zfree must be able to allocate
-   exactly 65536 bytes, but will not be require to allocate more than this
+   exactly 65536 bytes, but will not be required to allocate more than this
    if the symbol MAXSEG_64K is defined (see zconf.h).
 
    The fields total_in and total_out can be used for statistics or
@@ -152,10 +152,10 @@ extern int deflateInit __P((z_stream *strm, int level));
    to level 6).
 
      deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if the stream state was inconsistent (such
-   as zalloc being NULL). msg is set to null if there is no error message.
-   deflateInit does not perform any compression: this will be done by
-   deflate().  */
+   enough memory, Z_STREAM_ERROR if level is not a valid compression level.
+   msg is set to null if there is no error message.  deflateInit does not
+   perform any compression: this will be done by deflate().
+*/
 
 
 extern int deflate __P((z_stream *strm, int flush));
@@ -164,8 +164,8 @@ extern int deflate __P((z_stream *strm, int flush));
 
   - Compress more input starting at next_in and update next_in and avail_in
     accordingly. If not all input can be processed (because there is not
-    enough room in the output buffer), next_in is updated and processing
-    will resume at this point for the next call of deflate().
+    enough room in the output buffer), next_in and avail_in are updated and
+    processing will resume at this point for the next call of deflate().
 
   - Provide more output starting at next_out and update next_out and avail_out
     accordingly. This action is forced if the parameter flush is non zero.
@@ -175,20 +175,21 @@ extern int deflate __P((z_stream *strm, int flush));
 
   Before the call of deflate(), the application should ensure that at least
   one of the actions is possible, by providing more input and/or consuming
-  more output, and updating avail_in or avail_out accordingly.
-  The application can consume the compressed output when the output
-  buffer is full (avail_out == 0), or after each call of deflate().
+  more output, and updating avail_in or avail_out accordingly; avail_out
+  should never be zero before the call. The application can consume the
+  compressed output when it wants, for example when the output buffer is full
+  (avail_out == 0), or after each call of deflate().
 
     If the parameter flush is set to Z_PARTIAL_FLUSH, the current compression
-  block is byte aligned and flushed to the output buffer so that the
-  decompressor can get all input data available so far; if the compression
-  method is 8 (deflate without partial flush capability), the current block
-  is terminated. If flush is set to Z_FULL_FLUSH, the compression block is
-  terminated, a special marker is output and the compression dictionary is
-  discarded; this is useful to allow the decompressor to synchronize if one
-  compressed block has been damaged.
-    Flushing degrades compression and so should be used only when necessary.
-  Using Z_FULL_FLUSH too often can seriously degrade the compression.
+  block is terminated and flushed to the output buffer so that the
+  decompressor can get all input data available so far. For method 9, a future
+  variant on method 8, the current block will be flushed but not terminated.
+  If flush is set to Z_FULL_FLUSH, the compression block is terminated, a
+  special marker is output and the compression dictionary is discarded; this
+  is useful to allow the decompressor to synchronize if one compressed block
+  has been damaged (see inflateSync below).  Flushing degrades compression and
+  so should be used only when necessary.  Using Z_FULL_FLUSH too often can
+  seriously degrade the compression.
 
     If the parameter flush is set to Z_FINISH, all pending input is
   processed and all pending output is flushed. The next operation on this
@@ -197,19 +198,18 @@ extern int deflate __P((z_stream *strm, int flush));
   or a call of deflateEnd to deallocate the compression state. Z_FINISH can
   be used immediately after deflateInit if all the compression is to be
   done in a single step. In this case, avail_out must be at least 0.1%
-  larger than avail_in plus 8 bytes.
+  larger than avail_in plus 12 bytes.
 
-    deflate() may update strm->data_type if it can make a good guess about
+    deflate() may update data_type if it can make a good guess about
   the input data type (Z_ASCII or Z_BINARY). In doubt, the data is considered
   binary. This field is only for information purposes and does not affect
   the compression algorithm in any manner.
 
-    deflate() return Z_OK if some progress has been made (more input processed
+    deflate() returns Z_OK if some progress has been made (more input processed
   or more output produced), Z_STREAM_ERROR if the stream state was
   inconsistent (for example if next_in or next_out was NULL), Z_BUF_ERROR if
   no progress is possible or if there was not enough room in the output buffer
-  when Z_FINISH is used.
-*/
+  when Z_FINISH is used. ??? to be changed (use Z_STEAM_END) */
 
 
 extern int deflateEnd __P((z_stream *strm));
@@ -232,8 +232,7 @@ extern int inflateInit __P((z_stream *strm));
    functions.
 
      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if the stream state was inconsistent (such
-   as zalloc being NULL). msg is set to null if there is no error message.
+   enough memory.  msg is set to null if there is no error message.
    inflateInit does not perform any decompression: this will be done by
    inflate().
 */
@@ -255,8 +254,9 @@ extern int inflate __P((z_stream *strm, int flush));
   Before the call of inflate(), the application should ensure that at least
   one of the actions is possible, by providing more input and/or consuming
   more output, and updating the next_* and avail_* values accordingly.
-  The application can consume the uncompressed output when the output
-  buffer is full (avail_out == 0), or after each call of inflate().
+  The application can consume the uncompressed output when it wants, for
+  example when the output buffer is full (avail_out == 0), or after each
+  call of inflate().
 
     If the parameter flush is set to Z_PARTIAL_FLUSH, inflate flushes as much
   output as possible to the output buffer. The flushing behavior of inflate is
@@ -275,13 +275,13 @@ extern int inflate __P((z_stream *strm, int flush));
 
     inflate() returns Z_OK if some progress has been made (more input
   processed or more output produced), Z_STREAM_END if the end of the
-  compressed data has been reached, Z_DATA_ERROR if the input data was
-  corrupted, Z_STREAM_ERROR if the stream structure was inconsistent (for
-  example if next_in or next_out was NULL), Z_MEM_ERROR if there was not enough
-  memory, Z_BUF_ERROR if no progress is possible or if there was not enough
-  room in the output buffer when Z_FINISH is used. In the Z_DATA_ERROR case,
-  the application may then call inflateSync to look for a good compression
-  block.
+  compressed data has been reached and all uncompressed output has been
+  produced, Z_DATA_ERROR if the input data was corrupted, Z_STREAM_ERROR if
+  the stream structure was inconsistent (for example if next_in or next_out
+  was NULL), Z_MEM_ERROR if there was not enough memory, Z_BUF_ERROR if no
+  progress is possible or if there was not enough room in the output buffer
+  when Z_FINISH is used. In the Z_DATA_ERROR case, the application may then
+  call inflateSync to look for a good compression block.
 */
 
 
@@ -318,9 +318,9 @@ extern int deflateInit2 __P((z_stream *strm,
 
      The windowBits parameter is the base two logarithm of the window size
    (the size of the history buffer).  It should be in the range 8..15 for this
-   version of the library (the value 16 will be allowed soon). Larger values
-   of this parameter result in better compression at the expense of memory
-   usage. The default value is 15 if deflateInit is used instead.
+   version of the library (the value 16 will be allowed for method 9). Larger
+   values of this parameter result in better compression at the expense of
+   memory usage. The default value is 15 if deflateInit is used instead.
 
     The memLevel parameter specifies how much memory should be allocated
    for the internal compression state. memLevel=1 uses minimum memory but
@@ -338,8 +338,8 @@ extern int deflateInit2 __P((z_stream *strm,
 
      If next_in is not null, the library will use this buffer to hold also
    some history information; the buffer must either hold the entire input
-   data, or have at least (1<<windowBits) bytes and be writable. If next_in is
-   null, the library will allocate its own history buffer (and leave next_in
+   data, or have at least 1<<(windowBits+1) bytes and be writable. If next_in
+   is null, the library will allocate its own history buffer (and leave next_in
    null). next_out need not be provided here but must be provided by the
    application for the next call of deflate().
 
@@ -350,8 +350,7 @@ extern int deflateInit2 __P((z_stream *strm,
    reset by the library in this case.
 
       deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was
-   not enough memory, Z_STREAM_ERROR if the stream state was inconsistent
-   (such as zalloc being NULL) or the parameters are invalid (such as
+   not enough memory, Z_STREAM_ERROR if a parameter is invalid (such as
    an invalid method). msg is set to null if there is no error message.
    deflateInit2 does not perform any compression: this will be done by
    deflate().
@@ -406,7 +405,7 @@ extern int inflateInit2 __P((z_stream *strm,
 
      If next_out is not null, the library will use this buffer for the history
    buffer; the buffer must either be large enough to hold the entire output
-   data, or have at least 1<<(windowBits-1) bytes.  If next_out is null, the
+   data, or have at least 1<<windowBits bytes.  If next_out is null, the
    library will allocate its own buffer (and leave next_out null). next_in
    need not be provided here but must be provided by the application for the
    next call of inflate().
@@ -418,9 +417,8 @@ extern int inflateInit2 __P((z_stream *strm,
    avail_out is zero and all output has been consumed.
 
       inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was
-   not enough memory, Z_STREAM_ERROR if the stream state was inconsistent
-   (such as zalloc being NULL) or the parameters are invalid (such as
-   windowBits < 9). msg is set to null if there is no error message.
+   not enough memory, Z_STREAM_ERROR if a parameter is invalid (such as
+   windowBits < 8). msg is set to null if there is no error message.
    inflateInit2 does not perform any compression: this will be done by
    inflate().
 */
@@ -585,7 +583,7 @@ extern uLong crc32   __P((uLong crc, Byte *buf, uInt len));
 /*
      Update a running crc with the bytes buf[0..len-1] and return the updated
    crc. If buf is NULL, this function returns the required initial value
-   for the crc (0). Pre- and post-conditioning (one's complement) is performed
+   for the crc. Pre- and post-conditioning (one's complement) is performed
    within this function so it shouldn't be done by the application.
    Usage example:
 

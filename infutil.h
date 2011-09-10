@@ -47,6 +47,7 @@ struct inflate_blocks_state {
   Byte *end;		/* one byte after sliding window */
   Byte *read;		/* window read pointer */
   Byte *write;		/* window write pointer */
+  check_func checkfn;   /* check function */
   uLong check;		/* check on output */
 
 };

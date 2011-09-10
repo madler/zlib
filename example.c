@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.4 1995/04/14 13:32:49 jloup Exp $ */
+/* $Id: example.c,v 1.5 1995/04/14 20:35:56 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -60,7 +60,7 @@ void test_gzio(out, in)
     char *in;  /* input file */
 {
     local Byte uncompr[BUFLEN];
-    uLong uncomprLen = sizeof(uncompr);
+    int uncomprLen = sizeof(uncompr);
     int err;
     int len = strlen(hello)+1;
     gzFile file;
@@ -114,7 +114,7 @@ uLong test_deflate(compr)
     c_stream.next_in  = (Byte*)hello;
     c_stream.next_out = compr;
 
-    while (c_stream.total_in != len) {
+    while (c_stream.total_in != (uLong)len) {
 	c_stream.avail_in = c_stream.avail_out = 1; /* force small buffers */
 	err = deflate(&c_stream, Z_NO_FLUSH);
 	CHECK_ERR(err, "deflate");

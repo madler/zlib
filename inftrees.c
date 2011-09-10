@@ -246,7 +246,7 @@ z_stream *zs;		/* for zalloc function */
         {
           x[h] = i;             /* save pattern for backing up */
           r.bits = (char)l;     /* bits to dump before this table */
-          r.exop = (char)(-j);  /* bits in this table */
+          r.exop = -(char)j;    /* bits in this table */
           r.next = q;           /* pointer to this table */
           j = i >> (w - l);     /* (get around Turbo C bug) */
           u[h-1][j] = r;        /* connect to last table */

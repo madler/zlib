@@ -60,16 +60,17 @@ local uInt border[] = {	/* Order of the bit length code lengths */
       the two sets of lengths.
  */
 
-struct inflate_blocks_state *inflate_blocks_new(z,wsize)
+struct inflate_blocks_state *inflate_blocks_new(z, c, w)
 z_stream *z;
-uInt wsize;
+check_func c;
+uInt w;
 {
   struct inflate_blocks_state *s;
 
   if ((s = (struct inflate_blocks_state *)ZALLOC
        (z,1,sizeof(struct inflate_blocks_state))) == Z_NULL)
     return s;
-  if ((s->window = (Byte *)ZALLOC(z,1,wsize)) == Z_NULL)
+  if ((s->window = (Byte *)ZALLOC(z, 1, w)) == Z_NULL)
   {
     ZFREE(z, s);
     return Z_NULL;
@@ -77,8 +78,10 @@ uInt wsize;
   s->mode = TYPE;
   s->bitk = 0;
   s->read = s->write = s->window;
-  s->end = s->window + wsize;
-  s->check = 1;
+  s->end = s->window + w;
+  s->checkfn = c;
+  if (s->checkfn != Z_NULL)
+    s->check = (*s->checkfn)(0L, Z_NULL, 0);
   return s;
 }
 
@@ -312,8 +315,9 @@ z_stream *z;
 uLong *c;
 int *e;
 {
-  *e = s->bitk > 7 ? (s->bitb >> (s->bitk & 7)) & 0xff : -1;
-  *c = s->check;
+  *e = (int)(s->bitk > 7 ? (s->bitb >> (s->bitk & 7)) & 0xff : -1);
+  if (s->checkfn != Z_NULL)
+    *c = s->check;
   if (s->mode == BTREE || s->mode == DTREE)
     ZFREE(z, s->sub.trees.blens);
   if (s->mode == CODES)

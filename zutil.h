@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: zutil.h,v 1.4 1995/04/14 10:22:17 jloup Exp $ */
+/* $Id: zutil.h,v 1.5 1995/04/14 21:22:38 jloup Exp $ */
 
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H
@@ -19,6 +19,10 @@
 #   include <stddef.h>
 #else
     extern int errno;
+#endif
+#ifdef __STDC__
+#  include <string.h>
+#  include <memory.h>
 #endif
 
 #ifndef local
@@ -154,13 +158,16 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #endif
 
 
+typedef uLong (*check_func) __P((uLong check, Byte *buf, uInt len));
+
 extern void z_error    __P((char *m));
 
 voidp zcalloc __P((voidp opaque, unsigned items, unsigned size));
 void  zcfree  __P((voidp opaque, voidp ptr));
 
-#define ZALLOC(strm, items, size) (*strm->zalloc)(strm->opaque, items, size)
-#define ZFREE(strm, addr)         (*strm->zfree) (strm->opaque, (voidp)addr)
+#define ZALLOC(strm, items, size) \
+           (*((strm)->zalloc))((strm)->opaque, (items), (size))
+#define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidp)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
 #endif /* _Z_UTIL_H */

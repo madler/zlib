@@ -1,5 +1,10 @@
 		ChangeLog file for zlib
 
+Changes in 0.79 (28 April 95)
+- add fast inflate (inffast.c)
+- In gzio destroy(), don't reference a freed structure
+- avoid many warnings for MSDOS
+
 Changes in 0.71 (14 April 95)
 - Fixed more MSDOS compilation problems :( There is still a bug with
   TurboC large model.

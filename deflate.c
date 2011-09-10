@@ -47,7 +47,7 @@
  *
  */
 
-/* $Id: deflate.c,v 1.3 1995/04/10 16:03:45 jloup Exp $ */
+/* $Id: deflate.c,v 1.4 1995/04/14 19:49:46 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -195,9 +195,11 @@ int deflateInit2 (strm, level, method, windowBits, memLevel, strategy)
     s->noheader = noheader;
     s->w_bits = windowBits;
     s->w_size = 1 << s->w_bits;
+    s->w_mask = s->w_size - 1;
 
     s->hash_bits = memLevel + 7;
     s->hash_size = 1 << s->hash_bits;
+    s->hash_mask = s->hash_size - 1;
     s->hash_shift =  ((s->hash_bits+MIN_MATCH-1)/MIN_MATCH);
 
     s->window = (Byte*) ZALLOC(strm, s->w_size, 2*sizeof(Byte));

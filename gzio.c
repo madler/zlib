@@ -71,8 +71,9 @@ local int destroy (s)
     if (s->file != NULL && fclose(s->file)) {
 	err = Z_ERRNO;
     }
+    if (s->z_err < 0) err = s->z_err;
     zcfree((voidp)0, s);
-    return s->z_err < 0 ? s->z_err : err;
+    return err;
 }
 
 /* ===========================================================================
@@ -235,9 +236,10 @@ int gzread (file, buf, len)
 
     if (s->transparent) {
 	unsigned n = 0;
+	Byte *b = (Byte*)buf;
 	/* Copy the first two (non-magic) bytes if not done already */
 	while (s->stream.avail_in > 0 && len > 0) {
-	    *((Byte*)buf)++ = *s->stream.next_in++;
+	    *b++ = *s->stream.next_in++;
 	    s->stream.avail_in--;
 	    len--; n++;
 	}
@@ -364,7 +366,7 @@ local void putLong (file, x)
 {
     int n;
     for (n = 0; n < 4; n++) {
-	fputc(x & 0xff, file);
+	fputc((int)(x & 0xff), file);
 	x >>= 8;
     }
 }

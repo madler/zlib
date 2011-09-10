@@ -1,4 +1,4 @@
-zlib 0.71 is a beta version of a general purpose compression library.
+zlib 0.79 is a beta version of a general purpose compression library.
 
 The data format used by the zlib library is described in the
 file zlib-3.1.doc, deflate-1.1.doc and gzip-4.1.doc, available
@@ -9,16 +9,10 @@ zlib.h. A usage example of the library is given in the file example.c
 which also tests that the library is working correctly.
 To compile all files and run the test program, just type: make test
 
-The changes made in version 0.71 are documented in the file ChangeLog.
-The main changes since 0.5 are:
-- added full inflate support
-- added minigzip.c
-- added gzdopen to reopen a file descriptor as gzFile
-- added transparent reading of non-gziped files in gzread.
-- fix some MSDOS problems. example and minigzip now work on MSDOS.
-- Simplified the crc32() interface. The pre- and post-conditioning
-  (one's complement) is now done inside crc32(). WARNING: this is
-  incompatible with previous versions; see zlib.h for the new usage.
+The changes made in version 0.79 are documented in the file ChangeLog.
+The main changes since 0.71 are:
+- add fast inflate (inffast.c)
+- In gzio destroy(), don't reference a freed structure
 
 On MSDOS, this version works in large and small model with MSC; in
 small model only with TurboC (bug being investigated). For both
