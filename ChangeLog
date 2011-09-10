@@ -1,6 +1,25 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.1.2 (19 March 98)
+- added contrib/minzip, mini zip and unzip based on zlib (Gilles Vollant)
+  See http://www.winimage.com/zLibDll/unzip.html
+- preinitialize the inflate tables for fixed codes, to make the code
+  completely thread safe (Mark)
+- some simplifications and slight speed-up to the inflate code (Mark)
+- fix gzeof on non-compressed files (Allan Schrum)
+- add -std1 option in configure for OSF1 to fix gzprintf (Martin Mokrejs)
+- use default value of 4K for Z_BUFSIZE for 16-bit MSDOS (Tim Wegner + Glenn)
+- added os2/Makefile.def and os2/zlib.def (Andrew Zabolotny)
+- add shared lib support for UNIX_SV4.2MP (MATSUURA Takanori)
+- do not wrap extern "C" around system includes (Tom Lane)
+- mention zlib binding for TCL in README (Andreas Kupries)
+- added amiga/Makefile.pup for Amiga powerUP SAS/C PPC (Andreas Kleinert)
+- allow "make install prefix=..." even after configure (Glenn Randers-Pehrson)
+- allow "configure --prefix $HOME" (Tim Mooney)
+- remove warnings in example.c and gzio.c (Glenn Randers-Pehrson)
+- move Makefile.sas to amiga/Makefile.sas
+
 Changes in 1.1.1 (27 Feb 98)
 - fix macros _tr_tally_* in deflate.h for debug mode  (Glenn Randers-Pehrson)
 - remove block truncation heuristic which had very marginal effect for zlib
@@ -138,7 +157,7 @@ Changes in 1.0.6 (19 Jan 1998)
 - allow compilation with ANSI keywords only enabled for TurboC in large model
 - avoid "versionString"[0] (Borland bug)
 - add NEED_DUMMY_RETURN for Borland
-- use variable z_verbose for tracing in debug mode (Peter Deutsch).
+- use variable z_verbose for tracing in debug mode (L. Peter Deutsch).
 - allow compilation with CC
 - defined STDC for OS/2 (David Charlap)	
 - limit external names to 8 chars for MVS (Thomas Lund)

@@ -7,6 +7,10 @@ for help about these, not the zlib authors. Thanks.
 asm386/     by Gilles Vollant <info@winimage.com>
 	386 asm code replacing longest_match(), for Visual C++ 4.2 and ML 6.11c
 
+minizip/    by Gilles Vollant <info@winimage.com>
+	Mini zip and unzip based on zlib
+        See http://www.winimage.com/zLibDll/unzip.html
+
 iostream/   by Kevin Ruland <kevin@rodin.wustl.edu>
         A C++ I/O streams interface to the zlib gz* functions
 

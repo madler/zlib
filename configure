@@ -24,7 +24,6 @@ VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 AR=${AR-"ar rc"}
 RANLIB=${RANLIB-"ranlib"}
 prefix=${prefix-/usr/local}
-exec_prefix=${exec_prefix-$prefix}
 shared_ext='.so'
 shared=0
 gcc=0
@@ -32,8 +31,10 @@ old_cc="$CC"
 old_cflags="$CFLAGS"
 
 case "$1" in
+  -h* | --h*) echo 'syntax: configure [ --shared ] [--prefix PREFIX]'; exit 0;;
+  -p*=* | --p*=*) prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift;;
+  -p* | --p*) prefix="$2"; shift; shift;;
   -s* | --s*) shared=1; shift;;
-  -h* | --h*) echo 'syntax: configure [ --shared ]'; exit 0;;
 esac
 
 test=ztest$$
@@ -61,14 +62,17 @@ else
   # find system name and corresponding cc options
   CC=${CC-cc}
   case `(uname -sr || echo unknown) 2>/dev/null` in
-  SunOS\ 5*) SFLAGS=${CFLAGS-"-fast -xcg89 -KPIC -R."}
-             CFLAGS=${CFLAGS-"-fast -xcg89"}
-	     LDSHARED=${LDSHARED-"cc -G"};;
-  SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
-	     CFLAGS=${CFLAGS-"-O2"}
-	     LDSHARED=${LDSHARED-"ld"};;
+  HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
+	     CFLAGS=${CFLAGS-"-O"}
+#	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
+	     LDSHARED=${LDSHARED-"ld -b"}
+	     shared_ext='.sl'
+	     SHAREDLIB='libz.sl';;
   IRIX*)     SFLAGS=${CFLAGS-"-ansi -O2 -rpath ."}
 	     CFLAGS=${CFLAGS-"-ansi -O2"}
+	     LDSHARED=${LDSHARED-"cc -shared"};;
+  OSF1)      SFLAGS=${CFLAGS-"-O -std1"}
+	     CFLAGS=${CFLAGS-"-O -std1"}
 	     LDSHARED=${LDSHARED-"cc -shared"};;
   QNX*)      SFLAGS=${CFLAGS-"-4 -O"}
              CFLAGS=${CFLAGS-"-4 -O"}
@@ -78,14 +82,18 @@ else
   SCO_SV\ 3.2*) SFLAGS=${CFLAGS-"-O3 -dy -KPIC "}
 	     CFLAGS=${CFLAGS-"-O3"}
 	     LDSHARED=${LDSHARED-"cc -dy -KPIC -G"};;
-  HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
-	     CFLAGS=${CFLAGS-"-O"}
-#	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
-	     LDSHARED=${LDSHARED-"ld -b"}
-	     shared_ext='.sl'
-	     SHAREDLIB='libz.sl';;
+  SunOS\ 5*) SFLAGS=${CFLAGS-"-fast -xcg89 -KPIC -R."}
+             CFLAGS=${CFLAGS-"-fast -xcg89"}
+	     LDSHARED=${LDSHARED-"cc -G"};;
+  SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
+	     CFLAGS=${CFLAGS-"-O2"}
+	     LDSHARED=${LDSHARED-"ld"};;
   UNIX_System_V\ 4.2.0) 
 	     SFLAGS=${CFLAGS-"-KPIC -O"}
+	     CFLAGS=${CFLAGS-"-O"}
+	     LDSHARED=${LDSHARED-"cc -G"};;
+  UNIX_SV\ 4.2MP)
+	     SFLAGS=${CFLAGS-"-Kconform_pic -O"}
 	     CFLAGS=${CFLAGS-"-O"}
 	     LDSHARED=${LDSHARED-"cc -G"};;
   # send working options for other systems to support@gzip.org
@@ -152,5 +160,4 @@ sed < Makefile.in "
 /^RANLIB *=/s%=.*%=$RANLIB%
 /^VER *=/s%=.*%=$VER%
 /^prefix *=/s%=.*%=$prefix%
-/^exec_prefix *=/s%=.*%=$exec_prefix%
 " > Makefile

@@ -13,8 +13,16 @@
 
 struct internal_state {int dummy;}; /* for buggy compilers */
 
-#define Z_BUFSIZE       16384
-#define Z_PRINTF_BUFSIZE 4096
+#ifndef Z_BUFSIZE
+#  ifdef MAXSEG_64K
+#    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
+#  else
+#    define Z_BUFSIZE 16384
+#  endif
+#endif
+#ifndef Z_PRINTF_BUFSIZE
+#  define Z_PRINTF_BUFSIZE 4096
+#endif
 
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
@@ -132,8 +140,12 @@ local gzFile gz_open (path, mode, fd)
         s->stream.next_in  = s->inbuf = (Byte*)ALLOC(Z_BUFSIZE);
 
         err = inflateInit2(&(s->stream), -MAX_WBITS);
-        /* windowBits is passed < 0 to tell that there is no zlib header */
-
+        /* windowBits is passed < 0 to tell that there is no zlib header.
+         * Note that in this case inflate *requires* an extra "dummy" byte
+         * after the compressed stream in order to complete decompression and
+         * return Z_STREAM_END. Here the gzip CRC32 ensures that 4 bytes are
+         * present after the compressed stream.
+         */
         if (err != Z_OK || s->inbuf == Z_NULL) {
             return destroy(s), (gzFile)Z_NULL;
         }
@@ -379,6 +391,7 @@ int ZEXPORT gzread (file, buf, len)
 	    len -= s->stream.avail_out;
 	    s->stream.total_in  += (uLong)len;
 	    s->stream.total_out += (uLong)len;
+            if (len == 0) s->z_eof = 1;
 	    return (int)len;
 	}
         if (s->stream.avail_in == 0 && !s->z_eof) {
@@ -572,7 +585,7 @@ int ZEXPORT gzputs(file, s)
     gzFile file;
     const char *s;
 {
-    return gzwrite(file, (const voidp)s, (unsigned)strlen(s));
+    return gzwrite(file, (char*)s, (unsigned)strlen(s));
 }
 
 

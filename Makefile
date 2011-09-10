@@ -23,7 +23,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.1.1
+VER=1.1.2
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -32,8 +32,8 @@ RANLIB=ranlib
 TAR=tar
 SHELL=/bin/sh
 
-prefix=/usr/local
-exec_prefix = $(prefix)
+prefix = /usr/local
+exec_prefix = ${prefix}
 
 OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o inffast.o
@@ -42,11 +42,13 @@ TEST_OBJS = example.o minigzip.o
 
 DISTFILES = README INDEX ChangeLog configure Make*[a-z0-9] *.[ch] descrip.mms \
   algorithm.txt zlib.3 msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
-  nt/Makefile.nt nt/zlib.dnt  contrib/README.contrib contrib/*.txt \
-  contrib/asm386/*.asm contrib/asm386/*.c \
+  nt/Makefile.nt nt/zlib.dnt amiga/Make*.??? contrib/README.contrib \
+  contrib/*.txt contrib/asm386/*.asm contrib/asm386/*.c \
   contrib/asm386/*.bat contrib/asm386/zlibvc.d?? contrib/iostream/*.cpp \
   contrib/iostream/*.h  contrib/iostream2/*.h contrib/iostream2/*.cpp \
-  contrib/untgz/Makefile contrib/untgz/*.c contrib/untgz/*.w32
+  contrib/untgz/Makefile contrib/untgz/*.c contrib/untgz/*.w32 \
+  contrib/minizip/[CM]*[pe] contrib/minizip/*.[ch] contrib/minizip/*.[td]??
+
 
 all: example minigzip
 
@@ -112,14 +114,14 @@ distclean:	clean
 
 zip:
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
-	rm -f test.c ztest*.c
+	rm -f test.c ztest*.c contrib/minizip/test.zip
 	v=`sed -n -e 's/\.//g' -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
 	zip -ul9 zlib$$v $(DISTFILES)
 	mv Makefile~ Makefile
 
 dist:
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
-	rm -f test.c ztest*.c
+	rm -f test.c ztest*.c contrib/minizip/test.zip
 	d=zlib-`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
 	rm -f $$d.tar.gz; \
 	if test ! -d ../$$d; then rm -f ../$$d; ln -s `pwd` ../$$d; fi; \
