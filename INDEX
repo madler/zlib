@@ -6,10 +6,10 @@ Makefile.in     makefile for Unix (template for configure)
 README          guess what
 configure       configure script for Unix
 make_vms.com	makefile for VMS
-zconf.in.h      template for zconf.h (used by configure)
+treebuild.xml	see http://treebuild.metux.de/
 zlib.3		Man page for zlib
 zlib.map	Linux symbol information
-zlib.pc.in	??
+zlib.pc.in	Template for pkg-config descriptor
 
 amiga/          makefiles for Amiga SAS C
 as400/          makefiles for IBM AS/400
@@ -19,13 +19,13 @@ old/            makefiles for various architectures and zlib documentation
                 files that have not yet been updated for zlib 1.2.x
 projects/       projects for various Integrated Development Environments
 qnx/            makefiles for QNX
-todo/		works in progress
 watcom/		makefiles for OpenWatcom
 win32/          makefiles for Windows
 
                 zlib public header files (required for library use):
 zconf.h
 zlib.h
+zlibdefs.h
 
                 private source files used to build the zlib library:
 adler32.c

@@ -1163,6 +1163,8 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
 
     s->pfile_in_zip_read = pfile_in_zip_read_info;
 
+    s->encrypted = 0;
+
 #    ifndef NOUNCRYPT
     if (password != NULL)
     {

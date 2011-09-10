@@ -161,6 +161,12 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
+#if defined(__BORLANDC__)
+#pragma warn -8004
+#pragma warn -8008
+#pragma warn -8066
+#endif
+
         /* common defaults */
 
 #ifndef OS_CODE

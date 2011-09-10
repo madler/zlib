@@ -79,7 +79,7 @@ esac
 if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
   SFLAGS="${CFLAGS-"-O3"} -fPIC"
-  CFLAGS="$cflags"
+  CFLAGS="${CFLAGS-"-O3"}"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux | GNU | GNU/*) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"};;
   CYGWIN* | Cygwin* | cygwin* | OS/2* )
@@ -184,8 +184,7 @@ if test $shared -eq 1; then
   # we must test in two steps (cc then ld), required at least on SunOS 4.x
   if test "`($CC -c $SFLAGS $test.c) 2>&1`" = "" &&
      test "`($LDSHARED -o $test$shared_ext $test.o) 2>&1`" = ""; then
-    CFLAGS="$SFLAGS"
-    LIBS="$SHAREDLIBV"
+    LIBS="$LIBS $SHAREDLIBV"
     echo Building shared library $SHAREDLIBV with $CC.
   elif test -z "$old_cc" -a -z "$old_cflags"; then
     echo No shared library support.
@@ -202,8 +201,29 @@ fi
 if test $shared -eq 0; then
   LDSHARED="$CC"
   echo Building static library $LIBS version $VER with $CC.
+fi
+
+cat > zlibdefs.h << EOF
+/* zlibdefs.h -- compile-time definitions for the zlib compression library
+ * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+EOF
+
+cat > $test.c <<EOF
+#include <sys/types.h>
+off64_t dummy = 0;
+EOF
+if test "`($CC -c $CFLAGS -D_LARGEFILE64_SOURCE $test.c) 2>&1`" = ""; then
+  cat >> zlibdefs.h <<EOF
+#define z_off_t off64_t
+EOF
+  CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE"
+  SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE"
+  echo "Checking for off64_t... Yes."
 else
-  LDFLAGS="-L. ${SHAREDLIBV}"
+  echo "Checking for off64_t... No."
 fi
 
 cat > $test.c <<EOF
@@ -211,10 +231,18 @@ cat > $test.c <<EOF
 int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  sed < zconf.in.h "/HAVE_UNISTD_H/s%0%1%" > zconf.h
+  cat >> zlibdefs.h <<EOF
+#include <sys/types.h>	/* for off_t */
+#include <unistd.h>	/* for SEEK_* and off_t */
+#ifdef VMS
+#  include <unixio.h>	/* for off_t */
+#endif
+#ifndef z_off_t
+#  define z_off_t off_t
+#endif
+EOF
   echo "Checking for unistd.h... Yes."
 else
-  cp -p zconf.in.h zconf.h
   echo "Checking for unistd.h... No."
 fi
 
@@ -462,6 +490,7 @@ rm -f $test.[co] $test $test$shared_ext
 sed < Makefile.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
+/^SFLAGS *=/s#=.*#=$SFLAGS#
 /^CPP *=/s#=.*#=$CPP#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^LIBS *=/s#=.*#=$LIBS#

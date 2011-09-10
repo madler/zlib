@@ -1,6 +1,15 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.2 (3 September 2006)
+- Turn off silly Borland warnings [Hay]
+- Use off64_t and define _LARGEFILE64_SOURCE when present
+- Fix missing dependency on inffixed.h in Makefile.in
+- Rig configure --shared to build both shared and static [Teredesai, Truta]
+- Remove zconf.in.h and instead create a new zlibdefs.h file
+- Fix contrib/minizip/unzip.c non-encrypted after encrypted [Vollant]
+- Add treebuild.xml (see http://treebuild.metux.de/) [Weigelt]
+
 Changes in 1.2.3.1 (16 August 2006)
 - Add watcom directory with OpenWatcom make files [Daniel]
 - Remove #undef of FAR in zconf.in.h for MVS [Fedtke]

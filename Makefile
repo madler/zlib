@@ -24,13 +24,15 @@ CFLAGS=-O
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
+SFLAGS=-O
+
 LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
 LIBS=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.1
+SHAREDLIBV=libz.so.1.2.3.2
 SHAREDLIBM=libz.so.1
 
 AR=ar
@@ -47,11 +49,15 @@ mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 
-OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
+OBJC = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infback.o inftrees.o inffast.o
 
 OBJA =
 # to use the asm code: make OBJA=match.o
+
+OBJS = $(OBJC) $(OBJA)
+
+PIC_OBJS = $(OBJS:%.o=%.lo)
 
 TEST_OBJS = example.o minigzip.o
 
@@ -68,8 +74,8 @@ test: all
 	  echo '		*** zlib test FAILED ***'; \
 	fi
 
-libz.a: $(OBJS) $(OBJA)
-	$(AR) $@ $(OBJS) $(OBJA)
+libz.a: $(OBJS)
+	$(AR) $@ $(OBJS)
 	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
 
 match.o: match.S
@@ -78,8 +84,17 @@ match.o: match.S
 	mv _match.o match.o
 	rm -f _match.s
 
-$(SHAREDLIBV): $(OBJS)
-	$(LDSHARED) -o $@ $(OBJS)
+match.lo: match.S
+	$(CPP) match.S > _match.s
+	$(CC) -c -fPIC _match.s
+	mv _match.o match.lo
+	rm -f _match.s
+
+%.lo: %.c
+	$(CC) $(SFLAGS) -DPIC -c $< -o $@
+
+$(SHAREDLIBV): $(PIC_OBJS)
+	$(LDSHARED) -o $@ $(PIC_OBJS) -lc
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
@@ -90,14 +105,11 @@ example$(EXE): example.o $(LIBS)
 minigzip$(EXE): minigzip.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
 
-install: $(LIBS)
+install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
-	-@if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
 	-@if [ ! -d $(DESTDIR)$(libdir)       ]; then mkdir -p $(DESTDIR)$(libdir); fi
 	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
 	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
-	cp zlib.h zconf.h $(DESTDIR)$(includedir)
-	chmod 644 $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h
 	cp $(LIBS) $(DESTDIR)$(libdir)
 	cd $(DESTDIR)$(libdir); chmod 755 $(LIBS)
 	-@(cd $(DESTDIR)$(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
@@ -114,8 +126,13 @@ install: $(LIBS)
 # The ranlib in install is needed on NeXTSTEP which checks file times
 # ldconfig is for Linux
 
+install: install-libs
+	-@if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
+	cp zlib.h zconf.h zlibdefs.h $(DESTDIR)$(includedir)
+	chmod 644 $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h $(DESTDIR)$(includedir)/zlibdefs.h
+
 uninstall:
-	cd $(DESTDIR)$(includedir); rm -f zlib.h zconf.h
+	cd $(DESTDIR)$(includedir); rm -f zlib.h zconf.h zlibdefs.h
 	cd $(DESTDIR)$(libdir); rm -f libz.a; \
 	if test -f $(SHAREDLIBV); then \
 	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
@@ -125,14 +142,15 @@ uninstall:
 
 mostlyclean: clean
 clean:
-	rm -f *.o *~ example$(EXE) minigzip$(EXE) \
+	rm -f *.o *.lo *~ example$(EXE) minigzip$(EXE) \
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 
 maintainer-clean: distclean
 distclean: clean
 	cp -p Makefile.in Makefile
-	cp -p zconf.in.h zconf.h
+	rm zlibdefs.h
+	touch -r configure zlibdefs.h
 	rm -f zlib.pc .DS_Store
 
 tags:
@@ -143,17 +161,32 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-adler32.o: zlib.h zconf.h
-compress.o: zlib.h zconf.h
-crc32.o: crc32.h zlib.h zconf.h
-deflate.o: deflate.h zutil.h zlib.h zconf.h
-example.o: zlib.h zconf.h
-gzio.o: zutil.h zlib.h zconf.h
-inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
-inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
-infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
-inftrees.o: zutil.h zlib.h zconf.h inftrees.h
-minigzip.o: zlib.h zconf.h
-trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
-uncompr.o: zlib.h zconf.h
-zutil.o: zutil.h zlib.h zconf.h
+adler32.o: zlib.h zconf.h zlibdefs.h
+compress.o: zlib.h zconf.h zlibdefs.h
+crc32.o: crc32.h zlib.h zconf.h zlibdefs.h
+deflate.o: deflate.h zutil.h zlib.h zconf.h zlibdefs.h
+example.o: zlib.h zconf.h zlibdefs.h
+gzio.o: zutil.h zlib.h zconf.h zlibdefs.h
+inffast.o: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h
+inflate.o: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
+infback.o: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
+inftrees.o: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
+minigzip.o: zlib.h zconf.h zlibdefs.h
+trees.o: deflate.h zutil.h zlib.h zconf.h zlibdefs.h trees.h
+uncompr.o: zlib.h zconf.h zlibdefs.h
+zutil.o: zutil.h zlib.h zconf.h zlibdefs.h
+
+adler32.lo: zlib.h zconf.h zlibdefs.h
+compress.lo: zlib.h zconf.h zlibdefs.h
+crc32.lo: crc32.h zlib.h zconf.h zlibdefs.h
+deflate.lo: deflate.h zutil.h zlib.h zconf.h zlibdefs.h
+example.lo: zlib.h zconf.h zlibdefs.h
+gzio.lo: zutil.h zlib.h zconf.h zlibdefs.h
+inffast.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h
+inflate.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
+infback.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
+inftrees.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
+minigzip.lo: zlib.h zconf.h zlibdefs.h
+trees.lo: deflate.h zutil.h zlib.h zconf.h zlibdefs.h trees.h
+uncompr.lo: zlib.h zconf.h zlibdefs.h
+zutil.lo: zutil.h zlib.h zconf.h zlibdefs.h
