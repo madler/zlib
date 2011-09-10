@@ -1,5 +1,5 @@
 /* deflate.h -- internal compression state
- * Copyright (C) 1995 Jean-loup Gailly
+ * Copyright (C) 1995-1996 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -10,16 +10,14 @@
 
 /* $Id: deflate.h,v 1.5 1995/05/03 17:27:09 jloup Exp $ */
 
+#ifndef _DEFLATE_H
+#define _DEFLATE_H
+
 #include "zutil.h"
 
 /* ===========================================================================
  * Internal compression state.
  */
-
-/* Data type */
-#define BINARY  0
-#define ASCII   1
-#define UNKNOWN 2
 
 #define LENGTH_CODES 29
 /* number of length codes, not counting the special END_BLOCK code */
@@ -87,10 +85,10 @@ typedef struct internal_state {
     Bytef *pending_buf;  /* output still pending */
     Bytef *pending_out;  /* next pending byte to output to the stream */
     int   pending;       /* nb of bytes in the pending buffer */
-    uLong adler;         /* adler32 of uncompressed data */
     int   noheader;      /* suppress zlib header and adler32 */
     Byte  data_type;     /* UNKNOWN, BINARY or ASCII */
     Byte  method;        /* STORED (for zip only) or DEFLATED */
+    int   last_flush;    /* value of flush param for previous deflate call */
 
                 /* used by deflate.c: */
 
@@ -173,7 +171,7 @@ typedef struct internal_state {
     uInt good_match;
     /* Use a faster search when the previous match is longer than this */
 
-     int nice_match; /* Stop searching when current match exceeds this */
+    int nice_match; /* Stop searching when current match exceeds this */
 
                 /* used by trees.c: */
     /* Didn't use ct_data typedef below to supress compiler warning */
@@ -267,9 +265,11 @@ typedef struct internal_state {
  */
 
         /* in trees.c */
-void ct_init       OF((deflate_state *s));
-int  ct_tally      OF((deflate_state *s, int dist, int lc));
-ulg ct_flush_block OF((deflate_state *s, charf *buf, ulg stored_len, int eof));
-void ct_align      OF((deflate_state *s));
-void ct_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
+void _tr_init         OF((deflate_state *s));
+int  _tr_tally        OF((deflate_state *s, unsigned dist, unsigned lc));
+ulg  _tr_flush_block  OF((deflate_state *s, charf *buf, ulg stored_len,
+			  int eof));
+void _tr_align        OF((deflate_state *s));
+void _tr_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
                           int eof));
+#endif

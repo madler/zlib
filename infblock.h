@@ -1,5 +1,5 @@
 /* infblock.h -- header to use infblock.c
- * Copyright (C) 1995 Mark Adler
+ * Copyright (C) 1995-1996 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -30,3 +30,9 @@ extern int inflate_blocks_free OF((
     inflate_blocks_statef *,
     z_stream *,
     uLongf *));                  /* check value on output */
+
+extern void inflate_set_dictionary OF((
+    inflate_blocks_statef *s,
+    z_stream *z,
+    const Bytef *d,  /* dictionary */
+    uInt  n));       /* dictionary length */

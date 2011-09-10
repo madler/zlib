@@ -1,6 +1,67 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0 (15 Jan 96)
+- allow preset dictionary shared between compressor and decompressor
+- allow compression level 0 (no compression)
+- add deflateParams in zlib.h: allow dynamic change of compression level
+  and compression strategy.
+- test large buffers and deflateParams in example.c
+- add optional "configure" to build zlib as a shared library
+- suppress Makefile.qnx, use configure instead
+- fixed deflate for 64-bit systems (detected on Cray)
+- fixed inflate_blocks for 64-bit systems (detected on Alpha)
+- declare Z_DEFLATED in zlib.h (possible parameter for deflateInit2)
+- always return Z_BUF_ERROR when deflate() has nothing to do
+- deflateInit and inflateInit are now macros to allow version checking
+- prefix all global functions and types with z_ with -DZ_PREFIX
+- make falloc completely reentrant (inftrees.c)
+- fixed very unlikely race condition in ct_static_init
+- free in reverse order of allocation to help memory manager
+- use zlib-1.0/* instead of zlib/* inside the tar.gz
+- make zlib warning-free with "gcc -O3 -Wall -Wwrite-strings -Wpointer-arith
+  -Wconversion -Wstrict-prototypes -Wmissing-prototypes"
+- allow gzread on concatenated .gz files
+- deflateEnd now returns Z_DATA_ERROR if it was premature
+- deflate is finally (?) fully deterministic (no matches beyond end of input)
+- Document Z_SYNC_FLUSH
+- add uninstall in Makefile
+- Check for __cpluplus in zlib.h
+- Better test in ct_align for partial flush
+- avoid harmless warnings for Borland C++
+- initialize hash_head in deflate.c
+- avoid warning on fdopen (gzio.c) for HP cc -Aa
+- include stdlib.h for STDC compilers
+- include errno.h for Cray
+- ignore error if ranlib doesn't exist
+- call ranlib twice for NeXTSTEP
+- use exec_prefix instead of prefix for libz.a
+- renamed ct_* as _tr_* to avoid conflict with applications
+- clear z->msg in inflateInit2 before any error return
+- initialize opaque in example.c, gzio.c, deflate.c and inflate.c
+- fixed typo in zconf.h (_GNUC__ => __GNUC__)
+- check for WIN32 in zconf.h and zutil.c (avoid farmalloc in 32-bit mode)
+- fix typo in Make_vms.com (f$trnlnm -> f$getsyi)
+- in fcalloc, normalize pointer if size > 65520 bytes
+- don't use special fcalloc for 32 bit Borland C++
+- use STDC instead of __GO32__ to avoid redeclaring exit, calloc, etc...
+- use Z_BINARY instead of BINARY
+- document that gzclose after gzdopen will close the file
+- allow "a" as mode in gzopen.
+- fix error checking in gzread
+- allow skipping .gz extra-field on pipes
+- added reference to Perl interface in README
+- put the crc table in FAR data (I dislike more and more the medium model :)
+- added get_crc_table
+- added a dimension to all arrays (Borland C can't count).
+- workaround Borland C bug in declaration of inflate_codes_new & inflate_fast
+- guard against multiple inclusion of *.h (for precompiled header on Mac)
+- Watcom C pretends to be Microsoft C small model even in 32 bit mode.
+- don't use unsized arrays to avoid silly warnings by Visual C++:
+     warning C4746: 'inflate_mask' : unsized array treated as  '__far'
+     (what's wrong with far data in far model?).
+- define enum out of inflate_blocks_state to allow compilation with C++
+
 Changes in 0.95 (16 Aug 95)
 - fix MSDOS small and medium model (now easier to adapt to any compiler)
 - inlined send_bits

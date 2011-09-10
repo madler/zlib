@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995 Jean-loup Gailly.
+ * Copyright (C) 1995-1996 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -15,7 +15,7 @@
 
 #include "zlib.h"
 
-#if defined(MSDOS) || defined(VMS)
+#if defined(MSDOS) || defined(VMS) || defined(CRAY) || defined(WIN32)
 #   include <stddef.h>
 #   include <errno.h>
 #else
@@ -23,6 +23,7 @@
 #endif
 #ifdef STDC
 #  include <string.h>
+#  include <stdlib.h>
 #endif
 
 #ifndef local
@@ -36,14 +37,16 @@ typedef unsigned short ush;
 typedef ush FAR ushf;
 typedef unsigned long  ulg;
 
-extern char *z_errmsg[]; /* indexed by 1-zlib_error */
+extern const char *z_errmsg[10]; /* indexed by 2-zlib_error */
+/* (size given to avoid silly warnings with Visual C++) */
 
-#define ERR_RETURN(strm,err) return (strm->msg=z_errmsg[1-err], err)
+#define ERR_MSG(err) (char*)z_errmsg[Z_NEED_DICT-(err)]
+
+#define ERR_RETURN(strm,err) \
+  return (strm->msg = ERR_MSG(err), (err))
 /* To be used only when the state is known to be valid */
 
         /* common constants */
-
-#define DEFLATED   8
 
 #ifndef DEF_WBITS
 #  define DEF_WBITS MAX_WBITS
@@ -66,6 +69,8 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #define MAX_MATCH  258
 /* The minimum and maximum match lengths */
 
+#define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
+
         /* target dependencies */
 
 #ifdef MSDOS
@@ -81,7 +86,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define OS_CODE  0x06
 #endif
 
-#ifdef WIN32 /* Windows NT */
+#ifdef WIN32 /* Window 95 & Windows NT */
 #  define OS_CODE  0x0b
 #endif
 
@@ -143,11 +148,13 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY
-#  if defined(M_I86SM) || defined(M_I86MM) /* MSC small or medium model */
+#  ifdef SMALL_MEDIUM /* MSDOS small or medium model */
 #    define zmemcpy _fmemcpy
+#    define zmemcmp _fmemcmp
 #    define zmemzero(dest, len) _fmemset(dest, 0, len)
 #  else
 #    define zmemcpy memcpy
+#    define zmemcmp memcmp
 #    define zmemzero(dest, len) memset(dest, 0, len)
 #  endif
 #else
@@ -177,7 +184,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #endif
 
 
-typedef uLong (*check_func) OF((uLong check, Bytef *buf, uInt len));
+typedef uLong (*check_func) OF((uLong check, const Bytef *buf, uInt len));
 
 extern void z_error    OF((char *m));
 

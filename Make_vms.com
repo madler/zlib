@@ -4,7 +4,7 @@ $!
 $! Look for the compiler used
 $!
 $ ccopt = ""
-$ if f$trnlnm("HW_MODEL").ge.1024
+$ if f$getsyi("HW_MODEL").ge.1024
 $ then
 $  ccopt = "/prefix=all"+ccopt
 $  comp  = "__decc__=1"
