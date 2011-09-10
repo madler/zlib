@@ -13,11 +13,21 @@
 # If you have problems, try without defining CC and CFLAGS before reporting
 # an error.
 
-# make sure we are running under a compatible shell (stolen from ffmpeg and libnfo)
+# make sure we are running under a compatible shell (stolen from ffmpeg and libnfo,
+# except their's wasn't portable enough due to ! usage, so this is better)
 if test "0$ZLIB_CONFIGURE_EXEC" -lt 1; then
   unset foo
-  (: ${foo%%bar}) 2>/dev/null && ! (: ${foo?}) 2>/dev/null
+  try=0
+  (: ${foo%%bar}) 2>/dev/null
   if test "$?" -ne 0; then
+    try=1
+  else
+    (: ${foo?}) 2>/dev/null
+    if test "$?" -eq 0; then
+      try=1
+    fi
+  fi
+  if test "$try" -eq 1; then
     ZLIB_CONFIGURE_EXEC=1
     export ZLIB_CONFIGURE_EXEC
     type "bash" > /dev/null 2>&1 && exec bash "$0" "$@"
@@ -29,6 +39,7 @@ if test "0$ZLIB_CONFIGURE_EXEC" -lt 1; then
 #    exit 1
 # we could give up here, but go ahead and give their old sh a try
   fi
+  unset try
 fi
 
 if [ -n "${CHOST}" ]; then
@@ -42,10 +53,22 @@ VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < zlib.h`
 VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
 VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
-AR=${AR-"${CROSS_PREFIX}ar"}
+if [ -x "${CROSS_PREFIX}ar" ]; then
+    AR=${AR-"${CROSS_PREFIX}ar"}
+else
+    AR=${AR-"ar"}
+fi
 AR_RC="${AR} rc"
-RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
-NM=${NM-"nm"}
+if [ -x "${CROSS_PREFIX}ranlib" ]; then
+    RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
+else
+    RANLIB=${RANLIB-"ranlib"}
+fi
+if [ -x "${CROSS_PREFIX}nm" ]; then
+    NM=${NM-"${CROSS_PREFIX}nm"}
+else
+    NM=${NM-"nm"}
+fi
 LDCONFIG=${LDCONFIG-"ldconfig"}
 LDSHAREDLIBC="${LDSHAREDLIBC-"-lc"}"
 prefix=${prefix-/usr/local}
@@ -121,6 +144,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
   MINGW*)
+        LDSHARED=${LDSHARED-"$cc -shared"}
         LDSHAREDLIBC=""
         EXE='.exe' ;;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4

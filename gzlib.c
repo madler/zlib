@@ -5,7 +5,7 @@
 
 #include "gzguts.h"
 
-#if _LARGEFILE64_SOURCE && _LFS64_LARGEFILE
+#if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
 #  define LSEEK lseek64
 #else
 #  define LSEEK lseek

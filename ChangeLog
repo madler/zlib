@@ -1,6 +1,17 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.4.3 (10 Apr 2010)
+- Only use CROSS_PREFIX in configure for ar and ranlib if they exist
+- Use CROSS_PREFIX for nm [Bar-Lev]
+- Assume _LARGEFILE64_SOURCE defined is equivalent to true
+- Avoid use of undefined symbols in #if with && and ||
+- Make *64 prototypes in gzguts.h consistent with functions
+- Add -shared load option for MinGW in configure [Bowler]
+- Move z_off64_t to public interface, use instead of off64_t
+- Remove ! from shell test in configure (not portable to Solaris)
+- Change +0 macro tests to -0 for possibly increased portability
+
 Changes in 1.2.4.2 (9 Apr 2010)
 - Add consistent carriage returns to readme.txt's in masmx86 and masmx64
 - Really provide prototypes for *64 functions when building without LFS

@@ -154,14 +154,8 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
   #pragma warn -8066
 #endif
 
-#if _LARGEFILE64_SOURCE && _LFS64_LARGEFILE
-#  define z_off64_t off64_t
-#else
-#  define z_off64_t z_off_t
-#endif
-
 /* provide prototypes for these when building zlib without LFS */
-#if _LARGEFILE64_SOURCE+0 != 1 || _LFS64_LARGEFILE+0 != 1
+#if !defined(_LARGEFILE64_SOURCE) || _LFS64_LARGEFILE-0 == 0
     ZEXTERN uLong ZEXPORT adler32_combine64 OF((uLong, uLong, z_off_t));
     ZEXTERN uLong ZEXPORT crc32_combine64 OF((uLong, uLong, z_off_t));
 #endif
