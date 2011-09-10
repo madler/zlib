@@ -1,0 +1,51 @@
+		ChangeLog file for zlib
+
+Changes in 0.71 (14 April 95)
+- Fixed more MSDOS compilation problems :( There is still a bug with
+  TurboC large model.
+
+Changes in 0.7 (14 April 95)
+- Added full inflate support.
+- Simplified the crc32() interface. The pre- and post-conditioning
+  (one's complement) is now done inside crc32(). WARNING: this is
+  incompatible with previous versions; see zlib.h for the new usage.
+
+Changes in 0.61 (12 April 95)
+- workaround for a bug in TurboC. example and minigzip now work on MSDOS.
+
+Changes in 0.6 (11 April 95)
+- added minigzip.c
+- added gzdopen to reopen a file descriptor as gzFile
+- added transparent reading of non-gziped files in gzread.
+- fixed bug in gzread (don't read crc as data)
+- fixed bug in destroy (gzio.c) (don't return Z_STREAM_END for gzclose).
+- don't allocate big arrays in the stack (for MSDOS)
+- fix some MSDOS compilation problems
+
+Changes in 0.5:
+- do real compression in deflate.c. Z_PARTIAL_FLUSH is supported but
+  not yet Z_FULL_FLUSH.
+- support decompression but only in a single step (forced Z_FINISH)
+- added opaque object for zalloc and zfree.
+- added deflateReset and inflateReset
+- added a variable zlib_version for consistency checking.
+- renamed the 'filter' parameter of deflateInit2 as 'strategy'.
+  Added Z_FILTERED and Z_HUFFMAN_ONLY constants.
+
+Changes in 0.4:
+- avoid "zip" everywhere, use zlib instead of ziplib.
+- suppress Z_BLOCK_FLUSH, interpret Z_PARTIAL_FLUSH as block flush
+  if compression method == 8.
+- added adler32 and crc32
+- renamed deflateOptions as deflateInit2, call one or the other but not both
+- added the method parameter for deflateInit2.
+- added inflateInit2
+- simplied considerably deflateInit and inflateInit by not supporting
+  user-provided history buffer. This is supported only in deflateInit2
+  and inflateInit2.
+
+Changes in 0.3:
+- prefix all macro names with Z_
+- use Z_FINISH instead of deflateEnd to finish compression.
+- added Z_HUFFMAN_ONLY
+- added gzerror()

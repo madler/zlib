@@ -1,0 +1,57 @@
+zlib 0.71 is a beta version of a general purpose compression library.
+
+The data format used by the zlib library is described in the
+file zlib-3.1.doc, deflate-1.1.doc and gzip-4.1.doc, available
+in ftp.uu.net:/pub/archiving/zip/doc.
+
+All functions of the compression library are documented in the file
+zlib.h. A usage example of the library is given in the file example.c
+which also tests that the library is working correctly.
+To compile all files and run the test program, just type: make test
+
+The changes made in version 0.71 are documented in the file ChangeLog.
+The main changes since 0.5 are:
+- added full inflate support
+- added minigzip.c
+- added gzdopen to reopen a file descriptor as gzFile
+- added transparent reading of non-gziped files in gzread.
+- fix some MSDOS problems. example and minigzip now work on MSDOS.
+- Simplified the crc32() interface. The pre- and post-conditioning
+  (one's complement) is now done inside crc32(). WARNING: this is
+  incompatible with previous versions; see zlib.h for the new usage.
+
+On MSDOS, this version works in large and small model with MSC; in
+small model only with TurboC (bug being investigated). For both
+compilers, small model compression works only for small values of
+MEM_LEVEL and WBITS (see zutil.h), and requires -DUSE_CALLOC.
+
+
+  Copyright (C) 1995 Jean-loup Gailly and Mark Adler
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Jean-loup Gailly        Mark Adler
+  gzip@prep.ai.mit.edu    madler@cco.caltech.edu
+
+If you use the zlib library in a product, we would appreciate *not*
+receiving lengthy legal documents to sign. The sources are provided
+for free but without warranty of any kind.  The library has been
+entirely written by Jean-loup Gailly and Mark Adler; it does not
+include third-party code.
+
+If you redistribute modified sources, we would appreciate that you include
+in the file ChangeLog history information documenting your changes.
