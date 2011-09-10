@@ -2,6 +2,7 @@
 # Borland C++   ************ UNTESTED ***********
 
 # To use, do "make -fmakefile.bor"
+# To compile in small model, set below: MODEL=-ms
 
 # WARNING: the small model is supported but only for small values of
 # MAX_WBITS and MAX_MEM_LEVEL. For example:

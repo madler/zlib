@@ -143,9 +143,9 @@ local void send_all_trees OF((deflate_state *s, int lcodes, int dcodes,
 local void compress_block OF((deflate_state *s, ct_data *ltree,
                               ct_data *dtree));
 local void set_data_type  OF((deflate_state *s));
-local void send_bits      OF((deflate_state *s, int value, int length));
 local unsigned bi_reverse OF((unsigned value, int length));
 local void bi_windup      OF((deflate_state *s));
+local void bi_flush       OF((deflate_state *s));
 local void copy_block     OF((deflate_state *s, charf *buf, unsigned len,
                               int header));
 
@@ -165,6 +165,63 @@ local void copy_block     OF((deflate_state *s, charf *buf, unsigned len,
  * must not have side effects. dist_code[256] and dist_code[257] are never
  * used.
  */
+
+/* ===========================================================================
+ * Output a short LSB first on the stream.
+ * IN assertion: there is enough room in pendingBuf.
+ */
+#define put_short(s, w) { \
+    put_byte(s, (uch)((w) & 0xff)); \
+    put_byte(s, (uch)((ush)(w) >> 8)); \
+}
+
+/* ===========================================================================
+ * Send a value on a given number of bits.
+ * IN assertion: length <= 16 and value fits in length bits.
+ */
+#ifdef DEBUG
+local void send_bits      OF((deflate_state *s, int value, int length));
+
+local void send_bits(s, value, length)
+    deflate_state *s;
+    int value;  /* value to send */
+    int length; /* number of bits */
+{
+    Tracev((stderr," l %2d v %4x ", length, value));
+    Assert(length > 0 && length <= 15, "invalid length");
+    s->bits_sent += (ulg)length;
+
+    /* If not enough room in bi_buf, use (valid) bits from bi_buf and
+     * (16 - bi_valid) bits from value, leaving (width - (16-bi_valid))
+     * unused bits in value.
+     */
+    if (s->bi_valid > (int)Buf_size - length) {
+        s->bi_buf |= (value << s->bi_valid);
+        put_short(s, s->bi_buf);
+        s->bi_buf = (ush)value >> (Buf_size - s->bi_valid);
+        s->bi_valid += length - Buf_size;
+    } else {
+        s->bi_buf |= value << s->bi_valid;
+        s->bi_valid += length;
+    }
+}
+#else /* !DEBUG */
+
+#define send_bits(s, value, length) \
+{ int len = length;\
+  if (s->bi_valid > (int)Buf_size - len) {\
+    int val = value;\
+    s->bi_buf |= (val << s->bi_valid);\
+    put_short(s, s->bi_buf);\
+    s->bi_buf = (ush)val >> (Buf_size - s->bi_valid);\
+    s->bi_valid += len - Buf_size;\
+  } else {\
+    s->bi_buf |= (value) << s->bi_valid;\
+    s->bi_valid += len;\
+  }\
+}
+#endif /* DEBUG */
+
 
 #define MAX(a,b) (a >= b ? a : b)
 /* the arguments must not have side effects */
@@ -259,6 +316,7 @@ void ct_init(s)
 
     s->bi_buf = 0;
     s->bi_valid = 0;
+    s->last_eob_len = 8; /* enough lookahead for inflate */
 #ifdef DEBUG
     s->bits_sent = 0L;
 #endif
@@ -739,7 +797,12 @@ void ct_stored_block(s, buf, stored_len, eof)
 }
 
 /* ===========================================================================
- * Send one empty static block to give enough lookahead for inflate
+ * Send one empty static block to give enough lookahead for inflate.
+ * This takes 10 bits, of which 7 may remain in the bit buffer.
+ * The current inflate code requires 9 bits of lookahead. If the EOB
+ * code for the previous block was coded on 5 bits or less, inflate
+ * may have only 5+3 bits of lookahead to decode this EOB.
+ * (There are no problems if the previous block is stored or fixed.)
  */
 void ct_align(s)
     deflate_state *s;
@@ -747,6 +810,18 @@ void ct_align(s)
     send_bits(s, STATIC_TREES<<1, 3);
     send_code(s, END_BLOCK, static_ltree);
     s->compressed_len += 10L; /* 3 for block type, 7 for EOB */
+    bi_flush(s);
+    /* Of the 10 bits for the empty block, we have already sent
+     * (10 - bi_valid) bits. The lookahead for the EOB of the previous
+     * block was thus its length plus what we have just sent.
+     */
+    if (s->last_eob_len + 10 - s->bi_valid < 9) {
+        send_bits(s, STATIC_TREES<<1, 3);
+        send_code(s, END_BLOCK, static_ltree);
+        s->compressed_len += 10L;
+        bi_flush(s);
+    }
+    s->last_eob_len = 7;
 }
 
 /* ===========================================================================
@@ -950,6 +1025,7 @@ local void compress_block(s, ltree, dtree)
     } while (lx < s->last_lit);
 
     send_code(s, END_BLOCK, ltree);
+    s->last_eob_len = ltree[END_BLOCK].Len;
 }
 
 /* ===========================================================================
@@ -971,44 +1047,6 @@ local void set_data_type(s)
 }
 
 /* ===========================================================================
- * Output a short LSB first on the stream.
- * IN assertion: there is enough room in pendingBuf.
- */
-#define put_short(s, w) { \
-    put_byte(s, (uch)((w) & 0xff)); \
-    put_byte(s, (uch)((ush)(w) >> 8)); \
-}
-
-/* ===========================================================================
- * Send a value on a given number of bits.
- * IN assertion: length <= 16 and value fits in length bits.
- */
-local void send_bits(s, value, length)
-    deflate_state *s;
-    int value;  /* value to send */
-    int length; /* number of bits */
-{
-#ifdef DEBUG
-    Tracev((stderr," l %2d v %4x ", length, value));
-    Assert(length > 0 && length <= 15, "invalid length");
-    s->bits_sent += (ulg)length;
-#endif
-    /* If not enough room in bi_buf, use (valid) bits from bi_buf and
-     * (16 - bi_valid) bits from value, leaving (width - (16-bi_valid))
-     * unused bits in value.
-     */
-    if (s->bi_valid > (int)Buf_size - length) {
-        s->bi_buf |= (value << s->bi_valid);
-        put_short(s, s->bi_buf);
-        s->bi_buf = (ush)value >> (Buf_size - s->bi_valid);
-        s->bi_valid += length - Buf_size;
-    } else {
-        s->bi_buf |= value << s->bi_valid;
-        s->bi_valid += length;
-    }
-}
-
-/* ===========================================================================
  * Reverse the first len bits of a code, using straightforward code (a faster
  * method would use a table)
  * IN assertion: 1 <= len <= 15
@@ -1026,7 +1064,24 @@ local unsigned bi_reverse(code, len)
 }
 
 /* ===========================================================================
- * Write out any remaining bits in an incomplete byte.
+ * Flush the bit buffer, keeping at most 7 bits in it.
+ */
+local void bi_flush(s)
+    deflate_state *s;
+{
+    if (s->bi_valid == 16) {
+        put_short(s, s->bi_buf);
+        s->bi_buf = 0;
+        s->bi_valid = 0;
+    } else if (s->bi_valid >= 8) {
+        put_byte(s, (Byte)s->bi_buf);
+        s->bi_buf >>= 8;
+        s->bi_valid -= 8;
+    }
+}
+
+/* ===========================================================================
+ * Flush the bit buffer and align the output on a byte boundary
  */
 local void bi_windup(s)
     deflate_state *s;
@@ -1053,7 +1108,8 @@ local void copy_block(s, buf, len, header)
     unsigned len;     /* its length */
     int      header;  /* true if block header must be written */
 {
-    bi_windup(s);              /* align on byte boundary */
+    bi_windup(s);        /* align on byte boundary */
+    s->last_eob_len = 8; /* enough lookahead for inflate */
 
     if (header) {
         put_short(s, (ush)len);   

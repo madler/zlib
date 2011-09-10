@@ -46,7 +46,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #define DEFLATED   8
 
 #ifndef DEF_WBITS
-#  define DEF_WBITS 15
+#  define DEF_WBITS MAX_WBITS
 #endif
 /* default windowBits for decompression. MAX_WBITS is for compression only */
 
@@ -72,7 +72,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define OS_CODE  0x00
 #  ifdef __TURBOC__
 #    include <alloc.h>
-#  else /* MSC */
+#  else /* MSC or DJGPP */
 #    include <malloc.h>
 #  endif
 #endif
@@ -130,23 +130,29 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define zstrerror(errnum) ""
 #endif
 
-#if defined(pyr) && !defined(NO_MEMCPY)
+#if defined(pyr)
+#  define NO_MEMCPY
+#endif
+#if (defined(M_I86SM) || defined(M_I86MM)) && !defined(_MSC_VER)
+ /* Use our own functions for small and medium model with MSC <= 5.0.
+  * You may have to use the same strategy for Borland C (untested).
+  */
 #  define NO_MEMCPY
 #endif
 #if defined(STDC) && !defined(HAVE_MEMCPY) && !defined(NO_MEMCPY)
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY
-#  ifdef M_I86MM /* MSC medium model */
+#  if defined(M_I86SM) || defined(M_I86MM) /* MSC small or medium model */
 #    define zmemcpy _fmemcpy
 #    define zmemzero(dest, len) _fmemset(dest, 0, len)
-#  else 
+#  else
 #    define zmemcpy memcpy
 #    define zmemzero(dest, len) memset(dest, 0, len)
 #  endif
 #else
-   extern void zmemcpy  OF((Byte* dest, Byte* source, uInt len));
-   extern void zmemzero OF((Byte* dest, uInt len));
+   extern void zmemcpy  OF((Bytef* dest, Bytef* source, uInt len));
+   extern void zmemzero OF((Bytef* dest, uInt len));
 #endif
 
 /* Diagnostic functions */
@@ -175,12 +181,12 @@ typedef uLong (*check_func) OF((uLong check, Bytef *buf, uInt len));
 
 extern void z_error    OF((char *m));
 
-voidp zcalloc OF((voidp opaque, unsigned items, unsigned size));
-void  zcfree  OF((voidp opaque, voidp ptr));
+voidpf zcalloc OF((voidpf opaque, unsigned items, unsigned size));
+void   zcfree  OF((voidpf opaque, voidpf ptr));
 
 #define ZALLOC(strm, items, size) \
            (*((strm)->zalloc))((strm)->opaque, (items), (size))
-#define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidp)(addr))
+#define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidpf)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
 #endif /* _Z_UTIL_H */

@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.94, Aug 13th, 1995.
+  version 0.95, Aug 16th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.94"
+#define ZLIB_VERSION "0.95"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -49,8 +49,8 @@
   (providing more output space) before each call.
 */
 
-typedef voidp (*alloc_func) OF((voidp opaque, uInt items, uInt size));
-typedef void  (*free_func)  OF((voidp opaque, voidp address));
+typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));
+typedef void   (*free_func)  OF((voidpf opaque, voidpf address));
 
 struct internal_state;
 
@@ -510,7 +510,7 @@ extern int uncompress OF((Bytef *dest,   uLongf *destLen,
 */
 
 
-typedef voidnp gzFile;
+typedef voidp gzFile;
 
 extern gzFile gzopen  OF((char *path, char *mode));
 /*
@@ -533,7 +533,7 @@ extern gzFile gzdopen  OF((int fd, char *mode));
    the (de)compression state.
 */
 
-extern int    gzread  OF((gzFile file, voidnp buf, unsigned len));
+extern int    gzread  OF((gzFile file, voidp buf, unsigned len));
 /*
      Reads the given number of uncompressed bytes from the compressed file.
    If the input file was not in gzip format, gzread copies the given number
@@ -541,7 +541,7 @@ extern int    gzread  OF((gzFile file, voidnp buf, unsigned len));
      gzread returns the number of uncompressed bytes actually read (0 for
    end of file, -1 for error). */
 
-extern int    gzwrite OF((gzFile file, voidnp buf, unsigned len));
+extern int    gzwrite OF((gzFile file, voidp buf, unsigned len));
 /*
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of uncompressed bytes actually written

@@ -1,6 +1,7 @@
-zlib 0.94 is a beta version of a general purpose compression library.
-Unless new bugs are found it will be released again as the first official
-version (1.0). This version has no known bugs.
+zlib 0.95 is a beta version of a general purpose compression library.
+This should be the last version before the first official
+version (1.0), so please test it now. (At least compile and run it with
+"make test"). This version has no known bugs.
 
 The data format used by the zlib library is described in the
 files zlib-3.1.doc, deflate-1.1.doc and gzip-4.1.doc, available
@@ -8,31 +9,29 @@ in ftp.uu.net:/pub/archiving/zip/doc.
 
 All functions of the compression library are documented in the file
 zlib.h. A usage example of the library is given in the file example.c
-which also tests that the library is working correctly.
+which also tests that the library is working correctly. Another
+example is given in the file minigzip.c.
 
 To compile all files and run the test program, just type: make test
-(For MSDOS, use one of the special makefiles such as Makefile.msc.)
+(For MSDOS, use one of the special makefiles such as Makefile.msc;
+for VMS, use Make_vms.com or descrip.mms.)
 To install the zlib library (libz.a) in /usr/local/lib, type: make install
 To install in a different directory, use for example:
   make install prefix=$HOME
 This will install in $HOME/lib instead of /usr/local/lib.
 
-The changes made in version 0.94 are documented in the file ChangeLog.
-The main changes since 0.93 are:
-- support MSDOS small and medium model
-- fix deflate with flush (could sometimes generate bad output)
-- fix deflateReset (zlib header was incorrectly suppressed)
-- added support for VMS
-- allow a compression level in gzopen()
-- gzflush now calls fflush
-- For deflate with flush, flush even if no more input is provided.
-- rename libgz.a as libz.a
+The changes made in version 0.95 are documented in the file ChangeLog.
+The main changes since 0.94 are:
+- fix MSDOS small and medium model (now easier to adapt to any compiler)
+- inlined send_bits
+- fix the final (:-) bug for deflate with flush (output was correct but
+  not completely flushed in rare occasions).
 
-For MSDOS, the small and medium models are supported only for Microsoft C.
-(It should be easy to support them for Borland C also, but I don't have
-a recent Borland compiler to test with.) The small model currently works
-for Turbo/Borland C but only with reduced performance to avoid any far
-allocation (tested with -DMAX_WBITS=11 -DDEF_WBITS=11 -DMAX_MEM_LEVEL=3).
+For MSDOS, the small and medium models have been tested only with Microsoft C.
+(This should now work for Borland C also, but I don't have a recent Borland
+compiler to test with.) The small model was tested with Turbo C but only with
+reduced performance to avoid any far allocation; it was tested with
+ -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
 
 
  (C) 1995 Jean-loup Gailly and Mark Adler

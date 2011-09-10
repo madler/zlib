@@ -1,6 +1,16 @@
 
 		ChangeLog file for zlib
 
+Changes in 0.95 (16 Aug 95)
+- fix MSDOS small and medium model (now easier to adapt to any compiler)
+- inlined send_bits
+- fix the final (:-) bug for deflate with flush (output was correct but
+  not completely flushed in rare occasions).
+- default window size is same for compression and decompression
+  (it's now sufficient to set MAX_WBITS in zconf.h).
+- voidp -> voidpf and voidnp -> voidp (for consistency with other
+  typedefs and because voidnp was not near in large model).
+
 Changes in 0.94 (13 Aug 95)
 - support MSDOS medium model
 - fix deflate with flush (could sometimes generate bad output)
@@ -10,6 +20,7 @@ Changes in 0.94 (13 Aug 95)
 - gzflush now calls fflush
 - For deflate with flush, flush even if no more input is provided.
 - rename libgz.a as libz.a
+- avoid complex expression in infcodes.c triggering Turbo C bug
 - work around a problem with gcc on Alpha (in INSERT_STRING)
 - don't use inline functions (problem with some gcc versions)
 - allow renaming of Byte, uInt, etc... with #define.

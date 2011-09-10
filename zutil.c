@@ -38,8 +38,8 @@ void z_error (m)
 #ifndef HAVE_MEMCPY
 
 void zmemcpy(dest, source, len)
-    Byte* dest;
-    Byte* source;
+    Bytef* dest;
+    Bytef* source;
     uInt  len;
 {
     if (len == 0) return;
@@ -49,7 +49,7 @@ void zmemcpy(dest, source, len)
 }
 
 void zmemzero(dest, len)
-    Byte* dest;
+    Bytef* dest;
     uInt  len;
 {
     if (len == 0) return;
@@ -59,8 +59,10 @@ void zmemzero(dest, len)
 }
 #endif
 
-#if defined(__TURBOC__) && !defined(__SMALL__)
-
+#if defined( __TURBOC__) && !defined(__SMALL__) && !defined(__MEDIUM__)
+/* Small and medium model are for now limited to near allocation with
+ * reduced MAX_WBITS and MAX_MEM_LEVEL
+ */
 #  define MY_ZCALLOC
 
 /* Turbo C malloc() does not allow dynamic allocation of 64K bytes
@@ -75,8 +77,8 @@ void zmemzero(dest, len)
 local int next_ptr = 0;
 
 typedef struct ptr_table_s {
-    voidp org_ptr;
-    voidp new_ptr;
+    voidpf org_ptr;
+    voidpf new_ptr;
 } ptr_table;
 
 local ptr_table table[MAX_PTR];
@@ -87,9 +89,9 @@ local ptr_table table[MAX_PTR];
  * a protected system like OS/2. Use Microsoft C instead.
  */
 
-voidp zcalloc (voidp opaque, unsigned items, unsigned size)
+voidpf zcalloc (voidpf opaque, unsigned items, unsigned size)
 {
-    voidp buf = opaque; /* just to make some compilers happy */
+    voidpf buf = opaque; /* just to make some compilers happy */
     ulg bsize = (ulg)items*size;
 
     if (bsize < 65536L) {
@@ -108,7 +110,7 @@ voidp zcalloc (voidp opaque, unsigned items, unsigned size)
     return buf;
 }
 
-void  zcfree (voidp opaque, voidp ptr)
+void  zcfree (voidpf opaque, voidpf ptr)
 {
     int n;
     if (*(ush*)&ptr != 0) { /* object < 64K */
@@ -131,7 +133,8 @@ void  zcfree (voidp opaque, voidp ptr)
 }
 #endif /* __TURBOC__ */
 
-#if defined(MSDOS) && !defined(__TURBOC__)  /* MSC */
+#if defined(M_I86SM)||defined(M_I86MM)||defined(M_I86CM)||defined(M_I86LM)
+/* Microsoft C */
 
 #  define MY_ZCALLOC
 
@@ -140,13 +143,13 @@ void  zcfree (voidp opaque, voidp ptr)
 #  define _hfree   hfree
 #endif
 
-voidp zcalloc (voidp opaque, unsigned items, unsigned size)
+voidpf zcalloc (voidpf opaque, unsigned items, unsigned size)
 {
     if (opaque) opaque = 0; /* to make compiler happy */
     return _halloc((long)items, size);
 }
 
-void  zcfree (voidp opaque, voidp ptr)
+void  zcfree (voidpf opaque, voidpf ptr)
 {
     if (opaque) opaque = 0; /* to make compiler happy */
     _hfree(ptr);
@@ -158,21 +161,21 @@ void  zcfree (voidp opaque, voidp ptr)
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
 
 #ifndef __GO32__
-extern voidp calloc OF((uInt items, uInt size));
-extern void  free   OF((voidp ptr));
+extern voidp  calloc OF((uInt items, uInt size));
+extern void   free   OF((voidpf ptr));
 #endif
 
-voidp zcalloc (opaque, items, size)
-    voidp opaque;
+voidpf zcalloc (opaque, items, size)
+    voidpf opaque;
     unsigned items;
     unsigned size;
 {
-    return calloc(items, size);
+    return (voidpf)calloc(items, size);
 }
 
 void  zcfree (opaque, ptr)
-    voidp opaque;
-    voidp ptr;
+    voidpf opaque;
+    voidpf ptr;
 {
     free(ptr);
 }

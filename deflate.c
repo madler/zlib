@@ -524,8 +524,8 @@ local int longest_match(s, cur_match)
      * Try with and without -DUNALIGNED_OK to check.
      */
     register Bytef *strend = s->window + s->strstart + MAX_MATCH - 1;
-    register ush scan_start = *(ush*)scan;
-    register ush scan_end   = *(ush*)(scan+best_len-1);
+    register ush scan_start = *(ushf*)scan;
+    register ush scan_end   = *(ushf*)(scan+best_len-1);
 #else
     register Bytef *strend = s->window + s->strstart + MAX_MATCH;
     register Byte scan_end1  = scan[best_len-1];
@@ -554,8 +554,8 @@ local int longest_match(s, cur_match)
         /* This code assumes sizeof(unsigned short) == 2. Do not use
          * UNALIGNED_OK if your compiler uses a different size.
          */
-        if (*(ush*)(match+best_len-1) != scan_end ||
-            *(ush*)match != scan_start) continue;
+        if (*(ushf*)(match+best_len-1) != scan_end ||
+            *(ushf*)match != scan_start) continue;
 
         /* It is not necessary to compare scan[2] and match[2] since they are
          * always equal when the other bytes match, given that the hash keys
@@ -569,10 +569,10 @@ local int longest_match(s, cur_match)
         Assert(scan[2] == match[2], "scan[2]?");
         scan++, match++;
         do {
-        } while (*(ush*)(scan+=2) == *(ush*)(match+=2) &&
-                 *(ush*)(scan+=2) == *(ush*)(match+=2) &&
-                 *(ush*)(scan+=2) == *(ush*)(match+=2) &&
-                 *(ush*)(scan+=2) == *(ush*)(match+=2) &&
+        } while (*(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
                  scan < strend);
         /* The funny "do {}" generates better code on most compilers */
 
@@ -621,7 +621,7 @@ local int longest_match(s, cur_match)
             best_len = len;
             if (len >= s->nice_match) break;
 #ifdef UNALIGNED_OK
-            scan_end = *(ush*)(scan+best_len-1);
+            scan_end = *(ushf*)(scan+best_len-1);
 #else
             scan_end1  = scan[best_len-1];
             scan_end   = scan[best_len];

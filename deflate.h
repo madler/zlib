@@ -233,6 +233,7 @@ typedef struct internal_state {
     ulg static_len;     /* bit length of current block with static trees */
     ulg compressed_len; /* total bit length of compressed file */
     uInt matches;       /* number of string matches in current block */
+    int last_eob_len;   /* bit length of EOB code for last block */
 
 #ifdef DEBUG
     ulg bits_sent;      /* bit length of the compressed data */

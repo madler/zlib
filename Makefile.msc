@@ -2,6 +2,7 @@
 # Microsoft C 5.1 or later
 
 # To use, do "make makefile.msc"
+# To compile in small model, set below: MODEL=-AS
 
 # If you wish to reduce the memory requirements (default 256K for big
 # objects plus a few K), you can add to CFLAGS below: 

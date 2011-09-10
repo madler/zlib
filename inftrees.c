@@ -25,14 +25,14 @@ local int huft_build OF((
     uIntf *,            /* maximum lookup bits (returns actual) */
     z_stream *));       /* for zalloc function */
 
-local voidp falloc OF((
-    voidp,              /* opaque pointer (not used) */
+local voidpf falloc OF((
+    voidpf,             /* opaque pointer (not used) */
     uInt,               /* number of items */
     uInt));             /* size of item */
 
 local void ffree OF((
-    voidp q,            /* opaque pointer (not used) */
-    voidp p));          /* what to free (not used) */
+    voidpf q,            /* opaque pointer (not used) */
+    voidpf p));          /* what to free (not used) */
 
 /* Tables for deflate from PKZIP's appnote.txt. */
 local uInt cplens[] = { /* Copy lengths for literal codes 257..285 */
@@ -377,8 +377,8 @@ local inflate_huft *fixed_tl;
 local inflate_huft *fixed_td;
 
 
-local voidp falloc(q, n, s)
-voidp q;        /* opaque pointer (not used) */
+local voidpf falloc(q, n, s)
+voidpf q;        /* opaque pointer (not used) */
 uInt n;         /* number of items */
 uInt s;         /* size of item */
 {
@@ -386,13 +386,13 @@ uInt s;         /* size of item */
          "inflate_trees falloc overflow");
   if (q) s++; /* to make some compilers happy */
   fixed_left -= n;
-  return (voidp)(fixed_mem + fixed_left);
+  return (voidpf)(fixed_mem + fixed_left);
 }
 
 
 local void ffree(q, p)
-voidp q;
-voidp p;
+voidpf q;
+voidpf p;
 {
   Assert(0, "inflate_trees ffree called!");
   if (q) q = p; /* to make some compilers happy */

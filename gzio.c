@@ -234,7 +234,7 @@ gzFile gzdopen (fd, mode)
 */
 int gzread (file, buf, len)
     gzFile file;
-    voidnp buf;
+    voidp buf;
     unsigned len;
 {
     gz_stream *s = (gz_stream*)file;
@@ -292,7 +292,7 @@ int gzread (file, buf, len)
 */
 int gzwrite (file, buf, len)
     gzFile file;
-    voidnp buf;
+    voidp buf;
     unsigned len;
 {
     gz_stream *s = (gz_stream*)file;

@@ -2,10 +2,11 @@
 # TurboC 2.0
 
 # To use, do "make -fmakefile.tc"
+# To compile in small model, set below: MODEL=-ms
 
 # WARNING: the small model is supported but only for small values of
 # MAX_WBITS and MAX_MEM_LEVEL. For example:
-#    -DMAX_WBITS=11 -DDEF_WBITS=11 -DMAX_MEM_LEVEL=3
+#    -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
 # If you wish to reduce the memory requirements (default 256K for big
 # objects plus a few K), you can add to CFLAGS below: 
 #   -DMAX_MEM_LEVEL=7 -DMAX_WBITS=14
@@ -13,6 +14,7 @@
 
 # ------------- Turbo C 2.0 -------------
 MODEL=-ml
+# CFLAGS=-O2 -G -Z $(MODEL) -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
 CFLAGS=-O2 -G -Z $(MODEL)
 CC=tcc -I\tc\include
 LD=tcc -L\tc\lib

@@ -277,7 +277,7 @@ int main(argc, argv)
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);
 
-    } else if (zstrcmp(zlib_version, ZLIB_VERSION) != 0) {
+    } else if (strcmp(zlib_version, ZLIB_VERSION) != 0) {
         fprintf(stderr, "warning: different zlib version\n");
     }
     test_compress();

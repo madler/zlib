@@ -85,37 +85,42 @@
 #  endif
 #endif
 
-#if defined(M_I86SM) || defined(M_I86MM) /* model independent MSC functions */
-#   define zstrcpy _fstrcpy
-#   define zstrcat _fstrcat
-#   define zstrlen _fstrlen
-#   define zstrcmp _fstrcmp
-#   define FAR __far
-#else
-#   define zstrcpy strcpy
-#   define zstrcat strcat
-#   define zstrlen strlen
-#   define zstrcmp strcmp
+/* The following definitions for FAR are needed only for MSDOS mixed
+ * model programming (small or medium model with some far allocations).
+ * This was tested only with MSC; for other MSDOS compilers you may have
+ * to define NO_MEMCPY in zutil.h.  If you don't need the mixed model,
+ * just define FAR to be empty.
+ */
+#if defined(M_I86SM) || defined(M_I86MM) /* MSC small or medium model */
+#  ifdef _MSC_VER
+#    define FAR __far
+#  else
+#    define FAR far
+#  endif
+#endif
+#if defined(__BORLANDC__) && (defined(__SMALL__) || defined(__MEDIUM__))
+#    define FAR __far /* completely untested, just a best guess */
+#endif
+#ifndef FAR
 #   define FAR
 #endif
- 
+
 typedef unsigned char  Byte;  /* 8 bits */
 typedef unsigned int   uInt;  /* 16 bits or more */
 typedef unsigned long  uLong; /* 32 bits or more */
 
-typedef Byte FAR Bytef;  
-typedef char FAR charf;  
+typedef Byte FAR Bytef;
+typedef char FAR charf;
 typedef int FAR intf;
 typedef uInt FAR uIntf;
 typedef uLong FAR uLongf;
 
 #ifdef STDC
-   typedef void FAR *voidp;
-   typedef void     *voidnp;
+   typedef void FAR *voidpf;
+   typedef void     *voidp;
 #else
-   typedef Byte FAR *voidp;
-   typedef Byte     *voidnp;
+   typedef Byte FAR *voidpf;
+   typedef Byte     *voidp;
 #endif
 
 #endif /* _ZCONF_H */
-
