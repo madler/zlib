@@ -8,11 +8,11 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* define NO_GUNZIP when compiling if you want to disable gzip header and
-   trailer decoding by inflate().  NO_GUNZIP would be used to avoid linking in
+/* define NO_GZIP when compiling if you want to disable gzip header and
+   trailer decoding by inflate().  NO_GZIP would be used to avoid linking in
    the crc code when it is not needed.  For shared libraries, gzip decoding
    should be left enabled. */
-#ifndef NO_GUNZIP
+#ifndef NO_GZIP
 #  define GUNZIP
 #endif
 
@@ -88,6 +88,7 @@ struct inflate_state {
         /* sliding window */
     unsigned wbits;             /* log base 2 of requested window size */
     unsigned wsize;             /* window size or zero if not using window */
+    unsigned whave;		/* valid bytes in the window */
     unsigned write;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if needed */
         /* bit accumulator */

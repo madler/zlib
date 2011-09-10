@@ -24,7 +24,7 @@ LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.2.0.3
+VER=1.2.0.4
 LIBS=libz.a
 SHAREDLIB=libz.so
 

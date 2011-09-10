@@ -74,7 +74,7 @@ uLong ZEXPORT zlibCompileFlags()
 #ifdef NO_DEFLATE
     flags += 1 << 16;
 #endif
-#ifdef NO_GUNZIP
+#ifdef NO_GZIP
     flags += 1 << 17;
 #endif
 #ifdef PKZIP_BUG_WORKAROUND

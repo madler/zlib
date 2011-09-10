@@ -60,7 +60,7 @@
 #ifndef GZ_SUFFIX
 #  define GZ_SUFFIX ".gz"
 #endif
-#define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
+#define SUFFIX_LEN ((int)sizeof(GZ_SUFFIX)-1)
 
 #define BUFLEN      16384
 #define MAX_NAME_LEN 1024

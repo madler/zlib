@@ -18,7 +18,7 @@
 #  endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
-#include "zutil.h"
+#include "zutil.h"	/* for STDC and FAR definitions */
 
 #define local static
 

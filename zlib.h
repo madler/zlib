@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.0.3, July 19th, 2003
+  version 1.2.0.4, August 10th, 2003
 
   Copyright (C) 1995-2003 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.0.3"
-#define ZLIB_VERNUM 0x1203
+#define ZLIB_VERSION "1.2.0.4"
+#define ZLIB_VERNUM 0x1204
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -446,14 +446,20 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    this version of the library.
 
      The windowBits parameter is the base two logarithm of the window size
-   (the size of the history buffer).  It should be in the range 8..15 for this
+   (the size of the history buffer). It should be in the range 8..15 for this
    version of the library. Larger values of this parameter result in better
    compression at the expense of memory usage. The default value is 15 if
    deflateInit is used instead.
 
-     windowBits can also be -8..-15 for raw deflate.  In this case, -windowBits
+     windowBits can also be -8..-15 for raw deflate. In this case, -windowBits
    determines the window size. deflate() will then generate raw deflate data
    with no zlib header or trailer, and will not compute an adler32 check value.
+
+     windowBits can also be greater than 15 for optional gzip encoding. Add
+   16 to windowBits to write a simple gzip header and trailer around the
+   compressed data instead of a zlib wrapper. The gzip header will have no
+   file name, no extra data, no comment, no modification time (set to zero),
+   no header crc, and the operating system will be set to 255 (unknown).
 
      The memLevel parameter specifies how much memory should be allocated
    for the internal compression state. memLevel=1 uses minimum memory but
@@ -801,8 +807,8 @@ ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
     Library content (indicates missing functionality):
      16: NO_DEFLATE -- gz* functions cannot compress (to avoid linking deflate
                        code when not needed)
-     17: NO_GUNZIP -- inflate can't detect and decode gzip streams, to avoid
-                      linking crc code
+     17: NO_GZIP -- deflate can't write gzip streams, and inflate can't detect
+                    and decode gzip streams (to avoid linking crc code)
      18-19: 0 (reserved)
 
     Operation variations (changes in library functionality):

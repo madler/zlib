@@ -55,6 +55,7 @@ int stream_size;
     state->wsize = 1U << windowBits;
     state->window = window;
     state->write = 0;
+    state->whave = 0;
     return Z_OK;
 }
 
@@ -201,6 +202,7 @@ struct inflate_state FAR *state;
         if (left == 0) { \
             put = state->window; \
             left = state->wsize; \
+            state->whave = left; \
             if (out(out_desc, put, left)) { \
                 ret = Z_BUF_ERROR; \
                 goto inf_leave; \
@@ -216,7 +218,7 @@ struct inflate_state FAR *state;
    in() and out() are the call-back input and output functions.  When
    inflateBack() needs more input, it calls in().  When inflateBack() has
    filled the window with output, or when it completes with data in the
-   window, it called out() to write out the data.  The application must not
+   window, it calls out() to write out the data.  The application must not
    change the provided input until in() is called again or inflateBack()
    returns.  The application must not change the window/output buffer until
    inflateBack() returns.
@@ -243,12 +245,13 @@ out_func out;
 void FAR *out_desc;
 {
     struct inflate_state FAR *state;
-    unsigned char *next, *put;  /* next input and output */
+    unsigned char FAR *next;    /* next input */
+    unsigned char FAR *put;     /* next output */
     unsigned have, left;        /* available input and output */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
     unsigned copy;              /* number of stored or match bytes to copy */
-    unsigned char *from;        /* where to copy match bytes from */
+    unsigned char FAR *from;    /* where to copy match bytes from */
     code this;                  /* current decoding table entry */
     code last;                  /* parent table entry */
     unsigned len;               /* length to copy for repeats, bits to drop */
@@ -265,6 +268,7 @@ void FAR *out_desc;
     strm->msg = Z_NULL;
     state->mode = TYPE;
     state->last = 0;
+    state->whave = 0;
     next = strm->next_in;
     have = next != Z_NULL ? strm->avail_in : 0;
     hold = 0;
@@ -457,6 +461,8 @@ void FAR *out_desc;
             /* use inflate_fast() if we have enough input and output */
             if (have >= 6 && left >= 258) {
                 RESTORE();
+                if (state->whave < state->wsize)
+                    state->whave = state->wsize - left;
                 inflate_fast(strm, state->wsize);
                 LOAD();
                 break;
@@ -547,7 +553,8 @@ void FAR *out_desc;
                 state->offset += BITS(state->extra);
                 DROPBITS(state->extra);
             }
-            if (state->offset > state->wsize) {
+            if (state->offset > state->wsize - (state->whave < state->wsize ?
+                                                left : 0)) {
                 strm->msg = (char *)"invalid distance too far back";
                 state->mode = BAD;
                 break;

@@ -15,6 +15,14 @@
 
 #include "zutil.h"
 
+/* define NO_GZIP when compiling if you want to disable gzip header and
+   trailer creation by deflate().  NO_GZIP would be used to avoid linking in
+   the crc code when it is not needed.  For shared libraries, gzip encoding
+   should be left enabled. */
+#ifndef NO_GZIP
+#  define GZIP
+#endif
+
 /* ===========================================================================
  * Internal compression state.
  */
@@ -86,7 +94,7 @@ typedef struct internal_state {
     ulg   pending_buf_size; /* size of pending_buf */
     Bytef *pending_out;  /* next pending byte to output to the stream */
     int   pending;       /* nb of bytes in the pending buffer */
-    int   noheader;      /* suppress zlib header and adler32 */
+    int   wrap;          /* bit 0 true for zlib, bit 1 true for gzip */
     Byte  data_type;     /* UNKNOWN, BINARY or ASCII */
     Byte  method;        /* STORED (for zip only) or DEFLATED */
     int   last_flush;    /* value of flush param for previous deflate call */

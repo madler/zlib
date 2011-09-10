@@ -78,6 +78,8 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
+  QNX*)  #This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4 (alain.bonnefoy@icbt.com)
+  			LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"};;
   HP-UX*)        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl';;

@@ -1,5 +1,15 @@
 
                 ChangeLog file for zlib
+Changes in 1.2.0.4 (10 August 2003)
+- Minor FAQ updates
+- Be more strict when checking inflateInit2's windowBits parameter
+- Change NO_GUNZIP compile option to NO_GZIP to cover deflate as well
+- Add gzip wrapper option to deflateInit2 using windowBits
+- Add updated QNX rule in configure and qnx directory [Bonnefoy]
+- Make inflate distance-too-far checks more rigorous
+- Clean up FAR usage in inflate
+- Add casting to sizeof() in gzio.c and minigzip.c
+
 Changes in 1.2.0.3 (19 July 2003)
 - Fix silly error in gzungetc() implementation [Vollant]
 - Update contrib/minizip and contrib/vstudio [Vollant]

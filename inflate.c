@@ -113,6 +113,7 @@ z_streamp strm;
     state->last = 0;
     state->havedict = 0;
     state->wsize = 0;
+    state->whave = 0;
     state->hold = 0;
     state->bits = 0;
     state->lencode = state->distcode = state->next = state->codes;
@@ -150,7 +151,7 @@ int stream_size;
     else {
         state->wrap = (windowBits >> 4) + 1;
 #ifdef GUNZIP
-        windowBits &= 15;
+        if (windowBits < 48) windowBits &= 15;
 #endif
     }
     if (windowBits < 8 || windowBits > 15) {
@@ -320,6 +321,7 @@ unsigned out;
     if (state->wsize == 0) {
         state->wsize = 1U << state->wbits;
         state->write = 0;
+        state->whave = 0;
     }
 
     /* copy state->wsize or less output bytes into the circular window */
@@ -327,6 +329,7 @@ unsigned out;
     if (copy >= state->wsize) {
         zmemcpy(state->window, strm->next_out - state->wsize, state->wsize);
         state->write = 0;
+        state->whave = state->wsize;
     }
     else {
         dist = state->wsize - state->write;
@@ -336,10 +339,12 @@ unsigned out;
         if (copy) {
             zmemcpy(state->window, strm->next_out - copy, copy);
             state->write = copy;
+            state->whave = state->wsize;
         }
         else {
             state->write += dist;
             if (state->write == state->wsize) state->write = 0;
+            if (state->whave < state->wsize) state->whave += dist;
         }
     }
     return 0;
@@ -531,13 +536,14 @@ z_streamp strm;
 int flush;
 {
     struct inflate_state FAR *state;
-    unsigned char *next, *put;  /* next input and output */
+    unsigned char FAR *next;    /* next input */
+    unsigned char FAR *put;     /* next output */
     unsigned have, left;        /* available input and output */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
     unsigned in, out;           /* save starting available input and output */
     unsigned copy;              /* number of stored or match bytes to copy */
-    unsigned char *from;        /* where to copy match bytes from */
+    unsigned char FAR *from;    /* where to copy match bytes from */
     code this;                  /* current decoding table entry */
     code last;                  /* parent table entry */
     unsigned len;               /* length to copy for repeats, bits to drop */
@@ -956,8 +962,7 @@ int flush;
                 state->offset += BITS(state->extra);
                 DROPBITS(state->extra);
             }
-            if (state->offset > (state->wsize ? state->wsize :
-                                                out - left)) {
+            if (state->offset > state->whave + out - left) {
                 strm->msg = (char *)"invalid distance too far back";
                 state->mode = BAD;
                 break;
@@ -1108,12 +1113,16 @@ uInt dictLength;
         state->mode = MEM;
         return Z_MEM_ERROR;
     }
-    if (dictLength > state->wsize)
+    if (dictLength > state->wsize) {
         zmemcpy(state->window, dictionary + dictLength - state->wsize,
                 state->wsize);
-    else
+        state->whave = state->wsize;
+    }
+    else {
         zmemcpy(state->window + state->wsize - dictLength, dictionary,
                 dictLength);
+        state->whave = dictLength;
+    }
     state->havedict = 1;
     Tracev((stderr, "inflate:   dictionary set\n"));
     return Z_OK;
@@ -1131,7 +1140,7 @@ uInt dictLength;
    zero for the first call.
  */
 local unsigned syncsearch(have, buf, len)
-unsigned *have;
+unsigned FAR *have;
 unsigned char FAR *buf;
 unsigned len;
 {

@@ -122,8 +122,16 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
 18. Well that's nice, but how do I make a gzip file in memory?
 
-    Read RFC 1952 for the gzip header and trailer format, and roll your own
-    gzip formatted data using raw deflate and crc32().
+    You can request that deflate write the gzip format instead of the zlib
+    format using deflateInit2(). You can also request that inflate decode
+    the gzip format using inflateInit2(). Read zlib.h for more details.
+
+    Note that you cannot specify special gzip header contents (e.g. a file
+    name or modification date), nor will inflate tell you what was in the
+    gzip header. If you need to customize the header or see what's in it,
+    you can use the raw deflate and inflate operations and the crc32()
+    function and roll your own gzip encoding and decoding. Read the gzip
+    RFC 1952 for details of the header and trailer format.
 
 19. Is zlib thread-safe?
 
@@ -253,7 +261,7 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 32. Is there a Java version of zlib?
 
     Probably what you want is to use zlib in Java. zlib is already included
-    as part of the Java SDK in the java.util.zip class. If you really want
+    as part of the Java SDK in the java.util.zip package. If you really want
     a version of zlib written in the Java language, look on the zlib home
     page for links: http://www.zlib.org/
 

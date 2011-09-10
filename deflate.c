@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.0.3 Copyright 1995-2003 Jean-loup Gailly ";
+   " deflate 1.2.0.4 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -132,12 +132,12 @@ typedef struct config_s {
 local const config configuration_table[2] = {
 /*      good lazy nice chain */
 /* 0 */ {0,    0,  0,    0, deflate_stored},  /* store only */
-/* 1 */ {4,    4,  8,    4, deflate_fast}}; /* maximum speed, no lazy matches */
+/* 1 */ {4,    4,  8,    4, deflate_fast}}; /* max speed, no lazy matches */
 #else
 local const config configuration_table[10] = {
 /*      good lazy nice chain */
 /* 0 */ {0,    0,  0,    0, deflate_stored},  /* store only */
-/* 1 */ {4,    4,  8,    4, deflate_fast}, /* maximum speed, no lazy matches */
+/* 1 */ {4,    4,  8,    4, deflate_fast}, /* max speed, no lazy matches */
 /* 2 */ {4,    5, 16,    8, deflate_fast},
 /* 3 */ {4,    6, 32,   32, deflate_fast},
 
@@ -146,7 +146,7 @@ local const config configuration_table[10] = {
 /* 6 */ {8,   16, 128, 128, deflate_slow},
 /* 7 */ {8,   32, 128, 256, deflate_slow},
 /* 8 */ {32, 128, 258, 1024, deflate_slow},
-/* 9 */ {32, 258, 258, 4096, deflate_slow}}; /* maximum compression */
+/* 9 */ {32, 258, 258, 4096, deflate_slow}}; /* max compression */
 #endif
 
 /* Note: the deflate() code requires max_lazy >= MIN_MATCH and max_chain >= 4
@@ -225,7 +225,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     int stream_size;
 {
     deflate_state *s;
-    int noheader = 0;
+    int wrap = 1;
     static const char my_version[] = ZLIB_VERSION;
 
     ushf *overlay;
@@ -252,10 +252,16 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     if (level == Z_DEFAULT_COMPRESSION) level = 6;
 #endif
 
-    if (windowBits < 0) { /* undocumented feature: suppress zlib header */
-        noheader = 1;
+    if (windowBits < 0) { /* suppress zlib wrapper */
+        wrap = 0;
         windowBits = -windowBits;
     }
+#ifdef GZIP
+    else if (windowBits > 15) {
+        wrap = 2;	/* write gzip wrapper instead */
+        windowBits -= 16;
+    }
+#endif
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
         windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
         strategy < 0 || strategy > Z_RLE) {
@@ -267,7 +273,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     strm->state = (struct internal_state FAR *)s;
     s->strm = strm;
 
-    s->noheader = noheader;
+    s->wrap = wrap;
     s->w_bits = windowBits;
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
@@ -316,11 +322,12 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     IPos hash_head = 0;
 
     if (strm == Z_NULL || strm->state == Z_NULL || dictionary == Z_NULL ||
-        (!strm->state->noheader && strm->state->status != INIT_STATE))
+        strm->state->wrap == 2 ||
+        (strm->state->wrap == 1 && strm->state->status != INIT_STATE))
         return Z_STREAM_ERROR;
 
     s = strm->state;
-    if (!s->noheader)
+    if (s->wrap)
         strm->adler = adler32(strm->adler, dictionary, dictLength);
 
     if (length < MIN_MATCH) return Z_OK;
@@ -364,11 +371,15 @@ int ZEXPORT deflateReset (strm)
     s->pending = 0;
     s->pending_out = s->pending_buf;
 
-    if (s->noheader < 0) {
-        s->noheader = 0; /* was set to -1 by deflate(..., Z_FINISH); */
+    if (s->wrap < 0) {
+        s->wrap = -s->wrap; /* was made negative by deflate(..., Z_FINISH); */
     }
-    s->status = s->noheader ? BUSY_STATE : INIT_STATE;
-    strm->adler = 1;
+    s->status = s->wrap ? INIT_STATE : BUSY_STATE;
+    strm->adler =
+#ifdef GZIP
+        s->wrap == 2 ? crc32(0L, Z_NULL, 0) :
+#endif
+        adler32(0L, Z_NULL, 0);
     s->last_flush = Z_NO_FLUSH;
 
     _tr_init(s);
@@ -428,7 +439,7 @@ int ZEXPORT deflateParams(strm, level, strategy)
  * can emit on compressed data for some combinations of the parameters.
  *
  * This function could be more sophisticated to provide closer upper bounds
- * for every combination of windowBits and memLevel, as well as noheader.
+ * for every combination of windowBits and memLevel, as well as wrap.
  * But even the conservative upper bound of about 14% expansion does not
  * seem onerous for output buffer allocation.
  */
@@ -519,33 +530,53 @@ int ZEXPORT deflate (strm, flush)
     old_flush = s->last_flush;
     s->last_flush = flush;
 
-    /* Write the zlib header */
+    /* Write the header */
     if (s->status == INIT_STATE) {
-
-        uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
-        uInt level_flags;
-
-        if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
-            level_flags = 0;
-        else if (s->level < 6)
-            level_flags = 1;
-        else if (s->level == 6)
-            level_flags = 2;
-        else
-            level_flags = 3;
-        header |= (level_flags << 6);
-        if (s->strstart != 0) header |= PRESET_DICT;
-        header += 31 - (header % 31);
-
-        s->status = BUSY_STATE;
-        putShortMSB(s, header);
-
-        /* Save the adler32 of the preset dictionary: */
-        if (s->strstart != 0) {
-            putShortMSB(s, (uInt)(strm->adler >> 16));
-            putShortMSB(s, (uInt)(strm->adler & 0xffff));
+#ifdef GZIP
+        if (s->wrap == 2) {
+            put_byte(s, 31);
+            put_byte(s, 139);
+            put_byte(s, 8);
+            put_byte(s, 0);
+            put_byte(s, 0);
+            put_byte(s, 0);
+            put_byte(s, 0);
+            put_byte(s, 0);
+            put_byte(s, s->level == 9 ? 2 :
+                        (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2 ?
+                         4 : 0));
+            put_byte(s, 255);
+            s->status = BUSY_STATE;
+            strm->adler = crc32(0L, Z_NULL, 0);
         }
-        strm->adler = 1L;
+        else
+#endif
+        {
+            uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
+            uInt level_flags;
+    
+            if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
+                level_flags = 0;
+            else if (s->level < 6)
+                level_flags = 1;
+            else if (s->level == 6)
+                level_flags = 2;
+            else
+                level_flags = 3;
+            header |= (level_flags << 6);
+            if (s->strstart != 0) header |= PRESET_DICT;
+            header += 31 - (header % 31);
+    
+            s->status = BUSY_STATE;
+            putShortMSB(s, header);
+    
+            /* Save the adler32 of the preset dictionary: */
+            if (s->strstart != 0) {
+                putShortMSB(s, (uInt)(strm->adler >> 16));
+                putShortMSB(s, (uInt)(strm->adler & 0xffff));
+            }
+            strm->adler = adler32(0L, Z_NULL, 0);
+        }
     }
 
     /* Flush as much pending output as possible */
@@ -622,16 +653,31 @@ int ZEXPORT deflate (strm, flush)
     Assert(strm->avail_out > 0, "bug2");
 
     if (flush != Z_FINISH) return Z_OK;
-    if (s->noheader) return Z_STREAM_END;
+    if (s->wrap <= 0) return Z_STREAM_END;
 
-    /* Write the zlib trailer (adler32) */
-    putShortMSB(s, (uInt)(strm->adler >> 16));
-    putShortMSB(s, (uInt)(strm->adler & 0xffff));
+    /* Write the trailer */
+#ifdef GZIP
+    if (s->wrap == 2) {
+        put_byte(s, (Byte)(strm->adler & 0xff));
+        put_byte(s, (Byte)((strm->adler >> 8) & 0xff));
+        put_byte(s, (Byte)((strm->adler >> 16) & 0xff));
+        put_byte(s, (Byte)((strm->adler >> 24) & 0xff));
+        put_byte(s, (Byte)(strm->total_in & 0xff));
+        put_byte(s, (Byte)((strm->total_in >> 8) & 0xff));
+        put_byte(s, (Byte)((strm->total_in >> 16) & 0xff));
+        put_byte(s, (Byte)((strm->total_in >> 24) & 0xff));
+    }
+    else
+#endif
+    {
+        putShortMSB(s, (uInt)(strm->adler >> 16));
+        putShortMSB(s, (uInt)(strm->adler & 0xffff));
+    }
     flush_pending(strm);
     /* If avail_out is zero, the application will call deflate again
      * to flush the rest.
      */
-    s->noheader = -1; /* write the trailer only once! */
+    if (s->wrap > 0) s->wrap = -s->wrap; /* write the trailer only once! */
     return s->pending != 0 ? Z_OK : Z_STREAM_END;
 }
 
@@ -740,9 +786,14 @@ local int read_buf(strm, buf, size)
 
     strm->avail_in  -= len;
 
-    if (!strm->state->noheader) {
+    if (strm->state->wrap == 1) {
         strm->adler = adler32(strm->adler, strm->next_in, len);
     }
+#ifdef GZIP
+    else if (strm->state->wrap == 2) {
+        strm->adler = crc32(strm->adler, strm->next_in, len);
+    }
+#endif
     zmemcpy(buf, strm->next_in, len);
     strm->next_in  += len;
     strm->total_in += len;
@@ -1044,7 +1095,7 @@ local void fill_window(s)
     
             } else if (more == (unsigned)(-1)) {
                 /* Very unlikely, but possible on 16 bit machine if
-                 * strstart == 0 && lookahead == 1 (input done one byte at time)
+                 * strstart == 0 && lookahead == 1 (input done a byte at time)
                  */
                 more--;
             }
@@ -1271,7 +1322,7 @@ local block_state deflate_fast(s, flush)
 #ifndef FASTEST
             if (s->match_length <= s->max_insert_length &&
                 s->lookahead >= MIN_MATCH) {
-                s->match_length--; /* string at strstart already in hash table */
+                s->match_length--; /* string at strstart already in table */
                 do {
                     s->strstart++;
                     INSERT_STRING(s, s->strstart, hash_head);
