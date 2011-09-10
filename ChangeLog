@@ -1,6 +1,17 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.4.4 (18 Apr 2010)
+- Fix CROSS_PREFIX executable testing, CHOST extract, mingw* [Tšršk]
+- Undefine _LARGEFILE64_SOURCE in zconf.h if it is zero, but not if empty
+- Try to use bash or ksh regardless of functionality of /bin/sh
+- Fix configure incompatibility with NetBSD sh
+- Remove attempt to run under bash or ksh since have better NetBSD fix
+- Fix win32/Makefile.gcc for MinGW [Bar-Lev]
+- Add diagnostic messages when using CROSS_PREFIX in configure
+- Added --sharedlibdir option to configure [Weigelt]
+- Use hidden visibility attribute when available [Frysinger]
+
 Changes in 1.2.4.3 (10 Apr 2010)
 - Only use CROSS_PREFIX in configure for ar and ranlib if they exist
 - Use CROSS_PREFIX for nm [Bar-Lev]

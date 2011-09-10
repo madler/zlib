@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.4.3
+SHAREDLIBV=libz.so.1.2.4.4
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIBV)
 
@@ -47,6 +47,7 @@ EXE=
 prefix = /usr/local
 exec_prefix = ${prefix}
 libdir = ${exec_prefix}/lib
+sharedlibdir = ${libdir}
 includedir = ${prefix}/include
 mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
@@ -163,12 +164,14 @@ minigzip64$(EXE): minigzip64.o $(STATICLIB)
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
 	-@if [ ! -d $(DESTDIR)$(libdir)       ]; then mkdir -p $(DESTDIR)$(libdir); fi
+	-@if [ ! -d $(DESTDIR)$(sharedlibdir) ]; then mkdir -p $(DESTDIR)$(sharedlibdir); fi
 	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
 	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
-	cp $(LIBS) $(DESTDIR)$(libdir)
+	cp $(STATICLIB) $(DESTDIR)$(libdir)
+	cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)
 	cd $(DESTDIR)$(libdir); chmod u=rw,go=r $(STATICLIB)
 	-@(cd $(DESTDIR)$(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
-	-@cd $(DESTDIR)$(libdir); if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
+	-@cd $(DESTDIR)$(sharedlibdir); if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
 	  chmod 755 $(SHAREDLIBV); \
 	  rm -f $(SHAREDLIB) $(SHAREDLIBM); \
 	  ln -s $(SHAREDLIBV) $(SHAREDLIB); \

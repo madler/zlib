@@ -27,6 +27,11 @@ STATICLIB = libz.a
 SHAREDLIB = zlib1.dll
 IMPLIB    = libzdll.a
 
+#
+# Set to 1 if shared object needs to be installed
+#
+SHARED_MODE=0
+
 #LOC = -DASMV
 #LOC = -DDEBUG -g
 
@@ -38,7 +43,7 @@ AS = $(CC)
 ASFLAGS = $(LOC) -Wall
 
 LD = $(CC)
-LDFLAGS = $(LOC) -s
+LDFLAGS = $(LOC)
 
 AR = $(PREFIX)ar
 ARFLAGS = rcs
@@ -82,43 +87,54 @@ $(STATICLIB): $(OBJS) $(OBJA)
 $(IMPLIB): $(SHAREDLIB)
 
 $(SHAREDLIB): win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
-	$(CC) -shared -Wl,--out-implib,$(IMPLIB) \
+	$(CC) -shared -Wl,--out-implib,$(IMPLIB) $(LDFLAGS) \
 	-o $@ win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
 	$(STRIP) $@
 
 example.exe: example.o $(STATICLIB)
 	$(LD) $(LDFLAGS) -o $@ example.o $(STATICLIB)
+	$(STRIP) $@
 
 minigzip.exe: minigzip.o $(STATICLIB)
 	$(LD) $(LDFLAGS) -o $@ minigzip.o $(STATICLIB)
+	$(STRIP) $@
 
 example_d.exe: example.o $(IMPLIB)
 	$(LD) $(LDFLAGS) -o $@ example.o $(IMPLIB)
+	$(STRIP) $@
 
 minigzip_d.exe: minigzip.o $(IMPLIB)
 	$(LD) $(LDFLAGS) -o $@ minigzip.o $(IMPLIB)
+	$(STRIP) $@
 
 zlibrc.o: win32/zlib1.rc
 	$(RC) $(RCFLAGS) -o $@ win32/zlib1.rc
 
 
-# INCLUDE_PATH and LIBRARY_PATH must be set.
+# BINARY_PATH, INCLUDE_PATH and LIBRARY_PATH must be set.
 
 .PHONY: install uninstall clean
 
-install: zlib.h zconf.h $(LIB)
+install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
+	-if [ "$(SHARED_MODE)" = "1" ]; then \
+		mkdir -p $(BINARY_PATH); \
+		$(INSTALL) $(SHAREDLIB) $(BINARY_PATH); \
+		$(INSTALL) $(IMPLIB) $(LIBRARY_PATH); \
+	fi
 	-@mkdir -p $(INCLUDE_PATH)
 	-@mkdir -p $(LIBRARY_PATH)
 	-$(INSTALL) zlib.h $(INCLUDE_PATH)
 	-$(INSTALL) zconf.h $(INCLUDE_PATH)
 	-$(INSTALL) $(STATICLIB) $(LIBRARY_PATH)
-	-$(INSTALL) $(IMPLIB) $(LIBRARY_PATH)
 
 uninstall:
+	-if [ "$(SHARED_MODE)" = "1" ]; then \
+		$(RM) $(BINARY_PATH)/$(SHAREDLIB); \
+		$(RM) $(LIBRARY_PATH)/$(IMPLIB); \
+	fi
 	-$(RM) $(INCLUDE_PATH)/zlib.h
 	-$(RM) $(INCLUDE_PATH)/zconf.h
 	-$(RM) $(LIBRARY_PATH)/$(STATICLIB)
-	-$(RM) $(LIBRARY_PATH)/$(IMPLIB)
 
 clean:
 	-$(RM) $(STATICLIB)

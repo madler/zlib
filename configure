@@ -13,37 +13,8 @@
 # If you have problems, try without defining CC and CFLAGS before reporting
 # an error.
 
-# make sure we are running under a compatible shell (stolen from ffmpeg and libnfo,
-# except their's wasn't portable enough due to ! usage, so this is better)
-if test "0$ZLIB_CONFIGURE_EXEC" -lt 1; then
-  unset foo
-  try=0
-  (: ${foo%%bar}) 2>/dev/null
-  if test "$?" -ne 0; then
-    try=1
-  else
-    (: ${foo?}) 2>/dev/null
-    if test "$?" -eq 0; then
-      try=1
-    fi
-  fi
-  if test "$try" -eq 1; then
-    ZLIB_CONFIGURE_EXEC=1
-    export ZLIB_CONFIGURE_EXEC
-    type "bash" > /dev/null 2>&1 && exec bash "$0" "$@"
-    type "ksh" > /dev/null 2>&1 && exec ksh "$0" "$@"
-    if test -x /usr/xpg4/bin/sh; then
-      exec /usr/xpg4/bin/sh "$0" "$@"
-    fi
-#    echo "No compatible shell script interpreter found."
-#    exit 1
-# we could give up here, but go ahead and give their old sh a try
-  fi
-  unset try
-fi
-
 if [ -n "${CHOST}" ]; then
-    uname="$(echo "${CHOST}" | sed 's/.*-.*-\(.*\)-.*/\1/')"
+    uname="$(echo "${CHOST}" | sed -e 's/.*-.*-\(.*\)-.*$/\1/' -e 's/.*-\(.*\)-.*/\1/' -e 's/.*-\(.*\)$/\1/')"
     CROSS_PREFIX="${CHOST}-"
 fi
 
@@ -53,24 +24,28 @@ VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < zlib.h`
 VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
 VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
-if [ -x "${CROSS_PREFIX}ar" ]; then
+if "${CROSS_PREFIX}ar" --version >/dev/null 2>/dev/null || test $? -lt 126; then
     AR=${AR-"${CROSS_PREFIX}ar"}
+    test -n "${CROSS_PREFIX}" && echo Using ${AR}
 else
     AR=${AR-"ar"}
+    test -n "${CROSS_PREFIX}" && echo Using ${AR}
 fi
 AR_RC="${AR} rc"
-if [ -x "${CROSS_PREFIX}ranlib" ]; then
+if "${CROSS_PREFIX}ranlib" --version >/dev/null 2>/dev/null || test $? -lt 126; then
     RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
+    test -n "${CROSS_PREFIX}" && echo Using ${RANLIB}
 else
     RANLIB=${RANLIB-"ranlib"}
 fi
-if [ -x "${CROSS_PREFIX}nm" ]; then
+if "${CROSS_PREFIX}nm" --version >/dev/null 2>/dev/null || test $? -lt 126; then
     NM=${NM-"${CROSS_PREFIX}nm"}
+    test -n "${CROSS_PREFIX}" && echo Using ${NM}
 else
     NM=${NM-"nm"}
 fi
 LDCONFIG=${LDCONFIG-"ldconfig"}
-LDSHAREDLIBC="${LDSHAREDLIBC-"-lc"}"
+LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
@@ -90,11 +65,13 @@ case "$1" in
     -h* | --help)
       echo 'usage:'
       echo '  configure [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]'
-      echo '    [--static] [--64] [--libdir=LIBDIR] [--includedir=INCLUDEDIR]'
+      echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]'
+      echo '    [--includedir=INCLUDEDIR]'
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -l*=* | --libdir=*) libdir=`echo $1 | sed 's/.*=//'`; shift ;;
+    --sharedlibdir=*) sharedlibdir=`echo $1 | sed 's/.*=//'`; shift ;;
     -i*=* | --includedir=*) includedir=`echo $1 | sed 's/.*=//'`;shift ;;
     -u*=* | --uname=*) uname=`echo $1 | sed 's/.*=//'`;shift ;;
     -p* | --prefix) prefix="$2"; shift; shift ;;
@@ -117,7 +94,7 @@ extern int getchar();
 int hello() {return getchar();}
 EOF
 
-test -z "$CC" && echo Checking for gcc...
+test -z "$CC" && echo Checking for ${CROSS_PREFIX}gcc...
 cc=${CC-${CROSS_PREFIX}gcc}
 cflags=${CFLAGS-"-O3"}
 # to force the asm version use: CFLAGS="-O3 -DASMV" ./configure
@@ -127,8 +104,8 @@ esac
 
 if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
-  SFLAGS="${CFLAGS-"-O3"} -fPIC"
-  CFLAGS="${CFLAGS-"-O3"}"
+  SFLAGS="${CFLAGS--O3} -fPIC"
+  CFLAGS="${CFLAGS--O3}"
   if test $build64 -eq 1; then
     CFLAGS="${CFLAGS} -m64"
     SFLAGS="${SFLAGS} -m64"
@@ -143,7 +120,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   Linux* | linux* | GNU | GNU/* | *BSD | DragonFly) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
-  MINGW*)
+  MINGW*|mingw*)
         LDSHARED=${LDSHARED-"$cc -shared"}
         LDSHAREDLIBC=""
         EXE='.exe' ;;
@@ -527,6 +504,23 @@ EOF
   fi
 fi
 
+cat > $test.c <<EOF
+int foo __attribute__ ((visibility ("hidden")));
+int main()
+{
+  return 0;
+}
+EOF
+if test "`($CC -c -fvisibility=hidden $CFLAGS $test.c) 2>&1`" = ""; then
+  CFLAGS="$CFLAGS -fvisibility=hidden"
+  SFLAGS="$SFLAGS -fvisibility=hidden"
+  echo "Checking for attribute(visibility) support... Yes."
+else
+  CFLAGS="$CFLAGS -DNO_VIZ"
+  SFLAGS="$SFLAGS -DNO_VIZ"
+  echo "Checking for attribute(visibility) support... No."
+fi
+
 CPP=${CPP-"$CC -E"}
 case $CFLAGS in
   *ASMV*)
@@ -560,6 +554,7 @@ sed < Makefile.in "
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
 /^libdir *=/s#=.*#=$libdir#
+/^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
 /^all: */s#:.*#: $ALL#
@@ -581,6 +576,7 @@ sed < zlib.pc.in "
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
 /^libdir *=/s#=.*#=$libdir#
+/^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
