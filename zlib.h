@@ -1,7 +1,7 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3, July 18th, 2005
+  version 1.2.3.1, August 16th, 2006
 
-  Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
+  Copyright (C) 1995-2006 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,8 +37,11 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.3"
-#define ZLIB_VERNUM 0x1230
+#define ZLIB_VERSION "1.2.3.1"
+#define ZLIB_VERNUM 0x1231
+#define ZLIB_VER_MAJOR 1
+#define ZLIB_VER_MINOR 2
+#define ZLIB_VER_REVISION 3
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -353,10 +356,14 @@ ZEXTERN int ZEXPORT inflateInit OF((z_streamp strm));
 
      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
-   version assumed by the caller.  msg is set to null if there is no error
-   message. inflateInit does not perform any decompression apart from reading
-   the zlib header if present: this will be done by inflate().  (So next_in and
-   avail_in may be modified, but next_out and avail_out are unchanged.)
+   version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+   invalid, such as a null pointer to the structure.  msg is set to null if
+   there is no error message. inflateInit does not perform any decompression
+   apart from possibly reading the zlib header if present: actual decompression
+   will be done by inflate().  (So next_in and avail_in may be modified, but
+   next_out and avail_out are unused and unchanged.)  The current
+   implementation of inflateInit() does not process any header information --
+   that is deferred until inflate() is called.
 */
 
 
@@ -645,9 +652,10 @@ ZEXTERN uLong ZEXPORT deflateBound OF((z_streamp strm,
                                        uLong sourceLen));
 /*
      deflateBound() returns an upper bound on the compressed size after
-   deflation of sourceLen bytes.  It must be called after deflateInit()
-   or deflateInit2().  This would be used to allocate an output buffer
-   for deflation in a single pass, and so would be called before deflate().
+   deflation of sourceLen bytes.  It must be called after deflateInit() or
+   deflateInit2(), and after deflateSetHeader(), if used.  This would be used
+   to allocate an output buffer for deflation in a single pass, and so would be
+   called before deflate().
 */
 
 ZEXTERN int ZEXPORT deflatePrime OF((z_streamp strm,
@@ -726,11 +734,15 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
    a crc32 instead of an adler32.
 
      inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
-   memory, Z_STREAM_ERROR if a parameter is invalid (such as a null strm). msg
-   is set to null if there is no error message.  inflateInit2 does not perform
-   any decompression apart from reading the zlib header if present: this will
-   be done by inflate(). (So next_in and avail_in may be modified, but next_out
-   and avail_out are unchanged.)
+   memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+   version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+   invalid, such as a null pointer to the structure.  msg is set to null if
+   there is no error message. inflateInit2 does not perform any decompression
+   apart from possibly reading the zlib header if present: actual decompression
+   will be done by inflate().  (So next_in and avail_in may be modified, but
+   next_out and avail_out are unused and unchanged.)  The current
+   implementation of inflateInit2() does not process any header information --
+   that is deferred until inflate() is called.
 */
 
 ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
@@ -1230,7 +1242,8 @@ ZEXTERN int ZEXPORT    gzclose OF((gzFile file));
 /*
      Flushes all pending output if necessary, closes the compressed file
    and deallocates all the (de)compression state. The return value is the zlib
-   error number (see function gzerror below).
+   error number.  Note that once file is close, you cannot call gzerror with
+   file, since its structures have been deallocated.
 */
 
 ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
@@ -1240,6 +1253,9 @@ ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
    error occurred in the file system and not in the compression library,
    errnum is set to Z_ERRNO and the application may consult errno
    to get the exact error code.
+
+   The application must not modify the returned string and future calls to
+   this function may invalidate the returned string.
 */
 
 ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
@@ -1339,8 +1355,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
         inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
 #define inflateBackInit(strm, windowBits, window) \
         inflateBackInit_((strm), (windowBits), (window), \
-        ZLIB_VERSION, sizeof(z_stream))
-
+                                            ZLIB_VERSION, sizeof(z_stream))
 
 #if !defined(ZUTIL_H) && !defined(NO_DUMMY_DECL)
     struct internal_state {int dummy;}; /* hack for buggy compilers */

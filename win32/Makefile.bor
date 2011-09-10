@@ -1,9 +1,6 @@
 # Makefile for zlib
 # Borland C++ for Win32
 #
-# Updated for zlib 1.2.x by Cosmin Truta, 11-Mar-2003
-# Last updated: 28-Aug-2003
-#
 # Usage:
 #  make -f win32/Makefile.bor
 #  make -f win32/Makefile.bor LOCAL_ZLIB=-DASMV OBJA=match.obj OBJPA=+match.obj
@@ -99,8 +96,8 @@ minigzip.exe: minigzip.obj $(ZLIB_LIB)
 
 # cleanup
 clean:
+	-del $(ZLIB_LIB)
 	-del *.obj
-	-del *.lib
 	-del *.exe
 	-del *.tds
 	-del zlib.bak

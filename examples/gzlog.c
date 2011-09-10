@@ -241,7 +241,7 @@ int gzlog_write(void *obj, char *data, size_t len)
             some = len;
         if (write(log->fd, data, some) != some)
             return 1;
-        log->crc = crc32(log->crc, data, some);
+        log->crc = crc32(log->crc, (unsigned char *)data, some);
         log->len += some;
         len -= some;
         data += some;

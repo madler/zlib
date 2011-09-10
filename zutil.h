@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2005 Jean-loup Gailly.
+ * Copyright (C) 1995-2006 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -23,7 +23,7 @@
 #  include <string.h>
 #  include <stdlib.h>
 #endif
-#ifdef NO_ERRNO_H
+#if defined(NO_ERRNO_H) || defined(_WIN32_WCE)
 #   ifdef _WIN32_WCE
       /* The Microsoft C Run-Time Library for Windows CE doesn't have
        * errno.  We define it as a global variable to simplify porting.
@@ -34,9 +34,7 @@
 #   endif
     extern int errno;
 #else
-#  ifndef _WIN32_WCE
-#    include <errno.h>
-#  endif
+#   include <errno.h>
 #endif
 
 #ifndef local
@@ -151,7 +149,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define fdopen(fd,mode) NULL /* No fdopen() */
 #endif
 
-#if (defined(_MSC_VER) && (_MSC_VER > 600))
+#if (defined(_MSC_VER) && (_MSC_VER > 600)) && !defined __INTERIX
 #  if defined(_WIN32_WCE)
 #    define fdopen(fd,mode) NULL /* No fdopen() */
 #    ifndef _PTRDIFF_T_DEFINED

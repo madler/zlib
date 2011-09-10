@@ -1,6 +1,66 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.1 (16 August 2006)
+- Add watcom directory with OpenWatcom make files [Daniel]
+- Remove #undef of FAR in zconf.in.h for MVS [Fedtke]
+- Update make_vms.com [Zinser]
+- Use -fPIC for shared build in configure [Teredesai, Nicholson]
+- Use only major version number for libz.so on IRIX and OSF1 [Reinholdtsen]
+- Use fdopen() (not _fdopen()) for Interix in zutil.h [BŠck]
+- Add some FAQ entries about the contrib directory
+- Update the MVS question in the FAQ
+- Avoid extraneous reads after EOF in gzio.c [Brown]
+- Correct spelling of "successfully" in gzio.c [Randers-Pehrson]
+- Add comments to zlib.h about gzerror() usage [Brown]
+- Set extra flags in gzip header in gzopen() like deflate() does
+- Make configure options more compatible with double-dash conventions
+  [Weigelt]
+- Clean up compilation under Solaris SunStudio cc [Rowe, Reinholdtsen]
+- Fix uninstall target in Makefile.in [Truta]
+- Add pkgconfig support [Weigelt]
+- Use $(DESTDIR) macro in Makefile.in [Reinholdtsen, Weigelt]
+- Replace set_data_type() with a more accurate detect_data_type() in
+  trees.c, according to the txtvsbin.txt document [Truta]
+- Swap the order of #include <stdio.h> and #include "zlib.h" in
+  gzio.c, example.c and minigzip.c [Truta]
+- Shut up annoying VS2005 warnings about standard C deprecation [Rowe,
+  Truta] (where?)
+- Fix target "clean" from win32/Makefile.bor [Truta]
+- Create .pdb and .manifest files in win32/makefile.msc [Ziegler, Rowe]
+- Update zlib www home address in win32/DLL_FAQ.txt [Truta]
+- Update contrib/masmx86/inffas32.asm for VS2005 [Vollant, Van Wassenhove]
+- Enable browse info in the "Debug" and "ASM Debug" configurations in
+  the Visual C++ 6 project, and set (non-ASM) "Debug" as default [Truta]
+- Add pkgconfig support [Weigelt]
+- Add ZLIB_VER_MAJOR, ZLIB_VER_MINOR and ZLIB_VER_REVISION in zlib.h,
+  for use in win32/zlib1.rc [Polushin, Rowe, Truta]
+- Add a document that explains the new text detection scheme to
+  doc/txtvsbin.txt [Truta]
+- Add rfc1950.txt, rfc1951.txt and rfc1952.txt to doc/ [Truta]
+- Move algorithm.txt into doc/ [Truta]
+- Synchronize FAQ with website
+- Fix compressBound(), was low for some pathological cases [Fearnley]
+- Take into account wrapper variations in deflateBound()
+- Set examples/zpipe.c input and output to binary mode for Windows 
+- Update examples/zlib_how.html with new zpipe.c (also web site)
+- Fix some warnings in examples/gzlog.c and examples/zran.c (it seems
+  that gcc became pickier in 4.0)
+- Add zlib.map for Linux: "All symbols from zlib-1.1.4 remain
+  un-versioned, the patch adds versioning only for symbols introduced in
+  zlib-1.2.0 or later.  It also declares as local those symbols which are
+  not designed to be exported." [Levin]
+- Update Z_PREFIX list in zconf.in.h, add --zprefix option to configure
+- Do not initialize global static by default in trees.c, add a response
+  NO_INIT_GLOBAL_POINTERS to initialize them if needed [Marquess]
+- Don't use strerror() in gzio.c under WinCE [Yakimov]
+- Don't use errno.h in zutil.h under WinCE [Yakimov]
+- Move arguments for AR to its usage to allow replacing ar [Marot]
+- Add HAVE_VISIBILITY_PRAGMA in zconf.in.h for Mozilla [Randers-Pehrson]
+- Improve inflateInit() and inflateInit2() documentation
+- Fix structure size comment in inflate.h
+- Change configure help option from --h* to --help [Santos]
+
 Changes in 1.2.3 (18 July 2005)
 - Apply security vulnerability fixes to contrib/infback9 as well
 - Clean up some text files (carriage returns, trailing space)

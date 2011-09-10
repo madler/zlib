@@ -1,5 +1,5 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-2005 Jean-loup Gailly.
+ * Copyright (C) 1995-2006 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_GZCOMPRESS to avoid the compression code.
@@ -7,9 +7,8 @@
 
 /* @(#) $Id$ */
 
-#include <stdio.h>
-
 #include "zutil.h"
+#include <stdio.h>
 
 #ifdef NO_DEFLATE       /* for compatibility with old definition */
 #  define NO_GZCOMPRESS
@@ -187,7 +186,10 @@ local gzFile gz_open (path, mode, fd)
         /* Write a very simple .gz header:
          */
         fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", gz_magic[0], gz_magic[1],
-             Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
+             Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, level == 9 ? 2 :
+                            (strategy >= Z_HUFFMAN_ONLY ||
+                             (level != Z_DEFAULT_COMPRESSION && level < 2) ?
+                             4 : 0) /*xflags*/, OS_CODE);
         s->start = 10L;
         /* We use 10L instead of ftell(s->file) to because ftell causes an
          * fflush on some systems. This version of the library doesn't use
@@ -256,7 +258,7 @@ int ZEXPORT gzsetparams (file, level, strategy)
 /* ===========================================================================
      Read a byte from a gz_stream; update next_in and avail_in. Return EOF
    for end of file.
-   IN assertion: the stream s has been sucessfully opened for reading.
+   IN assertion: the stream s has been successfully opened for reading.
 */
 local int get_byte(s)
     gz_stream *s;
@@ -281,7 +283,7 @@ local int get_byte(s)
     mode to transparent if the gzip magic header is not present; set s->err
     to Z_DATA_ERROR if the magic header is present but the rest of the header
     is incorrect.
-    IN assertion: the stream s has already been created sucessfully;
+    IN assertion: the stream s has already been created successfully;
        s->stream.avail_in is zero for the first time, but may be non-zero
        for concatenated .gz files.
 */
@@ -301,6 +303,7 @@ local void check_header(s)
         if (len) s->inbuf[0] = s->stream.next_in[0];
         errno = 0;
         len = (uInt)fread(s->inbuf + len, 1, Z_BUFSIZE >> len, s->file);
+        if (len == 0) s->z_eof = 1;
         if (len == 0 && ferror(s->file)) s->z_err = Z_ERRNO;
         s->stream.avail_in += len;
         s->stream.next_in = s->inbuf;
@@ -436,7 +439,7 @@ int ZEXPORT gzread (file, buf, len)
                 s->stream.avail_out -= n;
                 s->stream.avail_in  -= n;
             }
-            if (s->stream.avail_out > 0) {
+            if (s->stream.avail_out > 0 && !feof(s->file)) {
                 s->stream.avail_out -=
                     (uInt)fread(next_out, 1, s->stream.avail_out, s->file);
             }
@@ -971,7 +974,7 @@ int ZEXPORT gzclose (file)
     return destroy((gz_stream*)file);
 }
 
-#ifdef STDC
+#if defined(STDC) && !defined(_WIN32_WCE)
 #  define zstrerror(errnum) strerror(errnum)
 #else
 #  define zstrerror(errnum) ""
