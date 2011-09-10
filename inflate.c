@@ -145,7 +145,7 @@ int f;
   {
     case METHOD:
       NEEDBYTE
-      if (((z->state->sub.method = NEXTBYTE) & 0xf != DEFLATED))
+      if (((z->state->sub.method = NEXTBYTE) & 0xf) != DEFLATED)
       {
         z->state->mode = BAD;
 	z->msg = "unknown compression method";
@@ -243,7 +243,10 @@ z_stream *z;
   if (z == Z_NULL || z->state == Z_NULL)
     return Z_STREAM_ERROR;
   if (z->state->mode != BAD)
+  {
+    z->state->mode = BAD;
     z->state->sub.marker = 0;
+  }
   if ((n = z->avail_in) == 0)
     return Z_BUF_ERROR;
   p = z->next_in;
@@ -252,10 +255,12 @@ z_stream *z;
   /* search */
   while (n && m < 4)
   {
-    if (*p == (m < 2 ? 0 : 0xff))
+    if (*p == (Byte)(m < 2 ? 0 : 0xff))
       m++;
-    else if (*p || m > 2)
+    else if (*p)
       m = 0;
+    else
+      m = 4 - m;
     p++, n--;
   }
 

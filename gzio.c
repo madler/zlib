@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* $Id: gzio.c,v 1.6 1995/04/30 19:52:21 jloup Exp $ */
+/* $Id: gzio.c,v 1.7 1995/05/02 12:22:08 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -128,7 +128,7 @@ local gzFile gz_open (path, mode, fd)
     
     if (s->mode == 'w') {
 	err = deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION,
-			   DEFLATED, -MAX_WBITS, MAX_MEM_LEVEL, 0);
+			   DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0);
 	/* windowBits is passed < 0 to suppress zlib header */
 
 	s->stream.next_out = s->outbuf = ALLOC(Z_BUFSIZE);
@@ -221,7 +221,7 @@ gzFile gzdopen (fd, mode)
     char *mode;
 {
     char name[20];
-    sprintf(name, "_fd:%d_", fd); /* for debugging */
+    sprintf(name, "<fd:%d>", fd); /* for debugging */
 
     return gz_open (name, mode, fd);
 }

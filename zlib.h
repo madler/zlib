@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.9 April 30th, 1995.
+  version 0.91 May 2nd, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.9"
+#define ZLIB_VERSION "0.91"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -335,7 +335,8 @@ extern int deflateInit2 __P((z_stream *strm,
     The memLevel parameter specifies how much memory should be allocated
    for the internal compression state. memLevel=1 uses minimum memory but
    is slow and reduces compression ratio; memLevel=9 uses maximum memory
-   for optimal speed. The default value is 8.
+   for optimal speed. The default value is 8. See zconf.h for total memory
+   usage as a function of windowBits and memLevel.
 
      The strategy parameter is used to tune the compression algorithm. Use
    the value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data

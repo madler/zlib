@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.7 1995/05/01 16:57:22 jloup Exp $ */
+/* $Id: example.c,v 1.8 1995/05/02 15:52:32 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -12,7 +12,9 @@
 #  include <string.h>
 #endif
 
+#ifndef __GO32__
 extern void exit  __P((int));
+#endif
 
 #define BUFLEN 4096
 
@@ -253,7 +255,7 @@ void test_sync(compr)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    printf("after inflateSync(): %s\n", uncompr);
+    printf("after inflateSync(): hel%s\n", uncompr);
 }
 
 /* ===========================================================================

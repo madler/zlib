@@ -4,7 +4,10 @@
 # To use, do "make makefile.msc"
 
 # WARNING: the small model is supported but only for small values of
-# MAX_WBITS and MAX_MEM_LEVEL
+# MAX_WBITS and MAX_MEM_LEVEL. If you wish to reduce the memory
+# requirements (default 256K for big objects plus a few K), you can add
+# to CFLAGS below: -DMAX_MEM_LEVEL=7 -DMAX_WBITS=14
+# See zconf.h for details about the memory requirements.
 
 # ------------- Microsoft C 5.1 and later -------------
 MODEL=-AL

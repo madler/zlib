@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: zutil.h,v 1.7 1995/04/30 10:55:33 jloup Exp $ */
+/* $Id: zutil.h,v 1.8 1995/05/02 15:44:46 jloup Exp $ */
 
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H
@@ -17,6 +17,7 @@
 
 #ifdef MSDOS
 #   include <stddef.h>
+#   include <errno.h>
 #else
     extern int errno;
 #endif
@@ -43,7 +44,14 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #define DEFLATED   8
 
 #define DEF_WBITS 15
-/* default WBITS for decompression. MAX_WBITS is useful for compression only */
+/* default windowBits for decompression. MAX_WBITS is for compression only */
+
+#if MAX_MEM_LEVEL >= 8
+#  define DEF_MEM_LEVEL 8
+#else
+#  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
+#endif
+/* default memLevel */
 
 #define STORED_BLOCK 0
 #define STATIC_TREES 1

@@ -47,7 +47,7 @@
  *
  */
 
-/* $Id: deflate.c,v 1.6 1995/05/01 17:23:57 jloup Exp $ */
+/* $Id: deflate.c,v 1.7 1995/05/02 13:28:18 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -165,7 +165,7 @@ int deflateInit (strm, level)
     z_stream *strm;
     int level;
 {
-    return deflateInit2 (strm, level, DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, 0);
+    return deflateInit2 (strm, level, DEFLATED, MAX_WBITS, DEF_MEM_LEVEL, 0);
     /* To do: ignore strm->next_in if we use it as window */
 }
 
@@ -344,22 +344,23 @@ int deflate (strm, flush)
      */
     if (strm->avail_in != 0 ||
 	(flush == Z_FINISH && strm->state->status != FINISH_STATE)) {
+	int quit;
 	
 	if (flush == Z_FINISH) {
 	    strm->state->status = FINISH_STATE;
 	}
         if (strm->state->level <= 3) {
-	    if (deflate_fast(strm->state, flush)) return Z_OK;
+	    quit = deflate_fast(strm->state, flush);
 	} else {
-	    if (deflate_slow(strm->state, flush)) return Z_OK;
+	    quit = deflate_slow(strm->state, flush);
 	}
-	/* ??? remember Z_FULL_FLUSH if we didn't have enough space */
 	if (flush == Z_FULL_FLUSH) {
 	    ct_stored_block(strm->state, (char*)0, 0L, 0); /* special marker */
 	    flush_pending(strm);
 	    CLEAR_HASH(strm->state);             /* forget history */
 	    if (strm->avail_out == 0) return Z_OK;
 	}
+	if (quit) return Z_OK;
     }
     Assert(strm->avail_out > 0, "bug2");
 

@@ -13,12 +13,14 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.3 1995/04/29 14:27:21 jloup Exp $ */
+/* $Id: minigzip.c,v 1.4 1995/05/02 15:54:22 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
 
+#ifndef __GO32__
 extern void exit  __P((int));
+#endif
 extern int unlink __P((const char *));
 
 #ifdef STDC

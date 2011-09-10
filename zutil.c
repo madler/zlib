@@ -3,13 +3,15 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.6 1995/04/29 14:54:02 jloup Exp $ */
+/* $Id: zutil.c,v 1.7 1995/05/02 15:54:47 jloup Exp $ */
 
 #include <stdio.h>
 
 #include "zutil.h"
 
+#ifndef __GO32__
 extern void exit __P((int));
+#endif
 
 char *zlib_version = ZLIB_VERSION;
 
@@ -55,8 +57,9 @@ void zmemzero(dest, len)
 }
 #endif
 
-#if defined(MSDOS) && !defined(__SMALL__) && !defined(M_I86SM)
-#  ifdef __TURBOC__
+#if defined(__TURBOC__) && !defined(__SMALL__)
+
+#  define MY_ZCALLOC
 
 /* Turbo C malloc() does not allow dynamic allocation of 64K bytes
  * and farmalloc(64K) returns a pointer with an offset of 8, so we
@@ -124,8 +127,11 @@ void  zcfree (voidp opaque, voidp ptr)
     ptr = opaque; /* just to make some compilers happy */
     z_error("zcfree: ptr not found");
 }
+#endif /* __TURBOC__ */
 
-#  else /* MSC */
+#if defined(M_I86CM) || defined(M_I86LM) /* MSC compact or large model */
+
+#  define MY_ZCALLOC
 
 #if (!defined(_MSC_VER) || (_MSC_VER < 600))
 #  define _halloc  halloc
@@ -144,12 +150,15 @@ void  zcfree (voidp opaque, voidp ptr)
     _hfree(ptr);
 }
 
-#  endif /* __TURBOC__ ? */
+#endif /* defined(M_I86CM) || defined(M_I86LM) */
 
-#else /* !MSDOS */
 
+#ifndef MY_ZCALLOC /* Any system without a special alloc function */
+
+#ifndef __GO32__
 extern voidp calloc __P((uInt items, uInt size));
 extern void  free   __P((voidp ptr));
+#endif
 
 voidp zcalloc (opaque, items, size)
     voidp opaque;
@@ -166,4 +175,4 @@ void  zcfree (opaque, ptr)
     free(ptr);
 }
 
-#endif /* MSDOS */
+#endif /* MY_ZCALLOC */

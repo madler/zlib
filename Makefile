@@ -1,9 +1,16 @@
+# Makefile for zlib
+# Copyright (C) 1995 Jean-loup Gailly.
+# For conditions of distribution and use, see copyright notice in zlib.h 
+
 CC=cc
 CFLAGS=-O
+#CFLAGS="-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7"
 #CFLAGS=-g -DDEBUG
 LDFLAGS=-L. -lgz
 
 RANLIB=ranlib
+
+prefix=/usr/local
 
 OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infblock.o inftrees.o infcodes.o infutil.o inffast.o
@@ -15,6 +22,14 @@ all: example minigzip inftest
 test: all
 	./example
 	echo hello world | ./minigzip | ./minigzip -d 
+
+install: libgz.a
+	-@mkdir $(prefix)/include
+	-@mkdir $(prefix)/lib
+	cp zlib.h zconf.h $(prefix)/include
+	chmod 644 $(prefix)/include/zlib.h $(prefix)/include/zconf.h
+	cp libgz.a $(prefix)/lib
+	chmod 644 $(prefix)/lib/libgz.a
 
 libgz.a: $(OBJS)
 	ar rc $@ $(OBJS)
