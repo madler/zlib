@@ -113,6 +113,7 @@ z_streamp strm;
     state->mode = HEAD;
     state->last = 0;
     state->havedict = 0;
+    state->dmax = 32768U;
     state->head = Z_NULL;
     state->wsize = 0;
     state->whave = 0;
@@ -600,11 +601,13 @@ int flush;
                 break;
             }
             DROPBITS(4);
-            if (BITS(4) + 8 > state->wbits) {
+            len = BITS(4) + 8;
+            if (len > state->wbits) {
                 strm->msg = (char *)"invalid window size";
                 state->mode = BAD;
                 break;
             }
+            state->dmax = 1U << len;
             Tracev((stderr, "inflate:   zlib header ok\n"));
             strm->adler = state->check = adler32(0L, Z_NULL, 0);
             state->mode = hold & 0x200 ? DICTID : TYPE;
@@ -1009,6 +1012,13 @@ int flush;
                 state->offset += BITS(state->extra);
                 DROPBITS(state->extra);
             }
+#ifdef INFLATE_STRICT
+            if (state->offset > state->dmax) {
+                strm->msg = (char *)"invalid distance too far back";
+                state->mode = BAD;
+                break;
+            }
+#endif
             if (state->offset > state->whave + out - left) {
                 strm->msg = (char *)"invalid distance too far back";
                 state->mode = BAD;
@@ -1322,8 +1332,8 @@ z_streamp source;
     }
 
     /* copy state */
-    *dest = *source;
-    *copy = *state;
+    zmemcpy(dest, source, sizeof(z_stream));
+    zmemcpy(copy, state, sizeof(struct inflate_state));
     copy->lencode = copy->codes + (state->lencode - state->codes);
     copy->distcode = copy->codes + (state->distcode - state->codes);
     copy->next = copy->codes + (state->next - state->codes);

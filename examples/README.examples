@@ -1,0 +1,29 @@
+This directory contains examples of the use of zlib.
+
+fitblk.c
+    compress just enough input to nearly fill a requested output size
+    - zlib isn't designed to do this, but fitblk does it anyway
+
+gzappend.c
+    append to a gzip file
+    - illustrates the use of the Z_BLOCK flush parameter for inflate()
+    - illustrates the use of deflatePrime() to start at any bit
+
+gzjoin.c
+    join gzip files without recalculating the crc or recompressing
+    - illustrates the use of the Z_BLOCK flush parameter for inflate()
+    - illustrates the use of crc32_combine()
+
+gzlog.c
+gzlog.h
+    efficiently maintain a message log file in gzip format
+    - illustrates use of raw deflate and Z_SYNC_FLUSH
+    - illustrates use of gzip header extra field
+
+zlib_how.html
+    painfully comprehensive description of zpipe.c (see below)
+    - describes in excruciating detail the use of deflate() and inflate()
+
+zpipe.c
+    reads and writes zlib streams from stdin to stdout
+    - illustrates the proper use of deflate() and inflate()

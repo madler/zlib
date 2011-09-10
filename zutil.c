@@ -137,7 +137,10 @@ const char * ZEXPORT zError(err)
 }
 
 #if defined(_WIN32_WCE)
-    /* does not exist on WCE */
+    /* The Microsoft C Run-Time Library for Windows CE doesn't have
+     * errno.  We define it as a global variable to simplify porting.
+     * Its value is always 0 and should not be used.
+     */
     int errno = 0;
 #endif
 

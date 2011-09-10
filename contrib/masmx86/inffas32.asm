@@ -84,17 +84,20 @@ dd	2147483647
 dd	4294967295
 
 
+; head was added in zlib 1.2.2.1, so we add addstr
+; set addstr to 0 with zlib 1.2.1 of below
+addstr           equ    4
 
 mode_state	 equ	0	;/* state->mode	*/
-wsize_state	 equ	32	;/* state->wsize */
-write_state	 equ	(36+4)	;/* state->write */
-window_state	 equ	(40+4)	;/* state->window */
-hold_state	 equ	(44+4)	;/* state->hold	*/
-bits_state	 equ	(48+4)	;/* state->bits	*/
-lencode_state	 equ	(64+4)	;/* state->lencode */
-distcode_state	 equ	(68+4)	;/* state->distcode */
-lenbits_state	 equ	(72+4)	;/* state->lenbits */
-distbits_state	 equ	(76+4)	;/* state->distbits */
+wsize_state	 equ	32+addstr	;/* state->wsize */
+write_state	 equ	(36+4+addstr)	;/* state->write */
+window_state	 equ	(40+4+addstr)	;/* state->window */
+hold_state	 equ	(44+4+addstr)	;/* state->hold	*/
+bits_state	 equ	(48+4+addstr)	;/* state->bits	*/
+lencode_state	 equ	(64+4+addstr)	;/* state->lencode */
+distcode_state	 equ	(68+4+addstr)	;/* state->distcode */
+lenbits_state	 equ	(72+4+addstr)	;/* state->lenbits */
+distbits_state	 equ	(76+4+addstr)	;/* state->distbits */
 
 
 ;;SECTION .text

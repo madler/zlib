@@ -22,9 +22,6 @@ delphi/     by Cosmin Truta <cosmint@cs.ubbcluj.ro>
 dotzlib/    by Henrik Ravn <henrik@ravn.com>
         Support for Microsoft .Net and Visual C++ .Net
 
-gzappend/   by Mark Adler <madler@alumni.caltech.edu>
-        append to a gzip file -- illustrates the use of Z_BLOCK
-
 infback9/   by Mark Adler <madler@alumni.caltech.edu>
         Unsupported diffs to infback to decode the deflate64 format
 

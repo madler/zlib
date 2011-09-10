@@ -934,22 +934,6 @@ void _tr_flush_block(s, buf, stored_len, eof)
         if (stored_len > 0 && s->strm->data_type == Z_UNKNOWN)
             set_data_type(s);
 
-#ifdef DEBUG
-        /* Write out literal/length frequencies for benchmarking */
-        if (z_verbose) {
-            FILE *freq;
-            freq = fopen("defreq.txt", "a");
-            if (freq != NULL) {
-                int n;
-                fputs("ltree:", freq);
-                for (n = 0; n < L_CODES; n++)
-                    fprintf(freq, " %d", s->dyn_ltree[n].Freq);
-                putc('\n', freq);
-                fclose(freq);
-            }
-        }
-#endif
-
         /* Construct the literal and distance trees */
         build_tree(s, (tree_desc *)(&(s->l_desc)));
         Tracev((stderr, "\nlit data: dyn %ld, stat %ld", s->opt_len,
@@ -999,7 +983,7 @@ void _tr_flush_block(s, buf, stored_len, eof)
 #ifdef FORCE_STATIC
     } else if (static_lenb >= 0) { /* force static trees */
 #else
-    } else if (static_lenb == opt_lenb) {
+    } else if (s->strategy == Z_FIXED || static_lenb == opt_lenb) {
 #endif
         send_bits(s, (STATIC_TREES<<1)+eof, 3);
         compress_block(s, (ct_data *)static_ltree, (ct_data *)static_dtree);

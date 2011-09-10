@@ -22,6 +22,14 @@
 #  include <stdlib.h>
 #endif
 #ifdef NO_ERRNO_H
+#   ifdef _WIN32_WCE
+      /* The Microsoft C Run-Time Library for Windows CE doesn't have
+       * errno.  We define it as a global variable to simplify porting.
+       * Its value is always 0 and should not be used.  We rename it to
+       * avoid conflict with other libraries that use the same workaround.
+       */
+#     define errno z_errno
+#   endif
     extern int errno;
 #else
 #   include <errno.h>
@@ -191,15 +199,6 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 #ifdef VMS
 #  define NO_vsnprintf
-#endif
-
-#ifdef HAVE_STRERROR
-#  ifndef VMS
-     extern char *strerror OF((int));
-#  endif
-#  define zstrerror(errnum) strerror(errnum)
-#else
-#  define zstrerror(errnum) ""
 #endif
 
 #if defined(pyr)

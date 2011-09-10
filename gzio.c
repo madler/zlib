@@ -220,7 +220,7 @@ gzFile ZEXPORT gzdopen (fd, mode)
     int fd;
     const char *mode;
 {
-    char name[20];
+    char name[46];      /* allow for up to 128-bit integers */
 
     if (fd < 0) return (gzFile)Z_NULL;
     sprintf(name, "<fd:%d>", fd); /* for debugging */
@@ -958,6 +958,12 @@ int ZEXPORT gzclose (file)
     }
     return destroy((gz_stream*)file);
 }
+
+#ifdef STDC
+#  define zstrerror(errnum) strerror(errnum)
+#else
+#  define zstrerror(errnum) ""
+#endif
 
 /* ===========================================================================
      Returns the error message for the last error which occured on the

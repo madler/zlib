@@ -1,6 +1,26 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.2.2 (30 December 2004)
+- Replace structure assignments in deflate.c and inflate.c with zmemcpy to
+  avoid implicit memcpy calls (portability for no-library compilation)
+- Increase sprintf() buffer size in gzdopen() to allow for large numbers
+- Add INFLATE_STRICT to check distances against zlib header
+- Improve WinCE errno handling and comments [Chang]
+- Remove comment about no gzip header processing in FAQ
+- Add Z_FIXED strategy option to deflateInit2() to force fixed trees
+- Add updated make_vms.com [Coghlan], update README
+- Create a new "examples" directory, move gzappend.c there, add zpipe.c,
+  fitblk.c, gzlog.[ch], gzjoin.c, and zlib_how.html.
+- Add FAQ entry and comments in deflate.c on uninitialized memory access
+- Add Solaris 9 make options in configure [Gilbert]
+- Allow strerror() usage in gzio.c for STDC
+- Fix DecompressBuf in contrib/delphi/ZLib.pas [ManChesTer]
+- Update contrib/masmx86/inffas32.asm and gvmat32.asm [Vollant]
+- Use z_off_t for adler32_combine() and crc32_combine() lengths
+- Make adler32() much faster for small len
+- Use OS_CODE in deflate() default gzip header
+
 Changes in 1.2.2.1 (31 October 2004)
 - Allow inflateSetDictionary() call for raw inflate
 - Fix inflate header crc check bug for file names and comments
@@ -20,6 +40,7 @@ Changes in 1.2.2.1 (31 October 2004)
 - Do not define an exit() prototype in zutil.c unless DEBUG defined
 - Remove prototype of exit() from zutil.c, example.c, minigzip.c [Truta]
 - Add comment in zlib.h for Z_NO_FLUSH parameter to deflate()
+- Fix Darwin build version identification [Peterson]
 
 Changes in 1.2.2 (3 October 2004)
 - Update zlib.h comments on gzip in-memory processing

@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.2.1 Copyright 1995-2004 Jean-loup Gailly ";
+   " deflate 1.2.2.2 Copyright 1995-2004 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -264,7 +264,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 #endif
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
         windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
-        strategy < 0 || strategy > Z_RLE) {
+        strategy < 0 || strategy > Z_FIXED) {
         return Z_STREAM_ERROR;
     }
     if (windowBits == 8) windowBits = 9;  /* until 256-byte window bug fixed */
@@ -432,7 +432,7 @@ int ZEXPORT deflateParams(strm, level, strategy)
 #else
     if (level == Z_DEFAULT_COMPRESSION) level = 6;
 #endif
-    if (level < 0 || level > 9 || strategy < 0 || strategy > Z_RLE) {
+    if (level < 0 || level > 9 || strategy < 0 || strategy > Z_FIXED) {
         return Z_STREAM_ERROR;
     }
     func = configuration_table[s->level].func;
@@ -573,7 +573,7 @@ int ZEXPORT deflate (strm, flush)
                 put_byte(s, s->level == 9 ? 2 :
                             (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2 ?
                              4 : 0));
-                put_byte(s, 255);
+                put_byte(s, OS_CODE);
                 s->status = BUSY_STATE;
             }
             else {
@@ -892,12 +892,12 @@ int ZEXPORT deflateCopy (dest, source)
 
     ss = source->state;
 
-    *dest = *source;
+    zmemcpy(dest, source, sizeof(z_stream));
 
     ds = (deflate_state *) ZALLOC(dest, 1, sizeof(deflate_state));
     if (ds == Z_NULL) return Z_MEM_ERROR;
     dest->state = (struct internal_state FAR *) ds;
-    *ds = *ss;
+    zmemcpy(ds, ss, sizeof(deflate_state));
     ds->strm = dest;
 
     ds->window = (Bytef *) ZALLOC(dest, ds->w_size, 2*sizeof(Byte));
@@ -1057,7 +1057,12 @@ local uInt longest_match(s, cur_match)
         match = s->window + cur_match;
 
         /* Skip to next match if the match length cannot increase
-         * or if the match length is less than 2:
+         * or if the match length is less than 2.  Note that the checks below
+         * for insufficient lookahead only occur occasionally for performance
+         * reasons.  Therefore uninitialized memory will be accessed, and
+         * conditional jumps will be made that depend on those values.
+         * However the length of the match is limited to the lookahead, so
+         * the output of deflate is not affected by the uninitialized values.
          */
 #if (defined(UNALIGNED_OK) && MAX_MATCH == 258)
         /* This code assumes sizeof(unsigned short) == 2. Do not use
@@ -1457,12 +1462,12 @@ local block_state deflate_fast(s, flush)
              * of the string with itself at the start of the input file).
              */
 #ifdef FASTEST
-            if ((s->strategy < Z_HUFFMAN_ONLY) ||
+            if ((s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) ||
                 (s->strategy == Z_RLE && s->strstart - hash_head == 1)) {
                 s->match_length = longest_match_fast (s, hash_head);
             }
 #else
-            if (s->strategy < Z_HUFFMAN_ONLY) {
+            if (s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) {
                 s->match_length = longest_match (s, hash_head);
             } else if (s->strategy == Z_RLE && s->strstart - hash_head == 1) {
                 s->match_length = longest_match_fast (s, hash_head);
@@ -1566,7 +1571,7 @@ local block_state deflate_slow(s, flush)
              * of window index 0 (in particular we have to avoid a match
              * of the string with itself at the start of the input file).
              */
-            if (s->strategy < Z_HUFFMAN_ONLY) {
+            if (s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) {
                 s->match_length = longest_match (s, hash_head);
             } else if (s->strategy == Z_RLE && s->strstart - hash_head == 1) {
                 s->match_length = longest_match_fast (s, hash_head);

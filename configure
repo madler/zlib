@@ -89,7 +89,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
              SHAREDLIB=libz$shared_ext
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBV -compatibility_version $VER2 -current_version $VER"};;
+             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER"};;
   *)             LDSHARED=${LDSHARED-"$cc -shared"};;
   esac
 else
@@ -125,6 +125,9 @@ else
   SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
              CFLAGS=${CFLAGS-"-O2"}
              LDSHARED=${LDSHARED-"ld"};;
+  SunStudio\ 9*) SFLAGS=${CFLAGS-"-DUSE_MMAP -fast -xcode=pic32 -xtarget=ultra3 -xarch=v9b"}
+             CFLAGS=${CFLAGS-"-DUSE_MMAP -fast -xtarget=ultra3 -xarch=v9b"}
+             LDSHARED=${LDSHARED-"cc -xarch=v9b"};;
   UNIX_System_V\ 4.2.0)
              SFLAGS=${CFLAGS-"-KPIC -O"}
              CFLAGS=${CFLAGS-"-O"}

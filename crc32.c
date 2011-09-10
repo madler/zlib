@@ -369,7 +369,7 @@ local void gf2_matrix_square(square, mat)
 uLong ZEXPORT crc32_combine(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
-    uLong len2;
+    z_off_t len2;
 {
     int n;
     unsigned long row;

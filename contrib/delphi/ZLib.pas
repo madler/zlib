@@ -344,7 +344,7 @@ begin
     strm.avail_out := OutBytes;
     DCheck(inflateInit_(strm, zlib_version, sizeof(strm)));
     try
-      while DCheck(inflate(strm, Z_FINISH)) <> Z_STREAM_END do
+      while DCheck(inflate(strm, Z_NO_FLUSH)) <> Z_STREAM_END do
       begin
         P := OutBuf;
         Inc(OutBytes, BufInc);

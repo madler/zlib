@@ -47,21 +47,25 @@
 
 
 
-;  all the +4 offsets are due to the addition of pending_buf_size (in zlib
+;  all the +addstr offsets are due to the addition of pending_buf_size in zlib 1.04
+;  and adding gzhead and gzindex in zlib 1.2.2.1
 ;  in the deflate_state structure since the asm code was first written
-;  (if you compile with zlib 1.0.4 or older, remove the +4).
+;  (if you compile with zlib 1.0.4 or older, set addstr to 0).
+;  (if you compiler with zlib between 1.04 and 1.2.1, set addstr to 4)
 ;  Note : these value are good with a 8 bytes boundary pack structure
-    dep_chain_length    equ     70h+4
-    dep_window          equ     2ch+4
-    dep_strstart        equ     60h+4
-    dep_prev_length     equ     6ch+4
-    dep_nice_match      equ     84h+4
-    dep_w_size          equ     20h+4
-    dep_prev            equ     34h+4
-    dep_w_mask          equ     28h+4
-    dep_good_match      equ     80h+4
-    dep_match_start     equ     64h+4
-    dep_lookahead       equ     68h+4
+
+    addstr              equ     4+8
+    dep_chain_length    equ     70h+addstr
+    dep_window          equ     2ch+addstr
+    dep_strstart        equ     60h+addstr
+    dep_prev_length     equ     6ch+addstr
+    dep_nice_match      equ     84h+addstr
+    dep_w_size          equ     20h+addstr
+    dep_prev            equ     34h+addstr
+    dep_w_mask          equ     28h+addstr
+    dep_good_match      equ     80h+addstr
+    dep_match_start     equ     64h+addstr
+    dep_lookahead       equ     68h+addstr
 
 
 _TEXT                   segment
@@ -597,19 +601,19 @@ curmatch	equ  esp + 60
 ;;; program to crash horribly, without so much as a warning at
 ;;; compile time. Sigh.)
 
-dsWSize		equ 36
-dsWMask		equ 44
-dsWindow	equ 48
-dsPrev		equ 56
-dsMatchLen	equ 88
-dsPrevMatch	equ 92
-dsStrStart	equ 100
-dsMatchStart	equ 104
-dsLookahead	equ 108
-dsPrevLen	equ 112
-dsMaxChainLen	equ 116
-dsGoodMatch	equ 132
-dsNiceMatch	equ 136
+dsWSize		equ 36+addstr-4
+dsWMask		equ 44+addstr-4
+dsWindow	equ 48+addstr-4
+dsPrev		equ 56+addstr-4
+dsMatchLen	equ 88+addstr-4
+dsPrevMatch	equ 92+addstr-4
+dsStrStart	equ 100+addstr-4
+dsMatchStart	equ 104+addstr-4
+dsLookahead	equ 108+addstr-4
+dsPrevLen	equ 112+addstr-4
+dsMaxChainLen	equ 116+addstr-4
+dsGoodMatch	equ 132+addstr-4
+dsNiceMatch	equ 136+addstr-4
 
 
 ;;; match.asm -- Pentium-Pro-optimized version of longest_match()

@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.2.1, October 31st, 2004
+  version 1.2.2.2, December 30th, 2004
 
   Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.2.1"
-#define ZLIB_VERNUM 0x1221
+#define ZLIB_VERSION "1.2.2.2"
+#define ZLIB_VERNUM 0x1222
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -189,6 +189,7 @@ typedef gz_header FAR *gz_headerp;
 #define Z_FILTERED            1
 #define Z_HUFFMAN_ONLY        2
 #define Z_RLE                 3
+#define Z_FIXED               4
 #define Z_DEFAULT_STRATEGY    0
 /* compression strategy; see deflateInit2() below for details */
 
@@ -391,11 +392,11 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
     The flush parameter of inflate() can be Z_NO_FLUSH, Z_SYNC_FLUSH,
   Z_FINISH, or Z_BLOCK. Z_SYNC_FLUSH requests that inflate() flush as much
   output as possible to the output buffer. Z_BLOCK requests that inflate() stop
-  if and when it get to the next deflate block boundary. When decoding the zlib
-  or gzip format, this will cause inflate() to return immediately after the
-  header and before the first block. When doing a raw inflate, inflate() will
-  go ahead and process the first block, and will return when it gets to the end
-  of that block, or when it runs out of data.
+  if and when it gets to the next deflate block boundary. When decoding the
+  zlib or gzip format, this will cause inflate() to return immediately after
+  the header and before the first block. When doing a raw inflate, inflate()
+  will go ahead and process the first block, and will return when it gets to
+  the end of that block, or when it runs out of data.
 
     The Z_BLOCK option assists in appending to or combining deflate streams.
   Also to assist in this, on return inflate() will set strm->data_type to the
@@ -524,7 +525,9 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    Z_DEFAULT and Z_HUFFMAN_ONLY. Z_RLE is designed to be almost as fast as
    Z_HUFFMAN_ONLY, but give better compression for PNG image data. The strategy
    parameter only affects the compression ratio but not the correctness of the
-   compressed output even if it is not set appropriately.
+   compressed output even if it is not set appropriately.  Z_FIXED prevents the
+   use of dynamic Huffman codes, allowing for a simpler decoder for special
+   applications.
 
       deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_STREAM_ERROR if a parameter is invalid (such as an invalid
@@ -1230,7 +1233,7 @@ ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
 */
 
 ZEXTERN uLong ZEXPORT adler32_combine OF((uLong adler1, uLong adler2,
-                                          uLong len2));
+                                          z_off_t len2));
 /*
      Combine two Adler-32 checksums into one.  For two sequences of bytes, seq1
    and seq2 with lengths len1 and len2, Adler-32 checksums were calculated for
@@ -1254,7 +1257,7 @@ ZEXTERN uLong ZEXPORT crc32   OF((uLong crc, const Bytef *buf, uInt len));
      if (crc != original_crc) error();
 */
 
-ZEXTERN uLong ZEXPORT crc32_combine OF((uLong crc1, uLong crc2, uLong len2));
+ZEXTERN uLong ZEXPORT crc32_combine OF((uLong crc1, uLong crc2, z_off_t len2));
 
 /*
      Combine two CRC-32 check values into one.  For two sequences of bytes,

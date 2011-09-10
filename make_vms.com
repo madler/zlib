@@ -32,25 +32,24 @@ $   CALL MAKE adler32.OBJ "CC ''CCOPT' adler32" -
 $   CALL MAKE compress.OBJ "CC ''CCOPT' compress" -
                 compress.c zlib.h zconf.h
 $   CALL MAKE crc32.OBJ "CC ''CCOPT' crc32" -
-                crc32.c zlib.h zconf.h
+                crc32.c crc32.h zlib.h zconf.h zutil.h
 $   CALL MAKE deflate.OBJ "CC ''CCOPT' deflate" -
                 deflate.c deflate.h zutil.h zlib.h zconf.h
-$   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio" -
+$   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio /define=""NO_vsnprintf""" -
                 gzio.c zutil.h zlib.h zconf.h
-$   CALL MAKE infblock.OBJ "CC ''CCOPT' infblock" -
-                infblock.c zutil.h zlib.h zconf.h infblock.h
-$   CALL MAKE infcodes.OBJ "CC ''CCOPT' infcodes" -
-                infcodes.c zutil.h zlib.h zconf.h inftrees.h
+$   CALL MAKE infback.OBJ "CC ''CCOPT' infback" -
+                infback.c zutil.h zlib.h zconf.h -
+                "inftrees.h inflate.h inffast.h inffixed.h"
 $   CALL MAKE inffast.OBJ "CC ''CCOPT' inffast" -
-                inffast.c zutil.h zlib.h zconf.h inffast.h
+                inffast.c zutil.h zlib.h zconf.h -
+                "inftrees.h inflate.h inffast.h"
 $   CALL MAKE inflate.OBJ "CC ''CCOPT' inflate" -
-                inflate.c zutil.h zlib.h zconf.h infblock.h
+                inflate.c zutil.h zlib.h zconf.h -
+                "inftrees.h inflate.h inffast.h inffixed.h"
 $   CALL MAKE inftrees.OBJ "CC ''CCOPT' inftrees" -
                 inftrees.c zutil.h zlib.h zconf.h inftrees.h
-$   CALL MAKE infutil.OBJ "CC ''CCOPT' infutil" -
-                infutil.c zutil.h zlib.h zconf.h inftrees.h infutil.h
 $   CALL MAKE trees.OBJ "CC ''CCOPT' trees" -
-                trees.c deflate.h zutil.h zlib.h zconf.h
+                trees.c trees.h deflate.h zutil.h zlib.h zconf.h
 $   CALL MAKE uncompr.OBJ "CC ''CCOPT' uncompr" -
                 uncompr.c zlib.h zconf.h
 $   CALL MAKE zutil.OBJ "CC ''CCOPT' zutil" -
@@ -65,7 +64,7 @@ $   write sys$output "Building minigzip..."
 $   CALL MAKE minigzip.OBJ "CC ''CCOPT' minigzip" -
                 minigzip.c zlib.h zconf.h
 $   call make minigzip.exe -
-                "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" -
+                "LINK minigzip,libz.olb/lib" -
                 minigzip.obj libz.olb
 $  else
 $   mms/macro=('comp')
