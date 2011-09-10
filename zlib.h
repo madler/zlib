@@ -1,7 +1,7 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.2.2, December 30th, 2004
+  version 1.2.2.3, May 27th, 2005
 
-  Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler
+  Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.2.2"
-#define ZLIB_VERNUM 0x1222
+#define ZLIB_VERSION "1.2.2.3"
+#define ZLIB_VERNUM 0x1223
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -556,7 +556,9 @@ ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
    deflateInit or deflateInit2, a part of the dictionary may in effect be
    discarded, for example if the dictionary is larger than the window size in
    deflate or deflate2. Thus the strings most likely to be useful should be
-   put at the end of the dictionary, not at the front.
+   put at the end of the dictionary, not at the front. In addition, the
+   current implementation of deflate will use at most the window size minus
+   262 bytes of the provided dictionary.
 
      Upon return of this function, strm->adler is set to the adler32 value
    of the dictionary; the decompressor may later use this value to determine
@@ -621,6 +623,23 @@ ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
    stream state was inconsistent or if a parameter was invalid, Z_BUF_ERROR
    if strm->avail_out was zero.
 */
+
+ZEXTERN int ZEXPORT deflateTune OF((z_streamp strm,
+                                    int good_length,
+                                    int max_lazy,
+                                    int nice_length,
+                                    int max_chain));
+/*
+     Fine tune deflate's internal compression parameters.  This should only be
+   used by someone who understands the algorithm used by zlib's deflate for
+   searching for the best matching string, and even then only by the most
+   fanatic optimizer trying to squeeze out the last compressed bit for their
+   specific input data.  Read the deflate.c source code for the meaning of the
+   max_lazy, good_length, nice_length, and max_chain parameters.
+
+     deflateTune() can be called after deflateInit() or deflateInit2(), and
+   returns Z_OK on success, or Z_STREAM_ERROR for an invalid deflate stream.
+ */
 
 ZEXTERN uLong ZEXPORT deflateBound OF((z_streamp strm,
                                        uLong sourceLen));
@@ -703,7 +722,7 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
      windowBits can also be greater than 15 for optional gzip decoding. Add
    32 to windowBits to enable zlib and gzip decoding with automatic header
    detection, or add 16 to decode only the gzip format (the zlib format will
-   return a Z_DATA_ERROR.  If a gzip stream is being decoded, strm->adler is
+   return a Z_DATA_ERROR).  If a gzip stream is being decoded, strm->adler is
    a crc32 instead of an adler32.
 
      inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
@@ -1183,6 +1202,12 @@ ZEXTERN int ZEXPORT gzeof OF((gzFile file));
 /*
      Returns 1 when EOF has previously been detected reading the given
    input stream, otherwise zero.
+*/
+
+ZEXTERN int ZEXPORT gzdirect OF((gzFile file));
+/*
+     Returns 1 if file is being read directly without decompression, otherwise
+   zero.
 */
 
 ZEXTERN int ZEXPORT    gzclose OF((gzFile file));

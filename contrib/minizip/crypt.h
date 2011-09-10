@@ -1,9 +1,9 @@
 /* crypt.h -- base code for crypt/uncrypt ZIPfile
 
 
-   Version 1.01, May 8th, 2004
+   Version 1.01e, February 12th, 2005
 
-   Copyright (C) 1998-2004 Gilles Vollant
+   Copyright (C) 1998-2005 Gilles Vollant
 
    This code is a modified version of crypting code in Infozip distribution
 

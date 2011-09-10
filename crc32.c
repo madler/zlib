@@ -1,5 +1,5 @@
 /* crc32.c -- compute the CRC-32 of a data stream
- * Copyright (C) 1995-2004 Mark Adler
+ * Copyright (C) 1995-2005 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Thanks to Rodney Brown <rbrown64@csc.com.au> for his contribution of faster
@@ -273,7 +273,7 @@ local unsigned long crc32_little(crc, buf, len)
         len--;
     }
 
-    buf4 = (const u4 FAR *)buf;
+    buf4 = (const u4 FAR *)(const void FAR *)buf;
     while (len >= 32) {
         DOLIT32;
         len -= 32;
@@ -313,7 +313,7 @@ local unsigned long crc32_big(crc, buf, len)
         len--;
     }
 
-    buf4 = (const u4 FAR *)buf;
+    buf4 = (const u4 FAR *)(const void FAR *)buf;
     buf4--;
     while (len >= 32) {
         DOBIG32;

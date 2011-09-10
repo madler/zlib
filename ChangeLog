@@ -1,6 +1,27 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.2.3 (27 May 2005)
+- Replace 1U constants in inflate.c and inftrees.c for 64-bit compile
+- Typecast fread() return values in gzio.c [Vollant]
+- Remove trailing space in minigzip.c outmode (VC++ can't deal with it)
+- Fix crc check bug in gzread() after gzungetc() [Heiner]
+- Add the deflateTune() function to adjust internal compression parameters
+- Add a fast gzip decompressor, gun.c, to examples (use of inflateBack)
+- Remove an incorrect assertion in examples/zpipe.c
+- Add C++ wrapper in infback9.h [Donais]
+- Fix bug in inflateCopy() when decoding fixed codes
+- Note in zlib.h how much deflateSetDictionary() actually uses
+- Remove USE_DICT_HEAD in deflate.c (would mess up inflate if used)
+- Add _WIN32_WCE to define WIN32 in zconf.in.h [Spencer]
+- Don't include stderr.h or errno.h for _WIN32_WCE in zutil.h [Spencer]
+- Add gzdirect() function to indicate transparent reads
+- Update contrib/minizip [Vollant]
+- Fix compilation of deflate.c when both ASMV and FASTEST [Oberhumer]
+- Add casts in crc32.c to avoid warnings [Oberhumer]
+- Add contrib/masmx64 [Vollant]
+- Update contrib/asm586, asm686, masmx86, testzlib, vstudio [Vollant]
+
 Changes in 1.2.2.2 (30 December 2004)
 - Replace structure assignments in deflate.c and inflate.c with zmemcpy to
   avoid implicit memcpy calls (portability for no-library compilation)

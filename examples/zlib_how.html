@@ -420,10 +420,11 @@ The output of <tt>inflate()</tt> is handled identically to that of <tt>deflate()
             }
 </b></pre>
 The inner <tt>do</tt>-loop ends when <tt>inflate()</tt> has no more output as indicated
-by not filling the output buffer, just as for <tt>deflate()</tt>.
+by not filling the output buffer, just as for <tt>deflate()</tt>.  In this case, we cannot
+assert that <tt>strm.avail_in</tt> will be zero, since the deflate stream may end before the file
+does.
 <pre><b>
         } while (strm.avail_out == 0);
-        assert(strm.avail_in == 0);     /* all input will be used */
 </b></pre><!-- -->
 The outer <tt>do</tt>-loop ends when <tt>inflate()</tt> reports that it has reached the
 end of the input <em>zlib</em> stream, has completed the decompression and integrity

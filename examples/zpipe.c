@@ -7,6 +7,7 @@
    1.1   8 Nov 2004  Add void casting for unused return values
                      Use switch statement for inflate() return values
    1.2   9 Nov 2004  Add assertions to document zlib guarantees
+   1.3   6 Apr 2005  Remove incorrect assertion in inf()
  */
 
 #include <stdio.h>
@@ -127,7 +128,6 @@ int inf(FILE *source, FILE *dest)
                 return Z_ERRNO;
             }
         } while (strm.avail_out == 0);
-        assert(strm.avail_in == 0);     /* all input will be used */
 
         /* done when inflate() says it's done */
     } while (ret != Z_STREAM_END);

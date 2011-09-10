@@ -42,6 +42,10 @@ masm686/    by Dan Higdon <hdan@kinesoft.com>
             and Chuck Walbourn <chuckw@kinesoft.com>
         asm code for Pentium Pro/PII, using the MASM syntax
 
+masmx64/    by Gilles Vollant <info@winimage.com>
+	x86 64-bit (AMD64 and Intel EM64t) code for x64 assembler to
+	replace longest_match() and inflate_fast()
+
 masmx86/    by Gilles Vollant <info@winimage.com>
         x86 asm code to replace longest_match() and inflate_fast(),
         for Visual C++ and MASM

@@ -1,8 +1,8 @@
 /*
    minizip.c
-   Version 1.01b, May 30th, 2004
+   Version 1.01e, February 12th, 2005
 
-   Copyright (C) 1998-2004 Gilles Vollant
+   Copyright (C) 1998-2005 Gilles Vollant
 */
 
 #include <stdio.h>

@@ -1,7 +1,10 @@
 /* zip.c -- IO on .zip files using zlib
-   Version 1.01, May 8th, 2004
+   Version 1.01e, February 12th, 2005
 
-   Copyright (C) 1998-2004 Gilles Vollant
+   27 Dec 2004 Rolf Kalbermatter
+   Modification to zipOpen2 to support globalComment retrieval.
+
+   Copyright (C) 1998-2005 Gilles Vollant
 
    Read zip.h for more info
 */
@@ -143,6 +146,9 @@ typedef struct
     uLong begin_pos;            /* position of the beginning of the zipfile */
     uLong add_position_when_writting_offset;
     uLong number_entry;
+#ifndef NO_ADDFILEINEXISTINGZIP
+    char *globalcomment;
+#endif
 } zip_internal;
 
 
@@ -532,6 +538,7 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
 
     /* now we add file in a zipfile */
 #    ifndef NO_ADDFILEINEXISTINGZIP
+    ziinit.globalcomment = NULL;
     if (append == APPEND_STATUS_ADDINZIP)
     {
         uLong byte_before_the_zipfile;/* byte before the zipfile, (>0 for sfx)*/
@@ -592,7 +599,7 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
         if (ziplocal_getLong(&ziinit.z_filefunc, ziinit.filestream,&offset_central_dir)!=ZIP_OK)
             err=ZIP_ERRNO;
 
-        /* zipfile comment length */
+        /* zipfile global comment length */
         if (ziplocal_getShort(&ziinit.z_filefunc, ziinit.filestream,&size_comment)!=ZIP_OK)
             err=ZIP_ERRNO;
 
@@ -606,9 +613,19 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
             return NULL;
         }
 
+        if (size_comment>0)
+        {
+            ziinit.globalcomment = ALLOC(size_comment+1);
+            if (ziinit.globalcomment)
+            {
+               size_comment = ZREAD(ziinit.z_filefunc, ziinit.filestream,ziinit.globalcomment,size_comment);
+               ziinit.globalcomment[size_comment]=0;
+            }
+        }
+
         byte_before_the_zipfile = central_pos -
                                 (offset_central_dir+size_central_dir);
-        ziinit.add_position_when_writting_offset = byte_before_the_zipfile ;
+        ziinit.add_position_when_writting_offset = byte_before_the_zipfile;
 
         {
             uLong size_central_dir_to_read = size_central_dir;
@@ -641,10 +658,18 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
                   offset_central_dir+byte_before_the_zipfile,ZLIB_FILEFUNC_SEEK_SET)!=0)
             err=ZIP_ERRNO;
     }
+
+    if (globalcomment)
+    {
+      *globalcomment = ziinit.globalcomment;
+    }
 #    endif /* !NO_ADDFILEINEXISTINGZIP*/
 
     if (err != ZIP_OK)
     {
+#    ifndef NO_ADDFILEINEXISTINGZIP
+        TRYFREE(ziinit.globalcomment);
+#    endif /* !NO_ADDFILEINEXISTINGZIP*/
         TRYFREE(zi);
         return NULL;
     }
@@ -1112,7 +1137,7 @@ extern int ZEXPORT zipClose (file, global_comment)
     zip_internal* zi;
     int err = 0;
     uLong size_centraldir = 0;
-    uLong centraldir_pos_inzip ;
+    uLong centraldir_pos_inzip;
     uInt size_global_comment;
     if (file == NULL)
         return ZIP_PARAMERROR;
@@ -1123,11 +1148,14 @@ extern int ZEXPORT zipClose (file, global_comment)
         err = zipCloseFileInZip (file);
     }
 
+#ifndef NO_ADDFILEINEXISTINGZIP
+    if (global_comment==NULL)
+        global_comment = zi->globalcomment;
+#endif
     if (global_comment==NULL)
         size_global_comment = 0;
     else
         size_global_comment = (uInt)strlen(global_comment);
-
 
     centraldir_pos_inzip = ZTELL(zi->z_filefunc,zi->filestream);
     if (err==ZIP_OK)
@@ -1182,6 +1210,9 @@ extern int ZEXPORT zipClose (file, global_comment)
         if (err == ZIP_OK)
             err = ZIP_ERRNO;
 
+#ifndef NO_ADDFILEINEXISTINGZIP
+    TRYFREE(zi->globalcomment);
+#endif
     TRYFREE(zi);
 
     return err;

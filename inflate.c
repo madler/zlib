@@ -1,5 +1,5 @@
 /* inflate.c -- zlib decompression
- * Copyright (C) 1995-2004 Mark Adler
+ * Copyright (C) 1995-2005 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -1334,11 +1334,15 @@ z_streamp source;
     /* copy state */
     zmemcpy(dest, source, sizeof(z_stream));
     zmemcpy(copy, state, sizeof(struct inflate_state));
-    copy->lencode = copy->codes + (state->lencode - state->codes);
-    copy->distcode = copy->codes + (state->distcode - state->codes);
+    if (state->lencode >= state->codes &&
+        state->lencode <= state->codes + ENOUGH - 1)
+    {
+        copy->lencode = copy->codes + (state->lencode - state->codes);
+        copy->distcode = copy->codes + (state->distcode - state->codes);
+    }
     copy->next = copy->codes + (state->next - state->codes);
     if (window != Z_NULL)
-        zmemcpy(window, state->window, 1U << state->wbits);
+        zmemcpy(window, state->window, (uInt)(1U << state->wbits));
     copy->window = window;
     dest->state = (voidpf)copy;
     return Z_OK;

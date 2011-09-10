@@ -1,7 +1,7 @@
 /* unzip.c -- IO for uncompress .zip files using zlib
-   Version 1.01d, September 22th, 2004
+   Version 1.01e, February 12th, 2005
 
-   Copyright (C) 1998-2004 Gilles Vollant
+   Copyright (C) 1998-2005 Gilles Vollant
 
    Read unzip.h for more info
 */
@@ -1137,7 +1137,10 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
       if (err == Z_OK)
         pfile_in_zip_read_info->stream_initialised=1;
       else
+      {
+        TRYFREE(pfile_in_zip_read_info);
         return err;
+      }
         /* windowBits is passed < 0 to tell that there is no zlib header.
          * Note that in this case inflate *requires* an extra "dummy" byte
          * after the compressed stream in order to complete decompression and

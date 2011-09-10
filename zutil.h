@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2004 Jean-loup Gailly.
+ * Copyright (C) 1995-2005 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -17,7 +17,9 @@
 #include "zlib.h"
 
 #ifdef STDC
-#  include <stddef.h>
+#  ifndef _WIN32_WCE
+#    include <stddef.h>
+#  endif
 #  include <string.h>
 #  include <stdlib.h>
 #endif
@@ -32,7 +34,9 @@
 #   endif
     extern int errno;
 #else
-#   include <errno.h>
+#  ifndef _WIN32_WCE
+#    include <errno.h>
+#  endif
 #endif
 
 #ifndef local

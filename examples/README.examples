@@ -4,6 +4,13 @@ fitblk.c
     compress just enough input to nearly fill a requested output size
     - zlib isn't designed to do this, but fitblk does it anyway
 
+gun.c
+    uncompress a gzip file
+    - illustrates the use of inflateBack() for high speed file-to-file
+      decompression using call-back functions
+    - is approximately twice as fast as gzip -d
+    - also provides Unix uncompress functionality, again twice as fast
+
 gzappend.c
     append to a gzip file
     - illustrates the use of the Z_BLOCK flush parameter for inflate()
@@ -27,3 +34,4 @@ zlib_how.html
 zpipe.c
     reads and writes zlib streams from stdin to stdout
     - illustrates the proper use of deflate() and inflate()
+    - deeply commented in zlib_how.html (see above)

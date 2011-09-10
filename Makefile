@@ -30,7 +30,7 @@ CPP=$(CC) -E
 
 LIBS=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.2.2
+SHAREDLIBV=libz.so.1.2.2.3
 SHAREDLIBM=libz.so.1
 
 AR=ar rc

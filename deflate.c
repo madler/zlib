@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2004 Jean-loup Gailly.
+ * Copyright (C) 1995-2005 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.2.2 Copyright 1995-2004 Jean-loup Gailly ";
+   " deflate 1.2.2.3 Copyright 1995-2005 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -334,9 +334,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     if (length < MIN_MATCH) return Z_OK;
     if (length > MAX_DIST(s)) {
         length = MAX_DIST(s);
-#ifndef USE_DICT_HEAD
         dictionary += dictLength - length; /* use the tail of the dictionary */
-#endif
     }
     zmemcpy(s->window, dictionary, length);
     s->strstart = length;
@@ -450,6 +448,25 @@ int ZEXPORT deflateParams(strm, level, strategy)
     }
     s->strategy = strategy;
     return err;
+}
+
+/* ========================================================================= */
+int ZEXPORT deflateTune(strm, good_length, max_lazy, nice_length, max_chain)
+    z_streamp strm;
+    int good_length;
+    int max_lazy;
+    int nice_length;
+    int max_chain;
+{
+    deflate_state *s;
+
+    if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
+    s = strm->state;
+    s->good_match = good_length;
+    s->max_lazy_match = max_lazy;
+    s->nice_match = nice_length;
+    s->max_chain_length = max_chain;
+    return Z_OK;
 }
 
 /* =========================================================================
@@ -986,8 +1003,10 @@ local void lm_init (s)
     s->match_length = s->prev_length = MIN_MATCH-1;
     s->match_available = 0;
     s->ins_h = 0;
+#ifndef FASTEST
 #ifdef ASMV
     match_init(); /* initialize the asm code */
+#endif
 #endif
 }
 
