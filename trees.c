@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-1996 Jean-loup Gailly
+ * Copyright (C) 1995 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -83,7 +83,7 @@ local uch bl_order[BL_CODES]
 local ct_data static_ltree[L_CODES+2];
 /* The static literal tree. Since the bit lengths are imposed, there is no
  * need for the L_CODES extra codes used during heap construction. However
- * The codes 286 and 287 are needed to build a canonical tree (see _tr_init
+ * The codes 286 and 287 are needed to build a canonical tree (see tr_init
  * below).
  */
 
@@ -292,7 +292,7 @@ local void tr_static_init()
     /* The static distance tree is trivial: */
     for (n = 0; n < D_CODES; n++) {
         static_dtree[n].Len = 5;
-        static_dtree[n].Code = bi_reverse((unsigned)n, 5);
+        static_dtree[n].Code = bi_reverse(n, 5);
     }
     static_init_done = 1;
 }
@@ -300,7 +300,7 @@ local void tr_static_init()
 /* ===========================================================================
  * Initialize the tree data structures for a new zlib stream.
  */
-void _tr_init(s)
+void tr_init(s)
     deflate_state *s;
 {
     tr_static_init();
@@ -785,14 +785,14 @@ local void send_all_trees(s, lcodes, dcodes, blcodes)
 /* ===========================================================================
  * Send a stored block
  */
-void _tr_stored_block(s, buf, stored_len, eof)
+void tr_stored_block(s, buf, stored_len, eof)
     deflate_state *s;
     charf *buf;       /* input block */
     ulg stored_len;   /* length of input block */
     int eof;          /* true if this is the last block for a file */
 {
     send_bits(s, (STORED_BLOCK<<1)+eof, 3);  /* send block type */
-    s->compressed_len = (s->compressed_len + 3 + 7) & (ulg)~7L;
+    s->compressed_len = (s->compressed_len + 3 + 7) & ~7L;
     s->compressed_len += (stored_len + 4) << 3;
 
     copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
@@ -809,7 +809,7 @@ void _tr_stored_block(s, buf, stored_len, eof)
  * To simplify the code, we assume the worst case of last real code encoded
  * on one bit only.
  */
-void _tr_align(s)
+void tr_align(s)
     deflate_state *s;
 {
     send_bits(s, STATIC_TREES<<1, 3);
@@ -835,20 +835,20 @@ void _tr_align(s)
  * trees or store, and output the encoded block to the zip file. This function
  * returns the total compressed length for the file so far.
  */
-ulg _tr_flush_block(s, buf, stored_len, eof)
+ulg tr_flush_block(s, buf, stored_len, eof)
     deflate_state *s;
     charf *buf;       /* input block, or NULL if too old */
     ulg stored_len;   /* length of input block */
     int eof;          /* true if this is the last block for a file */
 {
     ulg opt_lenb, static_lenb; /* opt_len and static_len in bytes */
-    int max_blindex = 0;  /* index of last bit length code of non zero freq */
+    int max_blindex;  /* index of last bit length code of non zero freq */
 
     /* Build the Huffman trees unless a stored block is forced */
     if (s->level > 0) {
 
 	 /* Check if the file is ascii or binary */
-	if (s->data_type == Z_UNKNOWN) set_data_type(s);
+	if (s->data_type == UNKNOWN) set_data_type(s);
 
 	/* Construct the literal and distance trees */
 	build_tree(s, (tree_desc *)(&(s->l_desc)));
@@ -879,7 +879,7 @@ ulg _tr_flush_block(s, buf, stored_len, eof)
 
     } else {
         Assert(buf != (char*)0, "lost buf");
-	opt_lenb = static_lenb = stored_len + 5; /* force a stored block */
+	opt_lenb = stored_len + 5; /* force a stored block */
     }
 
     /* If compression failed and this is the first and last block,
@@ -913,7 +913,7 @@ ulg _tr_flush_block(s, buf, stored_len, eof)
          * successful. If LIT_BUFSIZE <= WSIZE, it is never too late to
          * transform a block into a stored block.
          */
-        _tr_stored_block(s, buf, stored_len, eof);
+        tr_stored_block(s, buf, stored_len, eof);
 
 #ifdef FORCE_STATIC
     } else if (static_lenb >= 0) { /* force static trees */
@@ -947,10 +947,10 @@ ulg _tr_flush_block(s, buf, stored_len, eof)
  * Save the match info and tally the frequency counts. Return true if
  * the current block must be flushed.
  */
-int _tr_tally (s, dist, lc)
+int tr_tally (s, dist, lc)
     deflate_state *s;
-    unsigned dist;  /* distance of matched string */
-    unsigned lc;    /* match length-MIN_MATCH or unmatched char (if dist==0) */
+    int dist;  /* distance of matched string */
+    int lc;    /* match length-MIN_MATCH or unmatched char (if dist==0) */
 {
     s->d_buf[s->last_lit] = (ush)dist;
     s->l_buf[s->last_lit++] = (uch)lc;
@@ -963,7 +963,7 @@ int _tr_tally (s, dist, lc)
         dist--;             /* dist = match distance - 1 */
         Assert((ush)dist < (ush)MAX_DIST(s) &&
                (ush)lc <= (ush)(MAX_MATCH-MIN_MATCH) &&
-               (ush)d_code(dist) < (ush)D_CODES,  "_tr_tally: bad match");
+               (ush)d_code(dist) < (ush)D_CODES,  "tr_tally: bad match");
 
         s->dyn_ltree[length_code[lc]+LITERALS+1].Freq++;
         s->dyn_dtree[d_code(dist)].Freq++;
@@ -1057,7 +1057,7 @@ local void set_data_type(s)
     while (n < 7)        bin_freq += s->dyn_ltree[n++].Freq;
     while (n < 128)    ascii_freq += s->dyn_ltree[n++].Freq;
     while (n < LITERALS) bin_freq += s->dyn_ltree[n++].Freq;
-    s->data_type = (Byte)(bin_freq > (ascii_freq >> 2) ? Z_BINARY : Z_ASCII);
+    s->data_type = (Byte)(bin_freq > (ascii_freq >> 2) ? BINARY : ASCII);
 }
 
 /* ===========================================================================

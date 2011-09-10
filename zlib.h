@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.0, Jan 27th, 1996.
+  version 1.0, Jan 14th, 1996.
 
   Copyright (C) 1995-1996 Jean-loup Gailly and Mark Adler
 
@@ -51,11 +51,6 @@ extern "C" {
   repeated calls of the compression function.  In the latter case, the
   application must provide more input and/or consume the output
   (providing more output space) before each call.
-
-     The library does not install any signal handler. It is recommended to
-  add at least a handler for SIGSEGV when decompressing; the library checks
-  the consistency of the input data whenever possible but may go nuts
-  for some forms of corrupted input.
 */
 
 typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));
@@ -79,9 +74,8 @@ typedef struct z_stream_s {
     free_func  zfree;   /* used to free the internal state */
     voidpf     opaque;  /* private data object passed to zalloc and zfree */
 
-    int     data_type;  /* best guess about the data type: ascii or binary */
-    uLong   adler;      /* adler32 value of the uncompressed data */
-    uLong   reserved;   /* reserved for future use */
+    Byte     data_type; /* best guess about the data type: ascii or binary */
+
 } z_stream;
 
 /*
@@ -124,16 +118,12 @@ typedef struct z_stream_s {
 
 #define Z_OK            0
 #define Z_STREAM_END    1
-#define Z_NEED_DICT     2
 #define Z_ERRNO        (-1)
 #define Z_STREAM_ERROR (-2)
 #define Z_DATA_ERROR   (-3)
 #define Z_MEM_ERROR    (-4)
 #define Z_BUF_ERROR    (-5)
-#define Z_VERSION_ERROR (-6)
-/* Return codes for the compression/decompression functions. Negative
- * values are errors, positive values are used for special but normal events.
- */
+/* error codes for the compression/decompression functions */
 
 #define Z_NO_COMPRESSION         0
 #define Z_BEST_SPEED             1
@@ -144,19 +134,18 @@ typedef struct z_stream_s {
 #define Z_FILTERED            1
 #define Z_HUFFMAN_ONLY        2
 #define Z_DEFAULT_STRATEGY    0
-/* compression strategy; see deflateInit2() below for details */
 
 #define Z_BINARY   0
 #define Z_ASCII    1
 #define Z_UNKNOWN  2
-/* Possible values of the data_type field */
+/* Used to set the data_type field */
 
 #define Z_DEFLATED   8
 /* The deflate compression method (the only one supported in this version) */
 
 #define Z_NULL  0  /* for initializing zalloc, zfree, opaque */
 
-extern const char *zlib_version;
+extern char *zlib_version;
 /* The application can compare zlib_version and ZLIB_VERSION for consistency.
    If the first character differs, the library code actually used is
    not compatible with the zlib.h header file used by the application.
@@ -164,9 +153,8 @@ extern const char *zlib_version;
 
                         /* basic functions */
 
-/* 
 extern int deflateInit OF((z_stream *strm, int level));
-
+/* 
      Initializes the internal stream state for compression. The fields
    zalloc, zfree and opaque must be initialized before by the caller.
    If zalloc and zfree are set to Z_NULL, deflateInit updates them to
@@ -179,9 +167,7 @@ extern int deflateInit OF((z_stream *strm, int level));
    compression (currently equivalent to level 6).
 
      deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if level is not a valid compression level,
-   Z_VERSION_ERROR if the zlib library version (zlib_version) is incompatible
-   with the version assumed by the caller (ZLIB_VERSION).
+   enough memory, Z_STREAM_ERROR if level is not a valid compression level.
    msg is set to null if there is no error message.  deflateInit does not
    perform any compression: this will be done by deflate().
 */
@@ -261,26 +247,22 @@ extern int deflateEnd OF((z_stream *strm));
    pending output.
 
      deflateEnd returns Z_OK if success, Z_STREAM_ERROR if the
-   stream state was inconsistent, Z_DATA_ERROR if the stream was freed
-   prematurely (some input or output was discarded). In the error case,
-   msg may be set but then points to a static string (which must not be
-   deallocated).
+   stream state was inconsistent. In the error case, msg may be set
+   but then points to a static string (which must not be deallocated).
 */
 
 
-/* 
 extern int inflateInit OF((z_stream *strm));
-
+/* 
      Initializes the internal stream state for decompression. The fields
    zalloc, zfree and opaque must be initialized before by the caller.  If
    zalloc and zfree are set to Z_NULL, inflateInit updates them to use default
    allocation functions.
 
      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_VERSION_ERROR if the zlib library version is incompatible
-   with the version assumed by the caller.  msg is set to null if there is no
-   error message. inflateInit does not perform any decompression: this will be
-   done by inflate().
+   enough memory.  msg is set to null if there is no error message.
+   inflateInit does not perform any decompression: this will be done by
+   inflate().
 */
 
 
@@ -324,15 +306,12 @@ extern int inflate OF((z_stream *strm, int flush));
     inflate() returns Z_OK if some progress has been made (more input
   processed or more output produced), Z_STREAM_END if the end of the
   compressed data has been reached and all uncompressed output has been
-  produced, Z_NEED_DICT if a preset dictionary is needed at this point (see
-  inflateSetDictionary below), Z_DATA_ERROR if the input data was corrupted,
-  Z_STREAM_ERROR if the stream structure was inconsistent (for example if
-  next_in or next_out was NULL), Z_MEM_ERROR if there was not enough memory,
-  Z_BUF_ERROR if no progress is possible or if there was not enough room in
-  the output buffer when Z_FINISH is used. In the Z_DATA_ERROR case, the
-  application may then call inflateSync to look for a good compression block.
-  In the Z_NEED_DICT case, strm->adler is set to the Adler32 value of the
-  dictionary chosen by the compressor.
+  produced, Z_DATA_ERROR if the input data was corrupted, Z_STREAM_ERROR if
+  the stream structure was inconsistent (for example if next_in or next_out
+  was NULL), Z_MEM_ERROR if there was not enough memory, Z_BUF_ERROR if no
+  progress is possible or if there was not enough room in the output buffer
+  when Z_FINISH is used. In the Z_DATA_ERROR case, the application may then
+  call inflateSync to look for a good compression block.
 */
 
 
@@ -347,20 +326,19 @@ extern int inflateEnd OF((z_stream *strm));
    static string (which must not be deallocated).
 */
 
-                        /* Advanced functions */
+                        /* advanced functions */
 
 /*
     The following functions are needed only in some special applications.
 */
 
-/*   
 extern int deflateInit2 OF((z_stream *strm,
                             int  level,
                             int  method,
                             int  windowBits,
                             int  memLevel,
                             int  strategy));
-
+/*   
      This is another version of deflateInit with more compression options. The
    fields next_in, zalloc, zfree and opaque must be initialized before by
    the caller.
@@ -375,22 +353,20 @@ extern int deflateInit2 OF((z_stream *strm,
    values of this parameter result in better compression at the expense of
    memory usage. The default value is 15 if deflateInit is used instead.
 
-     The memLevel parameter specifies how much memory should be allocated
+    The memLevel parameter specifies how much memory should be allocated
    for the internal compression state. memLevel=1 uses minimum memory but
    is slow and reduces compression ratio; memLevel=9 uses maximum memory
    for optimal speed. The default value is 8. See zconf.h for total memory
    usage as a function of windowBits and memLevel.
 
-     The strategy parameter is used to tune the compression algorithm. Use the
-   value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data produced by a
-   filter (or predictor), or Z_HUFFMAN_ONLY to force Huffman encoding only (no
-   string match).  Filtered data consists mostly of small values with a
-   somewhat random distribution. In this case, the compression algorithm is
-   tuned to compress them better. The effect of Z_FILTERED is to force more
-   Huffman coding and less string matching; it is somewhat intermediate
-   between Z_DEFAULT and Z_HUFFMAN_ONLY. The strategy parameter only affects
-   the compression ratio but not the correctness of the compressed output even
-   if it is not set appropriately.
+     The strategy parameter is used to tune the compression algorithm. Use
+   the value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data
+   produced by a filter (or predictor), or Z_HUFFMAN_ONLY to force Huffman
+   encoding only (no string match).  Filtered data consists mostly of small
+   values with a somewhat random distribution. In this case, the
+   compression algorithm is tuned to compress them better. The strategy
+   parameter only affects the compression ratio but not the correctness of
+   the compressed output even if it is not set appropriately.
 
      If next_in is not null, the library will use this buffer to hold also
    some history information; the buffer must either hold the entire input
@@ -409,38 +385,9 @@ extern int deflateInit2 OF((z_stream *strm,
    not enough memory, Z_STREAM_ERROR if a parameter is invalid (such as
    an invalid method). msg is set to null if there is no error message.
    deflateInit2 does not perform any compression: this will be done by
-   deflate(). 
+   deflate().
 */
                             
-extern int deflateSetDictionary OF((z_stream *strm,
-				    const Bytef *dictionary,
-				    uInt  dictLength));
-/*
-     Initializes the compression dictionary (history buffer) from the given
-   byte sequence without producing any compressed output. This function must
-   be called immediately after deflateInit or deflateInit2, before any call
-   of deflate. The compressor and decompressor must use exactly the same
-   dictionary (see inflateSetDictionary).
-     The dictionary should consist of strings (byte sequences) that are likely
-   to be encountered later in the data to be compressed, with the most commonly
-   used strings preferably put towards the end of the dictionary. Using a
-   dictionary is most useful when the data to be compressed is short and
-   can be predicted with good accuracy; the data can then be compressed better
-   than with the default empty dictionary. In this version of the library,
-   only the last 32K bytes of the dictionary are used.
-     Upon return of this function, strm->adler is set to the Adler32 value
-   of the dictionary; the decompressor may later use this value to determine
-   which dictionary has been used by the compressor. (The Adler32 value
-   applies to the whole dictionary even if only a subset of the dictionary is
-   actually used by the compressor.)
-
-     deflateSetDictionary returns Z_OK if success, or Z_STREAM_ERROR if a
-   parameter is invalid (such as NULL dictionary) or the stream state
-   is inconsistent (for example if deflate has already been called for this
-   stream). deflateSetDictionary does not perform any compression: this will
-   be done by deflate(). 
-*/
-
 extern int deflateCopy OF((z_stream *dest,
                            z_stream *source));
 /*
@@ -451,14 +398,14 @@ extern int deflateCopy OF((z_stream *dest,
    application to provide the correct values of next_out and avail_out for the
    next call of deflate.
 
-     This function can be useful when several compression strategies will be
+     This function is useful when several compression strategies will be
    tried, for example when there are several ways of pre-processing the input
    data with a filter. The streams that will be discarded should then be freed
    by calling deflateEnd.  Note that deflateCopy duplicates the internal
    compression state which can be quite large, so this strategy is slow and
    can consume lots of memory.
 
-     deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
+      deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
    (such as zalloc being NULL). msg is left unchanged in both source and
    destination.
@@ -488,10 +435,9 @@ extern int deflateParams OF((z_stream *strm, int level, int strategy));
    stream state was inconsistent or if a parameter was invalid.
 */
 
-/*   
 extern int inflateInit2 OF((z_stream *strm,
                             int  windowBits));
-
+/*   
      This is another version of inflateInit with more compression options. The
    fields next_out, zalloc, zfree and opaque must be initialized before by
    the caller.
@@ -520,25 +466,6 @@ extern int inflateInit2 OF((z_stream *strm,
    not enough memory, Z_STREAM_ERROR if a parameter is invalid (such as
    windowBits < 8). msg is set to null if there is no error message.
    inflateInit2 does not perform any decompression: this will be done by
-   inflate().
-*/
-
-extern int inflateSetDictionary OF((z_stream *strm,
-				    const Bytef *dictionary,
-				    uInt  dictLength));
-/*
-     Initializes the decompression dictionary (history buffer) from the given
-   uncompressed byte sequence. This function must be called immediately after
-   a call of inflate if this call returned Z_NEED_DICT. The dictionary chosen
-   by the compressor can be determined from the Adler32 value returned by this
-   call of inflate. The compressor and decompressor must use exactly the same
-   dictionary (see deflateSetDictionary).
-
-     inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
-   parameter is invalid (such as NULL dictionary) or the stream state is
-   inconsistent, Z_DATA_ERROR if the given dictionary doesn't match the
-   expected one (incorrect Adler32 value). inflateSetDictionary does not
-   perform any decompression: this will be done by subsequent calls of
    inflate().
 */
 
@@ -579,7 +506,7 @@ extern int inflateReset OF((z_stream *strm));
 */
 
 extern int compress OF((Bytef *dest,   uLongf *destLen,
-                        const Bytef *source, uLong sourceLen));
+                        Bytef *source, uLong sourceLen));
 /*
      Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -594,7 +521,7 @@ extern int compress OF((Bytef *dest,   uLongf *destLen,
 */
 
 extern int uncompress OF((Bytef *dest,   uLongf *destLen,
-                          const Bytef *source, uLong sourceLen));
+                          Bytef *source, uLong sourceLen));
 /*
      Decompresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -614,7 +541,7 @@ extern int uncompress OF((Bytef *dest,   uLongf *destLen,
 
 typedef voidp gzFile;
 
-extern gzFile gzopen  OF((const char *path, const char *mode));
+extern gzFile gzopen  OF((char *path, char *mode));
 /*
      Opens a gzip (.gz) file for reading or writing. The mode parameter
    is as in fopen ("rb" or "wb") but can also include a compression level
@@ -626,15 +553,12 @@ extern gzFile gzopen  OF((const char *path, const char *mode));
    zlib error is Z_MEM_ERROR).
 */
 
-extern gzFile gzdopen  OF((int fd, const char *mode));
+extern gzFile gzdopen  OF((int fd, char *mode));
 /*
      gzdopen() associates a gzFile with the file descriptor fd.  File
    descriptors are obtained from calls like open, dup, creat, pipe or
    fileno (in the file has been previously opened with fopen).
    The mode parameter is as in fopen ("rb" or "wb").
-     The next call of gzclose on the returned gzFile will also close the
-   file descriptor fd, just like fclose(fdopen(fd), mode) closes the file
-   descriptor fd. If you want to keep fd open, use gzdopen(dup(fd), mode).
      gzdopen returns NULL if there was insufficient memory to allocate
    the (de)compression state.
 */
@@ -647,7 +571,7 @@ extern int    gzread  OF((gzFile file, voidp buf, unsigned len));
      gzread returns the number of uncompressed bytes actually read (0 for
    end of file, -1 for error). */
 
-extern int    gzwrite OF((gzFile file, const voidp buf, unsigned len));
+extern int    gzwrite OF((gzFile file, voidp buf, unsigned len));
 /*
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of uncompressed bytes actually written
@@ -688,7 +612,7 @@ extern char*   gzerror OF((gzFile file, int *errnum));
    compression library.
 */
 
-extern uLong adler32 OF((uLong adler, const Bytef *buf, uInt len));
+extern uLong adler32 OF((uLong adler, Bytef *buf, uInt len));
 
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
@@ -705,7 +629,7 @@ extern uLong adler32 OF((uLong adler, const Bytef *buf, uInt len));
      if (adler != original_adler) error();
 */
 
-extern uLong crc32   OF((uLong crc, const Bytef *buf, uInt len));
+extern uLong crc32   OF((uLong crc, Bytef *buf, uInt len));
 /*
      Update a running crc with the bytes buf[0..len-1] and return the updated
    crc. If buf is NULL, this function returns the required initial value
@@ -721,36 +645,9 @@ extern uLong crc32   OF((uLong crc, const Bytef *buf, uInt len));
      if (crc != original_crc) error();
 */
 
-
-                        /* various hacks, don't look :) */
-
-/* deflateInit and inflateInit are macros to allow checking the zlib version
- * and the compiler's view of z_stream:
- */
-extern int deflateInit_ OF((z_stream *strm, int level,
-			    const char *version, int stream_size));
-extern int inflateInit_ OF((z_stream *strm,
-			    const char *version, int stream_size));
-extern int deflateInit2_ OF((z_stream *strm, int  level, int  method,
-                             int  windowBits, int  memLevel, int  strategy,
-			     const char *version, int stream_size));
-extern int inflateInit2_ OF((z_stream *strm, int  windowBits,
-			     const char *version, int stream_size));
-#define deflateInit(strm, level) \
-        deflateInit_((strm), (level),       ZLIB_VERSION, sizeof(z_stream))
-#define inflateInit(strm) \
-        inflateInit_((strm),                ZLIB_VERSION, sizeof(z_stream))
-#define deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
-        deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
-		      (strategy),           ZLIB_VERSION, sizeof(z_stream))
-#define inflateInit2(strm, windowBits) \
-        inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
-
 #ifndef _Z_UTIL_H
     struct internal_state {int dummy;}; /* hack for buggy compilers */
 #endif
-
-uLongf *get_crc_table OF((void)); /* can be used by asm versions of crc32() */
 
 #ifdef __cplusplus
 }

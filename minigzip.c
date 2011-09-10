@@ -1,5 +1,5 @@
 /* minigzip.c -- simulate gzip using the zlib compression library
- * Copyright (C) 1995-1996 Jean-loup Gailly.
+ * Copyright (C) 1995 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -52,7 +52,7 @@ extern int unlink OF((const char *));
 
 char *prog;
 
-void error           OF((const char *msg));
+void error           OF((char *msg));
 void gz_compress     OF((FILE   *in, gzFile out));
 void gz_uncompress   OF((gzFile in, FILE   *out));
 void file_compress   OF((char  *file));
@@ -63,7 +63,7 @@ int  main            OF((int argc, char *argv[]));
  * Display error message and exit
  */
 void error(msg)
-    const char *msg;
+    char *msg;
 {
     fprintf(stderr, "%s: %s\n", prog, msg);
     exit(1);
@@ -88,7 +88,7 @@ void gz_compress(in, out)
         }
         if (len == 0) break;
 
-        if (gzwrite(out, buf, (unsigned)len) != len) error(gzerror(out, &err));
+        if (gzwrite(out, buf, len) != len) error(gzerror(out, &err));
     }
     fclose(in);
     if (gzclose(out) != Z_OK) error("failed gzclose");
@@ -110,9 +110,7 @@ void gz_uncompress(in, out)
         if (len < 0) error (gzerror(in, &err));
         if (len == 0) break;
 
-        if ((int)fwrite(buf, 1, (unsigned)len, out) != len) {
-	    error("failed fwrite");
-	}
+        if (fwrite(buf, 1, len, out) != (uInt)len) error("failed fwrite");
     }
     if (fclose(out)) error("failed fclose");
 

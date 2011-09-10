@@ -1,5 +1,5 @@
 /* infutil.h -- types and macros common to blocks and codes
- * Copyright (C) 1995-1996 Mark Adler
+ * Copyright (C) 1995 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -8,10 +8,11 @@
    subject to change. Applications should only use zlib.h.
  */
 
-#ifndef _INFUTIL_H
-#define _INFUTIL_H
+/* inflate blocks semi-private state */
+struct inflate_blocks_state {
 
-typedef enum {
+  /* mode */
+  enum {
       TYPE,     /* get type bits (3, including end bit) */
       LENS,     /* get lengths for stored */
       STORED,   /* processing stored block */
@@ -22,13 +23,7 @@ typedef enum {
       DRY,      /* output remaining window bytes */
       DONE,     /* finished last block, done */
       BAD}      /* got a data error--stuck here */
-inflate_block_mode;
-
-/* inflate blocks semi-private state */
-struct inflate_blocks_state {
-
-  /* mode */
-  inflate_block_mode  mode;     /* current inflate_block mode */
+    mode;               /* current inflate_block mode */
 
   /* mode dependent information */
   union {
@@ -76,16 +71,16 @@ struct inflate_blocks_state {
 #define DUMPBITS(j) {b>>=(j);k-=(j);}
 /*   output bytes */
 #define WAVAIL (uInt)(q<s->read?s->read-q-1:s->end-q)
-#define LOADOUT {q=s->write;m=(uInt)WAVAIL;}
-#define WRAP {if(q==s->end&&s->read!=s->window){q=s->window;m=(uInt)WAVAIL;}}
+#define LOADOUT {q=s->write;m=WAVAIL;}
+#define WRAP {if(q==s->end&&s->read!=s->window){q=s->window;m=WAVAIL;}}
 #define FLUSH {UPDOUT r=inflate_flush(s,z,r); LOADOUT}
 #define NEEDOUT {if(m==0){WRAP if(m==0){FLUSH WRAP if(m==0) LEAVE}}r=Z_OK;}
 #define OUTBYTE(a) {*q++=(Byte)(a);m--;}
 /*   load local pointers */
 #define LOAD {LOADIN LOADOUT}
 
-/* masks for lower bits (size given to avoid silly warnings with Visual C++) */
-extern uInt inflate_mask[17];
+/* masks for lower bits */
+extern uInt inflate_mask[];
 
 /* copy as much as possible from the sliding window to the output area */
 extern int inflate_flush OF((
@@ -94,5 +89,3 @@ extern int inflate_flush OF((
     int));
 
 struct internal_state      {int dummy;}; /* for buggy compilers */
-
-#endif

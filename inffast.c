@@ -1,5 +1,5 @@
 /* inffast.c -- process literals and length/distance pairs fast
- * Copyright (C) 1995-1996 Mark Adler
+ * Copyright (C) 1995 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -29,8 +29,7 @@ struct inflate_codes_state {int dummy;}; /* for buggy compilers */
 
 int inflate_fast(bl, bd, tl, td, s, z)
 uInt bl, bd;
-inflate_huft *tl;
-inflate_huft *td; /* need separate declaration for Borland C++ */
+inflate_huft *tl, *td;
 inflate_blocks_statef *s;
 z_stream *z;
 {
@@ -123,7 +122,7 @@ z_stream *z;
             e = (t = t->next + ((uInt)b & inflate_mask[e]))->exop;
           else
           {
-            z->msg = (char*)"invalid distance code";
+            z->msg = "invalid distance code";
             UNGRAB
             UPDATE
             return Z_DATA_ERROR;
@@ -153,7 +152,7 @@ z_stream *z;
       }
       else
       {
-        z->msg = (char*)"invalid literal/length code";
+        z->msg = "invalid literal/length code";
         UNGRAB
         UPDATE
         return Z_DATA_ERROR;

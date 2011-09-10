@@ -1,5 +1,5 @@
 /* infcodes.c -- process literals and length/distance pairs
- * Copyright (C) 1995-1996 Mark Adler
+ * Copyright (C) 1995 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -58,8 +58,7 @@ struct inflate_codes_state {
 
 inflate_codes_statef *inflate_codes_new(bl, bd, tl, td, z)
 uInt bl, bd;
-inflate_huft *tl;
-inflate_huft *td; /* need separate declaration for Borland C++ */
+inflate_huft *tl, *td;
 z_stream *z;
 {
   inflate_codes_statef *c;
@@ -153,7 +152,7 @@ int r;
         break;
       }
       c->mode = BADCODE;        /* invalid code */
-      z->msg = (char*)"invalid literal/length code";
+      z->msg = "invalid literal/length code";
       r = Z_DATA_ERROR;
       LEAVE
     case LENEXT:        /* i: getting length extra (have base) */
@@ -185,7 +184,7 @@ int r;
         break;
       }
       c->mode = BADCODE;        /* invalid code */
-      z->msg = (char*)"invalid distance code";
+      z->msg = "invalid distance code";
       r = Z_DATA_ERROR;
       LEAVE
     case DISTEXT:       /* i: getting distance extra */

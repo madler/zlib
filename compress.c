@@ -1,5 +1,5 @@
 /* compress.c -- compress a memory buffer
- * Copyright (C) 1995-1996 Jean-loup Gailly.
+ * Copyright (C) 1995 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -22,13 +22,13 @@
 int compress (dest, destLen, source, sourceLen)
     Bytef *dest;
     uLongf *destLen;
-    const Bytef *source;
+    Bytef *source;
     uLong sourceLen;
 {
     z_stream stream;
     int err;
 
-    stream.next_in = (Bytef*)source;
+    stream.next_in = source;
     stream.avail_in = (uInt)sourceLen;
     /* Check for source > 64K on 16-bit machine: */
     if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;

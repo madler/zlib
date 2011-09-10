@@ -1,5 +1,5 @@
 /* infblock.c -- interpret and process block types to last block
- * Copyright (C) 1995-1996 Mark Adler
+ * Copyright (C) 1995 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -81,7 +81,7 @@ uLongf *c;
   s->bitb = 0;
   s->read = s->write = s->window;
   if (s->checkfn != Z_NULL)
-    z->adler = s->check = (*s->checkfn)(0L, Z_NULL, 0);
+    s->check = (*s->checkfn)(0L, Z_NULL, 0);
   Trace((stderr, "inflate:   blocks reset\n"));
 }
 
@@ -172,7 +172,7 @@ int r;
         case 3:                         /* illegal */
           DUMPBITS(3)
           s->mode = BAD;
-          z->msg = (char*)"invalid block type";
+          z->msg = "invalid block type";
           r = Z_DATA_ERROR;
           LEAVE
       }
@@ -182,7 +182,7 @@ int r;
       if ((((~b) >> 16) & 0xffff) != (b & 0xffff))
       {
         s->mode = BAD;
-        z->msg = (char*)"invalid stored block lengths";
+        z->msg = "invalid stored block lengths";
         r = Z_DATA_ERROR;
         LEAVE
       }
@@ -215,7 +215,7 @@ int r;
       if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29)
       {
         s->mode = BAD;
-        z->msg = (char*)"too many length or distance symbols";
+        z->msg = "too many length or distance symbols";
         r = Z_DATA_ERROR;
         LEAVE
       }
@@ -285,7 +285,7 @@ int r;
               (c == 16 && i < 1))
           {
             s->mode = BAD;
-            z->msg = (char*)"invalid bit length repeat";
+            z->msg = "invalid bit length repeat";
             r = Z_DATA_ERROR;
             LEAVE
           }
@@ -382,15 +382,4 @@ uLongf *c;
   ZFREE(z, s);
   Trace((stderr, "inflate:   blocks freed\n"));
   return Z_OK;
-}
-
-
-void inflate_set_dictionary(s, z, d, n)
-inflate_blocks_statef *s;
-z_stream *z;
-const Bytef *d;
-uInt  n;
-{
-  zmemcpy((charf *)s->window, d, n);
-  s->read = s->write = s->window + n;
 }

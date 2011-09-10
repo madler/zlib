@@ -18,7 +18,7 @@ CFLAGS=-O2 -Z $(MODEL)
 CC=bcc
 LD=bcc
 LIB=tlib
-#   replace bcc with tcc for Turbo C++ 1.0, with bcc32 for the 32 bit version
+#   replace bcc with tcc for Turbo C++ 1.0
 LDFLAGS=$(MODEL)
 O=.obj
 
