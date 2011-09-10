@@ -1,7 +1,7 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.4 (11 Mar 2010)
+Changes in 1.2.4 (13 Mar 2010)
 - Fix VER3 extraction in configure for no fourth subversion
 - Update zlib.3, add docs to Makefile.in to make .pdf out of it
 - Add zlib.3.pdf to distribution
@@ -25,6 +25,11 @@ Changes in 1.2.4 (11 Mar 2010)
 - Update win32/Makefile.msc, add ZLIB_VER_SUBREVISION [Rowe]
 - Fix memory leaks in gzclose_r() and gzclose_w(), file leak in gz_open()
 - Add contrib/gcc_gvmat64 for longest_match and inflate_fast [Vollant]
+- Remove *64 functions from win32/zlib.def (they're not 64-bit yet)
+- Fix bug in void-returning vsprintf() case in gzwrite.c
+- Fix name change from inflate.h in contrib/inflate86/inffas86.c
+- Check if temporary file exists before removing in make_vms.com [Zinser]
+- Fix make install and uninstall for --static option
 
 Changes in 1.2.3.9 (21 Feb 2010)
 - Expunge gzio.c

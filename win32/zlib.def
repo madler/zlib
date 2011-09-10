@@ -68,12 +68,6 @@ EXPORTS
     inflateInit_
     inflateInit2_
     inflateBackInit_
-    gzopen64
-    gzseek64
-    gztell64
-    gzoffset64
-    adler32_combine64
-    crc32_combine64
     zError
     inflateSyncPoint
     get_crc_table

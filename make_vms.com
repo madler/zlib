@@ -134,7 +134,7 @@ $ write aconf "#define ftello64 ftell"
 $ write aconf "#endif"
 $ close aconf_in
 $ close aconf
-$ delete 'th';*
+$ if f$search("''th'") .nes. "" then delete 'th';*
 $! Build the thing plain or with mms
 $!
 $ write sys$output "Compiling Zlib sources ..."

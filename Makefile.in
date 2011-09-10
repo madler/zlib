@@ -164,9 +164,10 @@ install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
 	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
 	cp $(LIBS) $(DESTDIR)$(libdir)
-	cd $(DESTDIR)$(libdir); chmod 755 $(SHAREDLIB) ; chmod u=rw,go=r $(STATICLIB)
+	cd $(DESTDIR)$(libdir); chmod u=rw,go=r $(STATICLIB)
 	-@(cd $(DESTDIR)$(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
-	cd $(DESTDIR)$(libdir); if test -f $(SHAREDLIBV); then \
+	-@cd $(DESTDIR)$(libdir); if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
+	  chmod 755 $(SHAREDLIBV); \
 	  rm -f $(SHAREDLIB) $(SHAREDLIBM); \
 	  ln -s $(SHAREDLIBV) $(SHAREDLIB); \
 	  ln -s $(SHAREDLIBV) $(SHAREDLIBM); \
@@ -187,7 +188,7 @@ install: install-libs
 uninstall:
 	cd $(DESTDIR)$(includedir); rm -f zlib.h zconf.h
 	cd $(DESTDIR)$(libdir); rm -f libz.a; \
-	if test -f $(SHAREDLIBV); then \
+	if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
 	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
 	fi
 	cd $(DESTDIR)$(man3dir); rm -f zlib.3
@@ -218,7 +219,7 @@ maintainer-clean: distclean
 distclean: clean zconf docs
 	rm -f Makefile zlib.pc
 	-@rm -f .DS_Store
-	-@printf 'all:\n\t-@echo "Use ./configure first.  Thank you."\n' > Makefile
+	-@printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile
 	-@printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile
 	-@touch -r Makefile.in Makefile
 

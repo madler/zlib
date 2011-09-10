@@ -215,6 +215,9 @@ if test $shared -eq 0; then
   LDSHARED="$CC"
   ALL="static"
   TEST="all teststatic"
+  SHAREDLIB=""
+  SHAREDLIBV=""
+  SHAREDLIBM=""
   echo Building static library $STATICLIB version $VER with $CC.
 else
   ALL="static shared"

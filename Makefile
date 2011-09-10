@@ -1,5 +1,5 @@
 all:
-	-@echo "Use ./configure first.  Thank you."
+	-@echo "Please use ./configure first.  Thank you."
 
 distclean:
 	make -f Makefile.in distclean

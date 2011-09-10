@@ -318,7 +318,7 @@ int ZEXPORTVA gzprintf (gzFile file, const char *format, ...)
 #  ifdef HAS_vsprintf_void
     (void)vsprintf(state->in, format, va);
     va_end(va);
-    for (len = 0; len < state->in; len++)
+    for (len = 0; len < size; len++)
         if (state->in[len] == 0) break;
 #  else
     len = vsprintf(state->in, format, va);
