@@ -63,7 +63,7 @@ local uInt border[] = { /* Order of the bit length code lengths */
 
 void inflate_blocks_reset(s, z, c)
 inflate_blocks_statef *s;
-z_stream *z;
+z_streamp z;
 uLongf *c;
 {
   if (s->checkfn != Z_NULL)
@@ -87,7 +87,7 @@ uLongf *c;
 
 
 inflate_blocks_statef *inflate_blocks_new(z, c, w)
-z_stream *z;
+z_streamp z;
 check_func c;
 uInt w;
 {
@@ -115,7 +115,7 @@ uInt w;
 #endif
 int inflate_blocks(s, z, r)
 inflate_blocks_statef *s;
-z_stream *z;
+z_streamp z;
 int r;
 {
   uInt t;               /* temporary storage */
@@ -381,7 +381,7 @@ int r;
 
 int inflate_blocks_free(s, z, c)
 inflate_blocks_statef *s;
-z_stream *z;
+z_streamp z;
 uLongf *c;
 {
   inflate_blocks_reset(s, z, c);

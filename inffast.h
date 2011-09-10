@@ -14,4 +14,4 @@ extern int inflate_fast OF((
     inflate_huft *,
     inflate_huft *,
     inflate_blocks_statef *,
-    z_stream *));
+    z_streamp ));

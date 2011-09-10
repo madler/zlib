@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: deflate.h,v 1.9 1996/01/30 21:59:13 me Exp $ */
+/* $Id: deflate.h,v 1.10 1996/07/02 12:41:00 me Exp $ */
 
 #ifndef _DEFLATE_H
 #define _DEFLATE_H
@@ -80,7 +80,7 @@ typedef unsigned IPos;
  */
 
 typedef struct internal_state {
-    z_stream *strm;      /* pointer back to this zlib stream */
+    z_streamp strm;      /* pointer back to this zlib stream */
     int   status;        /* as the name implies */
     Bytef *pending_buf;  /* output still pending */
     Bytef *pending_out;  /* next pending byte to output to the stream */

@@ -35,7 +35,7 @@ extern int inflate_trees_bits OF((
     uIntf *,                    /* 19 code lengths */
     uIntf *,                    /* bits tree desired/actual depth */
     inflate_huft * FAR *,       /* bits tree result */
-    z_stream *));               /* for zalloc, zfree functions */
+    z_streamp ));               /* for zalloc, zfree functions */
 
 extern int inflate_trees_dynamic OF((
     uInt,                       /* number of literal/length codes */
@@ -45,7 +45,7 @@ extern int inflate_trees_dynamic OF((
     uIntf *,                    /* distance desired/actual bit depth */
     inflate_huft * FAR *,       /* literal/length tree result */
     inflate_huft * FAR *,       /* distance tree result */
-    z_stream *));               /* for zalloc, zfree functions */
+    z_streamp ));               /* for zalloc, zfree functions */
 
 extern int inflate_trees_fixed OF((
     uIntf *,                    /* literal desired/actual bit depth */
@@ -55,5 +55,5 @@ extern int inflate_trees_fixed OF((
 
 extern int inflate_trees_free OF((
     inflate_huft *,             /* tables to free */
-    z_stream *));               /* for zfree function */
+    z_streamp ));               /* for zfree function */
 

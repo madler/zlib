@@ -49,7 +49,7 @@ struct internal_state {
 
 
 int inflateReset(z)
-z_stream *z;
+z_streamp z;
 {
   uLong c;
 
@@ -65,7 +65,7 @@ z_stream *z;
 
 
 int inflateEnd(z)
-z_stream *z;
+z_streamp z;
 {
   uLong c;
 
@@ -81,7 +81,7 @@ z_stream *z;
 
 
 int inflateInit2_(z, w, version, stream_size)
-z_stream *z;
+z_streamp z;
 int w;
 const char *version;
 int stream_size;
@@ -138,7 +138,7 @@ int stream_size;
 
 
 int inflateInit_(z, version, stream_size)
-z_stream *z;
+z_streamp z;
 const char *version;
 int stream_size;
 {
@@ -150,7 +150,7 @@ int stream_size;
 #define NEXTBYTE (z->avail_in--,z->total_in++,*z->next_in++)
 
 int inflate(z, f)
-z_stream *z;
+z_streamp z;
 int f;
 {
   int r;
@@ -272,7 +272,7 @@ int f;
 
 
 int inflateSetDictionary(z, dictionary, dictLength)
-z_stream *z;
+z_streamp z;
 const Bytef *dictionary;
 uInt  dictLength;
 {
@@ -280,6 +280,7 @@ uInt  dictLength;
 
   if (z == Z_NULL || z->state == Z_NULL || z->state->mode != DICT0)
     return Z_STREAM_ERROR;
+
   if (adler32(1L, dictionary, dictLength) != z->adler) return Z_DATA_ERROR;
   z->adler = 1L;
 
@@ -295,7 +296,7 @@ uInt  dictLength;
 
 
 int inflateSync(z)
-z_stream *z;
+z_streamp z;
 {
   uInt n;       /* number of bytes to look at */
   Bytef *p;     /* pointer to bytes */

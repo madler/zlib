@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zconf.h,v 1.18 1996/05/23 16:51:18 me Exp $ */
+/* $Id: zconf.h,v 1.20 1996/07/02 15:09:28 me Exp $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H
@@ -49,8 +49,10 @@
 #if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #  define WIN32
 #endif
-#if (defined(__GNUC__) || defined(WIN32)) && !defined(__32BIT__)
-#  define __32BIT__
+#if defined(__GNUC__) || defined(WIN32) || defined(__386__) || defined(i386)
+#  ifndef __32BIT__
+#    define __32BIT__
+#  endif
 #endif
 #if defined(__MSDOS__) && !defined(MSDOS)
 #  define MSDOS
@@ -80,9 +82,9 @@
 #  endif
 #endif
 
-#ifdef	__MWERKS__ /* Metrowerks CodeWarrior declares fileno() in unix.h */
-#  include <unix.h>
-#  define NO_DUMMY_DECL /* buggy compiler merges all .h files incorrectly */
+/* Some Mac compilers merge all .h files incorrectly: */
+#if defined(__MWERKS__) || defined(applec) ||defined(THINK_C) ||defined(__SC__)
+#  define NO_DUMMY_DECL
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */
@@ -145,12 +147,6 @@
 #endif
 #ifndef FAR
 #   define FAR
-#endif
-/* The Watcom compiler defines M_I86SM and __SMALL__ even in 32 bit mode */
-#if defined(__WATCOMC__) && defined(__386__) && defined(SMALL_MEDIUM)
-#  undef FAR
-#  define FAR
-#  undef SMALL_MEDIUM
 #endif
 
 typedef unsigned char  Byte;  /* 8 bits */

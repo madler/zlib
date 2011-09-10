@@ -42,7 +42,6 @@ LDLIBS=-L. -lz
 LD=$(CC) -s -o
 LDSHARED=$(CC)
 
-VER=1.0.2
 INCL=zlib.h zconf.h
 LIBS=libz.a
 
@@ -68,10 +67,6 @@ test: all
 libz.a: $(OBJS)
 	$(AR) $@ $(OBJS)
 
-libz.so.$(VER): $(OBJS)
-	$(LDSHARED) -o $@ $(OBJS)
-	$(RM) libz.so; ln -s $@ libz.so
-
 %.exe : %.o $(LIBS)
 	$(LD) $@ $< $(LDLIBS)
 
@@ -90,7 +85,7 @@ uninstall:
 	for %%p in ($(LIBS)) do $(RM) $(LIBRARY_PATH)\%%p
 
 clean:
-	for %%p in (*.d *.o *.exe libz.a libz.so*) do $(RM) %%p
+	for %%p in (*.d *.o *.exe libz.a libz.so* foo.gz) do $(RM) %%p
 
 DEPS := $(wildcard *.d)
 ifneq ($(DEPS),)

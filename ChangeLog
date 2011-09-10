@@ -1,6 +1,25 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.4 (24 Jul 96)
+- In very rare conditions, deflate(s, Z_FINISH) could fail to produce an EOF
+  bit, so the decompressor could decompress all the correct data but went
+  on to attempt decompressing extra garbage data. This affected minigzip too.
+- zlibVersion and gzerror return const char* (needed for DLL)
+- port to RISCOS (no fdopen, no multiple dots, no unlink, no fileno)
+- use z_error only for DEBUG (avoid problem with DLLs)
+
+Changes in 1.0.3 (2 Jul 96)
+- use z_streamp instead of z_stream *, which is now a far pointer in MSDOS
+  small and medium models; this makes the library incompatible with previous
+  versions for these models. (No effect in large model or on other systems.)
+- return OK instead of BUF_ERROR if previous deflate call returned with
+  avail_out as zero but there is nothing to do
+- added memcmp for non STDC compilers
+- define NO_DUMMY_DECL for more Mac compilers (.h files merged incorrectly)
+- define __32BIT__ if __386__ or i386 is defined (pb. with Watcom and SCO)
+- better check for 16-bit mode MSC (avoids problem with Symantec)
+
 Changes in 1.0.2 (23 May 96)
 - added Windows DLL support
 - added a function zlibVersion (for the DLL support)

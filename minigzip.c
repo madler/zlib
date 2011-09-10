@@ -13,7 +13,7 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.9 1996/05/22 11:52:32 me Exp $ */
+/* $Id: minigzip.c,v 1.10 1996/07/24 13:41:04 me Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -37,7 +37,14 @@
 #ifdef VMS
 #  define unlink delete
 #  define GZ_SUFFIX "-gz"
-#else
+#endif
+#ifdef RISCOS
+#  define unlink remove
+#  define GZ_SUFFIX "-gz"
+#  define fileno(file) file->__file
+#endif
+
+#ifndef GZ_SUFFIX
 #  define GZ_SUFFIX ".gz"
 #endif
 #define SUFFIX_LEN sizeof(GZ_SUFFIX)

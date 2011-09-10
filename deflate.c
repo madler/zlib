@@ -47,11 +47,11 @@
  *
  */
 
-/* $Id: deflate.c,v 1.13 1996/05/22 11:52:21 me Exp $ */
+/* $Id: deflate.c,v 1.15 1996/07/24 13:40:58 me Exp $ */
 
 #include "deflate.h"
 
-char deflate_copyright[] = " deflate 1.0.2 Copyright 1995-1996 Jean-loup Gailly ";
+char deflate_copyright[] = " deflate 1.0.4 Copyright 1995-1996 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -62,15 +62,25 @@ char deflate_copyright[] = " deflate 1.0.2 Copyright 1995-1996 Jean-loup Gailly 
 /* ===========================================================================
  *  Function prototypes.
  */
+typedef enum {
+    need_more,      /* block not completed, need more input or more output */
+    block_done,     /* block flush performed */
+    finish_started, /* finish started, need only more output at next deflate */
+    finish_done     /* finish done, accept no more input or output */
+} block_state;
+
+typedef block_state (*compress_func) OF((deflate_state *s, int flush));
+/* Compression function. Returns the block state after the call. */
+
 local void fill_window    OF((deflate_state *s));
-local int  deflate_stored OF((deflate_state *s, int flush));
-local int  deflate_fast   OF((deflate_state *s, int flush));
-local int  deflate_slow   OF((deflate_state *s, int flush));
+local block_state deflate_stored OF((deflate_state *s, int flush));
+local block_state deflate_fast   OF((deflate_state *s, int flush));
+local block_state deflate_slow   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
 local uInt longest_match  OF((deflate_state *s, IPos cur_match));
 local void putShortMSB    OF((deflate_state *s, uInt b));
-local void flush_pending  OF((z_stream *strm));
-local int read_buf        OF((z_stream *strm, charf *buf, unsigned size));
+local void flush_pending  OF((z_streamp strm));
+local int read_buf        OF((z_streamp strm, charf *buf, unsigned size));
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
 #endif
@@ -96,9 +106,6 @@ local  void check_match OF((deflate_state *s, IPos start, IPos match,
 /* Minimum amount of lookahead, except at the end of the input file.
  * See deflate.c for comments about the MIN_MATCH+1.
  */
-
-typedef int (*compress_func) OF((deflate_state *s, int flush));
-/* Compressing function */
 
 /* Values for max_lazy_match, good_match and max_chain_length, depending on
  * the desired pack level (0..9). The values given below have been tuned to
@@ -169,7 +176,7 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 
 /* ========================================================================= */
 int deflateInit_(strm, level, version, stream_size)
-    z_stream *strm;
+    z_streamp strm;
     int level;
     const char *version;
     int stream_size;
@@ -182,7 +189,7 @@ int deflateInit_(strm, level, version, stream_size)
 /* ========================================================================= */
 int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 		  version, stream_size)
-    z_stream *strm;
+    z_streamp strm;
     int  level;
     int  method;
     int  windowBits;
@@ -249,7 +256,7 @@ int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     if (s->window == Z_NULL || s->prev == Z_NULL || s->head == Z_NULL ||
         s->pending_buf == Z_NULL) {
-        strm->msg = ERR_MSG(Z_MEM_ERROR);
+        strm->msg = (char*)ERR_MSG(Z_MEM_ERROR);
         deflateEnd (strm);
         return Z_MEM_ERROR;
     }
@@ -265,7 +272,7 @@ int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
 /* ========================================================================= */
 int deflateSetDictionary (strm, dictionary, dictLength)
-    z_stream *strm;
+    z_streamp strm;
     const Bytef *dictionary;
     uInt  dictLength;
 {
@@ -304,7 +311,7 @@ int deflateSetDictionary (strm, dictionary, dictLength)
 
 /* ========================================================================= */
 int deflateReset (strm)
-    z_stream *strm;
+    z_streamp strm;
 {
     deflate_state *s;
     
@@ -334,7 +341,7 @@ int deflateReset (strm)
 
 /* ========================================================================= */
 int deflateParams(strm, level, strategy)
-    z_stream *strm;
+    z_streamp strm;
     int level;
     int strategy;
 {
@@ -388,7 +395,7 @@ local void putShortMSB (s, b)
  * (See also read_buf()).
  */
 local void flush_pending(strm)
-    z_stream *strm;
+    z_streamp strm;
 {
     unsigned len = strm->state->pending;
 
@@ -408,14 +415,16 @@ local void flush_pending(strm)
 
 /* ========================================================================= */
 int deflate (strm, flush)
-    z_stream *strm;
+    z_streamp strm;
     int flush;
 {
     int old_flush; /* value of flush param for previous deflate call */
     deflate_state *s;
 
-    if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
-    
+    if (strm == Z_NULL || strm->state == Z_NULL ||
+	flush > Z_FINISH || flush < 0) {
+        return Z_STREAM_ERROR;
+    }
     s = strm->state;
 
     if (strm->next_out == Z_NULL ||
@@ -447,14 +456,23 @@ int deflate (strm, flush)
 	if (s->strstart != 0) {
 	    putShortMSB(s, (uInt)(strm->adler >> 16));
 	    putShortMSB(s, (uInt)(strm->adler & 0xffff));
-	    strm->adler = 1L;
 	}
+	strm->adler = 1L;
     }
 
     /* Flush as much pending output as possible */
     if (s->pending != 0) {
         flush_pending(strm);
-        if (strm->avail_out == 0) return Z_OK;
+        if (strm->avail_out == 0) {
+	    /* Since avail_out is 0, deflate will be called again with
+	     * more output space, but possibly with both pending and
+	     * avail_in equal to zero. There won't be anything to do,
+	     * but this is not an error situation so make sure we
+	     * return OK instead of BUF_ERROR at next call of deflate:
+             */
+	    s->last_flush = -1;
+	    return Z_OK;
+	}
 
     /* Make sure there is something to do and avoid duplicate consecutive
      * flushes. For repeated and useless calls with Z_FINISH, we keep
@@ -474,22 +492,27 @@ int deflate (strm, flush)
      */
     if (strm->avail_in != 0 || s->lookahead != 0 ||
         (flush != Z_NO_FLUSH && s->status != FINISH_STATE)) {
-        int quit;
+        block_state bstate;
 
-        if (flush == Z_FINISH) {
+	bstate = (*(configuration_table[s->level].func))(s, flush);
+
+        if (bstate == finish_started || bstate == finish_done) {
             s->status = FINISH_STATE;
         }
-	quit = (*(configuration_table[s->level].func))(s, flush);
-
-        if (quit || strm->avail_out == 0) return Z_OK;
-        /* If flush != Z_NO_FLUSH && avail_out == 0, the next call
-         * of deflate should use the same flush parameter to make sure
-         * that the flush is complete. So we don't have to output an
-         * empty block here, this will be done at next call. This also
-         * ensures that for a very small output buffer, we emit at most
-         * one empty block.
-         */
-        if (flush != Z_NO_FLUSH && flush != Z_FINISH) {
+        if (bstate == need_more || bstate == finish_started) {
+	    if (strm->avail_out == 0) {
+	        s->last_flush = -1; /* avoid BUF_ERROR next call, see above */
+	    }
+	    return Z_OK;
+	    /* If flush != Z_NO_FLUSH && avail_out == 0, the next call
+	     * of deflate should use the same flush parameter to make sure
+	     * that the flush is complete. So we don't have to output an
+	     * empty block here, this will be done at next call. This also
+	     * ensures that for a very small output buffer, we emit at most
+	     * one empty block.
+	     */
+	}
+        if (bstate == block_done) {
             if (flush == Z_PARTIAL_FLUSH) {
                 _tr_align(s);
             } else { /* FULL_FLUSH or SYNC_FLUSH */
@@ -502,7 +525,10 @@ int deflate (strm, flush)
                 }
             }
             flush_pending(strm);
-            if (strm->avail_out == 0) return Z_OK;
+	    if (strm->avail_out == 0) {
+	      s->last_flush = -1; /* avoid BUF_ERROR at next call, see above */
+	      return Z_OK;
+	    }
         }
     }
     Assert(strm->avail_out > 0, "bug2");
@@ -523,7 +549,7 @@ int deflate (strm, flush)
 
 /* ========================================================================= */
 int deflateEnd (strm)
-    z_stream *strm;
+    z_streamp strm;
 {
     int status;
 
@@ -544,8 +570,8 @@ int deflateEnd (strm)
 
 /* ========================================================================= */
 int deflateCopy (dest, source)
-    z_stream *dest;
-    z_stream *source;
+    z_streamp dest;
+    z_streamp source;
 {
     if (source == Z_NULL || dest == Z_NULL || source->state == Z_NULL) {
         return Z_STREAM_ERROR;
@@ -570,7 +596,7 @@ int deflateCopy (dest, source)
  * (See also flush_pending()).
  */
 local int read_buf(strm, buf, size)
-    z_stream *strm;
+    z_streamp strm;
     charf *buf;
     unsigned size;
 {
@@ -916,18 +942,18 @@ local void fill_window(s)
 /* Same but force premature exit if necessary. */
 #define FLUSH_BLOCK(s, eof) { \
    FLUSH_BLOCK_ONLY(s, eof); \
-   if (s->strm->avail_out == 0) return 1; \
+   if (s->strm->avail_out == 0) return (eof) ? finish_started : need_more; \
 }
 
 /* ===========================================================================
  * Copy without compression as much as possible from the input stream, return
- * true if processing was terminated prematurely (no more input or output
- * space).  This function does not insert new strings in the dictionary
- * since uncompressible data is probably not useful. This function is used
+ * the current block state.
+ * This function does not insert new strings in the dictionary since
+ * uncompressible data is probably not useful. This function is used
  * only for the level=0 compression option.
  * NOTE: this function should be optimized to avoid extra copying.
  */
-local int deflate_stored(s, flush)
+local block_state deflate_stored(s, flush)
     deflate_state *s;
     int flush;
 {
@@ -939,7 +965,7 @@ local int deflate_stored(s, flush)
 		   s->block_start >= (long)s->w_size, "slide too late");
 
             fill_window(s);
-            if (s->lookahead == 0 && flush == Z_NO_FLUSH) return 1;
+            if (s->lookahead == 0 && flush == Z_NO_FLUSH) return need_more;
 
             if (s->lookahead == 0) break; /* flush the current block */
         }
@@ -961,17 +987,17 @@ local int deflate_stored(s, flush)
 	}
     }
     FLUSH_BLOCK(s, flush == Z_FINISH);
-    return 0; /* normal exit */
+    return flush == Z_FINISH ? finish_done : block_done;
 }
 
 /* ===========================================================================
- * Compress as much as possible from the input stream, return true if
- * processing was terminated prematurely (no more input or output space).
+ * Compress as much as possible from the input stream, return the current
+ * block state.
  * This function does not perform lazy evaluation of matches and inserts
  * new strings in the dictionary only for unmatched strings or for short
  * matches. It is used only for the fast compression options.
  */
-local int deflate_fast(s, flush)
+local block_state deflate_fast(s, flush)
     deflate_state *s;
     int flush;
 {
@@ -986,8 +1012,9 @@ local int deflate_fast(s, flush)
          */
         if (s->lookahead < MIN_LOOKAHEAD) {
             fill_window(s);
-            if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) return 1;
-
+            if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
+	        return need_more;
+	    }
             if (s->lookahead == 0) break; /* flush the current block */
         }
 
@@ -1055,7 +1082,7 @@ local int deflate_fast(s, flush)
         if (bflush) FLUSH_BLOCK(s, 0);
     }
     FLUSH_BLOCK(s, flush == Z_FINISH);
-    return 0; /* normal exit */
+    return flush == Z_FINISH ? finish_done : block_done;
 }
 
 /* ===========================================================================
@@ -1063,7 +1090,7 @@ local int deflate_fast(s, flush)
  * evaluation for matches: a match is finally adopted only if there is
  * no better match at the next window position.
  */
-local int deflate_slow(s, flush)
+local block_state deflate_slow(s, flush)
     deflate_state *s;
     int flush;
 {
@@ -1079,8 +1106,9 @@ local int deflate_slow(s, flush)
          */
         if (s->lookahead < MIN_LOOKAHEAD) {
             fill_window(s);
-            if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) return 1;
-
+            if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
+	        return need_more;
+	    }
             if (s->lookahead == 0) break; /* flush the current block */
         }
 
@@ -1158,7 +1186,7 @@ local int deflate_slow(s, flush)
             }
             s->strstart++;
             s->lookahead--;
-            if (s->strm->avail_out == 0) return 1;
+            if (s->strm->avail_out == 0) return need_more;
         } else {
             /* There is no previous match to compare with, wait for
              * the next step to decide.
@@ -1175,6 +1203,5 @@ local int deflate_slow(s, flush)
         s->match_available = 0;
     }
     FLUSH_BLOCK(s, flush == Z_FINISH);
-    return 0;
+    return flush == Z_FINISH ? finish_done : block_done;
 }
-

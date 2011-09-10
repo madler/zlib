@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.15 1996/05/23 17:11:36 me Exp $ */
+/* $Id: zutil.c,v 1.17 1996/07/24 13:41:12 me Exp $ */
 
 #include <stdio.h>
 
@@ -28,17 +28,19 @@ const char *z_errmsg[10] = {
 ""};
 
 
-char *zlibVersion()
+const char *zlibVersion()
 {
     return ZLIB_VERSION;
 }
 
+#ifdef DEBUG
 void z_error (m)
     char *m;
 {
     fprintf(stderr, "%s\n", m);
     exit(1);
 }
+#endif
 
 #ifndef HAVE_MEMCPY
 
@@ -51,6 +53,19 @@ void zmemcpy(dest, source, len)
     do {
         *dest++ = *source++; /* ??? to be unrolled */
     } while (--len != 0);
+}
+
+int zmemcmp(s1, s2, len)
+    Bytef* s1;
+    Bytef* s2;
+    uInt  len;
+{
+    uInt j;
+
+    for (j = 0; j < len; j++) {
+        if (s1[j] != s2[j]) return 2*(s1[j] > s2[j])-1;
+    }
+    return 0;
 }
 
 void zmemzero(dest, len)
@@ -138,14 +153,14 @@ void  zcfree (voidpf opaque, voidpf ptr)
         return;
     }
     ptr = opaque; /* just to make some compilers happy */
-    z_error("zcfree: ptr not found");
+    Assert(0, "zcfree: ptr not found");
 }
 #endif
 #endif /* __TURBOC__ */
 
 
-#if defined(M_I86) && !(defined(__WATCOMC__) && defined(__386__))
-/* Microsoft C */
+#if defined(M_I86) && !defined(__32BIT__)
+/* Microsoft C in 16-bit mode */
 
 #  define MY_ZCALLOC
 

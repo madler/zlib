@@ -7,6 +7,7 @@ Makefile.bor	makefile for Borland C/C++ 16-bit
 Makefile.dj2	makefile for DJGPP 2.x
 Makefile.in	makefile for Unix (template for configure)
 Makefile.msc	makefile for Microsoft C 16-bit
+Makefile.riscos makefile for RISCOS
 Makefile.sas	makefile for Amiga SAS/C
 Makefile.tc	makefile for Turbo C
 Makefile.wat	makefile for Watcom C

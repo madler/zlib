@@ -22,7 +22,7 @@ uInt inflate_mask[17] = {
 /* copy as much as possible from the sliding window to the output area */
 int inflate_flush(s, z, r)
 inflate_blocks_statef *s;
-z_stream *z;
+z_streamp z;
 int r;
 {
   uInt n;

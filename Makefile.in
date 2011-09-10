@@ -22,7 +22,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.2
+VER=1.0.4
 LIBS=libz.a
 
 AR=ar rc

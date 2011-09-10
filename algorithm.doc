@@ -7,7 +7,7 @@ pointer to the previous string, in the form of a pair (distance,
 length).  Distances are limited to 32K bytes, and lengths are limited
 to 258 bytes. When a string does not occur anywhere in the previous
 32K bytes, it is emitted as a sequence of literal bytes.  (In this
-description, 'string' must be taken as an arbitrary sequence of bytes,
+description, `string' must be taken as an arbitrary sequence of bytes,
 and is not restricted to printable characters.)
 
 Literals or match lengths are compressed with one Huffman tree, and
@@ -16,7 +16,7 @@ in a compact form at the start of each block. The blocks can have any
 size (except that the compressed data for one block must fit in
 available memory). A block is terminated when deflate() determines that
 it would be useful to start another block with fresh trees. (This is
-somewhat similar to compress.)
+somewhat similar to the behavior of LZW-based _compress_.)
 
 Duplicated strings are found using a hash table. All input strings of
 length 3 are inserted in the hash table. A hash index is computed for
@@ -57,7 +57,7 @@ but saves time since there are both fewer insertions and fewer searches.
 
 2. Decompression algorithm (inflate)
 
-The real question is given a Huffman tree, how to decode fast.  The most
+The real question is, given a Huffman tree, how to decode fast.  The most
 important realization is that shorter codes are much more common than
 longer codes, so pay attention to decoding the short codes fast, and let
 the long codes take longer to decode.
@@ -84,7 +84,7 @@ all the data.  For inflate, which has 286 possible codes for the
 literal/length tree, the size of the first table is nine bits.  Also the
 distance trees have 30 possible values, and the size of the first table is
 six bits.  Note that for each of those cases, the table ended up one bit
-longer than the "average" code length, i.e. the code length of an
+longer than the ``average'' code length, i.e. the code length of an
 approximately flat code which would be a little more than eight bits for
 286 symbols and a little less than five bits for 30 symbols.  It would be
 interesting to see if optimizing the first level table for other
@@ -97,9 +97,9 @@ gzip@prep.ai.mit.edu    madler@alumni.caltech.edu
 
 References:
 
-[LZ77] Ziv J., Lempel A., "A Universal Algorithm for Sequential Data
-Compression", IEEE Transactions on Information Theory", Vol. 23, No. 3,
+[LZ77] Ziv J., Lempel A., ``A Universal Algorithm for Sequential Data
+Compression,'' IEEE Transactions on Information Theory, Vol. 23, No. 3,
 pp. 337-343.
 
-"DEFLATE Compressed Data Format Specification" available in
+``DEFLATE Compressed Data Format Specification'' available in
 ftp://ds.internic.net/rfc/rfc1951.txt

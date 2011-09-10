@@ -6,7 +6,7 @@
 #include "zutil.h"
 #include "inftrees.h"
 
-char inflate_copyright[] = " inflate 1.0.2 Copyright 1995-1996 Mark Adler ";
+char inflate_copyright[] = " inflate 1.0.4 Copyright 1995-1996 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -30,7 +30,7 @@ local int huft_build OF((
     uIntf *,            /* list of extra bits for non-simple codes */
     inflate_huft * FAR*,/* result: starting table */
     uIntf *,            /* maximum lookup bits (returns actual) */
-    z_stream *));       /* for zalloc function */
+    z_streamp ));       /* for zalloc function */
 
 local voidpf falloc OF((
     voidpf,             /* opaque pointer (not used) */
@@ -103,7 +103,7 @@ uIntf *d;               /* list of base values for non-simple codes */
 uIntf *e;               /* list of extra bits for non-simple codes */  
 inflate_huft * FAR *t;  /* result: starting table */
 uIntf *m;               /* maximum lookup bits, returns actual */
-z_stream *zs;           /* for zalloc function */
+z_streamp zs;           /* for zalloc function */
 /* Given a list of code lengths and a maximum table size, make a set of
    tables to decode that set of codes.  Return Z_OK on success, Z_BUF_ERROR
    if the given code set is incomplete (the tables are still built in this
@@ -302,7 +302,7 @@ int inflate_trees_bits(c, bb, tb, z)
 uIntf *c;               /* 19 code lengths */
 uIntf *bb;              /* bits tree desired/actual depth */
 inflate_huft * FAR *tb; /* bits tree result */
-z_stream *z;            /* for zfree function */
+z_streamp z;            /* for zfree function */
 {
   int r;
 
@@ -327,7 +327,7 @@ uIntf *bl;              /* literal desired/actual bit depth */
 uIntf *bd;              /* distance desired/actual bit depth */
 inflate_huft * FAR *tl; /* literal/length tree result */
 inflate_huft * FAR *td; /* distance tree result */
-z_stream *z;            /* for zfree function */
+z_streamp z;            /* for zfree function */
 {
   int r;
 
@@ -442,7 +442,7 @@ inflate_huft * FAR *td;  /* distance tree result */
 
 int inflate_trees_free(t, z)
 inflate_huft *t;        /* table to free */
-z_stream *z;            /* for zfree function */
+z_streamp z;            /* for zfree function */
 /* Free the malloc'ed tables built by huft_build(), which makes a linked
    list of the tables it made, with the links in a dummy first entry of
    each table. */

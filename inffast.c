@@ -32,7 +32,7 @@ uInt bl, bd;
 inflate_huft *tl;
 inflate_huft *td; /* need separate declaration for Borland C++ */
 inflate_blocks_statef *s;
-z_stream *z;
+z_streamp z;
 {
   inflate_huft *t;      /* temporary pointer */
   uInt e;               /* extra bits or operation */

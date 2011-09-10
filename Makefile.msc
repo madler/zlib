@@ -28,6 +28,8 @@ OBJ2 = zutil$(O) inflate$(O) infblock$(O) inftrees$(O) infcodes$(O) \
 OBJP2 = zutil$(O)+inflate$(O)+infblock$(O)+inftrees$(O)+infcodes$(O)+\
   infutil$(O)+inffast$(O)
 
+all:  zlib.lib example.exe minigzip.exe
+
 adler32.obj: adler32.c zutil.h zlib.h zconf.h
 	$(CC) -c $(CFLAGS) $*.c
 
@@ -80,7 +82,7 @@ minigzip.obj: minigzip.c zlib.h zconf.h
 
 # we must cut the command line to fit in the MS/DOS 128 byte limit:
 zlib.lib: $(OBJ1) $(OBJ2)
-        del zlib.lib
+	if exist zlib.lib del zlib.lib
 	lib zlib $(OBJ1);
 	lib zlib $(OBJ2);
 
