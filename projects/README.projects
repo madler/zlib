@@ -1,0 +1,38 @@
+This directory contains project files for building zlib under various
+Integrated Development Environments (IDE).
+
+If you wish to submit a new project to this directory, you should comply
+to the following requirements.  Otherwise (e.g. if you wish to integrate
+a custom piece of code that changes the zlib interface or its behavior),
+please consider submitting the project to the contrib directory.
+
+
+Requirements
+============
+
+- The project must build zlib using exclusively the source files from
+  the official zlib distribution.
+
+- If there are "official" makefiles in the zlib distribution, the builds
+  given by the makefiles must be compatible with the builds given by the
+  project.  These builds are called "official" builds.
+
+- It is possible to add non-official pieces of code to the project,
+  if the resulting build remains compatible with an official build.
+  For example, it is possible to add an "ASM build" target besides
+  the regular target, by including ASM source files from the contrib
+  directory.
+
+- If there are significant differences between the project files created
+  by different versions of an IDE (e.g. Visual C++ 6.0 vs. 7.0), the name
+  of the project directory should contain the version number of the IDE
+  for which the project is intended (e.g. "visualc6" for Visual C++ 6.0,
+  or "visualc7" for Visual C++ 7.0 and 7.1).
+
+
+Current projects
+================
+
+visualc6/   by Simon-Pierre Cadieux <methodex@methodex.ca>
+            and Cosmin Truta <cosmint@cs.ubbcluj.ro>
+        Project for Microsoft Visual C++ 6.0

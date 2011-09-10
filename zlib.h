@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.1.1, January 9th, 2004
+  version 1.2.1.2, September 9th, 2004
 
   Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.1.1"
-#define ZLIB_VERNUM 0x1211
+#define ZLIB_VERSION "1.2.1.2"
+#define ZLIB_VERNUM 0x1212
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -401,7 +401,7 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   because Z_BLOCK is used.
 
      If a preset dictionary is needed after this call (see inflateSetDictionary
-  below), inflate sets strm-adler to the adler32 checksum of the dictionary
+  below), inflate sets strm->adler to the adler32 checksum of the dictionary
   chosen by the compressor and returns Z_NEED_DICT; otherwise it sets
   strm->adler to the adler32 checksum of all output produced so far (that is,
   total_out bytes) and returns Z_OK, Z_STREAM_END or an error code as described
@@ -1189,7 +1189,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_stream FAR *strm, int windowBits,
     struct internal_state {int dummy;}; /* hack for buggy compilers */
 #endif
 
-ZEXTERN const char   * ZEXPORT zError           OF((int err));
+ZEXTERN const char   * ZEXPORT zError           OF((int));
 ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp z));
 ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 

@@ -67,4 +67,4 @@ visual-basic.txt by Carlos Rios <c_rios@sonda.cl>
         How to use compress(), uncompress() and the gz* functions from VB
 
 vstudio/    by Gilles Vollant <info@winimage.com>
-        Building zlib with Visual Studio .NET
+        Building a minizip-enhanced zlib with Visual Studio .NET

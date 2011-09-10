@@ -1,3 +1,11 @@
+Change in 1.01b (20 may 04)
+- Integrate patch from Debian package (submited by Mark Brown)
+- Add tools mztools from Xavier Roche
+
+Change in 1.01 (8 may 04)
+- fix buffer overrun risk in unzip.c (Xavier Roche)
+- fix a minor buffer insecurity in minizip.c (Mike Whittaker)
+
 Change in 1.00: (10 sept 03)
 - rename to 1.00
 - cosmetic code change

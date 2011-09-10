@@ -12,7 +12,7 @@ in the zlib distribution, or at the following location:
  1. What is ZLIB1.DLL, and how can I get it?
 
   - ZLIB1.DLL is the official build of zlib as a DLL.
-    (Please remark the symbol '1' in the name.)
+    (Please remark the character '1' in the name.)
 
     Pointers to a precompiled ZLIB1.DLL can be found in the zlib
     web site at:
@@ -37,20 +37,19 @@ in the zlib distribution, or at the following location:
     and build settings.  If you do build the DLL yourself, please
     make sure that it complies with all the above requirements,
     and it runs with the precompiled test programs, bundled with
-    the original ZLIB1.DLL distribution and available at the zlib
-    web site.
+    the original ZLIB1.DLL distribution.
 
     If, for any reason, you need to build an incompatible DLL,
-    please use a different name.
+    please use a different file name.
 
 
  2. Why did you change the name of the DLL to ZLIB1.DLL?
     What happened to the old ZLIB.DLL?
 
-  - The old ZLIB.DLL, built from zlib-1.1.x and earlier, required
-    compilation settings that were incompatible to those used by a
-    static build.  The DLL settings were supposed to be enabled by
-    defining the macro ZLIB_DLL, before including "zlib.h".
+  - The old ZLIB.DLL, built from zlib-1.1.4 or earlier, required
+    compilation settings that were incompatible to those used by
+    a static build.  The DLL settings were supposed to be enabled
+    by defining the macro ZLIB_DLL, before including "zlib.h".
     Incorrect handling of this macro was silently accepted at
     build time, resulting in two major problems:
 
@@ -65,8 +64,8 @@ in the zlib distribution, or at the following location:
       functions.  Failure to do so resulted in creating binaries
       that were unable to run with the official ZLIB.DLL build.
 
-    The only possible solution that we could foresee was to make a
-    binary-incompatible change in the DLL interfacing, in order to
+    The only possible solution that we could foresee was to make
+    a binary-incompatible change in the DLL interface, in order to
     remove the dependency on the ZLIB_DLL macro, and to release
     the new DLL under a different name.
 
@@ -85,17 +84,13 @@ in the zlib distribution, or at the following location:
 
   - In principle, you can do it by assigning calling convention
     keywords to the macros ZEXPORT and ZEXPORTVA.  In practice,
-    it depends on what you mean by "an old ZLIB.DLL", because
-    the old DLL exists in several mutually-incompatible versions.
-
-    If you have a compiled application that works with a certain
-    ZLIB.DLL without any known security issues, there is hardly
-    a need to rebuild the DLL from new sources only to link it to
-    the old app binary.  But if you really want to do it, you have
-    to find out first what kind of calling convention uses your
-    particular ZLIB.DLL build, and to use the same one in the new
-    build.  If you don't know what this is all about, you might be
-    better off if you would just forget it.
+    it depends on what you mean by "an old ZLIB.DLL", because the
+    old DLL exists in several mutually-incompatible versions.
+    You have to find out first what kind of calling convention is
+    being used in your particular ZLIB.DLL build, and to use the
+    same one in the new build.  If you don't know what this is all
+    about, you might be better off if you would just leave the old
+    DLL intact.
 
 
  4. Can I compile my application using the new zlib interface, and
@@ -170,19 +165,19 @@ in the zlib distribution, or at the following location:
     the K&R-style function prototypes, where the argument types
     are not specified; but that is another story for another day.
 
-    The fact that remains is that CDECL is the default convention.
-    Even if an explicit convention (such as STDCALL or FASTCALL)
-    is hard-coded into the function prototypes inside C headers,
-    problems may appear.  One problem, for example, deals with the
-    necessity to expose the convention in users' callbacks.
+    The remaining fact is that CDECL is the default convention.
+    Even if an explicit convention is hard-coded into the function
+    prototypes inside C headers, problems may appear.  The
+    necessity to expose the convention in users' callbacks is one
+    of these problems.
 
     The calling convention issues are also important when using
     zlib in other programming languages.  Some of them, like Ada
     (GNAT) and Fortran (GNU G77), have C bindings implemented
     initially on Unix, and relying on the C calling convention.
     On the other hand, the pre- .NET versions of Microsoft Visual
-    Basic require STDCALL, while Borland Delphi prefers (although
-    it does not require) FASTCALL.
+    Basic require STDCALL, while Borland Delphi prefers, although
+    it does not require, FASTCALL.
 
     In fairness to all possible uses of zlib outside the C
     programming language, we choose the default "C" convention.
@@ -208,7 +203,16 @@ in the zlib distribution, or at the following location:
     zlib distribution.
 
 
- 8. If my application uses ZLIB1.DLL, should I link it to
+ 8. I need a DLL for my Microsoft .NET project.  What can I do?
+
+  - We did not implement a COM wrapper around zlib, so you will
+    have to develop it yourself, or to get it from somewhere else.
+
+    If you would be so generous as to contribute such a wrapper,
+    we would like to include it in a future zlib version.
+
+
+ 9. If my application uses ZLIB1.DLL, should I link it to
     MSVCRT.DLL?  Why?
 
   - It is not required, but it is recommended to link your
@@ -223,7 +227,7 @@ in the zlib distribution, or at the following location:
     depend on it should also be linked to MSVCRT.DLL.
 
 
- 9. Why are you saying that ZLIB1.DLL and my application must be
+10. Why are you saying that ZLIB1.DLL and my application must be
     linked to the same C run-time (CRT) library?  I linked my
     application and my DLLs to different C libraries (e.g. my
     application to a static library, and my DLLs to MSVCRT.DLL),
@@ -255,11 +259,11 @@ in the zlib distribution, or at the following location:
     and DLLs are avoiding the corruption of each of the CRTs'
     internal states, maybe by careful design, or maybe by fortune.
 
-    Also note that linking ZLIB1.DLL to non-Microsoft CRTs (such
-    as those provided by Borland) raises similar problems.
+    Also note that linking ZLIB1.DLL to non-Microsoft CRTs, such
+    as those provided by Borland, raises similar problems.
 
 
-10. Why are you linking ZLIB1.DLL to MSVCRT.DLL?
+11. Why are you linking ZLIB1.DLL to MSVCRT.DLL?
 
   - MSVCRT.DLL exists on every Windows 95 with a new service pack
     installed, or with Microsoft Internet Explorer 4 or later, and
@@ -269,12 +273,11 @@ in the zlib distribution, or at the following location:
     software provider for free.
 
     The fact that MSVCRT.DLL does not exist on a virgin Windows 95
-    is not so problematic.  The number of Windows 95 installations
-    is rapidly decreasing, Microsoft stopped supporting it a long
-    time ago, and many recent applications from various vendors,
-    including Microsoft, do not even run on it.  Furthermore, no
-    serious user should run Windows 95 without a proper update
-    installed.
+    is not so problematic.  Windows 95 is scarcely found nowadays,
+    Microsoft ended its support a long time ago, and many recent
+    applications from various vendors, including Microsoft, do not
+    even run on it.  Furthermore, no serious user should run
+    Windows 95 without a proper update installed.
 
     There is also the fact that the mainstream C compilers for
     Windows are Microsoft Visual C++ 6.0, and gcc/MinGW.  Both
@@ -283,7 +286,7 @@ in the zlib distribution, or at the following location:
     select by users.
 
 
-11. Why are you not linking ZLIB1.DLL to
+12. Why are you not linking ZLIB1.DLL to
     <<my favorite C run-time library>> ?
 
   - We considered and abandoned the following alternatives:
@@ -314,7 +317,7 @@ in the zlib distribution, or at the following location:
       Windows NT systems.
 
 
-12. I need to link my own DLL build to a CRT different than
+13. I need to link my own DLL build to a CRT different than
     MSVCRT.DLL.  What can I do?
 
   - Feel free to rebuild the DLL from the zlib sources, and link
@@ -330,7 +333,7 @@ in the zlib distribution, or at the following location:
     CYGWIN1.DLL, and it is distributed under the name CYGZ.DLL.
 
 
-13. May I include additional pieces of code that I find useful,
+14. May I include additional pieces of code that I find useful,
     link them in ZLIB1.DLL, and export them?
 
   - No.  A legitimate build of ZLIB1.DLL must not include code
@@ -338,14 +341,12 @@ in the zlib distribution, or at the following location:
     But you can make your own private DLL build, under a different
     file name, as suggested in the previous answer.
 
-    For example, in Borland Delphi and C++ Builder, zlib is a part
-    of the standard VCL library.  If an application links to VCL
-    dynamically, the name of the distributable binary (VCLxx.DLL)
-    does not posess any danger of clashing with a legitimate but
-    incompatible ZLIB1.DLL.
+    For example, zlib is a part of the VCL library, distributed
+    with Borland Delphi and C++ Builder.  The DLL build of VCL
+    is a redistributable file, named VCLxx.DLL.
 
 
-14. May I remove some functionality out of ZLIB1.DLL, by enabling
+15. May I remove some functionality out of ZLIB1.DLL, by enabling
     macros like NO_GZCOMPRESS or NO_GZIP at compile time?
 
   - No.  A legitimate build of ZLIB1.DLL must provide the complete
@@ -354,7 +355,7 @@ in the zlib distribution, or at the following location:
     different file name, as suggested in the previous answer.
 
 
-15. I made my own ZLIB1.DLL build.  Can I test it for compliance?
+16. I made my own ZLIB1.DLL build.  Can I test it for compliance?
 
   - We prefer that you download the official DLL from the zlib
     web site.  If you need something peculiar from this DLL, you

@@ -1,7 +1,7 @@
 /* zip.h -- IO for compress .zip files using zlib
-   Version 1.00, September 10th, 2003
+   Version 1.01, May 8th, 2004
 
-   Copyright (C) 1998-2003 Gilles Vollant
+   Copyright (C) 1998-2004 Gilles Vollant
 
    This unzip package allow creates .ZIP file, compatible with PKZip 2.04g
      WinZip, InfoZip tools and compatible.
@@ -211,7 +211,6 @@ extern int ZEXPORT zipCloseFileInZip OF((zipFile file));
 /*
   Close the current file in the zipfile
 */
-
 
 extern int ZEXPORT zipCloseFileInZipRaw OF((zipFile file,
                                             uLong uncompressed_size,

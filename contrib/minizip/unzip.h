@@ -1,7 +1,7 @@
 /* unzip.h -- IO for uncompress .zip files using zlib
-   Version 1.00, September 10th, 2003
+   Version 1.01, May 8th, 2004
 
-   Copyright (C) 1998-2003 Gilles Vollant
+   Copyright (C) 1998-2004 Gilles Vollant
 
    This unzip package allow extract file from .ZIP file, compatible with PKZip 2.04g
      WinZip, InfoZip tools and compatible.
@@ -334,6 +334,16 @@ extern int ZEXPORT unzGetLocalExtrafield OF((unzFile file,
   the return value is the number of bytes copied in buf, or (if <0)
     the error code
 */
+
+/***************************************************************************/
+
+/* Get the current file offset */
+extern uLong ZEXPORT unzGetOffset (unzFile file);
+
+/* Set the current file offset */
+extern int ZEXPORT unzSetOffset (unzFile file, uLong pos);
+
+
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /* zip.c -- IO on .zip files using zlib
-   Version 1.00, September 10th, 2003
+   Version 1.01, May 8th, 2004
 
-   Copyright (C) 1998-2003 Gilles Vollant
+   Copyright (C) 1998-2004 Gilles Vollant
 
    Read zip.h for more info
 */
@@ -77,7 +77,7 @@
 #endif
 #endif
 const char zip_copyright[] =
-   " zip 1.00 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
+   " zip 1.01 Copyright 1998-2004 Gilles Vollant - http://www.winimage.com/zLibDll";
 
 
 #define SIZEDATA_INDATABLOCK (4096-(4*4))
@@ -265,10 +265,19 @@ local int ziplocal_putValue (pzlib_filefunc_def, filestream, x, nbByte)
 {
     unsigned char buf[4];
     int n;
-    for (n = 0; n < nbByte; n++) {
+    for (n = 0; n < nbByte; n++)
+    {
         buf[n] = (unsigned char)(x & 0xff);
         x >>= 8;
     }
+    if (x != 0)
+      {     /* data overflow - hack for ZIP64 (X Roche) */
+      for (n = 0; n < nbByte; n++)
+        {
+          buf[n] = 0xff;
+        }
+      }
+
     if (ZWRITE(*pzlib_filefunc_def,filestream,buf,nbByte)!=(uLong)nbByte)
         return ZIP_ERRNO;
     else
@@ -287,7 +296,16 @@ local void ziplocal_putValue_inmemory (dest, x, nbByte)
         buf[n] = (unsigned char)(x & 0xff);
         x >>= 8;
     }
+
+    if (x != 0)
+    {     /* data overflow - hack for ZIP64 */
+       for (n = 0; n < nbByte; n++)
+       {
+          buf[n] = 0xff;
+       }
+    }
 }
+
 /****************************************************************************/
 
 

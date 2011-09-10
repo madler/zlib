@@ -77,7 +77,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux | GNU | GNU/*) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
-  CYGWIN* | Cygwin* | cygwin* )
+  CYGWIN* | Cygwin* | cygwin* | OS/2* )
              EXE='.exe';;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
@@ -89,9 +89,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
              SHAREDLIB=libz$shared_ext
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name /usr/lib/$SHAREDLIBV -compatibility_version $VER2 -current_version $VER"}
-             libdir='/usr/lib'
-             includedir='/usr/include';;
+             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBV -compatibility_version $VER2 -current_version $VER"};;
   *)             LDSHARED=${LDSHARED-"$cc -shared"};;
   esac
 else
