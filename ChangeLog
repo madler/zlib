@@ -1,6 +1,13 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.5 (19 Apr 2010)
+- Disable visibility attribute in win32/Makefile.gcc [Bar-Lev]
+- Default to libdir as sharedlibdir in configure [Nieder]
+- Update copyright dates on modified source files
+- Update trees.c to be able to generate modified trees.h
+- Exit configure for MinGW, suggesting win32/Makefile.gcc
+
 Changes in 1.2.4.5 (18 Apr 2010)
 - Set sharedlibdir in configure [Torok]
 - Set LDFLAGS in Makefile.in [Bar-Lev]

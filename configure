@@ -49,7 +49,7 @@ LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
-sharedlibdir=${sharedlibdir-'${exec_prefix}/lib'}
+sharedlibdir=${sharedlibdir-'${libdir}'}
 includedir=${includedir-'${prefix}/include'}
 mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
@@ -122,6 +122,10 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
   MINGW*|mingw*)
+# temporary bypass
+        rm -f $test.[co] $test $test$shared_ext
+        echo "Please use win32/Makefile.gcc instead."
+        exit 1
         LDSHARED=${LDSHARED-"$cc -shared"}
         LDSHAREDLIBC=""
         EXE='.exe' ;;
