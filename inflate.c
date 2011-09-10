@@ -154,7 +154,7 @@ int windowBits;
     /* set number of window bits, free window if different */
     if (windowBits && (windowBits < 8 || windowBits > 15))
         return Z_STREAM_ERROR;
-    if (state->wbits != windowBits && state->window != Z_NULL) {
+    if (state->wbits != (unsigned)windowBits && state->window != Z_NULL) {
         ZFREE(strm, state->window);
         state->window = Z_NULL;
     }
@@ -1458,8 +1458,8 @@ int subvert;
 
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
-#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
     state->sane = !subvert;
+#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
     return Z_OK;
 #else
     state->sane = 1;

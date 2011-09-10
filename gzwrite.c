@@ -20,15 +20,6 @@ local int gz_init(state)
     int ret;
     z_streamp strm = &(state->strm);
 
-    /* check version of zlib -- need 1.2.1 or later for gzip deflate() */
-#ifdef ZLIB_VERNUM
-    if (ZLIB_VERNUM < 0x1210)
-#endif
-    {
-        gz_error(state, Z_VERSION_ERROR, "need zlib 1.2.1 or later");
-        return -1;
-    }
-
     /* allocate input and output buffers */
     state->in = malloc(state->want);
     state->out = malloc(state->want);
@@ -169,6 +160,17 @@ int ZEXPORT gzwrite(file, buf, len)
     if (state->mode != GZ_WRITE || state->err != Z_OK)
         return -1;
 
+    /* since an int is returned, make sure len fits in one, otherwise return
+       with an error (this avoids the flaw in the interface) */
+    if ((int)len < 0) {
+        gz_error(state, Z_BUF_ERROR, "requested length does not fit in int");
+        return -1;
+    }
+
+    /* if len is zero, avoid unnecessary operations */
+    if (len == 0)
+        return 0;
+
     /* allocate memory if this is the first time through */
     if (state->size == 0 && gz_init(state) == -1)
         return -1;
@@ -183,7 +185,7 @@ int ZEXPORT gzwrite(file, buf, len)
     /* for small len, copy to input buffer, otherwise compress directly */
     if (len < state->size) {
         /* copy to input buffer, compress when full */
-        while (len) {
+        do {
             if (strm->avail_in == 0)
                 strm->next_in = state->in;
             n = state->size - strm->avail_in;
@@ -192,11 +194,11 @@ int ZEXPORT gzwrite(file, buf, len)
             memcpy(strm->next_in + strm->avail_in, buf, n);
             strm->avail_in += n;
             state->pos += n;
-            buf += n;
+            buf = (char *)buf + n;
             len -= n;
             if (len && gz_comp(state, Z_NO_FLUSH) == -1)
                 return -1;
-        }
+        } while (len);
     }
     else {
         /* consume whatever's left in the input buffer */
@@ -211,7 +213,7 @@ int ZEXPORT gzwrite(file, buf, len)
             return -1;
     }
 
-    /* input was all buffered or compressed */
+    /* input was all buffered or compressed (put will fit in int) */
     return (int)put;
 }
 
@@ -332,12 +334,10 @@ int ZEXPORTVA gzprintf (gzFile file, const char *format, ...)
     if (len <= 0 || len >= (int)size || state->in[size - 1] != 0)
         return 0;
 
-    /* write out result of printf() */
+    /* update buffer and position, defer compression until needed */
     strm->avail_in = (unsigned)len;
     strm->next_in = state->in;
     state->pos += len;
-    if (gz_comp(state, Z_NO_FLUSH) == -1)
-        return 0;
     return len;
 }
 
@@ -408,12 +408,10 @@ int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
     if (len <= 0 || len >= (int)size || state->in[size - 1] != 0)
         return 0;
 
-    /* write out result of printf() */
+    /* update buffer and position, defer compression until needed */
     strm->avail_in = (unsigned)len;
     strm->next_in = state->in;
     state->pos += len;
-    if (gz_comp(state, Z_NO_FLUSH) == -1)
-        return 0;
     return len;
 }
 

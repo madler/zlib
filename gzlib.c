@@ -18,21 +18,17 @@ local void gz_reset OF((gz_statep));
 local gzFile gz_open OF((const char *, int, const char *, int));
 
 #if defined UNDER_CE && defined NO_ERRNO_H
-local char *strwinerror OF((DWORD error));
 
-#  include <windows.h>
+/* Map the Windows error number in ERROR to a locale-dependent error message
+   string and return a pointer to it.  Typically, the values for ERROR come
+   from GetLastError.
 
-/* Map the Windows error number in ERROR to a locale-dependent error
-   message string and return a pointer to it.  Typically, the values
-   for ERROR come from GetLastError.
+   The string pointed to shall not be modified by the application, but may be
+   overwritten by a subsequent call to gz_strwinerror
 
-   The string pointed to shall not be modified by the application,
-   but may be overwritten by a subsequent call to strwinerror
-
-   The strwinerror function does not change the current setting
-   of GetLastError.  */
-
-local char *strwinerror (error)
+   The gz_strwinerror function does not change the current setting of
+   GetLastError. */
+char ZEXPORT *gz_strwinerror (error)
      DWORD error;
 {
     static char buf[1024];
@@ -82,18 +78,18 @@ local void gz_reset(state)
         state->have = 0;            /* no output data available */
         state->eof = 0;             /* not at end of file */
     }
-    state->seek = 0;            /* no seek request pending */
-    gz_error(state, Z_OK, NULL);   /* clear error */
-    state->pos = 0;             /* no uncompressed data yet */
-    state->strm.avail_in = 0;   /* no input data yet */
+    state->seek = 0;                /* no seek request pending */
+    gz_error(state, Z_OK, NULL);    /* clear error */
+    state->pos = 0;                 /* no uncompressed data yet */
+    state->strm.avail_in = 0;       /* no input data yet */
 }
 
 /* Open a gzip file either by name or file descriptor. */
-local gzFile gz_open(path, fd, mode, use64)
+local gzFile gz_open(path, fd, mode, large)
     const char *path;
     int fd;
     const char *mode;
-    int use64;
+    int large;
 {
     gz_statep state;
 
@@ -156,9 +152,13 @@ local gzFile gz_open(path, fd, mode, use64)
     /* open the file with the appropriate mode (or just use fd) */
     state->fd = fd != -1 ? fd :
         open(path,
+            (large ?
 #ifdef O_LARGEFILE
-            (use64 ? O_LARGEFILE : 0) |
+            O_LARGEFILE
+#else
+            0
 #endif
+            : 0) |
 #ifdef O_BINARY
             O_BINARY |
 #endif
@@ -214,13 +214,16 @@ gzFile ZEXPORT gzdopen(fd, mode)
     int fd;
     const char *mode;
 {
-    char path[46];      /* allow up to 128-bit integers, so don't worry --
-                           the sprintf() is safe */
+    char path[46];      /* identifier for error messages */
 
     if (fd < 0)
         return NULL;
-    sprintf(path, "<fd:%d>", fd);       /* for error messages */
-    return gz_open(path, fd, mode, 1);
+#ifdef NO_snprintf
+    sprintf(path, "<fd:%d>", fd);   /* big enough for 128-bit integers */
+#else
+    snprintf(path, sizeof(path), "<fd:%d>", fd);
+#endif
+    return gz_open(path, fd, mode, 0);
 }
 
 /* -- see zlib.h -- */
@@ -325,7 +328,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
             return -1;
     }
 
-    /* if reading, skip what's in output buffer (one less gz_getc() check) */
+    /* if reading, skip what's in output buffer (one less gzgetc() check) */
     if (state->mode == GZ_READ) {
         n = state->have > offset ? (unsigned)offset : state->have;
         state->have -= n;
@@ -422,10 +425,10 @@ int ZEXPORT gzeof(file)
 
     /* get internal structure and check integrity */
     if (file == NULL)
-        return -1;
+        return 0;
     state = (gz_statep)file;
     if (state->mode != GZ_READ && state->mode != GZ_WRITE)
-        return -1;
+        return 0;
 
     /* return end-of-file state */
     return state->mode == GZ_READ ? (state->eof && state->have == 0) : 0;
@@ -470,15 +473,15 @@ void ZEXPORT gzclearerr(file)
 }
 
 /* Create an error message in allocated memory and set state->err and
-   state->msg accordingly. Free any previous error message already there.  Do
+   state->msg accordingly.  Free any previous error message already there.  Do
    not try to free or allocate space if the error is Z_MEM_ERROR (out of
-   memory).  Simply save the error message as a static string.  If there is
-   an allocation failure constructing the error message, then convert the
-   error to out of memory. */
+   memory).  Simply save the error message as a static string.  If there is an
+   allocation failure constructing the error message, then convert the error to
+   out of memory. */
 void ZEXPORT gz_error(state, err, msg)
     gz_statep state;
     int err;
-    char *msg;
+    const char *msg;
 {
     /* free previously allocated message and clear */
     if (state->msg != NULL) {
@@ -494,14 +497,14 @@ void ZEXPORT gz_error(state, err, msg)
 
     /* for an out of memory error, save as static string */
     if (err == Z_MEM_ERROR) {
-        state->msg = msg;
+        state->msg = (char *)msg;
         return;
     }
 
     /* construct error message with path */
     if ((state->msg = malloc(strlen(state->path) + strlen(msg) + 3)) == NULL) {
         state->err = Z_MEM_ERROR;
-        state->msg = "out of memory";
+        state->msg = (char *)"out of memory";
         return;
     }
     strcpy(state->msg, state->path);

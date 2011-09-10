@@ -15,10 +15,12 @@
 #define ZLIB_INTERNAL
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
 #include "zlib.h"
+#ifdef STDC
+#  include <string.h>
+#  include <stdlib.h>
+#endif
+#include <fcntl.h>
 
 #ifdef NO_DEFLATE       /* for compatibility with old definition */
 #  define NO_GZCOMPRESS
@@ -42,7 +44,8 @@
 
 /* get errno and strerror definition */
 #if defined UNDER_CE && defined NO_ERRNO_H
-#  define zstrerror(errnum) strwinerror((DWORD)errnum)
+#  include <windows.h>
+#  define zstrerror() gz_strwinerror((DWORD)GetLastError())
 #else
 #  ifdef STDC
 #    include <errno.h>
@@ -54,7 +57,7 @@
 
 /* MVS fdopen() */
 #ifdef __MVS__
-#  pragma map (fdopen , "\174\174FDOPEN")
+  #pragma map (fdopen , "\174\174FDOPEN")
    FILE *fdopen(int, const char *);
 #endif
 
@@ -106,4 +109,7 @@ typedef struct {
 typedef gz_state FAR *gz_statep;
 
 /* shared functions */
-ZEXTERN void ZEXPORT gz_error OF((gz_statep, int, char *));
+ZEXTERN void ZEXPORT gz_error OF((gz_statep, int, const char *));
+#if defined UNDER_CE && defined NO_ERRNO_H
+ZEXTERN char ZEXPORT *gz_strwinerror OF((DWORD error));
+#endif

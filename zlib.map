@@ -14,6 +14,8 @@ ZLIB_1.2.0 {
     zcalloc;
     zcfree;
     z_errmsg;
+    gz_error;
+    gzio_old;
     _*;
 };
 
@@ -51,3 +53,11 @@ ZLIB_1.2.3.4 {
     inflateReset2;
     inflateMark;
 } ZLIB_1.2.3.3;
+
+ZLIB_1.2.3.5 {
+    gzbuffer;
+    gzoffset;
+    gzoffset64;
+    gzclose_r;
+    gzclose_w;
+} ZLIB_1.2.3.4;

@@ -34,12 +34,6 @@ gzlog.h
       and deflateSetDictionary()
     - illustrates use of a gzip header extra field
 
-pigz.c
-    parallel implementation of gzip compression
-    - uses pthreads to speed up compression on multiple core machines
-    - illustrates the use of deflateSetDictionary() with raw deflate
-    - illustrates the use of crc32_combine()
-
 zlib_how.html
     painfully comprehensive description of zpipe.c (see below)
     - describes in excruciating detail the use of deflate() and inflate()

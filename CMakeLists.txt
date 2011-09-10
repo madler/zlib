@@ -21,7 +21,6 @@ check_include_file(stddef.h    HAVE_STDDEF_H)
 # Check to see if we have large file support
 #
 set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE)
-
 # We add these other definitions here because CheckTypeSize.cmake
 # in CMake 2.4.x does not automatically do so and we want
 # compatibility with CMake 2.4.x.
@@ -34,9 +33,7 @@ endif()
 if(HAVE_STDDEF_H)
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
 endif()
-
 check_type_size(off64_t OFF64_T)
-
 if(HAVE_OFF64_T)
    add_definitions(-D_LARGEFILE64_SOURCE)
 endif()
@@ -63,23 +60,6 @@ if(NOT HAVE_ERRNO_H)
 endif()
 
 #
-# Check for mmap support
-#
-set(mmap_test_code "
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-caddr_t hello() {
-  return mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0);
-}
-int main() { return 0; }
-")
-check_c_source_compiles("${mmap_test_code}" USE_MMAP)
-if(USE_MMAP)
-    add_definitions(-DUSE_MMAP)
-endif()
-
-#
 # Create the zlibdefs.h file.
 # Note: we create it in CMAKE_CURRENT_SOURCE_DIR instead 
 #       of CMAKE_CURRENT_BINARY_DIR because an empty zlibdefs.h
@@ -88,7 +68,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zlibdefs.h.cmakein
                ${CMAKE_CURRENT_SOURCE_DIR}/zlibdefs.h)
 
 if(MSVC)
-    set(CMAKE_DEBUG_POSTFIX "D")
+    set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 endif()
@@ -130,15 +110,47 @@ set(ZLIB_SRCS
     trees.c
     uncompr.c
     zutil.c
+    win32/zlib1.rc
 )
+
+# parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
+string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([0-9A-Za-z.]+)\".*"
+    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
+
+if(MINGW)
+    # This gets us DLL resource information when compiling on MinGW.
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
+                       COMMAND windres.exe
+                            -D GCC_WINDRES
+                            -I ${CMAKE_CURRENT_SOURCE_DIR}
+                            -o ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
+                            -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc)
+    set(ZLIB_SRCS ${ZLIB_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
+endif(MINGW)
 
 add_library(zlib ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
-set_target_properties(zlib PROPERTIES VERSION 1.2.3.4)
+
 set_target_properties(zlib PROPERTIES SOVERSION 1)
+
+if(NOT CYGWIN)
+    # This property causes shared libraries on Linux to have the full version
+    # encoded into their final filename.  We disable this on Cygwin because
+    # it causes cygz-${ZLIB_FULL_VERSION}.dll to be created when cygz.dll
+    # seems to be the default.
+    #
+    # This has no effect with MSVC, on that platform the version info for
+    # the DLL comes from the resource file win32/zlib1.rc
+    set_target_properties(zlib PROPERTIES VERSION ${ZLIB_FULL_VERSION})
+endif()
+
 if(UNIX)
-   # On unix like platforms the library is almost always called libz
+    # On unix-like platforms the library is almost always called libz
    set_target_properties(zlib PROPERTIES OUTPUT_NAME z)
+elseif(BUILD_SHARED_LIBS AND WIN32)
+    # Creates zlib1.dll when building shared library version
+    set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )

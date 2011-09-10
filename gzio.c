@@ -95,7 +95,7 @@ local char *strwinerror (error)
 #endif /* UNDER_CE && NO_ERRNO_H */
 
 #ifdef __MVS__
-#  pragma map (fdopen , "\174\174FDOPEN")
+  #pragma map (fdopen , "\174\174FDOPEN")
    FILE *fdopen(int, const char *);
 #endif
 

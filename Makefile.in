@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-2006 Jean-loup Gailly.
+# Copyright (C) 1995-2010 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.5
+SHAREDLIBV=libz.so.1.2.3.6
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIB) $(SHAREDLIBV)
 
@@ -124,10 +124,10 @@ match.lo: match.S
 	rm -f _match.s
 
 example64.o: example.c zlib.h zconf.h zlibdefs.h
-	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
+	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ example.c
 
 minigzip64.o: minigzip.c zlib.h zconf.h zlibdefs.h
-	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
+	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ minigzip.c
 
 .SUFFIXES: .lo
 

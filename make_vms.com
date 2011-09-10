@@ -11,15 +11,18 @@ $!------------------------------------------------------------------------------
 $! Version history
 $! 0.01 20060120 First version to receive a number
 $! 0.02 20061008 Adapt to new Makefile.in
+$! 0.03 20091224 Add support for large file check
+$! 0.04 20100110 Add new gzclose, gzlib, gzread, gzwrite
 $!
 $ on error then goto err_exit
-$!
-$!
-$! Just some general constants...
 $!
 $ true  = 1
 $ false = 0
 $ tmpnam = "temp_" + f$getjpi("","pid")
+$ tt = tmpnam + ".txt"
+$ tc = tmpnam + ".c"
+$ th = tmpnam + ".h"
+$ define/nolog tconfig 'th'
 $ its_decc = false
 $ its_vaxc = false
 $ its_gnuc = false
@@ -27,17 +30,25 @@ $ s_case   = False
 $!
 $! Setup variables holding "config" information
 $!
-$ Make     = ""
+$ Make    = ""
 $ name     = "Zlib"
 $ version  = "?.?.?"
 $ v_string = "ZLIB_VERSION"
 $ v_file   = "zlib.h"
-$ ccopt    = ""
-$ lopts    = ""
+$ ccopt   = ""
+$ lopts   = ""
 $ dnsrl   = ""
+$ aconf_in_file = "config.hin"
+$ conf_check_string = ""
 $ linkonly = false
 $ optfile  = name + ".opt"
-$ axp      = f$getsyi("HW_MODEL").ge.1024
+$ libdefs  = "" 
+$ axp      = f$getsyi("HW_MODEL").ge.1024 .and. f$getsyi("HW_MODEL").lt.4096
+$!
+$ whoami = f$parse(f$enviornment("Procedure"),,,,"NO_CONCEAL")
+$ mydef  = F$parse(whoami,,,"DEVICE")
+$ mydir  = f$parse(whoami,,,"DIRECTORY") - "]["
+$ myproc = f$parse(whoami,,,"Name") + f$parse(whoami,,,"type")
 $!
 $! Check for MMK/MMS
 $!
@@ -47,11 +58,16 @@ $!
 $!
 $ gosub find_version
 $!
+$  open/write topt tmp.opt
+$  open/write optf 'optfile'
+$!
 $ gosub check_opts
 $!
 $! Look for the compiler used
 $!
 $ gosub check_compiler
+$ close topt
+$!
 $ if its_decc
 $ then
 $   ccopt = "/prefix=all" + ccopt
@@ -71,6 +87,49 @@ $ then
 $    if f$trnlnm("SYS").eqs."" then define sys sys$library:
 $ endif
 $!
+$! Build a fake configure input header 
+$!
+$ open/write conf_hin config.hin
+$ write conf_hin "#undef _LARGEFILE64_SOURCE"
+$ close conf_hin
+$!
+$!
+$ i = 0
+$FIND_ACONF:
+$ fname = f$element(i,"#",aconf_in_file)
+$ if fname .eqs. "#" then goto AMISS_ERR
+$ if f$search(fname) .eqs. ""
+$ then 
+$   i = i + 1
+$   goto find_aconf
+$ endif
+$ open/read/err=aconf_err aconf_in 'fname'
+$ open/write aconf zlibdefs.h
+$ACONF_LOOP:
+$ read/end_of_file=aconf_exit aconf_in line
+$ work = f$edit(line, "compress,trim")
+$ if f$extract(0,6,work) .nes. "#undef"
+$ then
+$   write aconf line
+$ else
+$   cdef = f$element(1," ",work)
+$   gosub check_config
+$ endif
+$ goto aconf_loop
+$ACONF_EXIT:
+$ write aconf "#define VMS 1"
+$ write aconf "#include <unistd.h>"
+$ write aconf "#include <unixio.h>"
+$ write aconf "#ifdef _LARGEFILE"
+$ write aconf "#define off64_t __off64_t"
+$ write aconf "#define fopen64 fopen"
+$ write aconf "#define fseeko64 fseeko"
+$ write aconf "#define lseek64 lseek"
+$ write aconf "#define ftello64 ftell"
+$ write aconf "#endif"
+$ close aconf_in
+$ close aconf
+$ delete 'th';*
 $! Build the thing plain or with mms
 $!
 $ write sys$output "Compiling Zlib sources ..."
@@ -86,15 +145,15 @@ $   CALL MAKE crc32.OBJ "CC ''CCOPT' crc32" -
 $   CALL MAKE deflate.OBJ "CC ''CCOPT' deflate" -
                 deflate.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE gzclose.OBJ "CC ''CCOPT' gzclose" -
-                gzclose.c zlib.h zconf.h zlibdefs.h gzguts.h
+                gzclose.c zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio" -
                 gzio.c zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE gzlib.OBJ "CC ''CCOPT' gzlib" -
-                gzlib.c zlib.h zconf.h zlibdefs.h gzguts.h
+                gzlib.c zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE gzread.OBJ "CC ''CCOPT' gzread" -
-                gzread.c zlib.h zconf.h zlibdefs.h gzguts.h
+                gzread.c zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE gzwrite.OBJ "CC ''CCOPT' gzwrite" -
-                gzwrite.c zlib.h zconf.h zlibdefs.h gzguts.h
+                gzwrite.c zutil.h zlib.h zconf.h zlibdefs.h
 $   CALL MAKE infback.OBJ "CC ''CCOPT' infback" -
                 infback.c zutil.h inftrees.h inflate.h inffast.h inffixed.h
 $   CALL MAKE inffast.OBJ "CC ''CCOPT' inffast" -
@@ -153,6 +212,14 @@ $ goto err_exit
 $ERR_EXIT:
 $ set message/facil/ident/sever/text
 $ close/nolog optf
+$ close/nolog topt
+$ close/nolog conf_hin
+$ close/nolog aconf_in
+$ close/nolog aconf
+$ close/nolog out
+$ close/nolog min
+$ close/nolog mod
+$ close/nolog h_in
 $ write sys$output "Exiting..."
 $ exit 2
 $!
@@ -200,61 +267,72 @@ $!------------------------------------------------------------------------------
 $!
 $! Check command line options and set symbols accordingly
 $!
+$!------------------------------------------------------------------------------
+$! Version history
+$! 0.01 20041206 First version to receive a number
+$! 0.02 20060126 Add new "HELP" target
 $ CHECK_OPTS:
 $ i = 1
 $ OPT_LOOP:
 $ if i .lt. 9
 $ then
 $   cparm = f$edit(p'i',"upcase")
-$   if cparm .eqs. "DEBUG"
+$!
+$! Check if parameter actually contains something
+$!
+$   if f$edit(cparm,"trim") .nes. ""
 $   then
-$     ccopt = ccopt + "/noopt/deb"
-$     lopts = lopts + "/deb"
-$   endif
-$   if f$locate("CCOPT=",cparm) .lt. f$length(cparm)
-$   then
-$     start = f$locate("=",cparm) + 1
-$     len   = f$length(cparm) - start
-$     ccopt = ccopt + f$extract(start,len,cparm)
-$     if f$locate("AS_IS",f$edit(ccopt,"UPCASE")) .lt. f$length(ccopt) -
-         then s_case = true
-$   endif
-$   if cparm .eqs. "LINK" then linkonly = true
-$   if f$locate("LOPTS=",cparm) .lt. f$length(cparm)
-$   then
-$     start = f$locate("=",cparm) + 1
-$     len   = f$length(cparm) - start
-$     lopts = lopts + f$extract(start,len,cparm)
-$   endif
-$   if f$locate("CC=",cparm) .lt. f$length(cparm)
-$   then
-$     start  = f$locate("=",cparm) + 1
-$     len    = f$length(cparm) - start
-$     cc_com = f$extract(start,len,cparm)
-      if (cc_com .nes. "DECC") .and. -
-         (cc_com .nes. "VAXC") .and. -
-	 (cc_com .nes. "GNUC")
+$     if cparm .eqs. "DEBUG"
 $     then
-$       write sys$output "Unsupported compiler choice ''cc_com' ignored"
-$       write sys$output "Use DECC, VAXC, or GNUC instead"
-$     else
-$     	if cc_com .eqs. "DECC" then its_decc = true
-$     	if cc_com .eqs. "VAXC" then its_vaxc = true
-$     	if cc_com .eqs. "GNUC" then its_gnuc = true
+$       ccopt = ccopt + "/noopt/deb"
+$       lopts = lopts + "/deb"
 $     endif
-$   endif
-$   if f$locate("MAKE=",cparm) .lt. f$length(cparm)
-$   then
-$     start  = f$locate("=",cparm) + 1
-$     len    = f$length(cparm) - start
-$     mmks = f$extract(start,len,cparm)
-$     if (mmks .eqs. "MMK") .or. (mmks .eqs. "MMS")
+$     if f$locate("CCOPT=",cparm) .lt. f$length(cparm)
 $     then
-$       make = mmks
-$     else
-$       write sys$output "Unsupported make choice ''mmks' ignored"
-$       write sys$output "Use MMK or MMS instead"
+$       start = f$locate("=",cparm) + 1
+$       len   = f$length(cparm) - start
+$       ccopt = ccopt + f$extract(start,len,cparm)
+$       if f$locate("AS_IS",f$edit(ccopt,"UPCASE")) .lt. f$length(ccopt) -
+          then s_case = true
 $     endif
+$     if cparm .eqs. "LINK" then linkonly = true
+$     if f$locate("LOPTS=",cparm) .lt. f$length(cparm)
+$     then
+$       start = f$locate("=",cparm) + 1
+$       len   = f$length(cparm) - start
+$       lopts = lopts + f$extract(start,len,cparm)
+$     endif
+$     if f$locate("CC=",cparm) .lt. f$length(cparm)
+$     then
+$       start  = f$locate("=",cparm) + 1
+$       len    = f$length(cparm) - start
+$       cc_com = f$extract(start,len,cparm)
+        if (cc_com .nes. "DECC") .and. -
+           (cc_com .nes. "VAXC") .and. -
+           (cc_com .nes. "GNUC")
+$       then
+$         write sys$output "Unsupported compiler choice ''cc_com' ignored"
+$         write sys$output "Use DECC, VAXC, or GNUC instead"
+$       else
+$         if cc_com .eqs. "DECC" then its_decc = true
+$         if cc_com .eqs. "VAXC" then its_vaxc = true
+$         if cc_com .eqs. "GNUC" then its_gnuc = true
+$       endif
+$     endif
+$     if f$locate("MAKE=",cparm) .lt. f$length(cparm)
+$     then
+$       start  = f$locate("=",cparm) + 1
+$       len    = f$length(cparm) - start
+$       mmks = f$extract(start,len,cparm)
+$       if (mmks .eqs. "MMK") .or. (mmks .eqs. "MMS")
+$       then
+$         make = mmks
+$       else
+$         write sys$output "Unsupported make choice ''mmks' ignored"
+$         write sys$output "Use MMK or MMS instead"
+$       endif
+$     endif
+$     if cparm .eqs. "HELP" then gosub bhelp
 $   endif
 $   i = i + 1
 $   goto opt_loop
@@ -267,6 +345,8 @@ $!
 $! Version history
 $! 0.01 20040223 First version to receive a number
 $! 0.02 20040229 Save/set value of decc$no_rooted_search_lists
+$! 0.03 20060202 Extend handling of GNU C
+$! 0.04 20090402 Compaq -> hp
 $CHECK_COMPILER:
 $ if (.not. (its_decc .or. its_vaxc .or. its_gnuc))
 $ then
@@ -282,15 +362,21 @@ $ then goto CC_ERR
 $ else
 $   if its_decc
 $   then
-$     write sys$output "CC compiler check ... Compaq C"
+$     write sys$output "CC compiler check ... hp C"
 $     if f$trnlnm("decc$no_rooted_search_lists") .nes. ""
 $     then
 $       dnrsl = f$trnlnm("decc$no_rooted_search_lists")
 $     endif
-$     define decc$no_rooted_search_lists 1
+$     define/nolog decc$no_rooted_search_lists 1
 $   else
 $     if its_vaxc then write sys$output "CC compiler check ... VAX C"
-$     if its_gnuc then write sys$output "CC compiler check ... GNU C"
+$     if its_gnuc
+$     then
+$         write sys$output "CC compiler check ... GNU C"
+$         if f$trnlnm(topt) then write topt "gnu_cc:[000000]gcclib.olb/lib"
+$         if f$trnlnm(optf) then write optf "gnu_cc:[000000]gcclib.olb/lib"
+$         cc = "gcc"
+$     endif
 $     if f$trnlnm(topt) then write topt "sys$share:vaxcrtl.exe/share"
 $     if f$trnlnm(optf) then write optf "sys$share:vaxcrtl.exe/share"
 $   endif
@@ -310,7 +396,8 @@ $ deck
 # written by Martin P.J. Zinser
 # <zinser@zinser.no-ip.info or zinser@sysdev.deutsche-boerse.com>
 
-OBJS = adler32.obj, compress.obj, crc32.obj, gzio.obj, uncompr.obj, infback.obj\
+OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzio.obj, gzlib.obj\ 
+       gzread.obj, gzwrite.obj, uncompr.obj, infback.obj\
        deflate.obj, trees.obj, zutil.obj, inflate.obj, \
        inftrees.obj, inffast.obj
 
@@ -342,7 +429,11 @@ compress.obj : compress.c zlib.h zconf.h zlibdefs.h
 crc32.obj    : crc32.c zutil.h zlib.h zconf.h zlibdefs.h
 deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
 example.obj  : example.c zlib.h zconf.h zlibdefs.h
+gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h zlibdefs.h
 gzio.obj     : gzio.c zutil.h zlib.h zconf.h zlibdefs.h
+gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h zlibdefs.h
+gzread.obj   : gzread.c zutil.h zlib.h zconf.h zlibdefs.h
+gzwrite.obj  : gzwrite.c zutil.h zlib.h zconf.h zlibdefs.h
 inffast.obj  : inffast.c zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inffast.h
 inflate.obj  : inflate.c zutil.h zlib.h zconf.h zlibdefs.h
 inftrees.obj : inftrees.c zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
@@ -413,6 +504,169 @@ $ endif
 $ goto hloop
 $hdone:
 $ close h_in
+$ return
+$!------------------------------------------------------------------------------
+$!
+$CHECK_CONFIG:
+$!
+$ in_ldef = f$locate(cdef,libdefs)
+$ if (in_ldef .lt. f$length(libdefs))
+$ then
+$   write aconf "#define ''cdef' 1"
+$   libdefs = f$extract(0,in_ldef,libdefs) + -
+              f$extract(in_ldef + f$length(cdef) + 1, -
+                        f$length(libdefs) - in_ldef - f$length(cdef) - 1, -
+                        libdefs)
+$ else
+$   if (f$type('cdef') .eqs. "INTEGER")
+$   then
+$     write aconf "#define ''cdef' ", 'cdef'
+$   else 
+$     if (f$type('cdef') .eqs. "STRING")
+$     then
+$       write aconf "#define ''cdef' ", """", '''cdef'', """"
+$     else
+$       gosub check_cc_def
+$     endif
+$   endif
+$ endif
+$ return
+$!------------------------------------------------------------------------------
+$!
+$! Check if this is a define relating to the properties of the C/C++
+$! compiler
+$!
+$ CHECK_CC_DEF:
+$ if (cdef .eqs. "_LARGEFILE64_SOURCE")
+$ then
+$   copy sys$input: 'tc'
+$   deck
+#include "tconfig"
+#define _LARGEFILE
+#include <stdio.h>
+
+int main(){
+FILE *fp;
+  fp = fopen("temp.txt","r");
+  fseeko(fp,1,SEEK_SET);
+  fclose(fp);
+}
+
+$   eod
+$   test_inv = false
+$   comm_h = false
+$   gosub cc_prop_check
+$   return
+$ endif
+$ write aconf "/* ", line, " */"
+$ return
+$!------------------------------------------------------------------------------
+$!
+$! Check for properties of C/C++ compiler
+$!
+$! Version history
+$! 0.01 20031020 First version to receive a number
+$! 0.02 20031022 Added logic for defines with value
+$! 0.03 20040309 Make sure local config file gets not deleted
+$! 0.04 20041230 Also write include for configure run
+$! 0.05 20050103 Add processing of "comment defines"
+$CC_PROP_CHECK:
+$ cc_prop = true
+$ is_need = false
+$ is_need = (f$extract(0,4,cdef) .eqs. "NEED") .or. (test_inv .eq. true)
+$ if f$search(th) .eqs. "" then create 'th'
+$ set message/nofac/noident/nosever/notext
+$ on error then continue
+$ cc 'tmpnam'
+$ if .not. ($status)  then cc_prop = false
+$ on error then continue
+$! The headers might lie about the capabilities of the RTL
+$ link 'tmpnam',tmp.opt/opt
+$ if .not. ($status)  then cc_prop = false
+$ set message/fac/ident/sever/text
+$ on error then goto err_exit
+$ delete/nolog 'tmpnam'.*;*/exclude='th'
+$ if (cc_prop .and. .not. is_need) .or. -
+     (.not. cc_prop .and. is_need) 
+$ then
+$   write sys$output "Checking for ''cdef'... yes"
+$   if f$type('cdef_val'_yes) .nes. ""
+$   then
+$     if f$type('cdef_val'_yes) .eqs. "INTEGER" -
+         then call write_config f$fao("#define !AS !UL",cdef,'cdef_val'_yes)
+$     if f$type('cdef_val'_yes) .eqs. "STRING" -
+         then call write_config f$fao("#define !AS !AS",cdef,'cdef_val'_yes)
+$   else
+$     call write_config f$fao("#define !AS 1",cdef)
+$   endif
+$   if (cdef .eqs. "HAVE_FSEEKO") .or. (cdef .eqs. "_LARGE_FILES") .or. - 
+       (cdef .eqs. "_LARGEFILE64_SOURCE") then - 
+      call write_config f$string("#define _LARGEFILE 1")
+$ else 
+$   write sys$output "Checking for ''cdef'... no"
+$   if (comm_h)
+$   then
+      call write_config f$fao("/* !AS */",line)
+$   else
+$     if f$type('cdef_val'_no) .nes. ""
+$     then
+$       if f$type('cdef_val'_no) .eqs. "INTEGER" -
+           then call write_config f$fao("#define !AS !UL",cdef,'cdef_val'_no)
+$       if f$type('cdef_val'_no) .eqs. "STRING" -
+           then call write_config f$fao("#define !AS !AS",cdef,'cdef_val'_no)
+$     else
+$       call write_config f$fao("#undef !AS",cdef)
+$     endif
+$   endif
+$ endif
+$ return
+$!------------------------------------------------------------------------------
+$!
+$! Check for properties of C/C++ compiler with multiple result values
+$!
+$! Version history
+$! 0.01 20040127 First version
+$! 0.02 20050103 Reconcile changes from cc_prop up to version 0.05
+$CC_MPROP_CHECK:
+$ cc_prop = true
+$ i    = 1
+$ idel = 1
+$ MT_LOOP:
+$ if f$type(result_'i') .eqs. "STRING"
+$ then
+$   set message/nofac/noident/nosever/notext
+$   on error then continue
+$   cc 'tmpnam'_'i'
+$   if .not. ($status)  then cc_prop = false
+$   on error then continue
+$! The headers might lie about the capabilities of the RTL
+$   link 'tmpnam'_'i',tmp.opt/opt
+$   if .not. ($status)  then cc_prop = false
+$   set message/fac/ident/sever/text
+$   on error then goto err_exit
+$   delete/nolog 'tmpnam'_'i'.*;*
+$   if (cc_prop) 
+$   then
+$     write sys$output "Checking for ''cdef'... ", mdef_'i'
+$     if f$type(mdef_'i') .eqs. "INTEGER" -
+         then call write_config f$fao("#define !AS !UL",cdef,mdef_'i')
+$     if f$type('cdef_val'_yes) .eqs. "STRING" -
+         then call write_config f$fao("#define !AS !AS",cdef,mdef_'i')
+$     goto msym_clean
+$   else
+$     i = i + 1
+$     goto mt_loop
+$   endif
+$ endif
+$ write sys$output "Checking for ''cdef'... no"
+$ call write_config f$fao("#undef !AS",cdef)
+$ MSYM_CLEAN:
+$ if (idel .le. msym_max)
+$ then
+$   delete/sym mdef_'idel'
+$   idel = idel + 1
+$   goto msym_clean
+$ endif
 $ return
 $!------------------------------------------------------------------------------
 $!
@@ -532,4 +786,17 @@ $!
 $ EXIT_AA:
 $ if V then set verify
 $ endsubroutine 
+$!------------------------------------------------------------------------------
+$!
+$! Write configuration to both permanent and temporary config file
+$!
+$! Version history
+$! 0.01 20031029 First version to receive a number
+$!
+$WRITE_CONFIG: SUBROUTINE
+$  write aconf 'p1'
+$  open/append confh 'th'
+$  write confh 'p1'
+$  close confh
+$ENDSUBROUTINE
 $!------------------------------------------------------------------------------

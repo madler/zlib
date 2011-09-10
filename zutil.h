@@ -116,7 +116,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #ifdef OS2
 #  define OS_CODE  0x06
 #  ifdef M_I86
-     #include <malloc.h>
+#    include <malloc.h>
 #  endif
 #endif
 
@@ -162,9 +162,9 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 #if defined(__BORLANDC__)
-#pragma warn -8004
-#pragma warn -8008
-#pragma warn -8066
+  #pragma warn -8004
+  #pragma warn -8008
+  #pragma warn -8066
 #endif
 
 #ifdef _LARGEFILE64_SOURCE

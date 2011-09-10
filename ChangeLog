@@ -1,6 +1,27 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.6 (17 Jan 2010)
+- Avoid void * arithmetic in gzread.c and gzwrite.c
+- Make compilers happier with const char * for gz_error message
+- Avoid unused parameter warning in inflate.c
+- Avoid signed-unsigned comparison warning in inflate.c
+- Indent #pragma's for traditional C
+- Fix usage of strwinerror() in glib.c, change to gz_strwinerror()
+- Correct email address in configure for system options
+- Update make_vms.com and add make_vms.com to contrib/minizip [Zinser]
+- Update zlib.map [Brown]
+- Fix Makefile.in for Solaris 10 make of example64 and minizip64 [Tšršk]
+- Apply various fixes to CMakeLists.txt [Lowman]
+- Add checks on len in gzread() and gzwrite()
+- Add error message for no more room for gzungetc()
+- Remove zlib version check in gzwrite()
+- Defer compression of gzprintf() result until need to
+- Use snprintf() in gzdopen() if available
+- Remove USE_MMAP configuration determination (only used by minigzip)
+- Remove examples/pigz.c (available separately)
+- Update examples/gun.c to 1.6
+
 Changes in 1.2.3.5 (8 Jan 2010)
 - Add space after #if in zutil.h for some compilers
 - Fix relatively harmless bug in deflate_fast() [Exarevsky]
@@ -21,6 +42,7 @@ Changes in 1.2.3.5 (8 Jan 2010)
 - Replace gzio.c with a new set of routines with the same functionality
 - Add gzbuffer(), gzoffset(), gzclose_r(), gzclose_w() as part of above
 - Update contrib/minizip to 1.1b
+- Change gzeof() to return 0 on error instead of -1 to agree with zlib.h
 
 Changes in 1.2.3.4 (21 Dec 2009)
 - Use old school .SUFFIXES in Makefile.in for FreeBSD compatibility

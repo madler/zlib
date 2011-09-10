@@ -69,8 +69,8 @@ local int gz_avail(state)
                 (strm->avail_in == 0 ? -1 : \
                  (strm->avail_in--, *(strm->next_in)++)))
 
-/* Get a four-byte little-endian integer and return 0 on success and the
-   value in *ret.  Otherwise -1 is returned and *ret is not modified. */
+/* Get a four-byte little-endian integer and return 0 on success and the value
+   in *ret.  Otherwise -1 is returned and *ret is not modified. */
 local int gz_next4(state, ret)
     gz_statep state;
     unsigned long *ret;
@@ -93,7 +93,7 @@ local int gz_next4(state, ret)
 /* Look for gzip header, set up for inflate or copy.  state->have must be zero.
    If this is the first time in, allocate required memory.  state->how will be
    left unchanged if there is no more input data available, will be set to 1 if
-   there is no gzip header and direct copying will be performned, or it will be
+   there is no gzip header and direct copying will be performed, or it will be
    set to 2 for decompression, and the gzip header will be skipped so that the
    next available input data is the raw deflate stream.  If direct copying,
    then leftover input data from the input buffer will be copied to the output
@@ -190,6 +190,8 @@ local int gz_head(state)
                 NEXT();
                 NEXT();
             }
+            /* an unexpected end of file is not checked for here -- it will be
+               noticed on the first request for uncompressed data */
 
             /* set up for decompression */
             inflateReset(strm);
@@ -206,7 +208,7 @@ local int gz_head(state)
 
     /* doing raw i/o, save start of raw data for seeking, copy any leftover
        input to output -- this assumes that the output buffer is larger than
-       the input buffer */
+       the input buffer, which also assures space for gzungetc() */
     state->raw = state->pos;
     state->next = state->out;
     if (strm->avail_in) {
@@ -220,10 +222,10 @@ local int gz_head(state)
 
 /* Decompress from input to the provided next_out and avail_out in the state.
    If the end of the compressed data is reached, then verify the gzip trailer
-   check value and length (modulo 2^32).  state->have and state->next are
-   set to point to the just decompressed data, and the crc is updated.  If the
+   check value and length (modulo 2^32).  state->have and state->next are set
+   to point to the just decompressed data, and the crc is updated.  If the
    trailer is verified, state->how is reset to zero to look for the next gzip
-   stream or raw data, once state->have is depleted. Returns 0 on success, -1
+   stream or raw data, once state->have is depleted.  Returns 0 on success, -1
    on failure.  Failures may include invalid compressed data or a failed gzip
    trailer verification. */
 local int gz_decomp(state)
@@ -372,6 +374,17 @@ int ZEXPORT gzread(file, buf, len)
     if (state->mode != GZ_READ || state->err != Z_OK)
         return -1;
 
+    /* since an int is returned, make sure len fits in one, otherwise return
+       with an error (this avoids the flaw in the interface) */
+    if ((int)len < 0) {
+        gz_error(state, Z_BUF_ERROR, "requested length does not fit in int");
+        return -1;
+    }
+
+    /* if len is zero, avoid unnecessary operations */
+    if (len == 0)
+        return 0;
+
     /* process a skip request */
     if (state->seek) {
         state->seek = 0;
@@ -381,8 +394,7 @@ int ZEXPORT gzread(file, buf, len)
 
     /* get len bytes to buf, or less than len if at the end */
     got = 0;
-    while (len) {
-
+    do {
         /* first just try copying data from the output buffer */
         if (state->have) {
             n = state->have > len ? len : state->have;
@@ -402,6 +414,8 @@ int ZEXPORT gzread(file, buf, len)
             if (gz_make(state) == -1)
                 return -1;
             continue;       /* no progress yet -- go back to memcpy() above */
+            /* the copy above assures that we will leave with space in the
+               output buffer, allowing at least one gzungetc() to succeed */
         }
 
         /* large len -- read directly into user buffer */
@@ -422,13 +436,13 @@ int ZEXPORT gzread(file, buf, len)
 
         /* update progress */
         len -= n;
-        buf += n;
+        buf = (char *)buf + n;
         got += n;
         state->pos += n;
-    }
+    } while (len);
 
-    /* return number of bytes read into user buffer */
-    return (int)got;        /* len had better fit in int -- interface flaw */
+    /* return number of bytes read into user buffer (will fit in int) */
+    return (int)got;
 }
 
 /* -- see zlib.h -- */
@@ -448,7 +462,7 @@ int ZEXPORT gzgetc(file)
     if (state->mode != GZ_READ || state->err != Z_OK)
         return -1;
 
-    /* try output buffer */
+    /* try output buffer (no need to check for skip request) */
     if (state->have) {
         state->have--;
         state->pos++;
@@ -496,9 +510,11 @@ int ZEXPORT gzungetc(c, file)
         return c;
     }
 
-    /* if no room, give up (must have already done a gz_ungetc()) */
-    if (state->have == (state->size << 1))
+    /* if no room, give up (must have already done a gzungetc()) */
+    if (state->have == (state->size << 1)) {
+        gz_error(state, Z_BUF_ERROR, "out of room to push characters");
         return -1;
+    }
 
     /* slide output data if needed and insert byte before existing data */
     if (state->next == state->out) {

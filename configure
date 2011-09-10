@@ -78,6 +78,9 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
   SFLAGS="${CFLAGS-"-O3"} -fPIC"
   CFLAGS="${CFLAGS-"-O3"}"
+  if test "${ZLIBGCCWARN}" = "YES"; then
+    CFLAGS="${CFLAGS} -Wall -Wextra -pedantic"
+  fi
   if test -z "$uname"; then
     uname=`(uname -s || echo unknown) 2>/dev/null`
   fi
@@ -154,8 +157,8 @@ else
   SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
              CFLAGS=${CFLAGS-"-O2"}
              LDSHARED=${LDSHARED-"ld"} ;;
-  SunStudio\ 9*) SFLAGS=${CFLAGS-"-DUSE_MMAP -fast -xcode=pic32 -xtarget=ultra3 -xarch=v9b"}
-             CFLAGS=${CFLAGS-"-DUSE_MMAP -fast -xtarget=ultra3 -xarch=v9b"}
+  SunStudio\ 9*) SFLAGS=${CFLAGS-"-fast -xcode=pic32 -xtarget=ultra3 -xarch=v9b"}
+             CFLAGS=${CFLAGS-"-fast -xtarget=ultra3 -xarch=v9b"}
              LDSHARED=${LDSHARED-"cc -xarch=v9b"} ;;
   UNIX_System_V\ 4.2.0)
              SFLAGS=${CFLAGS-"-KPIC -O"}
@@ -173,7 +176,7 @@ else
              SFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
              CFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
              LDSHARED=${LDSHARED-"xlc -G"} ;;
-  # send working options for other systems to support@gzip.org
+  # send working options for other systems to zlib@gzip.org
   *)         SFLAGS=${CFLAGS-"-O"}
              CFLAGS=${CFLAGS-"-O"}
              LDSHARED=${LDSHARED-"cc -shared"} ;;
@@ -486,22 +489,6 @@ else
   echo "Checking for errno.h... No."
   CFLAGS="$CFLAGS -DNO_ERRNO_H"
   SFLAGS="$SFLAGS -DNO_ERRNO_H"
-fi
-
-cat > $test.c <<EOF
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-caddr_t hello() {
-  return mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0);
-}
-EOF
-if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  CFLAGS="$CFLAGS -DUSE_MMAP"
-  SFLAGS="$SFLAGS -DUSE_MMAP"
-  echo Checking for mmap support... Yes.
-else
-  echo Checking for mmap support... No.
 fi
 
 CPP=${CPP-"$CC -E"}
