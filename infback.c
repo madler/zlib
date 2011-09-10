@@ -151,7 +151,7 @@ struct inflate_state FAR *state;
             if (have == 0) { \
                 next = Z_NULL; \
                 ret = Z_BUF_ERROR; \
-                goto leave; \
+                goto inf_leave; \
             } \
         } \
     } while (0)
@@ -203,7 +203,7 @@ struct inflate_state FAR *state;
             left = state->wsize; \
             if (out(out_desc, put, left)) { \
                 ret = Z_BUF_ERROR; \
-                goto leave; \
+                goto inf_leave; \
             } \
         } \
     } while (0)
@@ -582,19 +582,19 @@ void FAR *out_desc;
                 if (out(out_desc, state->window, state->wsize - left))
                     ret = Z_BUF_ERROR;
             }
-            goto leave;
+            goto inf_leave;
 
         case BAD:
             ret = Z_DATA_ERROR;
-            goto leave;
+            goto inf_leave;
 
         default:                /* can't happen, but makes compilers happy */
             ret = Z_STREAM_ERROR;
-            goto leave;
+            goto inf_leave;
         }
 
     /* Return unused input */
-  leave:
+  inf_leave:
     strm->next_in = next;
     strm->avail_in = have;
     return ret;

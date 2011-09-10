@@ -1,3 +1,7 @@
+Change in 0.22: (19 May 03)
+- crypting support (unless you define NOCRYPT)
+- append file in existing zipfile
+
 Change in 0.21: (10 Mar 03)
 - bug fixes
 

@@ -1,0 +1,257 @@
+
+            Frequently Asked Questions about ZLIB.DLL
+
+
+This FAQ is about the design, the rationale, and the use of
+ZLIB.DLL. If you have general questions about zlib, you should
+check the file "FAQ" found in the zlib distribution, or at the
+location http://www.gzip.org/zlib/zlib_faq.html
+
+
+ 1. Why am I having problems using ZLIB.DLL? My application works
+    with the static build of zlib just fine, and I didn't make any
+    modification when recompiling it for ZLIB.DLL.
+
+  - Make sure you define ZLIB_DLL before including "zlib.h".
+    Applications that link to ZLIB.DLL will work properly if
+    the source files are compiled in this (or in a compatible)
+    way, and the executables are linked to MSVCRT.DLL.
+
+
+ 2. Why do I have to do this? When I use other libraries, I can
+    link my code to their static or dynamic versions, without
+    needing any source code modification or recompilation.
+
+  - In order to preserve the backwards compatibility with the
+    older versions of ZLIB.DLL, and give the ability to use zlib
+    to the non-C programmers at the same time, we had to do this
+    compromise.
+
+
+ 3. What exactly is this mess about, and why is it happening?
+
+  - It's about the calling convention used for the zlib functions.
+    If linked in statically, zlib uses the C (CDECL) convention.
+    If linked in dynamically (via ZLIB.DLL), it uses the STDCALL
+    convention. The ZLIB_DLL macro switches on the use of STDCALL.
+
+    It happens because we need to preserve compatibility with the
+    old releases of ZLIB.DLL that use STDCALL, and, at the same
+    time, we must provide support for programmers who use other
+    programming languages with bindings that require CDECL.
+
+
+ 4. Why not use the STDCALL convention all the time?
+    It's the standard convention in Win32, and I need it in my
+    Visual Basic project!
+
+  - Most of the Win32 API functions (without varargs) use indeed
+    the STDCALL (WINAPI) convention, but the standard C functions
+    use the default CDECL. If one calls Win32 functions such as
+    CreateFile(), sometimes it makes sense to decorate one's own
+    functions with STDCALL. But if one is aiming at ANSI C or
+    POSIX portability, and calls functions such as fopen(), it is
+    not a sound decision to include <windows.h> or to use non-ANSI
+    constructs only to make one's functions STDCALL-able. This is
+    not the biggest problem, however.
+
+    Technically, STDCALL is not bad; it is even a little faster
+    than CDECL. The problem of using STDCALL is actually a problem
+    of using any explicit calling convention. FASTCALL falls into
+    the same category.
+
+    Explicit specification of calling conventions, whether it's
+    direct or indirect via a macro, happens commonly in Windows,
+    but it is regarded as a noisy, non-standard C quirk on other
+    platforms. It isn't possible to write an ANSI C -conforming
+    program, for example, if it is necessary to specify calling
+    conventions. Libraries can hide the dirty stuff in header
+    files, under macros, but callbacks will still remain exposed.
+    This is why the zlib callbacks will not be decorated.
+    (The old Windows callbacks, such as WndProc, are decorated,
+    but the newer ones are not.)
+
+    There is one more problem with explicit, non-default calling
+    conventions: the ability to use zlib in other programming
+    languages. Some of them, like Ada (GNAT) and Fortran (GNU G77)
+    have C bindings implemented initially on Unix, hence relying
+    on the C calling convention.
+
+    So we are decorating the functions using STDCALL in ZLIB.DLL
+    to maintain compatibility with the old versions, but we are
+    using the default CDECL in the static library, to allow other
+    programming languages to use zlib in a portable fashion, via
+    C bindings.
+
+
+ 5. Why not use the default (CDECL) convention all the time?
+    It's the standard convention in C, and I need it in my Ada
+    project!
+
+  - Originally, ZLIB.DLL was intended to run under Visual Basic,
+    and VB6 and earlier need STDCALL.
+
+    We admit that cluttering the main zlib sources, for the sake
+    of interfacing with Visual Basic and at the expense of other
+    programming languages, is not fair. It would have been better
+    to maintain a "VB-only" project in the contrib/ directory, and
+    to build a custom ZLIBVB.DLL, for example -- as we did with
+    the Delphi projects. Another possible solution would have been
+    to build STDCALL wrappers around the CDECL-exported functions.
+
+    But this was the accident that we have to live with, in order
+    to maintain binary compatibility with the older versions of
+    ZLIB.DLL.
+
+
+ 6. If my application uses ZLIB.DLL, do I have to link it to
+    MSVCRT.DLL? Why?
+
+  - The executables (.EXE, .DLL, etc.) that are involved in the
+    same process and are using the C run-time library (i.e. they
+    are calling any standard C function), must link to the same
+    library. There are several libraries in the Win32 system:
+    CRTDLL.DLL, MSVCRT.DLL, the static C libraries, etc.
+    Since ZLIB.DLL is linked to MSVCRT.DLL, the executables that
+    depend on it must also link to MSVCRT.DLL.
+
+
+ 7. Why are you saying that ZLIB.DLL and my application must be
+    linked to the same C run-time library (CRT)? I linked my
+    application and my DLLs to different C libraries (e.g. my
+    application to a static library, and my DLLs to MSVCRT.DLL),
+    and everything works fine.
+
+  - If a library invokes only pure Win32 API (i.e. accessible
+    via <windows.h>), its DLL build will work in any context.
+    But if a library invokes standard C functions, things get
+    more complicated.
+
+    There is a single Win32 library in a Win32 system. Every
+    function in this library resides in a single DLL module, that
+    is safe to call from anywhere. On the other hand, there are
+    multiple versions of the C library that are all at the same
+    time in the system, and all of them have internal states,
+    therefore it is dangerous to intermix them with each other.
+
+    Intermixing multiple C libraries is possible, as long as their
+    internal states are kept intact. The Microsoft Knowledge Base
+    article Q140584 "HOWTO: Link with the Correct C Run-Time (CRT)
+    Library" enumerates some of the potential problems raised by
+    intermixing, but does not offer a complete description of how
+    to avoid them, except by advising not to mix the C libraries.
+    If you can send us more information about this issue, we will
+    highly appreciate it. (But please do NOT send us source code
+    from Microsoft, even if it comes with your legitimate copy of
+    Visual C++!)
+
+    If this kind of intermixing works for you, it's because your
+    application and DLLs are avoiding the corruption of the CRT's
+    internal states, due to a fortunate accident. It's not because
+    those libraries really work together.
+
+    Also note that linking ZLIB.DLL to non-Microsoft C libraries
+    (such as Borland's) raises similar problems.
+
+
+ 8. Why are you linking ZLIB.DLL to MSVCRT.DLL?
+
+  - MSVCRT.DLL exists on every Windows 95 with a new service pack
+    installed, or with Microsoft Internet Explorer 4 or later, and
+    on all other Windows 4.x or later (Windows 98, Windows NT 4,
+    or later). It is freely distributable; if not present in the
+    system, it can be downloaded from Microsoft or from other
+    software provider for free.
+
+    The fact that MSVCRT.DLL does not exist on a virgin Windows 95
+    is not so problematic. The number of Windows 95 installations
+    is rapidly decreasing, Microsoft stopped supporting it a long
+    time ago, and many recent applications from various vendors
+    including Microsoft, do not even run on it. Even without these
+    arguments, no serious user should run Windows 95 without a
+    proper update installed.
+
+    There is also the fact that the mainstream C compilers for
+    Windows are Microsoft Visual C++ 6.0, and gcc/MinGW. Both
+    are producing executables that link to MSVCRT.DLL by default,
+    without offering other dynamic CRTs as alternatives easy to
+    select by users.
+
+
+ 9. Why are you not linking ZLIB.DLL to
+    <<my favorite C run-time library>> ?
+
+  - We considered and abandoned the following alternatives:
+
+    * Linking ZLIB.DLL to a static C library (LIBC.LIB, or
+      LIBCMT.LIB) is not a good option. People are using ZLIB.DLL
+      mainly to save disk space. If you are linking your program
+      to a static C library, you may as well consider linking zlib
+      in statically, too.
+
+    * Linking ZLIB.DLL to CRTDLL.DLL looks very appealing,
+      because CRTDLL.DLL is present on every Win32 installation.
+      Unfortunately, it has a series of problems: it raises
+      difficulties when linking to the Microsoft C++ libraries,
+      it is not thread-safe, and Microsoft has discontinued its
+      support a long time ago.
+
+    * Linking ZLIB.DLL to MSVCRT70.DLL, supplied with the
+      Microsoft .NET platform and Visual C++ 7.0, is not a good
+      option. Although it can be downloaded and distributed
+      freely, it is hardly present on today's Win32 installations.
+      If it will become more popular than MSVCRT.DLL, and will be
+      pre-installed on the future Win32 systems, we will probably
+      think again about it.
+
+    * Linking ZLIB.DLL to NTDLL.DLL is not possible.
+      NTDLL.DLL exports only a part of the C library, and only
+      on Windows NT systems.
+
+
+10. I understand your reasons. However, my project needs ZLIB.DLL
+    linked to something different than MSVCRT.DLL. What can I do?
+
+    Feel free to rebuild this DLL from the zlib sources, and link
+    it the way you want. It is required, however, to clearly
+    state that your build is unofficial. Another thing that is not
+    required, but highly recommended, is to name that custom DLL
+    differently, and/or to install it in a private directory that
+    can be accessed by your application, but is not visible to the
+    others (e.g. it's not the SYSTEM or the SYSTEM32 directory,
+    and it's not in the PATH). Otherwise, your build may clash
+    with applications that link to the official build.
+
+    For example, in Cygwin, zlib is linked to their runtime
+    CYGWIN1.DLL, and it is distributed under the name CYGZ.DLL.
+
+
+11. My I include additional pieces of code that I find useful,
+    link them in ZLIB.DLL, and export them?
+
+    No. A legitimate build of ZLIB.DLL must not include code that
+    does not originate from the official zlib sources. But you can
+    make your own private build, and give it a different name, as
+    suggested in the previous answer.
+
+    For example, in Borland Delphi and C++ Builder, zlib is part
+    of the standard VCL library. If an application links to VCL
+    dynamically, the name of the distributable binary (VCLxx.DLL)
+    does not posess any danger of clashing with a legitimate but
+    incompatible ZLIB.DLL.
+
+
+12. I see that I may have all kinds of problems if I use ZLIB.DLL.
+    Do you recommend to link zlib in statically? Do I get rid of
+    problems?
+
+  - Yes, definitely. In fact, unless you are distributing a large
+    number of executables, each of them linking to zlib, you will
+    save space by linking zlib in statically (assuming that you
+    would otherwise distribute ZLIB.DLL with your application).
+    zlib is not a big library, and the space saved by ZLIB.DLL is
+    little. Much of the actual size of the DLL is due to the 4KB
+    alignment in the binary.
+
+    But you may have reasons, other than size, to use the DLL.
+    That is entirely up to you.

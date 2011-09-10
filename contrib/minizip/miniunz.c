@@ -140,13 +140,19 @@ int makedir (newdir)
 
 void do_banner()
 {
-    printf("MiniUnz 0.15, demo of zLib + Unz package written by Gilles Vollant\n");
+    printf("MiniUnz 0.22, demo of zLib + Unz package written by Gilles Vollant\n");
     printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 
 void do_help()
 {
-    printf("Usage : miniunz [-exvlo] file.zip [file_to_extract]\n\n") ;
+    printf("Usage : miniunz [-e] [-x] [-v] [-l] [-o] [-p password] file.zip [file_to_extr.]\n\n" \
+           "  -e  Extract without pathname (junk paths)\n" \
+           "  -x  Extract with pathname\n" \
+           "  -v  list files\n" \
+           "  -l  list files\n" \
+           "  -o  overwrite files without prompting\n" \
+           "  -p  extract crypted file using password\n\n");
 }
 
 
@@ -168,6 +174,7 @@ int do_list(uf)
         unz_file_info file_info;
         uLong ratio=0;
         const char *string_method;
+        char charCrypt=' ';
         err = unzGetCurrentFileInfo(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
         if (err!=UNZ_OK)
         {
@@ -176,6 +183,10 @@ int do_list(uf)
         }
         if (file_info.uncompressed_size>0)
             ratio = (file_info.compressed_size*100)/file_info.uncompressed_size;
+
+        /* display a '*' if the file is crypted */
+        if ((file_info.flag & 1) != 0)
+            charCrypt='*';
 
         if (file_info.compression_method==0)
             string_method="Stored";
@@ -193,8 +204,10 @@ int do_list(uf)
         else
             string_method="Unkn. ";
 
-        printf("%7lu  %6s %7lu %3lu%%  %2.2lu-%2.2lu-%2.2lu  %2.2lu:%2.2lu  %8.8lx   %s\n",
-                file_info.uncompressed_size,string_method,file_info.compressed_size,
+        printf("%7lu  %6s%c%7lu %3lu%%  %2.2lu-%2.2lu-%2.2lu  %2.2lu:%2.2lu  %8.8lx   %s\n",
+                file_info.uncompressed_size,string_method,
+                charCrypt,
+                file_info.compressed_size,
                 ratio,
                 (uLong)file_info.tmu_date.tm_mon + 1,
                 (uLong)file_info.tmu_date.tm_mday,

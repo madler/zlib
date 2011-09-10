@@ -80,7 +80,7 @@ typedef enum {
 struct inflate_state {
     inflate_mode mode;          /* current inflate mode */
     int last;                   /* true if processing last block */
-    int wrap;                   /* true to process header and trailer */
+    int wrap;                   /* bit 0 true for zlib, bit 1 true for gzip */
     int havedict;               /* true if dictionary provided */
     int flags;                  /* gzip header method and flags (0 if zlib) */
     unsigned long check;        /* protected copy of check value */

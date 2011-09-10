@@ -1,5 +1,39 @@
 
                 ChangeLog file for zlib
+Changes in 1.2.0.2 (13 July 2003)
+- Add ZLIB_VERNUM in zlib.h for numerical preprocessor comparisons
+- Attempt to avoid warnings in crc32.c for pointer-int conversion
+- Add AIX to configure, remove aix directory [Bakker]
+- Add some casts to minigzip.c
+- Improve checking after insecure sprintf() or vsprintf() calls
+- Remove #elif's from crc32.c
+- Change leave label to inf_leave in inflate.c and infback.c to avoid
+  library conflicts
+- Remove inflate gzip decoding by default--only enable gzip decoding by
+  special request for stricter backward compatibility
+- Add zlibCompileFlags() function to return compilation information
+- More typecasting in deflate.c to avoid warnings
+- Remove leading underscore from _Capital #defines [Truta]
+- Fix configure to link shared library when testing
+- Add some Windows CE target adjustments [Mai]
+- Remove #define ZLIB_DLL in zconf.h [Vollant]
+- Add zlib.3 [Rodgers]
+- Update RFC URL in deflate.c and algorithm.txt [Mai]
+- Add zlib_dll_FAQ.txt to contrib [Truta]
+- Add UL to some constants [Truta]
+- Update minizip and vstudio [Vollant]
+- Remove vestigial NEED_DUMMY_RETURN from zconf.in.h
+- Expand use of NO_DUMMY_DECL to avoid all dummy structures
+- Added iostream3 to contrib [Schwardt]
+- Replace rewind() with fseek() for WinCE [Truta]
+- Improve setting of zlib format compression level flags
+    - Report 0 for huffman and rle strategies and for level == 0 or 1
+    - Report 2 only for level == 6
+- Only deal with 64K limit when necessary at compile time [Truta]
+- Allow TOO_FAR check to be turned off at compile time [Truta]
+- Added gzclearerr() function [Souza]
+- Added gzungetc() function
+
 Changes in 1.2.0.1 (17 March 2003)
 - Add Z_RLE strategy for run-length encoding [Truta]
     - When Z_RLE requested, restrict matches to distance one
@@ -12,7 +46,7 @@ Changes in 1.2.0.1 (17 March 2003)
     - Include additional header file on VMS for off_t typedef
 - Try to use _vsnprintf where it supplants vsprintf [Vollant]
 - Add some casts in inffast.c
-- Enchance comments in zlib.h on what happens if the gzprintf() tries to
+- Enchance comments in zlib.h on what happens if gzprintf() tries to
   write more than 4095 bytes before compression
 - Remove unused state from inflateBackEnd()
 - Remove exit(0) from minigzip.c, example.c

@@ -77,7 +77,7 @@
  *   and buffer address return values for the input function
  * - Check next_in and next_out for Z_NULL on entry to inflate()
  *
- * The history for versions past 1.2.0 are in ChangeLog in zlib distribution.
+ * The history for versions after 1.2.0 are in ChangeLog in zlib distribution.
  */
 
 #include "zutil.h"
@@ -147,8 +147,12 @@ int stream_size;
         state->wrap = 0;
         windowBits = -windowBits;
     }
-    else
-        state->wrap = 1;
+    else {
+        state->wrap = (windowBits >> 4) + 1;
+#ifdef GUNZIP
+        windowBits &= 15;
+#endif
+    }
     if (windowBits < 8 || windowBits > 15) {
         ZFREE(strm, state);
         strm->state = Z_NULL;
@@ -403,7 +407,7 @@ unsigned out;
    if there is no input available. */
 #define PULLBYTE() \
     do { \
-        if (have == 0) goto leave; \
+        if (have == 0) goto inf_leave; \
         have--; \
         hold += (unsigned long)(*next++) << bits; \
         bits += 8; \
@@ -502,14 +506,14 @@ unsigned out;
    complete that state.  Those states are copying stored data, writing a
    literal byte, and copying a matching string.
 
-   When returning, a "goto leave" is used to update the total counters, update
-   the check value, and determine whether any progress has been made during
-   that inflate() call in order to return the proper return code.  Progress is
-   defined as a change in either strm->avail_in or strm->avail_out.  When there
-   is a window, goto leave will update the window with the last output written.
-   If a goto leave occurs in the middle of decompression and there is no window
-   currently, goto leave will create one and copy output to the window for the
-   next call of inflate().
+   When returning, a "goto inf_leave" is used to update the total counters,
+   update the check value, and determine whether any progress has been made
+   during that inflate() call in order to return the proper return code.
+   Progress is defined as a change in either strm->avail_in or strm->avail_out.
+   When there is a window, goto inf_leave will update the window with the last
+   output written.  If a goto inf_leave occurs in the middle of decompression
+   and there is no window currently, goto inf_leave will create one and copy
+   output to the window for the next call of inflate().
 
    In this implementation, the flush parameter of inflate() only affects the
    return code (per zlib.h).  inflate() always writes as much as possible to
@@ -562,16 +566,19 @@ int flush;
             }
             NEEDBITS(16);
 #ifdef GUNZIP
-            if (hold == 0x8b1f) {       /* gzip header */
+            if ((state->wrap & 2) && hold == 0x8b1f) {  /* gzip header */
                 state->check = crc32(0L, Z_NULL, 0);
                 CRC2(state->check, hold);
                 INITBITS();
                 state->mode = FLAGS;
                 break;
             }
-            state->flags = 0;                   /* expect zlib header */
+            state->flags = 0;           /* expect zlib header */
+            if (!(state->wrap & 1) ||   /* check if zlib header allowed */
+#else
+            if (
 #endif
-            if (((BITS(8) << 8) + (hold >> 8)) % 31) {
+                ((BITS(8) << 8) + (hold >> 8)) % 31) {
                 strm->msg = (char *)"incorrect header check";
                 state->mode = BAD;
                 break;
@@ -638,12 +645,12 @@ int flush;
                     next += copy;
                     state->length -= copy;
                 }
-                if (state->length) goto leave;
+                if (state->length) goto inf_leave;
             }
             state->mode = NAME;
         case NAME:
             if (state->flags & 0x0800) {
-                if (have == 0) goto leave;
+                if (have == 0) goto inf_leave;
                 copy = 0;
                 do {
                     len = (unsigned)(next[copy++]);
@@ -652,12 +659,12 @@ int flush;
                     state->check = crc32(state->check, next, copy);
                 have -= copy;
                 next += copy;
-                if (len) goto leave;
+                if (len) goto inf_leave;
             }
             state->mode = COMMENT;
         case COMMENT:
             if (state->flags & 0x1000) {
-                if (have == 0) goto leave;
+                if (have == 0) goto inf_leave;
                 copy = 0;
                 do {
                     len = (unsigned)(next[copy++]);
@@ -666,7 +673,7 @@ int flush;
                     state->check = crc32(state->check, next, copy);
                 have -= copy;
                 next += copy;
-                if (len) goto leave;
+                if (len) goto inf_leave;
             }
             state->mode = HCRC;
         case HCRC:
@@ -745,7 +752,7 @@ int flush;
             if (copy) {
                 if (copy > have) copy = have;
                 if (copy > left) copy = left;
-                if (copy == 0) goto leave;
+                if (copy == 0) goto inf_leave;
                 zmemcpy(put, next, copy);
                 have -= copy;
                 next += copy;
@@ -958,7 +965,7 @@ int flush;
             Tracevv((stderr, "inflate:         distance %u\n", state->offset));
             state->mode = MATCH;
         case MATCH:
-            if (left == 0) goto leave;
+            if (left == 0) goto inf_leave;
             copy = out - left;
             if (state->offset > copy) {         /* copy from window */
                 copy = state->offset - copy;
@@ -983,7 +990,7 @@ int flush;
             if (state->length == 0) state->mode = LEN;
             break;
         case LIT:
-            if (left == 0) goto leave;
+            if (left == 0) goto inf_leave;
             *put++ = (unsigned char)(state->length);
             left--;
             state->mode = LEN;
@@ -1015,7 +1022,7 @@ int flush;
         case LENGTH:
             if (state->wrap && state->flags) {
                 NEEDBITS(32);
-                if (hold != (state->total & 0xffffffff)) {
+                if (hold != (state->total & 0xffffffffUL)) {
                     strm->msg = (char *)"incorrect length check";
                     state->mode = BAD;
                     break;
@@ -1027,10 +1034,10 @@ int flush;
             state->mode = DONE;
         case DONE:
             ret = Z_STREAM_END;
-            goto leave;
+            goto inf_leave;
         case BAD:
             ret = Z_DATA_ERROR;
-            goto leave;
+            goto inf_leave;
         case MEM:
             return Z_MEM_ERROR;
         case SYNC:
@@ -1044,7 +1051,7 @@ int flush;
        error.  Call updatewindow() to create and/or update the window state.
        Note: a memory error from inflate() is non-recoverable.
      */
-  leave:
+  inf_leave:
     RESTORE();
     if (state->wsize || (state->mode < CHECK && out != strm->avail_out))
         if (updatewindow(strm, out)) {

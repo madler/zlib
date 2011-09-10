@@ -1,9 +1,0 @@
-To make a shared library:
-
-1. Compile a static library
-2. Use mkexps on that to create libz.exp
-3. Apply the configure.diff patch to configure
-4. Run the new configure to make a new Makefile
-5. Use the new Makefile to make the shared library
-
-Courtesy of dbakker@arrayasolutions.com

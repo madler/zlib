@@ -113,7 +113,7 @@ void gz_compress(in, out)
     if (gz_compress_mmap(in, out) == Z_OK) return;
 #endif
     for (;;) {
-        len = fread(buf, 1, sizeof(buf), in);
+        len = (int)fread(buf, 1, sizeof(buf), in);
         if (ferror(in)) {
             perror("fread");
             exit(1);
@@ -230,7 +230,7 @@ void file_uncompress(file)
     char *infile, *outfile;
     FILE  *out;
     gzFile in;
-    int len = strlen(file);
+    int len = (int)strlen(file);
 
     strcpy(buf, file);
 

@@ -5,8 +5,8 @@
 
 /* @(#) $Id$ */
 
-#ifndef _ZCONF_H
-#define _ZCONF_H
+#ifndef ZCONF_H
+#define ZCONF_H
 
 /*
  * If you *really* need a unique prefix for all types and library functions,
@@ -100,15 +100,6 @@
 #  define NO_DUMMY_DECL
 #endif
 
-/* Old Borland C incorrectly complains about missing returns: */
-#if defined(__BORLANDC__) && (__BORLANDC__ < 0x460)
-#  define NEED_DUMMY_RETURN
-#endif
-#if defined(__TURBOC__) && !defined(__BORLANDC__)
-#  define NEED_DUMMY_RETURN
-#endif
-
-
 /* Maximum value for memLevel in deflateInit2 */
 #ifndef MAX_MEM_LEVEL
 #  ifdef MAXSEG_64K
@@ -172,46 +163,54 @@
 #  endif
 #endif
 
-#if defined(WIN32) && (!defined(ZLIB_WIN32_NODLL)) && (!defined(ZLIB_DLL))
-#  define ZLIB_DLL
-#endif
-
-/* Compile with -DZLIB_DLL for Windows DLL support */
-#if defined(ZLIB_DLL)
-#  if defined(_WINDOWS) || defined(WINDOWS) || defined(WIN32)
-#    ifndef WINAPIV
-#      ifdef FAR
-#        undef FAR
-#      endif
-#      include <windows.h>
-#    endif
-#    ifdef WIN32
-#      define ZEXPORT  WINAPI
-#      define ZEXPORTVA  WINAPIV
-#    else
-#      define ZEXPORT  WINAPI _export
-#      define ZEXPORTVA  FAR _cdecl _export
-#    endif
+/* If building or using a Windows DLL, compile with -DZLIB_DLL.
+ * The calls to ZEXTERN functions will be more efficient this way.
+ */
+#if defined(_WINDOWS) || defined(WINDOWS) || defined(WIN32)
+#  ifdef FAR
+#    undef FAR
 #  endif
-#  if defined (__BORLANDC__)
-#    if (__BORLANDC__ >= 0x0500) && defined (WIN32)
-#      include <windows.h>
-#      define ZEXPORT __declspec(dllexport) WINAPI
-#      define ZEXPORTVA __declspec(dllexport) WINAPIV
+   /* For zlib, the basic Win32 API declarations are sufficient.  Whenever
+    * a program that uses zlib requires the full Win32 API set, it has
+    * to include <windows.h> prior to "zlib.h".
+    */
+#  if defined(WIN32) && (!defined(WIN32_LEAN_AND_MEAN))
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <windows.h>
+#  if !defined(WIN32) || (defined(__BORLANDC__) && (__BORLANDC__ < 0x500))
+#    if defined(ZLIB_DLL) && defined(ZLIB_INTERNAL)
+#      define ZEXPORT   WINAPI _export
+#      define ZEXPORTVA FAR _cdecl _export
 #    else
-#      if defined (_Windows) && defined (__DLL__)
-#        define ZEXPORT _export
-#        define ZEXPORTVA _export
+#      define ZEXPORT   WINAPI
+#      define ZEXPORTVA FAR _cdecl
+#    endif
+#  else
+     /* a fully Win32-compliant compiler */
+#    define ZEXPORT   WINAPI
+#    define ZEXPORTVA CDECL
+#    ifdef ZLIB_DLL
+#      ifdef ZLIB_INTERNAL
+#        define ZEXTERN extern __declspec(dllexport)
+#      else
+#        define ZEXTERN extern __declspec(dllimport)
 #      endif
+#    else
+#      define ZEXTERN extern
 #    endif
 #  endif
 #endif
 
 #if defined (__BEOS__)
-#  if defined (ZLIB_DLL)
-#    define ZEXTERN extern __declspec(dllexport)
-#  else
-#    define ZEXTERN extern __declspec(dllimport)
+#  ifdef ZLIB_DLL
+#    ifdef ZLIB_INTERNAL
+#      define ZEXPORT   __declspec(dllexport)
+#      define ZEXPORTVA __declspec(dllexport)
+#    else
+#      define ZEXPORT   __declspec(dllimport)
+#      define ZEXPORTVA __declspec(dllimport)
+#    endif
 #  endif
 #endif
 
@@ -226,7 +225,7 @@
 #endif
 
 #ifndef FAR
-#   define FAR
+#  define FAR
 #endif
 
 #if !defined(__MACTYPES__)
@@ -290,4 +289,4 @@ typedef uLong FAR uLongf;
 #   pragma map(inflate_copyright,"INCOPY")
 #endif
 
-#endif /* _ZCONF_H */
+#endif /* ZCONF_H */

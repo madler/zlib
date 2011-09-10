@@ -16,7 +16,7 @@
 # 
 
 LIB = libz.a
-SHAREDLIB = libz.so
+SHAREDLIB = zlib.dll
 VER = 1.2.0
 
 CC = gcc
@@ -32,6 +32,8 @@ LDFLAGS = $(LOC) -s
 AR = ar
 ARFLAGS = rcs
 
+RC = windres
+
 CP = cp -fp
 # If GNU install is available, replace $(CP) with install.
 INSTALL = $(CP)
@@ -43,12 +45,14 @@ exec_prefix = $(prefix)
 OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
        inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 
+DLLDEF = win32/zlibgcc.def
+
 # to use the asm code: make OBJA=match.o
 OBJA =
 
 TEST_OBJS = example.o minigzip.o
 
-all: $(LIB) example minigzip
+all: $(LIB) $(SHAREDLIB) example minigzip
 
 test: all
 	./example
@@ -60,11 +64,17 @@ test: all
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
+$(SHAREDLIB): $(OBJS) $(DLLDEF) zlibrc.o
+	dllwrap --driver-name $(CC) --def $(DLLDEF) -o $@ $(OBJS) zlibrc.o
+
 example: example.o $(LIB)
 	$(LD) -o $@ $< $(LIB)
 
 minigzip: minigzip.o $(LIB)
 	$(LD) -o $@ $< $(LIB)
+
+zlibrc.o: win32/zlib.rc
+	-$(RC) -o $@ --define GCC_WINDRES win32/zlib.rc
 
 
 # INCLUDE_PATH and LIBRARY_PATH were set for [make] in djgpp.env .
@@ -87,6 +97,7 @@ clean:
 	$(RM) *.o
 	$(RM) *.exe
 	$(RM) libz.a
+	$(RM) zlib.dll
 	$(RM) foo.gz
 
 adler32.o: zlib.h zconf.h

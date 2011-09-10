@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.0.1, March 17th, 2003
+  version 1.2.0.2, July 13th, 2003
 
   Copyright (C) 1995-2003 Jean-loup Gailly and Mark Adler
 
@@ -28,8 +28,8 @@
   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 */
 
-#ifndef _ZLIB_H
-#define _ZLIB_H
+#ifndef ZLIB_H
+#define ZLIB_H
 
 #include "zconf.h"
 
@@ -37,7 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.0.1"
+#define ZLIB_VERSION "1.2.0.2"
+#define ZLIB_VERNUM 0x1202
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -334,9 +335,9 @@ ZEXTERN int ZEXPORT inflateInit OF((z_streamp strm));
 ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
 /*
     inflate decompresses as much data as possible, and stops when the input
-  buffer becomes empty or the output buffer becomes full. It may some
-  introduce some output latency (reading input without producing any output)
-  except when forced to flush.
+  buffer becomes empty or the output buffer becomes full. It may introduce
+  some output latency (reading input without producing any output) except when
+  forced to flush.
 
   The detailed semantics are as follows. inflate performs one or both of the
   following actions:
@@ -586,20 +587,28 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
      The windowBits parameter is the base two logarithm of the maximum window
    size (the size of the history buffer).  It should be in the range 8..15 for
    this version of the library. The default value is 15 if inflateInit is used
-   instead. If a compressed stream with a larger window size is given as
-   input, inflate() will return with the error code Z_DATA_ERROR instead of
-   trying to allocate a larger window.
+   instead. windowBits must be greater than or equal to the windowBits value
+   provided to deflateInit2() while compressing, or it must be equal to 15 if
+   deflateInit2() was not used. If a compressed stream with a larger window
+   size is given as input, inflate() will return with the error code
+   Z_DATA_ERROR instead of trying to allocate a larger window.
 
-     windowBits can also be -8..-15 for raw inflate.  In this case, -windowBits
-   determines the window size.  inflate() will then process raw deflate data,
+     windowBits can also be -8..-15 for raw inflate. In this case, -windowBits
+   determines the window size. inflate() will then process raw deflate data,
    not looking for a zlib or gzip header, not generating a check value, and not
-   looking for any check values for comparison at the end of the stream.  This
+   looking for any check values for comparison at the end of the stream. This
    is for use with other formats that use the deflate compressed data format
-   such as zip.  Those formats provide their own check values.  If a custom
+   such as zip.  Those formats provide their own check values. If a custom
    format is developed using the raw deflate format for compressed data, it is
    recommended that a check value such as an adler32 or a crc32 be applied to
    the uncompressed data as is done in the zlib, gzip, and zip formats.  For
-   most applications, the zlib format should be used as is.
+   most applications, the zlib format should be used as is. Note that comments
+   above on the use in deflateInit2() applies to the magnitude of windowBits.
+
+     windowBits can also be greater than 15 for optional gzip decoding. Add
+   32 to windowBits to enable zlib and gzip decoding with automatic header
+   detection, or add 16 to decode only the gzip format (the zlib format will
+   return a Z_DATA_ERROR).
 
      inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_STREAM_ERROR if a parameter is invalid (such as a negative
@@ -771,6 +780,45 @@ ZEXTERN int ZEXPORT inflateBackEnd(z_stream FAR *strm);
    state was inconsistent.
 */
 
+ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
+/* Return flags indicating compile-time options.
+
+    Type sizes, two bits each, 00 = 16 bits, 01 = 32, 10 = 64, 11 = other:
+     1.0: size of uInt
+     3.2: size of uLong
+     5.4: size of voidpf (pointers)
+     7.6: size of z_off_t
+
+    Debug options:
+     8: DEBUG
+     9-11: 0 (reserved)
+
+    One-time table building (smaller code, but not thread-safe if true):
+     12: BUILDFIXED -- build static block decoding tables when needed
+     13: DYNAMIC_CRC_TABLE -- build CRC calculation tables when needed
+     14,15: 0 (reserved)
+
+    Library content (indicates missing functionality):
+     16: NO_DEFLATE -- gz* functions cannot compress (to avoid linking deflate
+                       code when not needed)
+     17: NO_GUNZIP -- inflate can't detect and decode gzip streams, to avoid
+                      linking crc code
+     18-19: 0 (reserved)
+
+    Operation variations (changes in library functionality):
+     20: PKZIP_BUG_WORKAROUND -- slightly more permissive inflate
+     21: FASTEST -- deflate algorithm with only one, lowest compression level
+     22,23: 0 (reserved)
+
+    The sprintf variant used by gzprintf (zero is best):
+     24: 0 = vs*, 1 = s* -- 1 means limited to 20 arguments after the format
+     25: 0 = *nprintf, 1 = *printf -- 1 means gzprintf() not secure!
+     26: 0 = returns value, 1 = void -- 1 means inferred string length returned
+
+    Remainder:
+     27-31: 0 (reserved)
+ */
+
 
                         /* utility functions */
 
@@ -901,10 +949,10 @@ ZEXTERN int ZEXPORTVA   gzprintf OF((gzFile file, const char *format, ...));
    control of the format string, as in fprintf. gzprintf returns the number of
    uncompressed bytes actually written (0 in case of error).  The number of
    uncompressed bytes written is limited to 4095. The caller should assure that
-   this limit is not exceeded. If it is exceeded, then either gzprintf() will
-   return an error (0) with nothing written, or there will be a buffer overflow
-   with unpredictable consequences. The latter is possible only if zlib was
-   compiled with insecure variants of printf, i.e. sprintf() or vsprintf()
+   this limit is not exceeded. If it is exceeded, then gzprintf() will return
+   return an error (0) with nothing written. In this case, there may also be a
+   buffer overflow with unpredictable consequences, which is possible only if
+   zlib was compiled with the insecure functions sprintf() or vsprintf()
    because the secure snprintf() or vsnprintf() functions were not available.
 */
 
@@ -934,6 +982,16 @@ ZEXTERN int ZEXPORT    gzgetc OF((gzFile file));
 /*
       Reads one byte from the compressed file. gzgetc returns this byte
    or -1 in case of end of file or error.
+*/
+
+ZEXTERN int ZEXPORT    gzungetc OF((int c, gzFile file));
+/*
+      Push one character back onto the stream to be read again later.
+   Only one character of push-back is allowed.  gzungetc() returns the
+   character pushed, or -1 on failure.  gzungetc() will fail if a
+   character has been pushed but not read yet, or if c is -1. The pushed
+   character will be discarded if the stream is repositioned with gzseek()
+   or gzrewind().
 */
 
 ZEXTERN int ZEXPORT    gzflush OF((gzFile file, int flush));
@@ -1000,6 +1058,13 @@ ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
    error occurred in the file system and not in the compression library,
    errnum is set to Z_ERRNO and the application may consult errno
    to get the exact error code.
+*/
+
+ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
+/*
+     Clears the error and end-of-file flags for file. This is analogous to the
+   clearerr() function in stdio. This is useful for continuing to read a gzip
+   file that is being written concurrently.
 */
 
                         /* checksum functions */
@@ -1077,7 +1142,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_stream FAR *strm, int windowBits,
         ZLIB_VERSION, sizeof(z_stream))
 
 
-#if !defined(_Z_UTIL_H) && !defined(NO_DUMMY_DECL)
+#if !defined(ZUTIL_H) && !defined(NO_DUMMY_DECL)
     struct internal_state {int dummy;}; /* hack for buggy compilers */
 #endif
 
@@ -1089,4 +1154,4 @@ ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 }
 #endif
 
-#endif /* _ZLIB_H */
+#endif /* ZLIB_H */

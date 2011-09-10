@@ -19,6 +19,7 @@
 # an error.
 
 LIBS=libz.a
+LDFLAGS="-L. ${LIBS}"
 SHAREDLIB=libz.so
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 AR=${AR-"ar rc"}
@@ -52,6 +53,10 @@ case "$1" in
     -s* | --s*) shared=1; shift;;
     esac
 done
+
+if [ $shared -eq 1 ]; then
+  LDFLAGS="-L. ${SHAREDLIB}"
+fi
 
 test=ztest$$
 cat > $test.c <<EOF
@@ -123,6 +128,10 @@ else
 	     SFLAGS=${CFLAGS-"-KPIC -O"}
 	     CFLAGS=${CFLAGS-"-O"}
 	     LDSHARED=${LDSHARED-"cc -G"};;
+  AIX*)  # Courtesy of dbakker@arrayasolutions.com
+	     SFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
+	     CFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
+	     LDSHARED=${LDSHARED-"xlc -G"};;
   # send working options for other systems to support@gzip.org
   *)         SFLAGS=${CFLAGS-"-O"}
 	     CFLAGS=${CFLAGS-"-O"}
@@ -422,4 +431,5 @@ sed < Makefile.in "
 /^exec_prefix *=/s%=.*%=$exec_prefix%
 /^libdir *=/s%=.*%=$libdir%
 /^includedir *=/s%=.*%=$includedir%
+/^LDFLAGS *=/s%=.*%=$LDFLAGS%
 " > Makefile

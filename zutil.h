@@ -10,9 +10,10 @@
 
 /* @(#) $Id$ */
 
-#ifndef _Z_UTIL_H
-#define _Z_UTIL_H
+#ifndef ZUTIL_H
+#define ZUTIL_H
 
+#define ZLIB_INTERNAL
 #include "zlib.h"
 
 #ifdef STDC
@@ -134,7 +135,11 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 #if (defined(_MSC_VER) && (_MSC_VER > 600))
-#  define fdopen(fd,type)  _fdopen(fd,type)
+#  if defined(_WIN32_WCE)
+#    define fdopen(fd,mode) NULL /* No fdopen() */
+#  else
+#    define fdopen(fd,type)  _fdopen(fd,type)
+#  endif
 #endif
 
 
@@ -157,7 +162,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #    endif
 #  endif
 #endif
-#if !defined(STDC99) && !(defined(__TURBOC__) && __TURBOC__ >= 0x550) && !defined(VSNPRINTF_DEFINED)
+#if !defined(STDC99) && !(defined(__TURBOC__) && __TURBOC__ >= 0x550) && !defined(HAVE_VSNPRINTF)
 #  ifdef MSDOS
      /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
         but for now we just assume it doesn't. */
@@ -239,4 +244,4 @@ void   zcfree  OF((voidpf opaque, voidpf ptr));
 #define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidpf)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
-#endif /* _Z_UTIL_H */
+#endif /* ZUTIL_H */

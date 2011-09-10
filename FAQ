@@ -228,7 +228,8 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
     hand, if zlib is compiled to use snprintf() or vsnprintf(), which should
     normally be the case, then there is no vulnerability. The ./configure
     script will display warnings if an insecure variation of sprintf() will
-    be used by gzprintf().
+    be used by gzprintf(). Also the zlibCompileFlags() functions will return
+    information on what variant of sprintf() is used by gzprintf().
 
     If you don't have snprintf() or vsnprintf() and would like one, you can
     find a portable implementation here:

@@ -14,4 +14,9 @@ open zlibvc.sln with Microsoft Visual C++ 7.0 (Visual Studio .net)
 
 
 Note : You don't need recompile yourself. There is compiled .LIB in
-  http://www.winimage.com/zLibDll
+  http://www.winimage.com/zLibDll . See this page for more information
+
+
+
+Gilles Vollant
+info@winimage.com

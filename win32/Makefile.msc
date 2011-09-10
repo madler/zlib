@@ -1,10 +1,13 @@
-# Makefile for (static) zlib -- Microsoft (Visual) C.
-# Author: Cosmin Truta, 11-Mar-2003.
+# Makefile for Win32 zlib.dll and the static library zlibstat.lib
+# -- Microsoft (Visual) C.
+# Author: Cosmin Truta, 11-Mar-2003
+#         Christian Spieler, 19-Mar-2003
 #
 # Usage: nmake -f win32/Makefile.msc
 
 CC = cl
 LD = cl
+RC = rc
 CFLAGS = -nologo -MD -O2
 LDFLAGS = -nologo
 
@@ -12,10 +15,15 @@ OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj \
        inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
 
 # targets
-all: zlib.lib example.exe minigzip.exe
+all: zlib.dll zlibstat.lib example.exe minigzip.exe exampl_s.exe minigz_s.exe
 
-zlib.lib: $(OBJS)
+zlibstat.lib: $(OBJS)
 	lib -out:$@ $(OBJS)
+
+zlib.dll: $(OBJS) zlib.res win32/zlib.def
+	link -release -def:win32/zlib.def -dll -out:$@ $(OBJS) zlib.res
+
+zlib.lib: zlib.dll
 
 example.exe: example.obj zlib.lib
 	$(LD) $(LDFLAGS) example.obj zlib.lib
@@ -23,8 +31,17 @@ example.exe: example.obj zlib.lib
 minigzip.exe: minigzip.obj zlib.lib
 	$(LD) $(LDFLAGS) minigzip.obj zlib.lib
 
+exampl_s.exe: example.obj zlibstat.lib
+	$(LD) $(LDFLAGS) -o $@ example.obj zlibstat.lib
+
+minigz_s.exe: minigzip.obj zlibstat.lib
+	$(LD) $(LDFLAGS) -o $@ minigzip.obj zlibstat.lib
+
 .c.obj:
-	$(CC) -c $(CFLAGS) $*.c
+	$(CC) -c $(CFLAGS) $<
+
+zlib.res: win32/zlib.rc
+	$(RC) /l 0x409 /fo$@ /d WIN32 win32/zlib.rc
 
 adler32.obj: adler32.c zlib.h zconf.h
 
@@ -62,8 +79,14 @@ test: example.exe minigzip.exe
 	example
 	echo hello world | minigzip | minigzip -d 
 
+teststat: exampl_s.exe minigz_s.exe
+	exampl_s
+	echo hello world | minigz_s | minigz_s -d 
+
 # cleanup
 clean:
 	del *.obj
+	del *.dll
 	del *.lib
+	del *.exp
 	del *.exe

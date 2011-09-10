@@ -1,5 +1,5 @@
 /* unzip.c -- IO for uncompress .zip files using zlib
-   Version 0.21 with encryption, March 10th, 2003
+   Version 0.22, May 19th, 2003
 
    Copyright (C) 1998-2003 Gilles Vollant
 
@@ -88,7 +88,7 @@ woven in by Terry Thorsen 1/2003.
 
 
 const char unz_copyright[] =
-   " unzip 0.21 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
+   " unzip 0.22 Copyright 1998-2003 Gilles Vollant - http://www.winimage.com/zLibDll";
 
 /* unz_file_info_interntal contain internal info about a file in zipfile*/
 typedef struct unz_file_info_internal_s
@@ -145,14 +145,14 @@ typedef struct
     file_in_zip_read_info_s* pfile_in_zip_read; /* structure about the current
                                         file if we are decompressing it */
     int encrypted;
-    #ifndef NOUNCRPYT
+    #ifndef NOUNCRYPT
     unsigned long keys[3];     /* keys defining the pseudo-random sequence */
     const unsigned long* pcrc_32_tab;
     #endif
 } unz_s;
 
 
-#ifndef NOUNCRPYT
+#ifndef NOUNCRYPT
 #include "crypt.h"
 #endif
 
@@ -1041,7 +1041,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
     file_in_zip_read_info_s* pfile_in_zip_read_info;
     uLong offset_local_extrafield;  /* offset of the local extra field */
     uInt  size_local_extrafield;    /* size of the local extra field */
-    #ifndef NOUNCRPYT
+    #ifndef NOUNCRYPT
     char source[12];
     #else
     if (password != NULL)
@@ -1114,6 +1114,8 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
       pfile_in_zip_read_info->stream.zalloc = (alloc_func)0;
       pfile_in_zip_read_info->stream.zfree = (free_func)0;
       pfile_in_zip_read_info->stream.opaque = (voidpf)0;
+      pfile_in_zip_read_info->stream.next_in = (voidpf)0;
+      pfile_in_zip_read_info->stream.avail_in = 0;
 
       err=inflateInit2(&pfile_in_zip_read_info->stream, -MAX_WBITS);
       if (err == Z_OK)
@@ -1142,7 +1144,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
 
     s->pfile_in_zip_read = pfile_in_zip_read_info;
 
-    #ifndef NOUNCRPYT
+    #ifndef NOUNCRYPT
     if (password != NULL)
     {
         int i;
@@ -1254,7 +1256,7 @@ extern int ZEXPORT unzReadCurrentFile  (file, buf, len)
                 return UNZ_ERRNO;
 
 
-            #ifndef NOUNCRPYT
+            #ifndef NOUNCRYPT
             if(s->encrypted)
             {
                 uInt i;

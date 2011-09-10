@@ -37,7 +37,7 @@
  *  REFERENCES
  *
  *      Deutsch, L.P.,"DEFLATE Compressed Data Format Specification".
- *      Available in ftp://ds.internic.net/rfc/rfc1951.txt
+ *      Available in http://www.ietf.org/rfc/rfc1951.txt
  *
  *      A description of the Rabin and Karp algorithm is given in the book
  *         "Algorithms" by R. Sedgewick, Addison-Wesley, p252.
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.0.1 Copyright 1995-2003 Jean-loup Gailly ";
+   " deflate 1.2.0.2 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -157,7 +157,9 @@ local const config configuration_table[10] = {
 #define EQUAL 0
 /* result of memcmp for equal strings */
 
+#ifndef NO_DUMMY_DECL
 struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
+#endif
 
 /* ===========================================================================
  * Update a hash value with the given input byte
@@ -255,10 +257,11 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
         windowBits = -windowBits;
     }
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
-        windowBits < 9 || windowBits > 15 || level < 0 || level > 9 ||
+        windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
         strategy < 0 || strategy > Z_RLE) {
         return Z_STREAM_ERROR;
     }
+    if (windowBits == 8) windowBits = 9;  /* until 256-byte window bug fixed */
     s = (deflate_state *) ZALLOC(strm, 1, sizeof(deflate_state));
     if (s == Z_NULL) return Z_MEM_ERROR;
     strm->state = (struct internal_state FAR *)s;
@@ -520,9 +523,16 @@ int ZEXPORT deflate (strm, flush)
     if (s->status == INIT_STATE) {
 
         uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
-        uInt level_flags = (s->level-1) >> 1;
+        uInt level_flags;
 
-        if (level_flags > 3) level_flags = 3;
+        if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
+            level_flags = 0;
+        else if (s->level < 6)
+            level_flags = 1;
+        else if (s->level == 6)
+            level_flags = 2;
+        else
+            level_flags = 3;
         header |= (level_flags << 6);
         if (s->strstart != 0) header |= PRESET_DICT;
         header += 31 - (header % 31);
@@ -975,7 +985,7 @@ local uInt longest_match_fast(s, cur_match)
     if (len < MIN_MATCH) return MIN_MATCH - 1;
 
     s->match_start = cur_match;
-    return len <= s->lookahead ? len : s->lookahead;
+    return (uInt)len <= s->lookahead ? (uInt)len : s->lookahead;
 }
 
 #ifdef DEBUG
@@ -1028,19 +1038,22 @@ local void fill_window(s)
         more = (unsigned)(s->window_size -(ulg)s->lookahead -(ulg)s->strstart);
 
         /* Deal with !@#$% 64K limit: */
-        if (more == 0 && s->strstart == 0 && s->lookahead == 0) {
-            more = wsize;
-
-        } else if (more == (unsigned)(-1)) {
-            /* Very unlikely, but possible on 16 bit machine if strstart == 0
-             * and lookahead == 1 (input done one byte at time)
-             */
-            more--;
+        if (sizeof(int) <= 2) {
+            if (more == 0 && s->strstart == 0 && s->lookahead == 0) {
+                more = wsize;
+    
+            } else if (more == (unsigned)(-1)) {
+                /* Very unlikely, but possible on 16 bit machine if
+                 * strstart == 0 && lookahead == 1 (input done one byte at time)
+                 */
+                more--;
+            }
+        }
 
         /* If the window is almost full and there is insufficient lookahead,
          * move the upper half to the lower one to make room in the upper half.
          */
-        } else if (s->strstart >= wsize+MAX_DIST(s)) {
+        if (s->strstart >= wsize+MAX_DIST(s)) {
 
             zmemcpy(s->window, s->window+wsize, (unsigned)wsize);
             s->match_start -= wsize;
@@ -1347,9 +1360,12 @@ local block_state deflate_slow(s, flush)
             }
             /* longest_match() or longest_match_fast() sets match_start */
 
-            if (s->match_length <= 5 && (s->strategy == Z_FILTERED ||
-                 (s->match_length == MIN_MATCH &&
-                  s->strstart - s->match_start > TOO_FAR))) {
+            if (s->match_length <= 5 && (s->strategy == Z_FILTERED
+#if TOO_FAR < 32768
+                || (s->match_length == MIN_MATCH &&
+                    s->strstart - s->match_start > TOO_FAR)
+#endif
+                )) {
 
                 /* If prev_match is also MIN_MATCH, match_start is garbage
                  * but we will ignore the current match anyway.

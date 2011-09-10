@@ -5,6 +5,7 @@
 
 /* @(#) $Id$ */
 
+#define ZLIB_INTERNAL
 #include "zlib.h"
 
 #define BASE 65521L /* largest prime smaller than 65536 */

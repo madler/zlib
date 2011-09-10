@@ -18,25 +18,29 @@
 #  endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
-#include "zlib.h"
+#include "zutil.h"
 
 #define local static
 
 /* Find a four-byte integer type for crc32_little() and crc32_big(). */
 #ifndef NOBYFOUR
-#  ifdef __STDC__       /* need ANSI C limits.h to determine sizes */
+#  ifdef STDC           /* need ANSI C limits.h to determine sizes */
 #    include <limits.h>
 #    define BYFOUR
-#    if (UINT_MAX == 4294967295)
+#    if (UINT_MAX == 0xffffffffUL)
        typedef unsigned int u4;
-#    elif (ULONG_MAX == 4294967295)
-       typedef unsigned long u4;
-#    elif (USHRT_MAX == 4294967295)
-       typedef unsigned short u4;
 #    else
-#      undef BYFOUR     /* can't find a four-byte integer type! */
+#      if (ULONG_MAX == 0xffffffffUL)
+         typedef unsigned long u4;
+#      else
+#        if (USHRT_MAX == 0xffffffffUL)
+           typedef unsigned short u4;
+#        else
+#          undef BYFOUR     /* can't find a four-byte integer type! */
+#        endif
+#      endif
 #    endif
-#  endif /* __STDC__ */
+#  endif /* STDC */
 #endif /* !NOBYFOUR */
 
 /* Definitions for doing the crc four data bytes at a time. */
@@ -95,7 +99,7 @@ local void make_crc_table()
     /* terms of polynomial defining this crc (except x^32): */
     static const unsigned char p[] = {0,1,2,4,5,7,8,10,11,12,16,22,23,26};
 
-    /* make exclusive-or pattern from polynomial (0xedb88320L) */
+    /* make exclusive-or pattern from polynomial (0xedb88320UL) */
     poly = 0UL;
     for (n = 0; n < sizeof(p)/sizeof(unsigned char); n++)
         poly |= 1UL << (31 - p[n]);
@@ -240,7 +244,7 @@ local unsigned long crc32_little(crc, buf, len)
 
     c = (u4)crc;
     c = ~c;
-    while (len && ((int)buf & 3)) {
+    while (len && ((size_t)buf & 3)) {
         c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
         len--;
     }
@@ -280,7 +284,7 @@ local unsigned long crc32_big(crc, buf, len)
 
     c = REV((u4)crc);
     c = ~c;
-    while (len && ((int)buf & 3)) {
+    while (len && ((size_t)buf & 3)) {
         c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
         len--;
     }

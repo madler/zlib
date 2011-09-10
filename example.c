@@ -142,13 +142,18 @@ void test_gzio(out, in, uncompr, uncomprLen)
         exit(1);
     }
 
+    if (gzungetc(' ', file) != ' ') {
+        fprintf(stderr, "gzungetc error\n");
+        exit(1);
+    }
+
     gzgets(file, (char*)uncompr, uncomprLen);
     uncomprLen = strlen((char*)uncompr);
-    if (uncomprLen != 6) { /* "hello!" */
+    if (uncomprLen != 7) { /* " hello!" */
         fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
         exit(1);
     }
-    if (strcmp((char*)uncompr, hello+7)) {
+    if (strcmp((char*)uncompr, hello+6)) {
         fprintf(stderr, "bad gzgets after gzseek\n");
         exit(1);
     } else {
@@ -522,6 +527,9 @@ int main(argc, argv)
     } else if (strcmp(zlibVersion(), ZLIB_VERSION) != 0) {
         fprintf(stderr, "warning: different zlib version\n");
     }
+
+    printf("zlib version %s = 0x%04x, compile flags = 0x%x\n",
+            ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
 
     compr    = (Byte*)calloc((uInt)comprLen, 1);
     uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);

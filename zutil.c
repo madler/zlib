@@ -7,7 +7,9 @@
 
 #include "zutil.h"
 
+#ifndef NO_DUMMY_DECL
 struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
 
 #ifndef STDC
 extern void exit OF((int));
@@ -29,6 +31,83 @@ const char * const z_errmsg[10] = {
 const char * ZEXPORT zlibVersion()
 {
     return ZLIB_VERSION;
+}
+
+uLong ZEXPORT zlibCompileFlags()
+{
+    uLong flags;
+
+    flags = 0;
+    switch (sizeof(uInt)) {
+    case 2:     break;
+    case 4:     flags += 1;     break;
+    case 8:     flags += 2;     break;
+    default:    flags += 3;
+    }
+    switch (sizeof(uLong)) {
+    case 2:     break;
+    case 4:     flags += 1 << 2;        break;
+    case 8:     flags += 2 << 2;        break;
+    default:    flags += 3 << 2;
+    }
+    switch (sizeof(voidpf)) {
+    case 2:     break;
+    case 4:     flags += 1 << 4;        break;
+    case 8:     flags += 2 << 4;        break;
+    default:    flags += 3 << 4;
+    }
+    switch (sizeof(z_off_t)) {
+    case 2:     break;
+    case 4:     flags += 1 << 6;        break;
+    case 8:     flags += 2 << 6;        break;
+    default:    flags += 3 << 6;
+    }
+#ifdef DEBUG
+    flags += 1 << 8;
+#endif
+#ifdef BUILDFIXED
+    flags += 1 << 12;
+#endif
+#ifdef DYNAMIC_CRC_TABLE
+    flags += 1 << 13;
+#endif
+#ifdef NO_DEFLATE
+    flags += 1 << 16;
+#endif
+#ifdef NO_GUNZIP
+    flags += 1 << 17;
+#endif
+#ifdef PKZIP_BUG_WORKAROUND
+    flags += 1 << 20;
+#endif
+#ifdef FASTEST
+    flags += 1 << 21;
+#endif
+#ifdef STDC
+#  ifdef NO_vsnprintf
+        flags += 1 << 25;
+#    ifdef HAS_vsprintf_void
+        flags += 1 << 26;
+#    endif
+#  else
+#    ifdef HAS_vsnprintf_void
+        flags += 1 << 26;
+#    endif
+#  endif
+#else
+        flags += 1 << 24;
+#  ifdef NO_snprintf
+        flags += 1 << 25;
+#    ifdef HAS_sprintf_void
+        flags += 1 << 26;
+#    endif
+#  else
+#    ifdef HAS_snprintf_void
+        flags += 1 << 26;
+#    endif
+#  endif
+#endif
+    return flags;
 }
 
 #ifdef DEBUG
@@ -55,6 +134,10 @@ const char * ZEXPORT zError(err)
     return ERR_MSG(err);
 }
 
+#if defined(_WIN32_WCE)
+    /* does not exist on WCE */
+    int errno = 0;
+#endif
 
 #ifndef HAVE_MEMCPY
 
