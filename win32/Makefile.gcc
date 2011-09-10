@@ -30,7 +30,8 @@ IMPLIB    = libzdll.a
 #LOC = -DASMV
 #LOC = -DDEBUG -g
 
-CC = gcc
+PREFIX =
+CC = $(PREFIX)gcc
 CFLAGS = $(LOC) -O3 -Wall
 
 AS = $(CC)
@@ -39,13 +40,13 @@ ASFLAGS = $(LOC) -Wall
 LD = $(CC)
 LDFLAGS = $(LOC) -s
 
-AR = ar
+AR = $(PREFIX)ar
 ARFLAGS = rcs
 
-RC = windres
+RC = $(PREFIX)windres
 RCFLAGS = --define GCC_WINDRES
 
-STRIP = strip
+STRIP = $(PREFIX)strip
 
 CP = cp -fp
 # If GNU install is available, replace $(CP) with install.
@@ -106,8 +107,8 @@ zlibrc.o: win32/zlib1.rc
 .PHONY: install uninstall clean
 
 install: zlib.h zconf.h $(LIB)
-	-@if not exist $(INCLUDE_PATH)/nul mkdir $(INCLUDE_PATH)
-	-@if not exist $(LIBRARY_PATH)/nul mkdir $(LIBRARY_PATH)
+	-@mkdir -p $(INCLUDE_PATH)
+	-@mkdir -p $(LIBRARY_PATH)
 	-$(INSTALL) zlib.h $(INCLUDE_PATH)
 	-$(INSTALL) zconf.h $(INCLUDE_PATH)
 	-$(INSTALL) $(STATICLIB) $(LIBRARY_PATH)

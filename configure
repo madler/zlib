@@ -13,15 +13,40 @@
 # If you have problems, try without defining CC and CFLAGS before reporting
 # an error.
 
+# make sure we are running under a compatible shell (stolen from ffmpeg and libnfo)
+if test "0$ZLIB_CONFIGURE_EXEC" -lt 1; then
+  unset foo
+  (: ${foo%%bar}) 2>/dev/null && ! (: ${foo?}) 2>/dev/null
+  if test "$?" -ne 0; then
+    ZLIB_CONFIGURE_EXEC=1
+    export ZLIB_CONFIGURE_EXEC
+    type "bash" > /dev/null 2>&1 && exec bash "$0" "$@"
+    type "ksh" > /dev/null 2>&1 && exec ksh "$0" "$@"
+    if test -x /usr/xpg4/bin/sh; then
+      exec /usr/xpg4/bin/sh "$0" "$@"
+    fi
+#    echo "No compatible shell script interpreter found."
+#    exit 1
+# we could give up here, but go ahead and give their old sh a try
+  fi
+fi
+
+if [ -n "${CHOST}" ]; then
+    uname="$(echo "${CHOST}" | sed 's/.*-.*-\(.*\)-.*/\1/')"
+    CROSS_PREFIX="${CHOST}-"
+fi
+
 STATICLIB=libz.a
 LDFLAGS="${LDFLAGS} -L. ${STATICLIB}"
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < zlib.h`
 VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
 VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
-AR=${AR-"ar"}
+AR=${AR-"${CROSS_PREFIX}ar"}
 AR_RC="${AR} rc"
-RANLIB=${RANLIB-"ranlib"}
+RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
+LDCONFIG=${LDCONFIG-"ldconfig"}
+LDSHAREDLIBC="${LDSHAREDLIBC-"-lc"}"
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
@@ -43,11 +68,11 @@ case "$1" in
       echo '  configure [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]'
       echo '    [--static] [--64] [--libdir=LIBDIR] [--includedir=INCLUDEDIR]'
         exit 0 ;;
-    -p*=* | --prefix=*) prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift ;;
-    -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift ;;
-    -l*=* | --libdir=*) libdir=`echo $1 | sed 's/[-a-z_]*=//'`; shift ;;
-    -i*=* | --includedir=*) includedir=`echo $1 | sed 's/[-a-z_]*=//'`;shift ;;
-    -u*=* | --uname=*) uname=`echo $1 | sed 's/[-a-z_]*=//'`;shift ;;
+    -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
+    -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
+    -l*=* | --libdir=*) libdir=`echo $1 | sed 's/.*=//'`; shift ;;
+    -i*=* | --includedir=*) includedir=`echo $1 | sed 's/.*=//'`;shift ;;
+    -u*=* | --uname=*) uname=`echo $1 | sed 's/.*=//'`;shift ;;
     -p* | --prefix) prefix="$2"; shift; shift ;;
     -e* | --eprefix) exec_prefix="$2"; shift; shift ;;
     -l* | --libdir) libdir="$2"; shift; shift ;;
@@ -69,7 +94,7 @@ int hello() {return getchar();}
 EOF
 
 test -z "$CC" && echo Checking for gcc...
-cc=${CC-gcc}
+cc=${CC-${CROSS_PREFIX}gcc}
 cflags=${CFLAGS-"-O3"}
 # to force the asm version use: CFLAGS="-O3 -DASMV" ./configure
 case "$cc" in
@@ -91,9 +116,12 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
     uname=`(uname -s || echo unknown) 2>/dev/null`
   fi
   case "$uname" in
-  Linux | linux | GNU | GNU/* | *BSD | DragonFly) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
-  CYGWIN* | Cygwin* | cygwin* | OS/2* )
-             EXE='.exe' ;;
+  Linux* | linux* | GNU | GNU/* | *BSD | DragonFly) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+  CYGWIN* | Cygwin* | cygwin* | OS/2*)
+        EXE='.exe' ;;
+  MINGW*)
+        LDSHAREDLIBC=""
+        EXE='.exe' ;;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
                  LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"} ;;
@@ -474,18 +502,6 @@ EOF
   fi
 fi
 
-cat >$test.c <<EOF
-#include <errno.h>
-int main() { return 0; }
-EOF
-if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  echo "Checking for errno.h... Yes."
-else
-  echo "Checking for errno.h... No."
-  CFLAGS="$CFLAGS -DNO_ERRNO_H"
-  SFLAGS="$SFLAGS -DNO_ERRNO_H"
-fi
-
 CPP=${CPP-"$CC -E"}
 case $CFLAGS in
   *ASMV*)
@@ -513,6 +529,8 @@ sed < Makefile.in "
 /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
 /^AR *=/s#=.*#=$AR_RC#
 /^RANLIB *=/s#=.*#=$RANLIB#
+/^LDCONFIG *=/s#=.*#=$LDCONFIG#
+/^LDSHAREDLIBC *=/s#=.*#=$LDSHAREDLIBC#
 /^EXE *=/s#=.*#=$EXE#
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#

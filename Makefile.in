@@ -32,12 +32,14 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.4
+SHAREDLIBV=libz.so.1.2.4.1
 SHAREDLIBM=libz.so.1
-LIBS=$(STATICLIB) $(SHAREDLIB) $(SHAREDLIBV)
+LIBS=$(STATICLIB) $(SHAREDLIBV)
 
 AR=ar rc
 RANLIB=ranlib
+LDCONFIG=ldconfig
+LDSHAREDLIBC=-lc
 TAR=tar
 SHELL=/bin/sh
 EXE=
@@ -134,7 +136,7 @@ minigzip64.o: minigzip.c zlib.h zconf.h
 	-@mv objs/$*.o $@
 
 $(SHAREDLIBV): $(PIC_OBJS)
-	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) -lc
+	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
@@ -171,7 +173,7 @@ install-libs: $(LIBS)
 	  rm -f $(SHAREDLIB) $(SHAREDLIBM); \
 	  ln -s $(SHAREDLIBV) $(SHAREDLIB); \
 	  ln -s $(SHAREDLIBV) $(SHAREDLIBM); \
-	  (ldconfig || true)  >/dev/null 2>&1; \
+	  ($(LDCONFIG) || true)  >/dev/null 2>&1; \
 	fi
 	cp zlib.3 $(DESTDIR)$(man3dir)
 	chmod 644 $(DESTDIR)$(man3dir)/zlib.3
