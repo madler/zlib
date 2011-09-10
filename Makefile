@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 LIBS=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.2
+SHAREDLIBV=libz.so.1.2.3.3
 SHAREDLIBM=libz.so.1
 
 AR=ar
@@ -61,18 +61,36 @@ PIC_OBJS = $(OBJS:%.o=%.lo)
 
 TEST_OBJS = example.o minigzip.o
 
-all: example$(EXE) minigzip$(EXE)
+allstatic: example$(EXE) minigzip$(EXE)
 
-check: test
-test: all
-	@LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
-	echo hello world | ./minigzip | ./minigzip -d || \
+allshared: examplesh$(EXE) minigzipsh$(EXE)
+
+all: allstatic allshared
+
+teststatic: allstatic
+	@echo hello world | ./minigzip | ./minigzip -d || \
 	  echo '		*** minigzip test FAILED ***' ; \
 	if ./example; then \
 	  echo '		*** zlib test OK ***'; \
 	else \
 	  echo '		*** zlib test FAILED ***'; \
 	fi
+
+testshared: allshared
+	@LD_LIBRARY_PATH=`pwd`:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
+	DYLD_LIBRARY_PATH=`pwd`:$(DYLD_LIBRARY_PATH) ; export DYLD_LIBRARY_PATH; \
+	SHLIB_PATH=`pwd`:$(SHLIB_PATH) ; export SHLIB_PATH; \
+	echo hello world | ./minigzipsh | ./minigzipsh -d || \
+	  echo '		*** minigzip shared test FAILED ***' ; \
+	if ./examplesh; then \
+	  echo '		*** zlib shared test OK ***'; \
+	else \
+	  echo '		*** zlib shared test FAILED ***'; \
+	fi
+
+test: teststatic testshared
+
+check: test
 
 libz.a: $(OBJS)
 	$(AR) $@ $(OBJS)
@@ -104,6 +122,12 @@ example$(EXE): example.o $(LIBS)
 
 minigzip$(EXE): minigzip.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
+
+examplesh$(EXE): example.o $(LIBS)
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIB)
+
+minigzipsh$(EXE): minigzip.o $(LIBS)
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIB)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
@@ -142,7 +166,8 @@ uninstall:
 
 mostlyclean: clean
 clean:
-	rm -f *.o *.lo *~ example$(EXE) minigzip$(EXE) \
+	rm -f *.o *.lo *~ \
+	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 
@@ -180,13 +205,11 @@ adler32.lo: zlib.h zconf.h zlibdefs.h
 compress.lo: zlib.h zconf.h zlibdefs.h
 crc32.lo: crc32.h zlib.h zconf.h zlibdefs.h
 deflate.lo: deflate.h zutil.h zlib.h zconf.h zlibdefs.h
-example.lo: zlib.h zconf.h zlibdefs.h
 gzio.lo: zutil.h zlib.h zconf.h zlibdefs.h
 inffast.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h
 inflate.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
 infback.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inflate.h inffast.h inffixed.h
 inftrees.lo: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
-minigzip.lo: zlib.h zconf.h zlibdefs.h
 trees.lo: deflate.h zutil.h zlib.h zconf.h zlibdefs.h trees.h
 uncompr.lo: zlib.h zconf.h zlibdefs.h
 zutil.lo: zutil.h zlib.h zconf.h zlibdefs.h

@@ -32,7 +32,7 @@ libdir=${libdir-'${exec_prefix}/lib'}
 includedir=${includedir-'${prefix}/include'}
 mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
-shared=0
+shared=1
 zprefix=0
 gcc=0
 old_cc="$CC"
@@ -50,11 +50,13 @@ case "$1" in
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift;;
     -l*=* | --libdir=*) libdir=`echo $1 | sed 's/[-a-z_]*=//'`; shift;;
     -i*=* | --includedir=*) includedir=`echo $1 | sed 's/[-a-z_]*=//'`;shift;;
+    -u*=* | --uname=*) uname=`echo $1 | sed 's/[-a-z_]*=//'`;shift;;
     -p* | --prefix) prefix="$2"; shift; shift;;
     -e* | --eprefix) exec_prefix="$2"; shift; shift;;
     -l* | --libdir) libdir="$2"; shift; shift;;
     -i* | --includedir) includedir="$2"; shift; shift;;
     -s* | --shared | --enable-shared) shared=1; shift;;
+    -t | --static) shared=0; shift;;
     -z* | --zprefix) zprefix=1; shift;;
     --sysconfdir=*) echo "ignored option: --sysconfdir"; shift;;
     --localstatedir=*) echo "ignored option: --localstatedir"; shift;;
@@ -80,7 +82,10 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
   SFLAGS="${CFLAGS-"-O3"} -fPIC"
   CFLAGS="${CFLAGS-"-O3"}"
-  case `(uname -s || echo unknown) 2>/dev/null` in
+  if test -z $uname; then
+    uname=`(uname -s || echo unknown) 2>/dev/null`
+  fi
+  case "$uname" in
   Linux | linux | GNU | GNU/*) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"};;
   CYGWIN* | Cygwin* | cygwin* | OS/2* )
              EXE='.exe';;
@@ -107,7 +112,10 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
 else
   # find system name and corresponding cc options
   CC=${CC-cc}
-  case `(uname -sr || echo unknown) 2>/dev/null` in
+  if test -z $uname; then
+    uname=`(uname -sr || echo unknown) 2>/dev/null`
+  fi
+  case "$uname" in
   HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
              CFLAGS=${CFLAGS-"-O"}
 #            LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
@@ -200,7 +208,12 @@ if test $shared -eq 1; then
 fi
 if test $shared -eq 0; then
   LDSHARED="$CC"
+  ALL="allstatic"
+  TEST="teststatic"
   echo Building static library $LIBS version $VER with $CC.
+else
+  ALL="allstatic allshared"
+  TEST="teststatic testshared"
 fi
 
 cat > zlibdefs.h << EOF
@@ -215,15 +228,27 @@ cat > $test.c <<EOF
 #include <sys/types.h>
 off64_t dummy = 0;
 EOF
-if test "`($CC -c $CFLAGS -D_LARGEFILE64_SOURCE $test.c) 2>&1`" = ""; then
-  cat >> zlibdefs.h <<EOF
-#define z_off_t off64_t
-EOF
-  CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE"
-  SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE"
+if test "`($CC -c $CFLAGS -D_LARGEFILE64_SOURCE=1 $test.c) 2>&1`" = ""; then
+  CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE=1"
+  SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE=1"
   echo "Checking for off64_t... Yes."
+  echo "Checking for fseeko... Yes."
 else
   echo "Checking for off64_t... No."
+  cat > $test.c <<EOF
+#include <stdio.h>
+int main(void) {
+  fseeko(NULL, 0, 0);
+  return 0;
+}
+EOF
+  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
+    echo "Checking for fseeko... Yes."
+  else
+    CFLAGS="${CFLAGS} -DNO_FSEEKO"
+    SFLAGS="${SFLAGS} -DNO_FSEEKO"
+    echo "Checking for fseeko... No."
+  fi
 fi
 
 cat > $test.c <<EOF
@@ -491,8 +516,9 @@ sed < Makefile.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^SFLAGS *=/s#=.*#=$SFLAGS#
-/^CPP *=/s#=.*#=$CPP#
+/^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
+/^CPP *=/s#=.*#=$CPP#
 /^LIBS *=/s#=.*#=$LIBS#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
@@ -505,7 +531,8 @@ sed < Makefile.in "
 /^libdir *=/s#=.*#=$libdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
-/^LDFLAGS *=/s#=.*#=$LDFLAGS#
+/^all: */s#:.*#: $ALL#
+/^test: */s#:.*#: $TEST#
 " > Makefile
 
 sed < zlib.pc.in "

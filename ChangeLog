@@ -1,6 +1,20 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.3 (2 October 2006)
+- Make --shared the default for configure, add a --static option
+- Add compile option to permit invalid distance-too-far streams
+- Add inflateUndermine() function which is required to enable above
+- Remove use of "this" variable name for C++ compatibility [Marquess]
+- Add testing of shared library in make test, if shared library built
+- Use ftello() and fseeko() if available instead of ftell() and fseek()
+- Provide two versions of all functions that use the z_off_t type for
+  binary compatibility -- a normal version and a 64-bit offset version,
+  per the Large File Support Extension when _LARGEFILE64_SUPPORT is
+  defined; use the 64-bit versions by default when _FILE_OFFSET_BITS
+  is defined to be 64
+- Add a --uname= option to configure to perhaps help with cross-compiling
+
 Changes in 1.2.3.2 (3 September 2006)
 - Turn off silly Borland warnings [Hay]
 - Use off64_t and define _LARGEFILE64_SOURCE when present

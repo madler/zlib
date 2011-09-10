@@ -177,6 +177,12 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define F_OPEN(name, mode) fopen((name), (mode))
 #endif
 
+#ifdef _LARGEFILE64_SOURCE
+#  define F_OPEN64(name, mode) fopen64((name), (mode))
+#else
+#  define F_OPEN64(name, mode) fopen((name), (mode))
+#endif
+
          /* functions */
 
 #if defined(STDC99) || (defined(__TURBOC__) && __TURBOC__ >= 0x550)
