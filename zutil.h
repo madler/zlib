@@ -74,7 +74,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
         /* target dependencies */
 
-#ifdef MSDOS
+#if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
 #  define OS_CODE  0x00
 #  if defined(__TURBOC__) || defined(__BORLANDC__)
 #    if(__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
@@ -82,19 +82,15 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
        void _Cdecl farfree( void *block );
        void *_Cdecl farmalloc( unsigned long nbytes );
 #    else
-#     include <alloc.h>
+#      include <alloc.h>
 #    endif
 #  else /* MSC or DJGPP */
 #    include <malloc.h>
 #  endif
 #endif
 
-#ifdef OS2
-#  define OS_CODE  0x06
-#endif
-
-#ifdef WIN32 /* Window 95 & Windows NT */
-#  define OS_CODE  0x0b
+#ifdef AMIGA
+#  define OS_CODE  0x01
 #endif
 
 #if defined(VAXC) || defined(VMS)
@@ -103,12 +99,12 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
      fopen((name), (mode), "mbc=60", "ctx=stm", "rfm=fix", "mrs=512")
 #endif
 
-#ifdef AMIGA
-#  define OS_CODE  0x01
-#endif
-
 #if defined(ATARI) || defined(atarist)
 #  define OS_CODE  0x05
+#endif
+
+#ifdef OS2
+#  define OS_CODE  0x06
 #endif
 
 #if defined(MACOS) || defined(TARGET_OS_MAC)
@@ -122,12 +118,18 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
-#ifdef __50SERIES /* Prime/PRIMOS */
-#  define OS_CODE  0x0F
-#endif
-
 #ifdef TOPS20
 #  define OS_CODE  0x0a
+#endif
+
+#ifdef WIN32
+#  ifndef __CYGWIN__  /* Cygwin is Unix, not Win32 */
+#    define OS_CODE  0x0b
+#  endif
+#endif
+
+#ifdef __50SERIES /* Prime/PRIMOS */
+#  define OS_CODE  0x0f
 #endif
 
 #if defined(_BEOS_) || defined(RISCOS)
@@ -142,8 +144,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
-
-        /* Common defaults */
+        /* common defaults */
 
 #ifndef OS_CODE
 #  define OS_CODE  0x03  /* assume Unix */
@@ -155,27 +156,30 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
          /* functions */
 
-#ifdef __STDC_VERSION__
-#  if __STDC_VERSION__ >= 199901L
-#    ifndef STDC99
-#      define STDC99
-#    endif
+#if defined(STDC99) || (defined(__TURBOC__) && __TURBOC__ >= 0x550)
+#  ifndef HAVE_VSNPRINTF
+#    define HAVE_VSNPRINTF
 #  endif
 #endif
-#if !defined(STDC99) && !(defined(__TURBOC__) && __TURBOC__ >= 0x550) && !defined(HAVE_VSNPRINTF)
+#if defined(__CYGWIN__)
+#  ifndef HAVE_VSNPRINTF
+#    define HAVE_VSNPRINTF
+#  endif
+#endif
+#ifndef HAVE_VSNPRINTF
 #  ifdef MSDOS
      /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
         but for now we just assume it doesn't. */
 #    define NO_vsnprintf
 #  endif
-#  ifdef WIN32
-     /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
-#    if !defined(vsnprintf) && !defined(__TURBOC__)
-#      define vsnprintf _vsnprintf
-#    endif
-#  endif
 #  ifdef __TURBOC__
 #    define NO_vsnprintf
+#  endif
+#  ifdef WIN32
+     /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
+#    if !defined(vsnprintf) && !defined(NO_vsnprintf)
+#      define vsnprintf _vsnprintf
+#    endif
 #  endif
 #endif
 

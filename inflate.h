@@ -32,6 +32,7 @@ typedef enum {
     DICTID,     /* i: waiting for dictionary check value */
     DICT,       /* waiting for inflateSetDictionary() call */
         TYPE,       /* i: waiting for type bits, including last-flag bit */
+        TYPEDO,     /* i: same, but skip check to exit inflate on new block */
         STORED,     /* i: waiting for stored size (length and complement) */
         COPY,       /* i/o: waiting for input or output to copy stored block */
         TABLE,      /* i: waiting for dynamic block table lengths */
@@ -88,7 +89,7 @@ struct inflate_state {
         /* sliding window */
     unsigned wbits;             /* log base 2 of requested window size */
     unsigned wsize;             /* window size or zero if not using window */
-    unsigned whave;		/* valid bytes in the window */
+    unsigned whave;             /* valid bytes in the window */
     unsigned write;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if needed */
         /* bit accumulator */

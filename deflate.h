@@ -1,6 +1,6 @@
 /* deflate.h -- internal compression state
  * Copyright (C) 1995-2002 Jean-loup Gailly
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -320,7 +320,7 @@ void _tr_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
 #else
 # define _tr_tally_lit(s, c, flush) flush = _tr_tally(s, 0, c)
 # define _tr_tally_dist(s, distance, length, flush) \
-              flush = _tr_tally(s, distance, length) 
+              flush = _tr_tally(s, distance, length)
 #endif
 
 #endif /* DEFLATE_H */

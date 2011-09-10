@@ -511,7 +511,7 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
     }
 
     /* now we add file in a zipfile */
-    #ifndef NO_ADDFILEINEXISTINGZIP
+#    ifndef NO_ADDFILEINEXISTINGZIP
     if (append == APPEND_STATUS_ADDINZIP)
     {
         uLong byte_before_the_zipfile;/* byte before the zipfile, (>0 for sfx)*/
@@ -621,7 +621,7 @@ extern zipFile ZEXPORT zipOpen2 (pathname, append, globalcomment, pzlib_filefunc
                   offset_central_dir+byte_before_the_zipfile,ZLIB_FILEFUNC_SEEK_SET)!=0)
             err=ZIP_ERRNO;
     }
-    #endif /* !NO_ADDFILEINEXISTINGZIP*/
+#    endif /* !NO_ADDFILEINEXISTINGZIP*/
 
     if (err != ZIP_OK)
     {
@@ -671,10 +671,10 @@ extern int ZEXPORT zipOpenNewFileInZip3 (file, filename, zipfi,
     uInt i;
     int err = ZIP_OK;
 
-    #ifdef NOCRYPT
+#    ifdef NOCRYPT
     if (password != NULL)
         return ZIP_PARAMERROR;
-    #endif
+#    endif
 
     if (file == NULL)
         return ZIP_PARAMERROR;
@@ -828,7 +828,7 @@ extern int ZEXPORT zipOpenNewFileInZip3 (file, filename, zipfi,
         if (err==Z_OK)
             zi->ci.stream_initialised = 1;
     }
-    #ifndef NOCRYPT
+#    ifndef NOCRYPT
     zi->ci.crypt_header_size = 0;
     if ((err==Z_OK) && (password != NULL))
     {
@@ -844,7 +844,7 @@ extern int ZEXPORT zipOpenNewFileInZip3 (file, filename, zipfi,
         if (ZWRITE(zi->z_filefunc,zi->filestream,bufHead,sizeHead) != sizeHead)
                 err = ZIP_ERRNO;
     }
-    #endif
+#    endif
 
     if (err==Z_OK)
         zi->in_opened_file_inzip = 1;
@@ -1035,9 +1035,9 @@ extern int ZEXPORT zipCloseFileInZipRaw (file, uncompressed_size, crc32)
         uncompressed_size = (uLong)zi->ci.stream.total_in;
     }
     compressed_size = (uLong)zi->ci.stream.total_out;
-    #ifndef NOCRYPT
+#    ifndef NOCRYPT
     compressed_size += zi->ci.crypt_header_size;
-    #endif
+#    endif
 
     ziplocal_putValue_inmemory(zi->ci.central_header+16,crc32,4); /*crc*/
     ziplocal_putValue_inmemory(zi->ci.central_header+20,

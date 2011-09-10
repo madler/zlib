@@ -41,11 +41,11 @@ int stream_size;
         windowBits < 8 || windowBits > 15)
         return Z_STREAM_ERROR;
     strm->msg = Z_NULL;                 /* in case we return an error */
-    if (strm->zalloc == Z_NULL) {
+    if (strm->zalloc == (alloc_func)0) {
         strm->zalloc = zcalloc;
         strm->opaque = (voidpf)0;
     }
-    if (strm->zfree == Z_NULL) strm->zfree = zcfree;
+    if (strm->zfree == (free_func)0) strm->zfree = zcfree;
     state = (struct inflate_state FAR *)ZALLOC(strm, 1,
                                                sizeof(struct inflate_state));
     if (state == Z_NULL) return Z_MEM_ERROR;
@@ -610,7 +610,7 @@ void FAR *out_desc;
 int ZEXPORT inflateBackEnd(strm)
 z_stream FAR *strm;
 {
-    if (strm == Z_NULL || strm->state == Z_NULL || strm->zfree == Z_NULL)
+    if (strm == Z_NULL || strm->state == Z_NULL || strm->zfree == (free_func)0)
         return Z_STREAM_ERROR;
     ZFREE(strm, strm->state);
     strm->state = Z_NULL;

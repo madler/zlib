@@ -1,6 +1,6 @@
 /*
  * Test program for gzifstream and gzofstream
- * 
+ *
  * by Ludwig Schwardt <schwardt@sun.ac.za>
  * original version by Kevin Ruland <kevin@rodin.wustl.edu>
  */
@@ -13,15 +13,15 @@ int main() {
   gzofstream outf;
   gzifstream inf;
   char buf[80];
-  
+
   outf.open("test1.txt.gz");
-  outf << "The quick brown fox sidestepped the lazy canine\n" 
+  outf << "The quick brown fox sidestepped the lazy canine\n"
        << 1.3 << "\nPlan " << 9 << std::endl;
   outf.close();
   std::cout << "Wrote the following message to 'test1.txt.gz' (check with zcat or zless):\n"
             << "The quick brown fox sidestepped the lazy canine\n"
             << 1.3 << "\nPlan " << 9 << std::endl;
-  
+
   std::cout << "\nReading 'test1.txt.gz' (buffered) produces:\n";
   inf.open("test1.txt.gz");
   while (inf.getline(buf,80,'\n')) {

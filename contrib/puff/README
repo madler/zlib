@@ -14,7 +14,7 @@ Why I wrote this --
 puff.c was written to document the deflate format unambiguously, by virtue of
 being working C code.  It is meant to supplement RFC 1951, which formally
 describes the deflate format.  I have received many questions on details of the
-deflate format, and I hope that reading this code will answer those questions. 
+deflate format, and I hope that reading this code will answer those questions.
 puff.c is heavily commented with details of the deflate format, especially
 those little nooks and cranies of the format that might not be obvious from a
 specification.
@@ -29,10 +29,10 @@ applications, but if you must ...
 
 Include puff.h in your code, which provides this prototype:
 
-int puff(unsigned char *dest,		/* pointer to destination pointer */
-         unsigned long *destlen,	/* amount of output space */
-         unsigned char *source,		/* pointer to source data pointer */
-         unsigned long *sourcelen);	/* amount of input available */
+int puff(unsigned char *dest,           /* pointer to destination pointer */
+         unsigned long *destlen,        /* amount of output space */
+         unsigned char *source,         /* pointer to source data pointer */
+         unsigned long *sourcelen);     /* amount of input available */
 
 Then you can call puff() to decompress a deflate stream that is in memory in
 its entirety at source, to a sufficiently sized block of memory for the

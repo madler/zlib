@@ -45,7 +45,7 @@
   </ol>
 
   <dl>
-  <dt>Jean-loup Gailly        
+  <dt>Jean-loup Gailly
   <dd><a href="mailto:jloup@gzip.org">jloup@gzip.org</a>
   <dt>Mark Adler
   <dd><a href="mailto:madler@alumni.caltech.edu">madler@alumni.caltech.edu</a>
@@ -55,19 +55,19 @@
   Comments) 1950 to 1952 in the files
   <a href="ftp://ds.internic.net/rfc/rfc1950.txt">
   ftp://ds.internic.net/rfc/rfc1950.txt </a>
-  (zlib format), 
+  (zlib format),
   <a href="ftp://ds.internic.net/rfc/rfc1951.txt">
   rfc1951.txt </a>
-  (<a href="#deflate">deflate</a> format) and 
+  (<a href="#deflate">deflate</a> format) and
   <a href="ftp://ds.internic.net/rfc/rfc1952.txt">
   rfc1952.txt </a>
   (gzip format).
   <p>
-  This manual is converted from zlib.h by 
+  This manual is converted from zlib.h by
   <a href="mailto:piaip@csie.ntu.edu.tw"> piaip </a>
   <p>
   Visit <a href="http://ftp.cdrom.com/pub/infozip/zlib/">
-  http://ftp.cdrom.com/pub/infozip/zlib/</a> 
+  http://ftp.cdrom.com/pub/infozip/zlib/</a>
   for the official zlib web page.
   <p>
 
@@ -99,7 +99,7 @@
 <hr>
 <a name="Utility functions"><h2> Utility functions </h2>
      The following utility functions are implemented on top of the
-   <a href="#Basic functions">basic stream-oriented functions</a>. 
+   <a href="#Basic functions">basic stream-oriented functions</a>.
    To simplify the interface, some
    default options are assumed (compression level and memory usage,
    standard memory allocation functions). The source code of these
@@ -406,7 +406,7 @@
     enough room in the output buffer), <a href="#next_in">next_in</a> and <a href="#avail_in">avail_in</a> are updated and
     processing will resume at this point for the next call of <a href="#deflate">deflate</a>().
 
-  <li> 
+  <li>
     Provide more output starting at <a href="#next_out">next_out</a> and update <a href="#next_out">next_out</a> and <a href="#avail_out">avail_out</a>
     accordingly. This action is forced if the parameter flush is non zero.
     Forcing flush frequently degrades the compression ratio, so this parameter
@@ -453,7 +453,7 @@
   <a href="#deflate">deflate</a> has returned <a href="#Z_STREAM_END">Z_STREAM_END</a>, the only possible operations on the
   stream are <a href="#deflateReset">deflateReset</a> or <a href="#deflateEnd">deflateEnd</a>.
   <p>
-  
+
     <a href="#Z_FINISH">Z_FINISH</a> can be used immediately after <a href="#deflateInit">deflateInit</a> if all the compression
   is to be done in a single step. In this case, <a href="#avail_out">avail_out</a> must be at least
   0.1% larger than <a href="#avail_in">avail_in</a> plus 12 bytes.  If <a href="#deflate">deflate</a> does not return
@@ -493,7 +493,7 @@
    <p>
 
 <font color="Blue"><dt>  int  <a name="inflateInit">inflateInit</a> (<a href="#z_streamp">z_streamp</a> strm);</font>
-<dd>     
+<dd>
 	Initializes the internal stream <a href="#state">state</a> for decompression. The fields
    <a href="#next_in">next_in</a>, <a href="#avail_in">avail_in</a>, <a href="#zalloc">zalloc</a>, <a href="#zfree">zfree</a> and <a href="#opaque">opaque</a> must be initialized before by
    the caller. If <a href="#next_in">next_in</a> is not <a href="#Z_NULL">Z_NULL</a> and <a href="#avail_in">avail_in</a> is large enough (the exact
@@ -529,9 +529,9 @@
     enough room in the output buffer), <a href="#next_in">next_in</a> is updated and processing
     will resume at this point for the next call of <a href="#inflate">inflate</a>().
 
-  <li> Provide more output starting at <a href="#next_out">next_out</a> and update <a href="#next_out">next_out</a> and 
-    <a href="#avail_out">avail_out</a> accordingly.  <a href="#inflate">inflate</a>() provides as much output as possible, 
-    until there is no more input data or no more space in the output buffer 
+  <li> Provide more output starting at <a href="#next_out">next_out</a> and update <a href="#next_out">next_out</a> and
+    <a href="#avail_out">avail_out</a> accordingly.  <a href="#inflate">inflate</a>() provides as much output as possible,
+    until there is no more input data or no more space in the output buffer
     (see below about the flush parameter).
   </ul> <p>
 
@@ -566,7 +566,7 @@
 
      If a preset dictionary is needed at this point (see <a href="#inflateSetDictionary">inflateSetDictionary</a>
   below), <a href="#inflate">inflate</a> sets strm-<a href="#adler">adler</a> to the <a href="#adler32">adler32</a> checksum of the
-  dictionary chosen by the compressor and returns <a href="#Z_NEED_DICT">Z_NEED_DICT</a> ; otherwise 
+  dictionary chosen by the compressor and returns <a href="#Z_NEED_DICT">Z_NEED_DICT</a> ; otherwise
   it sets strm-&gt <a href="#adler">adler</a> to the <a href="#adler32">adler32</a> checksum of all output produced
   so far (that is, <a href="#total_out">total_out</a> bytes) and returns <a href="#Z_OK">Z_OK</a>, <a href="#Z_STREAM_END">Z_STREAM_END</a> or
   an error code as described below. At the end of the stream, <a href="#inflate">inflate</a>()
@@ -652,7 +652,7 @@
    memory, <a href="#Z_STREAM_ERROR">Z_STREAM_ERROR</a> if a parameter is invalid (such as an invalid
    method). <a href="#msg">msg</a> is set to null if there is no error message.  <a href="#deflateInit2">deflateInit2</a> does
    not perform any compression: this will be done by <a href="#deflate">deflate</a>().<p>
-                            
+
 <font color="Blue"><dt> int  <a name="deflateSetDictionary">deflateSetDictionary</a> (<a href="#z_streamp">z_streamp</a> strm, const Bytef *dictionary, uInt  dictLength);</font>
 <dd>
      Initializes the compression dictionary from the given byte sequence
@@ -723,7 +723,7 @@
 
      Before the call of <a href="#deflateParams">deflateParams</a>, the stream <a href="#state">state</a> must be set as for
    a call of <a href="#deflate">deflate</a>(), since the currently available input may have to
-   be compressed and flushed. In particular, strm-&gt <a href="#avail_out">avail_out</a> must be 
+   be compressed and flushed. In particular, strm-&gt <a href="#avail_out">avail_out</a> must be
    non-zero.<p>
 
      <a href="#deflateParams">deflateParams</a> returns <a href="#Z_OK">Z_OK</a> if success, <a href="#Z_STREAM_ERROR">Z_STREAM_ERROR</a> if the source
@@ -865,7 +865,7 @@ typedef struct z_stream_s {
     uLong   <a name="reserved">reserved</a>;   /* <a href="#reserved">reserved</a> for future use */
 } <a href="#z_stream_s">z_stream</a> ;
 
-typedef <a href="#z_stream_s">z_stream</a> FAR * <a name="z_streamp">z_streamp</a>;  ÿ 
+typedef <a href="#z_stream_s">z_stream</a> FAR * <a name="z_streamp">z_streamp</a>;  ÿ
 </pre>
 </font>
    The application must update <a href="#next_in">next_in</a> and <a href="#avail_in">avail_in</a> when <a href="#avail_in">avail_in</a> has
@@ -904,7 +904,7 @@ typedef <a href="#z_stream_s">z_stream</a> FAR * <a name="z_streamp">z_streamp</
 <font color="Blue">
 <pre>
 #define <a name="Z_NO_FLUSH">Z_NO_FLUSH</a>      0
-#define <a name="Z_PARTIAL_FLUSH">Z_PARTIAL_FLUSH</a> 1 
+#define <a name="Z_PARTIAL_FLUSH">Z_PARTIAL_FLUSH</a> 1
 	/* will be removed, use <a href="#Z_SYNC_FLUSH">Z_SYNC_FLUSH</a> instead */
 #define <a name="Z_SYNC_FLUSH">Z_SYNC_FLUSH</a>    2
 #define <a name="Z_FULL_FLUSH">Z_FULL_FLUSH</a>    3

@@ -508,28 +508,28 @@ int main(argc,argv)
     if (zipfilename!=NULL)
     {
 
-        #ifdef USEWIN32IOAPI
+#        ifdef USEWIN32IOAPI
         zlib_filefunc_def ffunc;
-        #endif
+#        endif
 
         strncpy(filename_try, zipfilename,MAXFILENAME-1);
         /* strncpy doesnt append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
-        #ifdef USEWIN32IOAPI
+#        ifdef USEWIN32IOAPI
         fill_win32_filefunc(&ffunc);
         uf = unzOpen2(zipfilename,&ffunc);
-        #else
+#        else
         uf = unzOpen(zipfilename);
-        #endif
+#        endif
         if (uf==NULL)
         {
             strcat(filename_try,".zip");
-            #ifdef USEWIN32IOAPI
+#            ifdef USEWIN32IOAPI
             uf = unzOpen2(filename_try,&ffunc);
-            #else
+#            else
             uf = unzOpen(filename_try);
-            #endif
+#            endif
         }
     }
 

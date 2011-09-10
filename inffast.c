@@ -8,6 +8,8 @@
 #include "inflate.h"
 #include "inffast.h"
 
+#ifndef ASMINF
+
 /* Allow machine dependent optimization for post-increment or pre-increment.
    Based on testing to date,
    Pre-increment preferred for:
@@ -72,6 +74,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
     unsigned char FAR *end;     /* while out < end, enough space available */
     unsigned wsize;             /* window size or zero if not using window */
+    unsigned whave;             /* valid bytes in the window */
     unsigned write;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
     unsigned long hold;         /* local strm->hold */
@@ -95,6 +98,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     beg = out - (start - strm->avail_out);
     end = out + (strm->avail_out - 257);
     wsize = state->wsize;
+    whave = state->whave;
     write = state->write;
     window = state->window;
     hold = state->hold;
@@ -167,13 +171,13 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                 Tracevv((stderr, "inflate:         distance %u\n", dist));
                 op = (unsigned)(out - beg);     /* max distance in output */
                 if (dist > op) {                /* see if copy from window */
-                    if (dist > wsize) {
+                    op = dist - op;             /* distance back in window */
+                    if (op > whave) {
                         strm->msg = (char *)"invalid distance too far back";
                         state->mode = BAD;
                         break;
                     }
                     from = window - OFF;
-                    op = dist - op;             /* distance back in window */
                     if (write == 0) {           /* very common case */
                         from += wsize - op;
                         if (op < len) {         /* some from window */
@@ -296,3 +300,5 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
    - Larger unrolled copy loops (three is about right)
    - Moving len -= 3 statement into middle of loop
  */
+
+#endif /* !ASMINF */

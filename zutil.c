@@ -1,6 +1,6 @@
 /* zutil.c -- target dependent utility functions for the compression library
  * Copyright (C) 1995-2003 Jean-loup Gailly.
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* @(#) $Id$ */
@@ -65,13 +65,19 @@ uLong ZEXPORT zlibCompileFlags()
 #ifdef DEBUG
     flags += 1 << 8;
 #endif
+#if defined(ASMV) || defined(ASMINF)
+    flags += 1 << 9;
+#endif
+#ifdef ZLIB_WINAPI
+    flags += 1 << 10;
+#endif
 #ifdef BUILDFIXED
     flags += 1 << 12;
 #endif
 #ifdef DYNAMIC_CRC_TABLE
     flags += 1 << 13;
 #endif
-#ifdef NO_DEFLATE
+#ifdef NO_GZCOMPRESS
     flags += 1 << 16;
 #endif
 #ifdef NO_GZIP
@@ -176,12 +182,12 @@ void zmemzero(dest, len)
 }
 #endif
 
+
+#ifdef SYS16BIT
+
 #ifdef __TURBOC__
-#if (defined( __BORLANDC__) || !defined(SMALL_MEDIUM)) && !defined(__32BIT__)
-#if !defined(__linux)
-/* Small and medium model in Turbo C are for now limited to near allocation
- * with reduced MAX_WBITS and MAX_MEM_LEVEL
- */
+/* Turbo C in 16-bit mode */
+
 #  define MY_ZCALLOC
 
 /* Turbo C malloc() does not allow dynamic allocation of 64K bytes
@@ -253,12 +259,11 @@ void  zcfree (voidpf opaque, voidpf ptr)
     ptr = opaque; /* just to make some compilers happy */
     Assert(0, "zcfree: ptr not found");
 }
-#endif
-#endif
+
 #endif /* __TURBOC__ */
 
 
-#if defined(M_I86) && !defined(__32BIT__)
+#ifdef M_I86
 /* Microsoft C in 16-bit mode */
 
 #  define MY_ZCALLOC
@@ -280,7 +285,9 @@ void  zcfree (voidpf opaque, voidpf ptr)
     _hfree(ptr);
 }
 
-#endif /* MSC */
+#endif /* M_I86 */
+
+#endif /* SYS16BIT */
 
 
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */

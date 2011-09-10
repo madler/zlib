@@ -17,7 +17,7 @@ Change in 0.15: (19 Mar 98)
 Change in 0.14: (10 Mar 98)
 - fix bugs in minizip.c sample for zipping big file
 - fix problem in month in date handling
-- fix bug in unzlocal_GetCurrentFileInfoInternal in unzip.c for 
+- fix bug in unzlocal_GetCurrentFileInfoInternal in unzip.c for
     comment handling
 
 Change in 0.13: (6 Mar 98)
@@ -45,7 +45,7 @@ Change in 0.10: (2 Mar 98)
 - add a new sample, miniunz.c
 
 Change in 0.4: (25 Feb 98)
-- suppress the type unzipFileInZip. 
+- suppress the type unzipFileInZip.
   Only on file in the zipfile can be open at the same time
 - fix somes typo in code
 - added tm_unz structure in unzip_file_info (date/time in readable format)

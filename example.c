@@ -38,8 +38,8 @@ uLong dictId; /* Adler32 value of the dictionary */
 
 void test_compress      OF((Byte *compr, uLong comprLen,
                             Byte *uncompr, uLong uncomprLen));
-void test_gzio          OF((const char *out, const char *in,
-                            Byte *uncompr, int uncomprLen));
+void test_gzio          OF((const char *fname,
+                            Byte *uncompr, uLong uncomprLen));
 void test_deflate       OF((Byte *compr, uLong comprLen));
 void test_inflate       OF((Byte *compr, uLong comprLen,
                             Byte *uncompr, uLong uncomprLen));
@@ -63,7 +63,7 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
     uLong comprLen, uncomprLen;
 {
     int err;
-    uLong len = strlen(hello)+1;
+    uLong len = (uLong)strlen(hello)+1;
 
     err = compress(compr, &comprLen, (const Bytef*)hello, len);
     CHECK_ERR(err, "compress");
@@ -84,18 +84,17 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
 /* ===========================================================================
  * Test read/write of .gz files
  */
-void test_gzio(out, in, uncompr, uncomprLen)
-    const char *out; /* compressed output file */
-    const char *in;  /* compressed input file */
+void test_gzio(fname, uncompr, uncomprLen)
+    const char *fname; /* compressed file name */
     Byte *uncompr;
-    int  uncomprLen;
+    uLong uncomprLen;
 {
     int err;
-    int len = strlen(hello)+1;
+    int len = (int)strlen(hello)+1;
     gzFile file;
     z_off_t pos;
 
-    file = gzopen(out, "wb");
+    file = gzopen(fname, "wb");
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
@@ -112,14 +111,14 @@ void test_gzio(out, in, uncompr, uncomprLen)
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
-    file = gzopen(in, "rb");
+    file = gzopen(fname, "rb");
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
+        exit(1);
     }
     strcpy((char*)uncompr, "garbage");
 
-    uncomprLen = gzread(file, uncompr, (unsigned)uncomprLen);
-    if (uncomprLen != len) {
+    if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
         exit(1);
     }
@@ -127,7 +126,7 @@ void test_gzio(out, in, uncompr, uncomprLen)
         fprintf(stderr, "bad gzread: %s\n", (char*)uncompr);
         exit(1);
     } else {
-        printf("gzread(): %s\n", (char *)uncompr);
+        printf("gzread(): %s\n", (char*)uncompr);
     }
 
     pos = gzseek(file, -8L, SEEK_CUR);
@@ -147,17 +146,16 @@ void test_gzio(out, in, uncompr, uncomprLen)
         exit(1);
     }
 
-    gzgets(file, (char*)uncompr, uncomprLen);
-    uncomprLen = strlen((char*)uncompr);
-    if (uncomprLen != 7) { /* " hello!" */
+    gzgets(file, (char*)uncompr, (int)uncomprLen);
+    if (strlen((char*)uncompr) != 7) { /* " hello!" */
         fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
         exit(1);
     }
-    if (strcmp((char*)uncompr, hello+6)) {
+    if (strcmp((char*)uncompr, hello + 6)) {
         fprintf(stderr, "bad gzgets after gzseek\n");
         exit(1);
     } else {
-        printf("gzgets() after gzseek: %s\n", (char *)uncompr);
+        printf("gzgets() after gzseek: %s\n", (char*)uncompr);
     }
 
     gzclose(file);
@@ -172,7 +170,7 @@ void test_deflate(compr, comprLen)
 {
     z_stream c_stream; /* compression stream */
     int err;
-    int len = strlen(hello)+1;
+    uLong len = (uLong)strlen(hello)+1;
 
     c_stream.zalloc = (alloc_func)0;
     c_stream.zfree = (free_func)0;
@@ -184,7 +182,7 @@ void test_deflate(compr, comprLen)
     c_stream.next_in  = (Bytef*)hello;
     c_stream.next_out = compr;
 
-    while (c_stream.total_in != (uLong)len && c_stream.total_out < comprLen) {
+    while (c_stream.total_in != len && c_stream.total_out < comprLen) {
         c_stream.avail_in = c_stream.avail_out = 1; /* force small buffers */
         err = deflate(&c_stream, Z_NO_FLUSH);
         CHECK_ERR(err, "deflate");
@@ -347,7 +345,7 @@ void test_flush(compr, comprLen)
 {
     z_stream c_stream; /* compression stream */
     int err;
-    int len = strlen(hello)+1;
+    uInt len = (uInt)strlen(hello)+1;
 
     c_stream.zalloc = (alloc_func)0;
     c_stream.zfree = (free_func)0;
@@ -543,8 +541,7 @@ int main(argc, argv)
     test_compress(compr, comprLen, uncompr, uncomprLen);
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
-              (argc > 2 ? argv[2] : TESTFILE),
-              uncompr, (int)uncomprLen);
+              uncompr, uncomprLen);
 
     test_deflate(compr, comprLen);
     test_inflate(compr, comprLen, uncompr, uncomprLen);

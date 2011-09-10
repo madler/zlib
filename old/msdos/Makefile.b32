@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Borland C++   
+# Borland C++
 
 # This version of the zlib makefile was adapted by Chris Young for use
 # with Borland C 4.5x with the Dos Power Pack for a 32-bit protected mode
@@ -13,7 +13,7 @@
 # See zconf.h for details about the memory requirements.
 
 # ------------- Borland C++ -------------
-MODEL=-WX 
+MODEL=-WX
 CFLAGS= $(MODEL) -P-C -K -N- -k- -d -3 -r- -v- -f -DMSDOS
 CC=bcc32
 LD=bcc32
@@ -97,7 +97,7 @@ minigzip.exe: minigzip.obj zlib.lib
 
 test: example.exe minigzip.exe
 	example
-	echo hello world | minigzip | minigzip -d 
+	echo hello world | minigzip | minigzip -d
 
 #clean:
 #	del *.obj

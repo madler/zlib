@@ -3,11 +3,11 @@
  *
  * inffast.c -- fast decoding
  * Copyright (C) 1995-2003 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Copyright (C) 2003 Chris Anderson <christop@charm.net>
  * Please use the copyright conditions above.
- * 
+ *
  * This version (Jan-23-2003) of inflate_fast was coded and tested under
  * GNU/Linux on a pentium 3, using the gcc-3.2 compiler distribution.  On that
  * machine, I found that gzip style archives decompressed about 20% faster than
@@ -61,7 +61,7 @@
  */
 #if ! defined( GAS_COFF ) && ! defined( GAS_ELF )
 
-#if defined( __CYGWIN__ )
+#if defined( WIN32 ) || defined( __CYGWIN__ )
 #define GAS_COFF /* windows object format */
 #else
 #define GAS_ELF
@@ -151,14 +151,14 @@
  */
 #define mode_state     0   /* state->mode */
 #define wsize_state    32  /* state->wsize */
-#define write_state    36  /* state->write */
-#define window_state   40  /* state->window */
-#define hold_state     44  /* state->hold */
-#define bits_state     48  /* state->bits */
-#define lencode_state  64  /* state->lencode */
-#define distcode_state 68  /* state->distcode */
-#define lenbits_state  72  /* state->lenbits */
-#define distbits_state 76  /* state->distbits */
+#define write_state    40  /* state->write */
+#define window_state   44  /* state->window */
+#define hold_state     48  /* state->hold */
+#define bits_state     52  /* state->bits */
+#define lencode_state  68  /* state->lencode */
+#define distcode_state 72  /* state->distcode */
+#define lenbits_state  76  /* state->lenbits */
+#define distbits_state 80  /* state->distbits */
 
 /*
  * inflate_fast's activation record
@@ -387,7 +387,7 @@ inflate_fast:
                                    * bios may load a cpuid instruction and
                                    * cpuid may be disabled on Cyrix 5-6x86 */
         popf
-        pushf   
+        pushf
         popl    %edx              /* copy new eflags to edx */
         xorl    %eax, %edx        /* test if ID bit is flipped */
         jz      .L_dont_use_mmx   /* not flipped if zero */
@@ -420,7 +420,7 @@ inflate_fast:
         popl    %eax
         jmp     .L_check_mmx
 #endif
-        
+
 
 /*** Non-MMX code ***/
 
@@ -443,7 +443,7 @@ inflate_fast:
 .L_do_loop:
         /* regs: %esi = in, %ebp = hold, %bl = bits, %edi = out
          *
-         * do { 
+         * do {
          *   if (bits < 15) {
          *     hold |= *((unsigned short *)in)++ << bits;
          *     bits += 16
@@ -900,7 +900,7 @@ inflate_fast:
 #define dmask_mm  %mm5
 #define tmp_mm    %mm6
 
-        movd    lmask(%esp), lmask_mm 
+        movd    lmask(%esp), lmask_mm
         movq    lmask_mm, lmask2_mm
         movd    dmask(%esp), dmask_mm
         movq    dmask_mm, dmask2_mm
@@ -1056,7 +1056,7 @@ inflate_fast:
         jmp     .L_while_test_mmx
 
 .align 16,0x90
-.L_test_for_second_level_length_mmx: 
+.L_test_for_second_level_length_mmx:
         testb   $64, %al
         jnz     .L_test_for_end_of_block  /* if ((op & 64) != 0) */
 

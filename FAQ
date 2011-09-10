@@ -2,7 +2,7 @@
                 Frequently Asked Questions about zlib
 
 
-If your question is not there, please check the zlib home page 
+If your question is not there, please check the zlib home page
 http://www.zlib.org which may have more recent information.
 The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
@@ -13,9 +13,10 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
 
  2. Where can I get a Windows DLL version?
 
-    The zlib sources can be compiled without change to produce a DLL. If you
-    want a precompiled DLL, see http://www.winimage.com/zLibDll/ . Questions
-    about the zlib DLL should be sent to Gilles Vollant (info@winimage.com).
+    The zlib sources can be compiled without change to produce a DLL.
+    See the file win32/DLL_FAQ.txt in the zlib distribution.
+    Pointers to the precompiled DLL are found in the zlib web site at
+    http://www.zlib.org.
 
  3. Where can I get a Visual Basic interface to zlib?
 
@@ -66,7 +67,7 @@ The lastest zlib FAQ is at http://www.gzip.org/zlib/zlib_faq.html
     If "make test" produces something like
 
        example.o(.text+0x154): undefined reference to `gzputc'
-      
+
     check that you don't have old files libz.* in /usr/lib, /usr/local/lib or
     /usr/X11R6/lib. Remove any old versions, then do "make install".
 

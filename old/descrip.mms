@@ -1,8 +1,8 @@
 # descrip.mms: MMS description file for building zlib on VMS
 # written by Martin P.J. Zinser <m.zinser@gsi.de>
 
-cc_defs = 
-c_deb = 
+cc_defs =
+c_deb =
 
 .ifdef __DECC__
 pref = /prefix=all
@@ -25,7 +25,7 @@ example.exe : example.obj libz.olb
 minigzip.exe : minigzip.obj libz.olb
               link minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib
 
-clean : 
+clean :
 	delete *.obj;*,libz.olb;*
 
 

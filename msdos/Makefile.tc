@@ -1,6 +1,6 @@
 # Makefile for zlib
 # Turbo C 2.01, Turbo C++ 1.01
-# Updated for zlib-1.2.x by Cosmin Truta, 15-Mar-2003.
+# Last updated: 15-Mar-2003
 
 # To use, do "make -fmakefile.tc"
 # To compile in small model, set below: MODEL=s
@@ -88,7 +88,7 @@ test: example.exe minigzip.exe
 
 clean:
 	-del *.obj
-	-del *.exe
 	-del *.lib
-	-del zlib_$(MODEL).bak
+	-del *.exe
+	-del zlib_*.bak
 	-del foo.gz

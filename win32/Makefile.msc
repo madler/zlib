@@ -1,47 +1,73 @@
-# Makefile for Win32 zlib.dll and the static library zlibstat.lib
-# -- Microsoft (Visual) C.
-# Author: Cosmin Truta, 11-Mar-2003
-#         Christian Spieler, 19-Mar-2003
+# Makefile for zlib -- Microsoft (Visual) C
 #
-# Usage: nmake -f win32/Makefile.msc
+# Authors:
+#   Cosmin Truta, 11-Mar-2003
+#   Christian Spieler, 19-Mar-2003
+#
+# Last updated:
+#   Cosmin Truta, 27-Aug-2003
+#
+# Usage:
+#   nmake -f win32/Makefile.msc            (standard build)
+#   nmake -f win32/Makefile.msc LOC=-DFOO  (nonstandard build)
+#   nmake -f win32/Makefile.msc LOC=-DASMV OBJA=match.obj  (use ASM code)
+
+
+# optional build flags
+LOC =
+
+
+# variables
+STATICLIB = zlib.lib
+SHAREDLIB = zlib1.dll
+IMPLIB    = zdll.lib
 
 CC = cl
-LD = cl
+AS = ml
+LD = link
+AR = lib
 RC = rc
-CFLAGS = -nologo -MD -O2
-LDFLAGS = -nologo
+CFLAGS  = -nologo -MD -O2 $(LOC)
+ASFLAGS = -coff
+LDFLAGS = -nologo -release
+ARFLAGS = -nologo
+RCFLAGS = /dWIN32 /r
 
 OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj \
        inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
+OBJA =
+
 
 # targets
-all: zlib.dll zlibstat.lib example.exe minigzip.exe exampl_s.exe minigz_s.exe
+all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) \
+     example.exe minigzip.exe example_d.exe minigzip_d.exe
 
-zlibstat.lib: $(OBJS)
-	lib -out:$@ $(OBJS)
+$(STATICLIB): $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) -out:$@ $(OBJS) $(OBJA)
 
-zlib.dll: $(OBJS) zlib.res win32/zlib.def
-	link -release -def:win32/zlib.def -dll -out:$@ $(OBJS) zlib.res
+$(IMPLIB): $(SHAREDLIB)
 
-zlib.lib: zlib.dll
+$(SHAREDLIB): win32/zlib.def $(OBJS) $(OBJA) zlib1.res
+	$(LD) $(LDFLAGS) -def:win32/zlib.def -dll -implib:$(IMPLIB) \
+	  -out:$@ $(OBJS) $(OBJA) zlib1.res
 
-example.exe: example.obj zlib.lib
-	$(LD) $(LDFLAGS) example.obj zlib.lib
+example.exe: example.obj $(STATICLIB)
+	$(LD) $(LDFLAGS) example.obj $(STATICLIB)
 
-minigzip.exe: minigzip.obj zlib.lib
-	$(LD) $(LDFLAGS) minigzip.obj zlib.lib
+minigzip.exe: minigzip.obj $(STATICLIB)
+	$(LD) $(LDFLAGS) minigzip.obj $(STATICLIB)
 
-exampl_s.exe: example.obj zlibstat.lib
-	$(LD) $(LDFLAGS) -o $@ example.obj zlibstat.lib
+example_d.exe: example.obj $(IMPLIB)
+	$(LD) $(LDFLAGS) -out:$@ example.obj $(IMPLIB)
 
-minigz_s.exe: minigzip.obj zlibstat.lib
-	$(LD) $(LDFLAGS) -o $@ minigzip.obj zlibstat.lib
+minigzip_d.exe: minigzip.obj $(IMPLIB)
+	$(LD) $(LDFLAGS) -out:$@ minigzip.obj $(IMPLIB)
 
 .c.obj:
 	$(CC) -c $(CFLAGS) $<
 
-zlib.res: win32/zlib.rc
-	$(RC) /l 0x409 /fo$@ /d WIN32 win32/zlib.rc
+.asm.obj:
+	$(AS) -c $(ASFLAGS) $<
 
 adler32.obj: adler32.c zlib.h zconf.h
 
@@ -74,19 +100,27 @@ example.obj: example.c zlib.h zconf.h
 
 minigzip.obj: minigzip.c zlib.h zconf.h
 
+zlib1.res: win32/zlib1.rc
+	$(RC) $(RCFLAGS) /fo$@ win32/zlib1.rc
+
+
 # testing
 test: example.exe minigzip.exe
 	example
-	echo hello world | minigzip | minigzip -d 
+	echo hello world | minigzip | minigzip -d
 
-teststat: exampl_s.exe minigz_s.exe
-	exampl_s
-	echo hello world | minigz_s | minigz_s -d 
+testdll: example_d.exe minigzip_d.exe
+	example_d
+	echo hello world | minigzip_d | minigzip_d -d
+
 
 # cleanup
 clean:
-	del *.obj
-	del *.dll
-	del *.lib
-	del *.exp
-	del *.exe
+	-del $(STATICLIB)
+	-del $(SHAREDLIB)
+	-del $(IMPLIB)
+	-del *.obj
+	-del *.res
+	-del *.exp
+	-del *.exe
+	-del foo.gz

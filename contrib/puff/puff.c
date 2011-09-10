@@ -805,7 +805,7 @@ local unsigned char *yank(char *name, unsigned long *len)
         buf = NULL;
     }
     fclose(in);
-    *len = size;    
+    *len = size;
     return buf;
 }
 

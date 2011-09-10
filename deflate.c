@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.0.4 Copyright 1995-2003 Jean-loup Gailly ";
+   " deflate 1.2.0.5 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -188,7 +188,7 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 #else
 #define INSERT_STRING(s, str, match_head) \
    (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
-    s->prev[(str) & s->w_mask] = match_head = s->head[s->ins_h], \
+    match_head = s->prev[(str) & s->w_mask] = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #endif
 
@@ -240,11 +240,11 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     if (strm == Z_NULL) return Z_STREAM_ERROR;
 
     strm->msg = Z_NULL;
-    if (strm->zalloc == Z_NULL) {
+    if (strm->zalloc == (alloc_func)0) {
         strm->zalloc = zcalloc;
         strm->opaque = (voidpf)0;
     }
-    if (strm->zfree == Z_NULL) strm->zfree = zcfree;
+    if (strm->zfree == (free_func)0) strm->zfree = zcfree;
 
 #ifdef FASTEST
     if (level != 0) level = 1;
@@ -258,7 +258,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     }
 #ifdef GZIP
     else if (windowBits > 15) {
-        wrap = 2;	/* write gzip wrapper instead */
+        wrap = 2;       /* write gzip wrapper instead */
         windowBits -= 16;
     }
 #endif
@@ -361,7 +361,9 @@ int ZEXPORT deflateReset (strm)
     deflate_state *s;
 
     if (strm == Z_NULL || strm->state == Z_NULL ||
-        strm->zalloc == Z_NULL || strm->zfree == Z_NULL) return Z_STREAM_ERROR;
+        strm->zalloc == (alloc_func)0 || strm->zfree == (free_func)0) {
+        return Z_STREAM_ERROR;
+    }
 
     strm->total_in = strm->total_out = 0;
     strm->msg = Z_NULL; /* use zfree if we ever allocate msg dynamically */
@@ -554,7 +556,7 @@ int ZEXPORT deflate (strm, flush)
         {
             uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
             uInt level_flags;
-    
+
             if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
                 level_flags = 0;
             else if (s->level < 6)
@@ -566,10 +568,10 @@ int ZEXPORT deflate (strm, flush)
             header |= (level_flags << 6);
             if (s->strstart != 0) header |= PRESET_DICT;
             header += 31 - (header % 31);
-    
+
             s->status = BUSY_STATE;
             putShortMSB(s, header);
-    
+
             /* Save the adler32 of the preset dictionary: */
             if (s->strstart != 0) {
                 putShortMSB(s, (uInt)(strm->adler >> 16));
@@ -1092,7 +1094,7 @@ local void fill_window(s)
         if (sizeof(int) <= 2) {
             if (more == 0 && s->strstart == 0 && s->lookahead == 0) {
                 more = wsize;
-    
+
             } else if (more == (unsigned)(-1)) {
                 /* Very unlikely, but possible on 16 bit machine if
                  * strstart == 0 && lookahead == 1 (input done a byte at time)
@@ -1412,7 +1414,7 @@ local block_state deflate_slow(s, flush)
             /* longest_match() or longest_match_fast() sets match_start */
 
             if (s->match_length <= 5 && (s->strategy == Z_FILTERED
-#if TOO_FAR < 32768
+#if TOO_FAR <= 32767
                 || (s->match_length == MIN_MATCH &&
                     s->strstart - s->match_start > TOO_FAR)
 #endif

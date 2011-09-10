@@ -28,6 +28,7 @@ prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
 includedir=${includedir-'${prefix}/include'}
+mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
 shared=0
 gcc=0
@@ -78,8 +79,9 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
-  QNX*)  #This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4 (alain.bonnefoy@icbt.com)
-  			LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"};;
+  QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
+         # (alain.bonnefoy@icbt.com)
+                 LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"};;
   HP-UX*)        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl';;
@@ -90,54 +92,54 @@ else
   CC=${CC-cc}
   case `(uname -sr || echo unknown) 2>/dev/null` in
   HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
-	     CFLAGS=${CFLAGS-"-O"}
-#	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
-	     LDSHARED=${LDSHARED-"ld -b"}
-	     shared_ext='.sl'
-	     SHAREDLIB='libz.sl';;
+             CFLAGS=${CFLAGS-"-O"}
+#            LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
+             LDSHARED=${LDSHARED-"ld -b"}
+             shared_ext='.sl'
+             SHAREDLIB='libz.sl';;
   IRIX*)     SFLAGS=${CFLAGS-"-ansi -O2 -rpath ."}
-	     CFLAGS=${CFLAGS-"-ansi -O2"}
-	     LDSHARED=${LDSHARED-"cc -shared"};;
+             CFLAGS=${CFLAGS-"-ansi -O2"}
+             LDSHARED=${LDSHARED-"cc -shared"};;
   OSF1\ V4*) SFLAGS=${CFLAGS-"-O -std1"}
-	     CFLAGS=${CFLAGS-"-O -std1"}
-	     LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,$SHAREDLIB -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"};;
+             CFLAGS=${CFLAGS-"-O -std1"}
+             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,$SHAREDLIB -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"};;
   OSF1*)     SFLAGS=${CFLAGS-"-O -std1"}
-	     CFLAGS=${CFLAGS-"-O -std1"}
-	     LDSHARED=${LDSHARED-"cc -shared"};;
+             CFLAGS=${CFLAGS-"-O -std1"}
+             LDSHARED=${LDSHARED-"cc -shared"};;
   QNX*)      SFLAGS=${CFLAGS-"-4 -O"}
              CFLAGS=${CFLAGS-"-4 -O"}
-	     LDSHARED=${LDSHARED-"cc"}
+             LDSHARED=${LDSHARED-"cc"}
              RANLIB=${RANLIB-"true"}
              AR="cc -A";;
   SCO_SV\ 3.2*) SFLAGS=${CFLAGS-"-O3 -dy -KPIC "}
-	     CFLAGS=${CFLAGS-"-O3"}
-	     LDSHARED=${LDSHARED-"cc -dy -KPIC -G"};;
+             CFLAGS=${CFLAGS-"-O3"}
+             LDSHARED=${LDSHARED-"cc -dy -KPIC -G"};;
   SunOS\ 5*) SFLAGS=${CFLAGS-"-fast -xcg89 -KPIC -R."}
              CFLAGS=${CFLAGS-"-fast -xcg89"}
-	     LDSHARED=${LDSHARED-"cc -G"};;
+             LDSHARED=${LDSHARED-"cc -G"};;
   SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
-	     CFLAGS=${CFLAGS-"-O2"}
-	     LDSHARED=${LDSHARED-"ld"};;
-  UNIX_System_V\ 4.2.0) 
-	     SFLAGS=${CFLAGS-"-KPIC -O"}
-	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"cc -G"};;
+             CFLAGS=${CFLAGS-"-O2"}
+             LDSHARED=${LDSHARED-"ld"};;
+  UNIX_System_V\ 4.2.0)
+             SFLAGS=${CFLAGS-"-KPIC -O"}
+             CFLAGS=${CFLAGS-"-O"}
+             LDSHARED=${LDSHARED-"cc -G"};;
   UNIX_SV\ 4.2MP)
-	     SFLAGS=${CFLAGS-"-Kconform_pic -O"}
-	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"cc -G"};;
-  OpenUNIX\ 5) 
-	     SFLAGS=${CFLAGS-"-KPIC -O"}
-	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"cc -G"};;
+             SFLAGS=${CFLAGS-"-Kconform_pic -O"}
+             CFLAGS=${CFLAGS-"-O"}
+             LDSHARED=${LDSHARED-"cc -G"};;
+  OpenUNIX\ 5)
+             SFLAGS=${CFLAGS-"-KPIC -O"}
+             CFLAGS=${CFLAGS-"-O"}
+             LDSHARED=${LDSHARED-"cc -G"};;
   AIX*)  # Courtesy of dbakker@arrayasolutions.com
-	     SFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
-	     CFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
-	     LDSHARED=${LDSHARED-"xlc -G"};;
+             SFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
+             CFLAGS=${CFLAGS-"-O -qmaxmem=8192"}
+             LDSHARED=${LDSHARED-"xlc -G"};;
   # send working options for other systems to support@gzip.org
   *)         SFLAGS=${CFLAGS-"-O"}
-	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"cc -shared"};;
+             CFLAGS=${CFLAGS-"-O"}
+             LDSHARED=${LDSHARED-"cc -shared"};;
   esac
 fi
 
@@ -150,10 +152,10 @@ if test $shared -eq 1; then
     LIBS="$SHAREDLIB.$VER"
     echo Building shared library $SHAREDLIB.$VER with $CC.
   elif test -z "$old_cc" -a -z "$old_cflags"; then
-    echo No shared library suppport.
+    echo No shared library support.
     shared=0;
   else
-    echo 'No shared library suppport; try without defining CC and CFLAGS'
+    echo 'No shared library support; try without defining CC and CFLAGS'
     shared=0;
   fi
 fi
@@ -182,7 +184,7 @@ cat > $test.c <<EOF
 #  define STDC
 #endif
 
-int main() 
+int main()
 {
 #ifndef STDC
   choke me
@@ -215,7 +217,7 @@ int main()
   return (mytest("Hello%d\n", 1));
 }
 EOF
-  
+
   if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
     echo "Checking for vsnprintf() in stdio.h... Yes."
 
@@ -273,7 +275,7 @@ int mytest(char *fmt, ...)
   return 0;
 }
 
-int main() 
+int main()
 {
   return (mytest("Hello%d\n", 1));
 }
@@ -296,7 +298,7 @@ else
 #include <stdio.h>
 #include <stdarg.h>
 
-int mytest() 
+int mytest()
 {
   char buf[20];
 
@@ -304,7 +306,7 @@ int mytest()
   return 0;
 }
 
-int main() 
+int main()
 {
   return (mytest());
 }
@@ -326,7 +328,7 @@ int mytest(char *fmt, ...)
   return 0;
 }
 
-int main() 
+int main()
 {
   return (mytest());
 }
@@ -352,7 +354,7 @@ EOF
 #include <stdio.h>
 #include <stdarg.h>
 
-int mytest(char *fmt, ...) 
+int mytest(char *fmt, ...)
 {
   int i;
   char buf[20];
@@ -361,7 +363,7 @@ int mytest(char *fmt, ...)
   return 0;
 }
 
-int main() 
+int main()
 {
   return (mytest());
 }
@@ -384,9 +386,9 @@ cat >$test.c <<EOF
 int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  echo "Checking for errno.h...	 Yes."
+  echo "Checking for errno.h... Yes."
 else
-  echo "Checking for errno.h...	 No."
+  echo "Checking for errno.h... No."
   CFLAGS="$CFLAGS -DNO_ERRNO_H"
 fi
 
@@ -395,7 +397,7 @@ cat > $test.c <<EOF
 #include <sys/mman.h>
 #include <sys/stat.h>
 caddr_t hello() {
-  return mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0); 
+  return mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0);
 }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
@@ -433,5 +435,6 @@ sed < Makefile.in "
 /^exec_prefix *=/s%=.*%=$exec_prefix%
 /^libdir *=/s%=.*%=$libdir%
 /^includedir *=/s%=.*%=$includedir%
+/^mandir *=/s%=.*%=$mandir%
 /^LDFLAGS *=/s%=.*%=$LDFLAGS%
 " > Makefile

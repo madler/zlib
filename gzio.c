@@ -2,7 +2,7 @@
  * Copyright (C) 1995-2003 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
- * Compile this file with -DNO_DEFLATE to avoid the compression code.
+ * Compile this file with -DNO_GZCOMPRESS to avoid the compression code.
  */
 
 /* @(#) $Id$ */
@@ -10,6 +10,10 @@
 #include <stdio.h>
 
 #include "zutil.h"
+
+#ifdef NO_DEFLATE       /* for compatiblity with old definition */
+#  define NO_GZCOMPRESS
+#endif
 
 #ifndef NO_DUMMY_DECL
 struct internal_state {int dummy;}; /* for buggy compilers */
@@ -56,7 +60,9 @@ typedef struct gz_stream {
     char     *path;   /* path name for debugging only */
     int      transparent; /* 1 if input file is not a .gz file */
     char     mode;    /* 'w' or 'r' */
-    long     startpos; /* start of compressed data in file (header skipped) */
+    z_off_t  start;   /* start of compressed data in file (header skipped) */
+    z_off_t  in;      /* bytes into deflate or inflate */
+    z_off_t  out;     /* bytes out of deflate or inflate */
     int      back;    /* one character push-back */
     int      last;    /* true if push-back is last character */
 } gz_stream;
@@ -74,7 +80,7 @@ local uLong  getLong      OF((gz_stream *s));
      Opens a gzip (.gz) file for reading or writing. The mode parameter
    is as in fopen ("rb" or "wb"). The file is given either by file descriptor
    or path name (if fd == -1).
-     gz_open return NULL if the file could not be opened or if there was
+     gz_open returns NULL if the file could not be opened or if there was
    insufficient memory to allocate the (de)compression state; errno
    can be checked to distinguish the two cases (if errno is zero, the
    zlib error is Z_MEM_ERROR).
@@ -106,6 +112,8 @@ local gzFile gz_open (path, mode, fd)
     s->file = NULL;
     s->z_err = Z_OK;
     s->z_eof = 0;
+    s->in = 0;
+    s->out = 0;
     s->back = EOF;
     s->crc = crc32(0L, Z_NULL, 0);
     s->msg = NULL;
@@ -136,7 +144,7 @@ local gzFile gz_open (path, mode, fd)
     if (s->mode == '\0') return destroy(s), (gzFile)Z_NULL;
 
     if (s->mode == 'w') {
-#ifdef NO_DEFLATE
+#ifdef NO_GZCOMPRESS
         err = Z_STREAM_ERROR;
 #else
         err = deflateInit2(&(s->stream), level,
@@ -175,15 +183,15 @@ local gzFile gz_open (path, mode, fd)
          */
         fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", gz_magic[0], gz_magic[1],
              Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
-        s->startpos = 10L;
+        s->start = 10L;
         /* We use 10L instead of ftell(s->file) to because ftell causes an
          * fflush on some systems. This version of the library doesn't use
-         * startpos anyway in write mode, so this initialization is not
+         * start anyway in write mode, so this initialization is not
          * necessary.
          */
     } else {
         check_header(s); /* skip the .gz header */
-        s->startpos = (ftell(s->file) - s->stream.avail_in);
+        s->start = ftell(s->file) - s->stream.avail_in;
     }
 
     return (gzFile)s;
@@ -350,7 +358,7 @@ local int destroy (s)
 
     if (s->stream.state != NULL) {
         if (s->mode == 'w') {
-#ifdef NO_DEFLATE
+#ifdef NO_GZCOMPRESS
             err = Z_STREAM_ERROR;
 #else
             err = deflateEnd(&(s->stream));
@@ -401,7 +409,7 @@ int ZEXPORT gzread (file, buf, len)
         s->stream.next_out++;
         s->stream.avail_out--;
         s->back = EOF;
-        s->stream.total_out++;
+        s->out++;
         if (s->last) {
             s->z_err = Z_STREAM_END;
             return 1;
@@ -427,8 +435,8 @@ int ZEXPORT gzread (file, buf, len)
                                              s->file);
             }
             len -= s->stream.avail_out;
-            s->stream.total_in  += (uLong)len;
-            s->stream.total_out += (uLong)len;
+            s->in  += len;
+            s->out += len;
             if (len == 0) s->z_eof = 1;
             return (int)len;
         }
@@ -445,7 +453,11 @@ int ZEXPORT gzread (file, buf, len)
             }
             s->stream.next_in = s->inbuf;
         }
+        s->in += s->stream.avail_in;
+        s->out += s->stream.avail_out;
         s->z_err = inflate(&(s->stream), Z_NO_FLUSH);
+        s->in -= s->stream.avail_in;
+        s->out -= s->stream.avail_out;
 
         if (s->z_err == Z_STREAM_END) {
             /* Check CRC and original size */
@@ -456,18 +468,13 @@ int ZEXPORT gzread (file, buf, len)
                 s->z_err = Z_DATA_ERROR;
             } else {
                 (void)getLong(s);
-                /* The uncompressed length returned by above getlong() may
-                 * be different from s->stream.total_out) in case of
-                 * concatenated .gz files. Check for such files:
+                /* The uncompressed length returned by above getlong() may be
+                 * different from s->out in case of concatenated .gz files.
+                 * Check for such files:
                  */
                 check_header(s);
                 if (s->z_err == Z_OK) {
-                    uLong total_in = s->stream.total_in;
-                    uLong total_out = s->stream.total_out;
-
                     inflateReset(&(s->stream));
-                    s->stream.total_in = total_in;
-                    s->stream.total_out = total_out;
                     s->crc = crc32(0L, Z_NULL, 0);
                 }
             }
@@ -504,7 +511,7 @@ int ZEXPORT gzungetc(c, file)
 
     if (s == NULL || s->mode != 'r' || c == EOF || s->back != EOF) return EOF;
     s->back = c;
-    s->stream.total_out--;
+    s->out--;
     s->last = (s->z_err == Z_STREAM_END);
     if (s->last) s->z_err = Z_OK;
     s->z_eof = 0;
@@ -535,7 +542,7 @@ char * ZEXPORT gzgets(file, buf, len)
 }
 
 
-#ifndef NO_DEFLATE
+#ifndef NO_GZCOMPRESS
 /* ===========================================================================
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of bytes actually written (0 in case of error).
@@ -563,7 +570,11 @@ int ZEXPORT gzwrite (file, buf, len)
             }
             s->stream.avail_out = Z_BUFSIZE;
         }
+        s->in += s->stream.avail_in;
+        s->out += s->stream.avail_out;
         s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
+        s->in -= s->stream.avail_in;
+        s->out -= s->stream.avail_out;
         if (s->z_err != Z_OK) break;
     }
     s->crc = crc32(s->crc, (const Bytef *)buf, len);
@@ -706,7 +717,9 @@ local int do_flush (file, flush)
             s->stream.avail_out = Z_BUFSIZE;
         }
         if (done) break;
+        s->out += s->stream.avail_out;
         s->z_err = deflate(&(s->stream), flush);
+        s->out -= s->stream.avail_out;
 
         /* Ignore the second of two consecutive flushes: */
         if (len == 0 && s->z_err == Z_BUF_ERROR) s->z_err = Z_OK;
@@ -732,7 +745,7 @@ int ZEXPORT gzflush (file, flush)
     fflush(s->file);
     return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
 }
-#endif /* NO_DEFLATE */
+#endif /* NO_GZCOMPRESS */
 
 /* ===========================================================================
       Sets the starting position for the next gzread or gzwrite on the given
@@ -755,11 +768,11 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
     }
 
     if (s->mode == 'w') {
-#ifdef NO_DEFLATE
+#ifdef NO_GZCOMPRESS
         return -1L;
 #else
         if (whence == SEEK_SET) {
-            offset -= s->stream.total_in;
+            offset -= s->in;
         }
         if (offset < 0) return -1L;
 
@@ -778,14 +791,14 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
 
             offset -= size;
         }
-        return (z_off_t)s->stream.total_in;
+        return s->in;
 #endif
     }
     /* Rest of function is for reading only */
 
     /* compute absolute position */
     if (whence == SEEK_CUR) {
-        offset += s->stream.total_out;
+        offset += s->out;
     }
     if (offset < 0) return -1L;
 
@@ -796,13 +809,13 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
         s->stream.next_in = s->inbuf;
         if (fseek(s->file, offset, SEEK_SET) < 0) return -1L;
 
-        s->stream.total_in = s->stream.total_out = (uLong)offset;
+        s->in = s->out = offset;
         return offset;
     }
 
     /* For a negative seek, rewind and use positive seek */
-    if ((uLong)offset >= s->stream.total_out) {
-        offset -= s->stream.total_out;
+    if (offset >= s->out) {
+        offset -= s->out;
     } else if (gzrewind(file) < 0) {
         return -1L;
     }
@@ -814,7 +827,7 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
     }
     if (offset && s->back != EOF) {
         s->back = EOF;
-        s->stream.total_out++;
+        s->out++;
         offset--;
         if (s->last) s->z_err = Z_STREAM_END;
     }
@@ -826,7 +839,7 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
         if (size <= 0) return -1L;
         offset -= size;
     }
-    return (z_off_t)s->stream.total_out;
+    return s->out;
 }
 
 /* ===========================================================================
@@ -845,14 +858,10 @@ int ZEXPORT gzrewind (file)
     s->stream.avail_in = 0;
     s->stream.next_in = s->inbuf;
     s->crc = crc32(0L, Z_NULL, 0);
-
-    if (s->startpos == 0) { /* not a compressed file */
-        fseek(s->file, 0L, SEEK_SET);   /* rewind() is not always available */
-        return 0;
-    }
-
-    (void) inflateReset(&s->stream);
-    return fseek(s->file, s->startpos, SEEK_SET);
+    if (!s->transparent) (void)inflateReset(&s->stream);
+    s->in = 0;
+    s->out = 0;
+    return fseek(s->file, s->start, SEEK_SET);
 }
 
 /* ===========================================================================
@@ -923,14 +932,14 @@ int ZEXPORT gzclose (file)
     if (s == NULL) return Z_STREAM_ERROR;
 
     if (s->mode == 'w') {
-#ifdef NO_DEFLATE
+#ifdef NO_GZCOMPRESS
         return Z_STREAM_ERROR;
 #else
         err = do_flush (file, Z_FINISH);
         if (err != Z_OK) return destroy((gz_stream*)file);
 
         putLong (s->file, s->crc);
-        putLong (s->file, s->stream.total_in);
+        putLong (s->file, (uLong)(s->in & 0xffffffff));
 #endif
     }
     return destroy((gz_stream*)file);

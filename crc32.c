@@ -5,8 +5,8 @@
  * Thanks to Rodney Brown <rbrown64@csc.com.au> for his contribution of faster
  * CRC methods: exclusive-oring 32 bits of data at a time, and pre-computing
  * tables for updating the shift register in one step with three exclusive-ors
- * instead of four steps with four exclusive-ors.  This results about a 50%
- * increase in speed on a Power PC using gcc -O3.
+ * instead of four steps with four exclusive-ors.  This results about a factor
+ * of two increase in speed on a Power PC G4 (PPC7455) using gcc -O3.
  */
 
 /* @(#) $Id$ */
@@ -18,7 +18,7 @@
 #  endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
-#include "zutil.h"	/* for STDC and FAR definitions */
+#include "zutil.h"      /* for STDC and FAR definitions */
 
 #define local static
 
@@ -203,7 +203,7 @@ unsigned long ZEXPORT crc32(crc, buf, len)
 #endif /* DYNAMIC_CRC_TABLE */
 
 #ifdef BYFOUR
-    {
+    if (sizeof(void *) == sizeof(ptrdiff_t)) {
         u4 endian;
 
         endian = 1;
@@ -212,7 +212,7 @@ unsigned long ZEXPORT crc32(crc, buf, len)
         else
             return crc32_big(crc, buf, len);
     }
-#else /* !BYFOUR */
+#endif /* BYFOUR */
     crc = crc ^ 0xffffffffUL;
     while (len >= 8) {
         DO8;
@@ -222,7 +222,6 @@ unsigned long ZEXPORT crc32(crc, buf, len)
         DO1;
     } while (--len);
     return crc ^ 0xffffffffUL;
-#endif /* BYFOUR */
 }
 
 #ifdef BYFOUR
@@ -244,7 +243,7 @@ local unsigned long crc32_little(crc, buf, len)
 
     c = (u4)crc;
     c = ~c;
-    while (len && ((size_t)buf & 3)) {
+    while (len && ((ptrdiff_t)buf & 3)) {
         c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
         len--;
     }
@@ -284,7 +283,7 @@ local unsigned long crc32_big(crc, buf, len)
 
     c = REV((u4)crc);
     c = ~c;
-    while (len && ((size_t)buf & 3)) {
+    while (len && ((ptrdiff_t)buf & 3)) {
         c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
         len--;
     }

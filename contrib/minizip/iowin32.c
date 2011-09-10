@@ -7,7 +7,6 @@
    Copyright (C) 1998-2003 Gilles Vollant
 */
 
-#include <windows.h>
 #include <stdlib.h>
 
 #include "zlib.h"
@@ -49,7 +48,7 @@ long ZCALLBACK win32_seek_file_func OF((
    uLong offset,
    int origin));
 
-long ZCALLBACK win32_close_file_func OF((
+int ZCALLBACK win32_close_file_func OF((
    voidpf opaque,
    voidpf stream));
 
@@ -225,11 +224,11 @@ long ZCALLBACK win32_seek_file_func (opaque, stream, offset, origin)
     return ret;
 }
 
-long ZCALLBACK win32_close_file_func (opaque, stream)
+int ZCALLBACK win32_close_file_func (opaque, stream)
    voidpf opaque;
    voidpf stream;
 {
-    long ret=-1;
+    int ret=-1;
 
     if (stream!=NULL)
     {

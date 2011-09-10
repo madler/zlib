@@ -1,6 +1,5 @@
 /* minigzip.c -- simulate gzip using the zlib compression library
  * Copyright (C) 1995-2002 Jean-loup Gailly.
- * Adapted for Z_RLE by Cosmin Truta, 2003.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -60,7 +59,7 @@
 #ifndef GZ_SUFFIX
 #  define GZ_SUFFIX ".gz"
 #endif
-#define SUFFIX_LEN ((int)sizeof(GZ_SUFFIX)-1)
+#define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
 
 #define BUFLEN      16384
 #define MAX_NAME_LEN 1024
@@ -230,7 +229,7 @@ void file_uncompress(file)
     char *infile, *outfile;
     FILE  *out;
     gzFile in;
-    int len = (int)strlen(file);
+    uInt len = (uInt)strlen(file);
 
     strcpy(buf, file);
 

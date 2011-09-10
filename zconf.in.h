@@ -51,42 +51,58 @@
 #  define voidp         z_voidp
 #endif
 
+#if defined(__MSDOS__) && !defined(MSDOS)
+#  define MSDOS
+#endif
+#if (defined(OS_2) || defined(__OS2__)) && !defined(OS2)
+#  define OS2
+#endif
+#if defined(_WINDOWS) && !defined(WINDOWS)
+#  define WINDOWS
+#endif
 #if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #  define WIN32
 #endif
-#if defined(__GNUC__) || defined(WIN32) || defined(__386__) || defined(i386)
-#  ifndef __32BIT__
-#    define __32BIT__
+#if (defined(MSDOS) || defined(OS2) || defined(WINDOWS)) && !defined(WIN32)
+#  if !defined(__GNUC__) && !defined(__FLAT__) && !defined(__386__)
+#    ifndef SYS16BIT
+#      define SYS16BIT
+#    endif
 #  endif
-#endif
-#if defined(__MSDOS__) && !defined(MSDOS)
-#  define MSDOS
 #endif
 
 /*
  * Compile with -DMAXSEG_64K if the alloc function cannot allocate more
  * than 64k bytes at a time (needed on systems with 16-bit int).
  */
-#if defined(MSDOS) && !defined(__32BIT__)
+#ifdef SYS16BIT
 #  define MAXSEG_64K
 #endif
 #ifdef MSDOS
 #  define UNALIGNED_OK
 #endif
 
-#if (defined(MSDOS) || defined(_WINDOWS) || defined(WIN32))  && !defined(STDC)
+#ifdef __STDC_VERSION__
+#  ifndef STDC
+#    define STDC
+#  endif
+#  if __STDC_VERSION__ >= 199901L
+#    ifndef STDC99
+#      define STDC99
+#    endif
+#  endif
+#endif
+#if !defined(STDC) && (defined(__STDC__) || defined(__cplusplus))
 #  define STDC
 #endif
-#if defined(__STDC__) || defined(__cplusplus) || defined(__OS2__)
-#  ifndef STDC
-#    define STDC
-#  endif
+#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__))
+#  define STDC
 #endif
-
-#if defined __HOS_AIX__
-#  ifndef STDC
-#    define STDC
-#  endif
+#if !defined(STDC) && (defined(MSDOS) || defined(WINDOWS) || defined(WIN32))
+#  define STDC
+#endif
+#if !defined(STDC) && (defined(OS2) || defined(__HOS_AIX__))
+#  define STDC
 #endif
 
 #ifndef STDC
@@ -96,7 +112,7 @@
 #endif
 
 /* Some Mac compilers merge all .h files incorrectly: */
-#if defined(__MWERKS__) || defined(applec) ||defined(THINK_C) ||defined(__SC__)
+#if defined(__MWERKS__)||defined(applec)||defined(THINK_C)||defined(__SC__)
 #  define NO_DUMMY_DECL
 #endif
 
@@ -147,58 +163,56 @@
  * to define NO_MEMCPY in zutil.h.  If you don't need the mixed model,
  * just define FAR to be empty.
  */
-#if (defined(M_I86SM) || defined(M_I86MM)) && !defined(__32BIT__)
-   /* MSC small or medium model */
-#  define SMALL_MEDIUM
-#  ifdef _MSC_VER
-#    define FAR _far
-#  else
-#    define FAR far
-#  endif
-#endif
-#if defined(__BORLANDC__) && (defined(__SMALL__) || defined(__MEDIUM__))
-#  ifndef __32BIT__
+#ifdef SYS16BIT
+#  if defined(M_I86SM) || defined(M_I86MM)
+     /* MSC small or medium model */
 #    define SMALL_MEDIUM
-#    define FAR _far
+#    ifdef _MSC_VER
+#      define FAR _far
+#    else
+#      define FAR far
+#    endif
+#  endif
+#  if (defined(__SMALL__) || defined(__MEDIUM__))
+     /* Turbo C small or medium model */
+#    define SMALL_MEDIUM
+#    ifdef __BORLANDC__
+#      define FAR _far
+#    else
+#      define FAR far
+#    endif
 #  endif
 #endif
 
-/* If building or using a Windows DLL, compile with -DZLIB_DLL.
- * The calls to ZEXTERN functions will be more efficient this way.
- */
-#if defined(_WINDOWS) || defined(WINDOWS) || defined(WIN32)
-#  ifdef FAR
-#    undef FAR
-#  endif
-   /* For zlib, the basic Win32 API declarations are sufficient.  Whenever
-    * a program that uses zlib requires the full Win32 API set, it has
-    * to include <windows.h> prior to "zlib.h".
+#if defined(WINDOWS) || defined(WIN32)
+   /* If building or using zlib as a DLL, define ZLIB_DLL.
+    * This is not mandatory, but it offers a little performance increase.
     */
-#  if defined(WIN32) && (!defined(WIN32_LEAN_AND_MEAN))
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  include <windows.h>
-#  if !defined(WIN32) || (defined(__BORLANDC__) && (__BORLANDC__ < 0x500))
-#    if defined(ZLIB_DLL) && defined(ZLIB_INTERNAL)
-#      define ZEXPORT   WINAPI _export
-#      define ZEXPORTVA FAR _cdecl _export
-#    else
-#      define ZEXPORT   FAR _cdecl
-#      define ZEXPORTVA FAR _cdecl
-#    endif
-#  else
-     /* a fully Win32-compliant compiler */
-#    define ZEXPORTVA CDECL
-#    ifdef ZLIB_DLL
-#      define ZEXPORT WINAPI
+#  ifdef ZLIB_DLL
+#    if defined(WIN32) && (!defined(__BORLANDC__) || (__BORLANDC__ >= 0x500))
 #      ifdef ZLIB_INTERNAL
 #        define ZEXTERN extern __declspec(dllexport)
 #      else
 #        define ZEXTERN extern __declspec(dllimport)
 #      endif
+#    endif
+#  endif  /* ZLIB_DLL */
+   /* If building or using zlib with the WINAPI/WINAPIV calling convention,
+    * define ZLIB_WINAPI.
+    * Caution: the standard ZLIB1.DLL is NOT compiled using ZLIB_WINAPI.
+    */
+#  ifdef ZLIB_WINAPI
+#    ifdef FAR
+#      undef FAR
+#    endif
+#    include <windows.h>
+     /* No need for _export, use ZLIB.DEF instead. */
+     /* For complete Windows compatibility, use WINAPI, not __stdcall. */
+#    define ZEXPORT WINAPI
+#    ifdef WIN32
+#      define ZEXPORTVA WINAPIV
 #    else
-#      define ZEXPORT CDECL
-#      define ZEXTERN extern
+#      define ZEXPORTVA FAR CDECL
 #    endif
 #  endif
 #endif
@@ -215,14 +229,14 @@
 #  endif
 #endif
 
+#ifndef ZEXTERN
+#  define ZEXTERN extern
+#endif
 #ifndef ZEXPORT
 #  define ZEXPORT
 #endif
 #ifndef ZEXPORTVA
 #  define ZEXPORTVA
-#endif
-#ifndef ZEXTERN
-#  define ZEXTERN extern
 #endif
 
 #ifndef FAR
@@ -248,12 +262,12 @@ typedef uLong FAR uLongf;
 
 #ifdef STDC
    typedef void const *voidpc;
-   typedef void FAR *voidpf;
-   typedef void     *voidp;
+   typedef void FAR   *voidpf;
+   typedef void       *voidp;
 #else
    typedef Byte const *voidpc;
-   typedef Byte FAR *voidpf;
-   typedef Byte     *voidp;
+   typedef Byte FAR   *voidpf;
+   typedef Byte       *voidp;
 #endif
 
 #if 0           /* HAVE_UNISTD_H -- this line is updated by ./configure */

@@ -13,5 +13,5 @@ Possible upgrades to gzfilebuf:
 - Check public interface to see which calls give problems
   (due to dependence on library internals)
 
-- Override operator<<(ostream&, gzfilebuf*) to allow direct copying 
+- Override operator<<(ostream&, gzfilebuf*) to allow direct copying
   of stream buffer to stream ( i.e. os << is.rdbuf(); )

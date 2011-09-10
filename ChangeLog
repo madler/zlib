@@ -1,5 +1,72 @@
 
                 ChangeLog file for zlib
+
+Changes in 1.2.0.5 (8 September 2003)
+- Add infback9 diffs to contrib
+- Add OF to inflateBackEnd() declaration in zlib.h
+- Remember start when using gzdopen in the middle of a file
+- Use internal off_t counters in gz* functions to properly handle seeks
+- Perform more rigorous check for distance-too-far in inffast.c
+- Add Z_BLOCK flush option to return from inflate at block boundary
+- Set strm->data_type on return from inflate
+    - Indicate bits unused, if at block boundary, and if in last block
+- Replace size_t with ptrdiff_t in crc32.c, and check for correct size
+- Add condition so old NO_DEFLATE define still works for compatibility
+- FAQ update regarding the Windows DLL [Truta]
+- INDEX update: add qnx entry, remove aix entry [Truta]
+- Install zlib.3 into mandir [Wilson]
+- Move contrib/zlib_dll_FAQ.txt to win32/DLL_FAQ.txt; update [Truta]
+- Adapt the zlib interface to the new DLL convention guidelines [Truta]
+- Introduce ZLIB_WINAPI macro to allow the export of functions using
+  the WINAPI calling convention, for Visual Basic [Vollant, Truta]
+- Update msdos and win32 scripts and makefiles [Truta]
+- Export symbols by name, not by ordinal, in win32/zlib.def [Truta]
+- Add contrib/ada [Anisimkov]
+- Move asm files from contrib/vstudio/vc70_32 to contrib/asm386 [Truta]
+- Rename contrib/asm386 to contrib/masmx86 [Truta, Vollant]
+- Add contrib/masm686 [Truta]
+- Fix offsets in contrib/inflate86 and contrib/masmx86/inffas32.asm
+  [Truta, Vollant]
+- Update contrib/delphi; rename to contrib/pascal; add example [Truta]
+- Remove contrib/delphi2; add a new contrib/delphi [Truta]
+- Avoid inclusion of the nonstandard <memory.h> in contrib/iostream,
+  and fix some method prototypes [Truta]
+- Fix the ZCR_SEED2 constant to avoid warnings in contrib/minizip
+  [Truta]
+- Avoid the use of backslash (\) in contrib/minizip [Vollant]
+- Fix file time handling in contrib/untgz; update makefiles [Truta]
+- Update contrib/vstudio/vc70_32 to comply with the new DLL guidelines
+  [Vollant]
+- Remove contrib/vstudio/vc15_16 [Vollant]
+- Rename contrib/vstudio/vc70_32 to contrib/vstudio/vc7 [Truta]
+- Update README.contrib [Truta]
+- Invert the assignment order of match_head and s->prev[...] in
+  INSERT_STRING [Truta]
+- Compare TOO_FAR with 32767 instead of 32768, to avoid 16-bit warnings
+  [Truta]
+- Compare function pointers with 0, not with NULL or Z_NULL [Truta]
+- Fix prototype of syncsearch in inflate.c [Truta]
+- Introduce ASMINF macro to be enabled when using an ASM implementation
+  of inflate_fast [Truta]
+- Change NO_DEFLATE to NO_GZCOMPRESS [Truta]
+- Modify test_gzio in example.c to take a single file name as a
+  parameter [Truta]
+- Exit the example.c program if gzopen fails [Truta]
+- Add type casts around strlen in example.c [Truta]
+- Remove casting to sizeof in minigzip.c; give a proper type
+  to the variable compared with SUFFIX_LEN [Truta]
+- Update definitions of STDC and STDC99 in zconf.h [Truta]
+- Synchronize zconf.h with the new Windows DLL interface [Truta]
+- Use SYS16BIT instead of __32BIT__ to distinguish between
+  16- and 32-bit platforms [Truta]
+- Use far memory allocators in small 16-bit memory models for
+  Turbo C [Truta]
+- Add info about the use of ASMV, ASMINF and ZLIB_WINAPI in
+  zlibCompileFlags [Truta]
+- Cygwin has vsnprintf [Wilson]
+- In Windows16, OS_CODE is 0, as in MSDOS [Truta]
+- In Cygwin, OS_CODE is 3 (Unix), not 11 (Windows32) [Wilson]
+
 Changes in 1.2.0.4 (10 August 2003)
 - Minor FAQ updates
 - Be more strict when checking inflateInit2's windowBits parameter
@@ -369,7 +436,7 @@ Changes in 1.0.5 (3 Jan 98)
 - Eliminate memory leaks on error conditions in inflate
 - Removed some vestigial code in inflate
 - Update web address in README
-  
+
 Changes in 1.0.4 (24 Jul 96)
 - In very rare conditions, deflate(s, Z_FINISH) could fail to produce an EOF
   bit, so the decompressor could decompress all the correct data but went

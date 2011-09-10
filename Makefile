@@ -1,11 +1,15 @@
 # Makefile for zlib
 # Copyright (C) 1995-2003 Jean-loup Gailly.
-# For conditions of distribution and use, see copyright notice in zlib.h 
+# For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
-#   ./configure; make test
+#    ./configure; make test
 # The call of configure is optional if you don't have special requirements
 # If you wish to build zlib as a shared library, use: ./configure -s
+
+# To use the asm code, type:
+#    cp contrib/asm?86/match.S ./match.S
+#    make LOC=-DASMV OBJA=match.o
 
 # To install /usr/local/lib/libz.* and /usr/local/include/zlib.h, type:
 #    make install
@@ -24,7 +28,7 @@ LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.2.0.4
+VER=1.2.0.5
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -37,6 +41,8 @@ prefix = /usr/local
 exec_prefix = ${prefix}
 libdir = ${exec_prefix}/lib
 includedir = ${prefix}/include
+mandir = ${prefix}/share/man
+man3dir = ${mandir}/man3
 
 OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infback.o inftrees.o inffast.o
@@ -46,7 +52,7 @@ OBJA =
 
 TEST_OBJS = example.o minigzip.o
 
-# Note: this hasn't been updated for zlib 1.2.0
+# Note: this has not been updated for zlib 1.2.0
 DISTFILES = README FAQ INDEX ChangeLog configure Make*[a-z0-9] *.[ch] *.mms \
   algorithm.txt zlib.3 zlib.html \
   msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
@@ -97,7 +103,8 @@ minigzip: minigzip.o $(LIBS)
 install: $(LIBS)
 	-@if [ ! -d $(exec_prefix) ]; then mkdir $(exec_prefix); fi
 	-@if [ ! -d $(includedir)  ]; then mkdir $(includedir); fi
-	-@if [ ! -d $(libdir) ]; then mkdir $(libdir); fi
+	-@if [ ! -d $(libdir)      ]; then mkdir $(libdir); fi
+	-@if [ ! -d $(man3dir)     ]; then mkdir $(man3dir); fi
 	cp zlib.h zconf.h $(includedir)
 	chmod 644 $(includedir)/zlib.h $(includedir)/zconf.h
 	cp $(LIBS) $(libdir)
@@ -109,6 +116,8 @@ install: $(LIBS)
 	  ln -s $(SHAREDLIB).$(VER) $(SHAREDLIB).1; \
 	  (ldconfig || true)  >/dev/null 2>&1; \
 	fi
+	cp zlib.3 $(man3dir)
+	chmod 644 $(man3dir)/zlib.3
 # The ranlib in install is needed on NeXTSTEP which checks file times
 # ldconfig is for Linux
 
@@ -123,6 +132,7 @@ uninstall:
 	if test -f $(SHAREDLIB).$$v; then \
 	  rm -f $(SHAREDLIB).$$v $(SHAREDLIB) $(SHAREDLIB).1; \
 	fi
+	cd $(man3dir); rm -f zlib.3
 
 mostlyclean: clean
 clean:
@@ -130,11 +140,13 @@ clean:
 	   _match.s maketree
 
 maintainer-clean: distclean
-distclean:	clean
+distclean: clean
 	cp -p Makefile.in Makefile
 	cp -p zconf.in.h zconf.h
+	rm -f .DS_Store
 
 zip:
+	echo Warning: this has not been updated for zlib 1.2.0 -- do not use
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
 	rm -f test.c ztest*.c contrib/minizip/test.zip
 	v=`sed -n -e 's/\.//g' -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
@@ -142,7 +154,7 @@ zip:
 	mv Makefile~ Makefile
 
 dist:
-	echo Warning: this hasn't been updated for zlib 1.2.0 -- don't use
+	echo Warning: this has not been updated for zlib 1.2.0 -- do not use
 	mv Makefile Makefile~; cp -p Makefile.in Makefile
 	rm -f test.c ztest*.c contrib/minizip/test.zip
 	d=zlib-`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
@@ -155,7 +167,7 @@ dist:
 	if test ! -d $$d; then rm -f $$d; fi
 	mv Makefile~ Makefile
 
-tags:	
+tags:
 	etags *.[ch]
 
 depend:
@@ -173,7 +185,7 @@ inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h
-minigzip.o:  zlib.h zconf.h 
+minigzip.o: zlib.h zconf.h
 trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
 uncompr.o: zlib.h zconf.h
-zutil.o: zutil.h zlib.h zconf.h  
+zutil.o: zutil.h zlib.h zconf.h

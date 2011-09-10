@@ -287,13 +287,13 @@ int main(argc,argv)
     {
         zipFile zf;
         int errclose;
-        #ifdef USEWIN32IOAPI
+#        ifdef USEWIN32IOAPI
         zlib_filefunc_def ffunc;
         fill_win32_filefunc(&ffunc);
         zf = zipOpen2(filename_try,(opt_overwrite==2) ? 2 : 0,NULL,&ffunc);
-        #else
+#        else
         zf = zipOpen(filename_try,(opt_overwrite==2) ? 2 : 0);
-        #endif
+#        endif
 
         if (zf == NULL)
         {
