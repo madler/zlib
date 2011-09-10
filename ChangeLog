@@ -1,6 +1,13 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.1.1 (9 January 2004)
+- Updated email address in README
+- Several FAQ updates
+- Fixed a big fat bug in inftrees.c that prevented decoding valid
+  dynamic blocks with only literals and no distance codes.
+- Add a note to puff.c on no distance codes case.
+
 Changes in 1.2.1 (17 November 2003)
 - Remove a tab in contrib/gzappend/gzappend.c
 - Update some interfaces in contrib for new zlib functions
