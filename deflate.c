@@ -36,8 +36,8 @@
  *
  *  REFERENCES
  *
- *      Deutsch, L.P.,"'Deflate' Compressed Data Format Specification".
- *      Available in ftp.uu.net:/pub/archiving/zip/doc/deflate-1.1.doc
+ *      Deutsch, L.P.,"DEFLATE Compressed Data Format Specification".
+ *      Available in ftp://ds.internic.net/rfc/rfc1951.txt
  *
  *      A description of the Rabin and Karp algorithm is given in the book
  *         "Algorithms" by R. Sedgewick, Addison-Wesley, p252.
@@ -47,10 +47,12 @@
  *
  */
 
+/* @(#) $Id$ */
 
 #include "deflate.h"
 
-char deflate_copyright[] = " deflate 1.0.5 Copyright 1995-1998 Jean-loup Gailly ";
+const char deflate_copyright[] =
+   " deflate 1.0.7 Copyright 1995-1998 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -76,12 +78,14 @@ local block_state deflate_stored OF((deflate_state *s, int flush));
 local block_state deflate_fast   OF((deflate_state *s, int flush));
 local block_state deflate_slow   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
-local uInt longest_match  OF((deflate_state *s, IPos cur_match));
 local void putShortMSB    OF((deflate_state *s, uInt b));
 local void flush_pending  OF((z_streamp strm));
 local int read_buf        OF((z_streamp strm, charf *buf, unsigned size));
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
+      uInt longest_match  OF((deflate_state *s, IPos cur_match));
+#else
+local uInt longest_match  OF((deflate_state *s, IPos cur_match));
 #endif
 
 #ifdef DEBUG
@@ -119,7 +123,7 @@ typedef struct config_s {
    compress_func func;
 } config;
 
-local config configuration_table[10] = {
+local const config configuration_table[10] = {
 /*      good lazy nice chain */
 /* 0 */ {0,    0,  0,    0, deflate_stored},  /* store only */
 /* 1 */ {4,    4,  8,    4, deflate_fast}, /* maximum speed, no lazy matches */
@@ -174,7 +178,7 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
     zmemzero((charf *)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
 
 /* ========================================================================= */
-int deflateInit_(strm, level, version, stream_size)
+int EXPORT deflateInit_(strm, level, version, stream_size)
     z_streamp strm;
     int level;
     const char *version;
@@ -186,7 +190,7 @@ int deflateInit_(strm, level, version, stream_size)
 }
 
 /* ========================================================================= */
-int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
+int EXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 		  version, stream_size)
     z_streamp strm;
     int  level;
@@ -199,13 +203,14 @@ int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 {
     deflate_state *s;
     int noheader = 0;
+    static const char* my_version = ZLIB_VERSION;
 
     ushf *overlay;
     /* We overlay pending_buf and d_buf+l_buf. This works since the average
      * output size for (length,distance) codes is <= 24 bits.
      */
 
-    if (version == Z_NULL || version[0] != ZLIB_VERSION[0] ||
+    if (version == Z_NULL || version[0] != my_version[0] ||
         stream_size != sizeof(z_stream)) {
 	return Z_VERSION_ERROR;
     }
@@ -252,6 +257,7 @@ int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     overlay = (ushf *) ZALLOC(strm, s->lit_bufsize, sizeof(ush)+2);
     s->pending_buf = (uchf *) overlay;
+    s->pending_buf_size = (ulg)s->lit_bufsize * (sizeof(ush)+2L);
 
     if (s->window == Z_NULL || s->prev == Z_NULL || s->head == Z_NULL ||
         s->pending_buf == Z_NULL) {
@@ -270,7 +276,7 @@ int deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 }
 
 /* ========================================================================= */
-int deflateSetDictionary (strm, dictionary, dictLength)
+int EXPORT deflateSetDictionary (strm, dictionary, dictLength)
     z_streamp strm;
     const Bytef *dictionary;
     uInt  dictLength;
@@ -289,7 +295,9 @@ int deflateSetDictionary (strm, dictionary, dictLength)
     if (length < MIN_MATCH) return Z_OK;
     if (length > MAX_DIST(s)) {
 	length = MAX_DIST(s);
-	dictionary += dictLength - length;
+#ifndef USE_DICT_HEAD
+	dictionary += dictLength - length; /* use the tail of the dictionary */
+#endif
     }
     zmemcpy((charf *)s->window, dictionary, length);
     s->strstart = length;
@@ -309,7 +317,7 @@ int deflateSetDictionary (strm, dictionary, dictLength)
 }
 
 /* ========================================================================= */
-int deflateReset (strm)
+int EXPORT deflateReset (strm)
     z_streamp strm;
 {
     deflate_state *s;
@@ -339,7 +347,7 @@ int deflateReset (strm)
 }
 
 /* ========================================================================= */
-int deflateParams(strm, level, strategy)
+int EXPORT deflateParams(strm, level, strategy)
     z_streamp strm;
     int level;
     int strategy;
@@ -413,7 +421,7 @@ local void flush_pending(strm)
 }
 
 /* ========================================================================= */
-int deflate (strm, flush)
+int EXPORT deflate (strm, flush)
     z_streamp strm;
     int flush;
 {
@@ -547,12 +555,18 @@ int deflate (strm, flush)
 }
 
 /* ========================================================================= */
-int deflateEnd (strm)
+int EXPORT deflateEnd (strm)
     z_streamp strm;
 {
     int status;
 
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
+
+    status = strm->state->status;
+    if (status != INIT_STATE && status != BUSY_STATE &&
+	status != FINISH_STATE) {
+      return Z_STREAM_ERROR;
+    }
 
     /* Deallocate in reverse order of allocations: */
     TRY_FREE(strm, strm->state->pending_buf);
@@ -560,29 +574,66 @@ int deflateEnd (strm)
     TRY_FREE(strm, strm->state->prev);
     TRY_FREE(strm, strm->state->window);
 
-    status = strm->state->status;
     ZFREE(strm, strm->state);
     strm->state = Z_NULL;
 
     return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
 }
 
-/* ========================================================================= */
-int deflateCopy (dest, source)
+/* =========================================================================
+ * Copy the source state to the destination state.
+ * To simplify the source, this is not supported for 16-bit MSDOS (which
+ * doesn't have enough memory anyway to duplicate compression states).
+ */
+int EXPORT deflateCopy (dest, source)
     z_streamp dest;
     z_streamp source;
 {
-    if (source == Z_NULL || dest == Z_NULL || source->state == Z_NULL) {
+#ifdef MAXSEG_64K
+    return Z_STREAM_ERROR;
+#else
+    deflate_state *ds;
+    deflate_state *ss;
+    ushf *overlay;
+
+    ss = source->state;
+
+    if (source == Z_NULL || dest == Z_NULL || ss == Z_NULL) {
         return Z_STREAM_ERROR;
     }
     *dest = *source;
-    return Z_STREAM_ERROR; /* to be implemented */
-#if 0
-    dest->state = (struct internal_state FAR *)
-        (*dest->zalloc)(1, sizeof(deflate_state));
-    if (dest->state == Z_NULL) return Z_MEM_ERROR;
 
-    *(dest->state) = *(source->state);
+    ds = (deflate_state *) ZALLOC(dest, 1, sizeof(deflate_state));
+    if (ds == Z_NULL) return Z_MEM_ERROR;
+    dest->state = (struct internal_state FAR *) ds;
+    *ds = *ss;
+    ds->strm = dest;
+
+    ds->window = (Bytef *) ZALLOC(dest, ds->w_size, 2*sizeof(Byte));
+    ds->prev   = (Posf *)  ZALLOC(dest, ds->w_size, sizeof(Pos));
+    ds->head   = (Posf *)  ZALLOC(dest, ds->hash_size, sizeof(Pos));
+    overlay = (ushf *) ZALLOC(dest, ds->lit_bufsize, sizeof(ush)+2);
+    ds->pending_buf = (uchf *) overlay;
+
+    if (ds->window == Z_NULL || ds->prev == Z_NULL || ds->head == Z_NULL ||
+        ds->pending_buf == Z_NULL) {
+        deflateEnd (dest);
+        return Z_MEM_ERROR;
+    }
+    /* following zmemcpy do not work for 16-bit MSDOS */
+    zmemcpy(ds->window, ss->window, ds->w_size * 2 * sizeof(Byte));
+    zmemcpy(ds->prev, ss->prev, ds->w_size * sizeof(Pos));
+    zmemcpy(ds->head, ss->head, ds->hash_size * sizeof(Pos));
+    zmemcpy(ds->pending_buf, ss->pending_buf, (uInt)ds->pending_buf_size);
+
+    ds->pending_out = ds->pending_buf + (ss->pending_out - ss->pending_buf);
+    ds->d_buf = overlay + ds->lit_bufsize/sizeof(ush);
+    ds->l_buf = ds->pending_buf + (1+sizeof(ush))*ds->lit_bufsize;
+
+    ds->l_desc.dyn_tree = ds->dyn_ltree;
+    ds->d_desc.dyn_tree = ds->dyn_dtree;
+    ds->bl_desc.dyn_tree = ds->bl_tree;
+
     return Z_OK;
 #endif
 }
@@ -815,7 +866,7 @@ local void check_match(s, start, match, length)
 	} while (--length != 0);
         z_error("invalid match");
     }
-    if (verbose > 1) {
+    if (z_verbose > 1) {
         fprintf(stderr,"\\[%d,%d]", start-match, length);
         do { putc(s->window[start++], stderr); } while (--length != 0);
     }
@@ -864,29 +915,30 @@ local void fill_window(s)
                    (unsigned)wsize);
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
-
             s->block_start -= (long) wsize;
 
             /* Slide the hash table (could be avoided with 32 bit values
-               at the expense of memory usage):
+               at the expense of memory usage). We slide even when level == 0
+               to keep the hash table consistent if we switch back to level > 0
+               later. (Using level 0 permanently is not an optimal usage of
+               zlib, so we don't care about this pathological case.)
              */
-            n = s->hash_size;
-            p = &s->head[n];
-            do {
-                m = *--p;
-                *p = (Pos)(m >= wsize ? m-wsize : NIL);
-            } while (--n);
+	    n = s->hash_size;
+	    p = &s->head[n];
+	    do {
+		m = *--p;
+		*p = (Pos)(m >= wsize ? m-wsize : NIL);
+	    } while (--n);
 
-            n = wsize;
-            p = &s->prev[n];
-            do {
-                m = *--p;
-                *p = (Pos)(m >= wsize ? m-wsize : NIL);
-                /* If n is not on any hash chain, prev[n] is garbage but
-                 * its value will never be used.
-                 */
-            } while (--n);
-
+	    n = wsize;
+	    p = &s->prev[n];
+	    do {
+		m = *--p;
+		*p = (Pos)(m >= wsize ? m-wsize : NIL);
+		/* If n is not on any hash chain, prev[n] is garbage but
+		 * its value will never be used.
+		 */
+	    } while (--n);
             more += wsize;
         }
         if (s->strm->avail_in == 0) return;
@@ -950,12 +1002,24 @@ local void fill_window(s)
  * This function does not insert new strings in the dictionary since
  * uncompressible data is probably not useful. This function is used
  * only for the level=0 compression option.
- * NOTE: this function should be optimized to avoid extra copying.
+ * NOTE: this function should be optimized to avoid extra copying from
+ * window to pending_buf.
  */
 local block_state deflate_stored(s, flush)
     deflate_state *s;
     int flush;
 {
+    /* Stored blocks are limited to 0xffff bytes, pending_buf is limited
+     * to pending_buf_size, and each stored block has a 5 byte header:
+     */
+    ulg max_block_size = 0xffff;
+    ulg max_start;
+
+    if (max_block_size > s->pending_buf_size - 5) {
+        max_block_size = s->pending_buf_size - 5;
+    }
+
+    /* Copy as much as possible from input to output: */
     for (;;) {
         /* Fill the window as much as possible: */
         if (s->lookahead <= 1) {
@@ -973,14 +1037,17 @@ local block_state deflate_stored(s, flush)
 	s->strstart += s->lookahead;
 	s->lookahead = 0;
 
-        /* Stored blocks are limited to 0xffff bytes: */
-        if (s->strstart == 0 || s->strstart > 0xfffe) {
+	/* Emit a stored block if pending_buf will be full: */
+ 	max_start = s->block_start + max_block_size;
+        if (s->strstart == 0 || (ulg)s->strstart >= max_start) {
 	    /* strstart == 0 is possible when wraparound on 16-bit machine */
-	    s->lookahead = s->strstart - 0xffff;
-	    s->strstart = 0xffff;
+	    s->lookahead = (uInt)(s->strstart - max_start);
+	    s->strstart = (uInt)max_start;
+            FLUSH_BLOCK(s, 0);
 	}
-
-	/* Emit a stored block if it is large enough: */
+	/* Flush if we may have to slide, otherwise block_start may become
+         * negative and the data will be gone:
+         */
         if (s->strstart - (uInt)s->block_start >= MAX_DIST(s)) {
             FLUSH_BLOCK(s, 0);
 	}

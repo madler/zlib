@@ -1,9 +1,9 @@
 /* crc32.c -- compute the CRC-32 of a data stream
- * Copyright (C) 1995-1996 Mark Adler
+ * Copyright (C) 1995-1998 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: crc32.c,v 1.8 1996/01/30 21:59:10 me Exp $ */
+/* @(#) $Id$ */
 
 #include "zlib.h"
 
@@ -124,7 +124,7 @@ local uLongf crc_table[256] = {
 /* =========================================================================
  * This function can be used by asm versions of crc32()
  */
-uLongf *get_crc_table()
+uLongf * EXPORT get_crc_table()
 {
 #ifdef DYNAMIC_CRC_TABLE
   if (crc_table_empty) make_crc_table();
@@ -139,7 +139,7 @@ uLongf *get_crc_table()
 #define DO8(buf)  DO4(buf); DO4(buf);
 
 /* ========================================================================= */
-uLong crc32(crc, buf, len)
+uLong EXPORT crc32(crc, buf, len)
     uLong crc;
     const Bytef *buf;
     uInt len;

@@ -66,7 +66,7 @@ inflate_blocks_statef *s;
 z_streamp z;
 uLongf *c;
 {
-  if (s->checkfn != Z_NULL)
+  if (c != Z_NULL)
     *c = s->check;
   if (s->mode == BTREE || s->mode == DTREE)
     ZFREE(z, s->sub.trees.blens);
@@ -81,7 +81,7 @@ uLongf *c;
   s->bitb = 0;
   s->read = s->write = s->window;
   if (s->checkfn != Z_NULL)
-    z->adler = s->check = (*s->checkfn)(0L, Z_NULL, 0);
+    z->adler = s->check = (*s->checkfn)(0L, (const Bytef *)Z_NULL, 0);
   Trace((stderr, "inflate:   blocks reset\n"));
 }
 
@@ -105,7 +105,7 @@ uInt w;
   s->checkfn = c;
   s->mode = TYPE;
   Trace((stderr, "inflate:   blocks allocated\n"));
-  inflate_blocks_reset(s, z, &s->check);
+  inflate_blocks_reset(s, z, Z_NULL);
   return s;
 }
 
@@ -380,12 +380,11 @@ int r;
 }
 
 
-int inflate_blocks_free(s, z, c)
+int inflate_blocks_free(s, z)
 inflate_blocks_statef *s;
 z_streamp z;
-uLongf *c;
 {
-  inflate_blocks_reset(s, z, c);
+  inflate_blocks_reset(s, z, Z_NULL);
   ZFREE(z, s->window);
   ZFREE(z, s);
   Trace((stderr, "inflate:   blocks freed\n"));
@@ -400,4 +399,15 @@ uInt  n;
 {
   zmemcpy((charf *)s->window, d, n);
   s->read = s->write = s->window + n;
+}
+
+
+/* Returns true if inflate is currently at the end of a block generated
+ * by Z_SYNC_FLUSH or Z_FULL_FLUSH. 
+ * IN assertion: s != Z_NULL
+ */
+int inflate_blocks_sync_point(s)
+inflate_blocks_statef *s;
+{
+  return s->mode == LENS;
 }

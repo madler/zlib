@@ -1,0 +1,57 @@
+From: "Jon Caruana" <jon-net@usa.net>
+To: "Jean-loup Gailly" <gzip@prep.ai.mit.edu>
+Subject: Re: How to port zlib declares to vb?
+Date: Mon, 28 Oct 1996 18:33:03 -0600
+
+Got the answer! (I haven't had time to check this but it's what I got, and
+looks correct):
+
+He has the following routines working:
+        compress
+        uncompress
+        gzopen
+        gzwrite
+        gzread
+        gzclose
+
+Declares follow: (Quoted from Carlos Rios <c_rios@sonda.cl>, in Vb4 form)
+
+#If Win16 Then   'Use Win16 calls.
+Declare Function compress Lib "ZLIB.DLL" (ByVal compr As
+        String, comprLen As Any, ByVal buf As String, ByVal buflen
+        As Long) As Integer
+Declare Function uncompress Lib "ZLIB.DLL" (ByVal uncompr
+        As String, uncomprLen As Any, ByVal compr As String, ByVal
+        lcompr As Long) As Integer
+Declare Function gzopen Lib "ZLIB.DLL" (ByVal filePath As
+        String, ByVal mode As String) As Long
+Declare Function gzread Lib "ZLIB.DLL" (ByVal file As
+        Long, ByVal uncompr As String, ByVal uncomprLen As Integer)
+        As Integer
+Declare Function gzwrite Lib "ZLIB.DLL" (ByVal file As
+        Long, ByVal uncompr As String, ByVal uncomprLen As Integer)
+        As Integer
+Declare Function gzclose Lib "ZLIB.DLL" (ByVal file As
+        Long) As Integer
+#Else
+Declare Function compress Lib "ZLIB32.DLL"
+        (ByVal compr As String, comprLen As Any, ByVal buf As
+        String, ByVal buflen As Long) As Integer
+Declare Function uncompress Lib "ZLIB32.DLL"
+        (ByVal uncompr As String, uncomprLen As Any, ByVal compr As
+        String, ByVal lcompr As Long) As Long
+Declare Function gzopen Lib "ZLIB32.DLL"
+        (ByVal file As String, ByVal mode As String) As Long
+Declare Function gzread Lib "ZLIB32.DLL"
+        (ByVal file As Long, ByVal uncompr As String, ByVal
+        uncomprLen As Long) As Long
+Declare Function gzwrite Lib "ZLIB32.DLL"
+        (ByVal file As Long, ByVal uncompr As String, ByVal
+        uncomprLen As Long) As Long
+Declare Function gzclose Lib "ZLIB32.DLL"
+        (ByVal file As Long) As Long
+#End If
+
+-Jon Caruana
+jon-net@usa.net
+Microsoft Sitebuilder Network Level 1 Member - HTML Writer's Guild Member

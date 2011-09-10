@@ -1,5 +1,5 @@
 # Makefile for zlib.  Modified for djgpp v2.0 by F. J. Donahoe, 3/15/96.
-# Copyright (C) 1995-1996 Jean-loup Gailly.
+# Copyright (C) 1995-1998 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h 
 
 # To compile, or to compile and test, type:
@@ -22,7 +22,8 @@
 # - - - - -
 # Alternately, these variables may be defined below, overriding the values
 # in djgpp.env, as
-INCLUDE_PATH=c:\usr\include
+# INCLUDE_PATH=c:\usr\include
+# LIBRARY_PATH=c:\usr\lib
 
 CC=gcc
 
@@ -32,12 +33,12 @@ CC=gcc
 CFLAGS=-MMD -O3 $(BUTT) -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
              -Wstrict-prototypes -Wmissing-prototypes
 
-# If cp.exe is not found, replace with copy /Y .
-CP=cp -f
-# If install.exe is not found, replace with $(CP).
-INSTALL=install
-# The default value of RM is "rm -f."  If "rm.exe" is not found, uncomment:
-# RM=del
+# If cp.exe is available, replace "copy /Y" with "cp -fp" .
+CP=copy /Y
+# If gnu install.exe is available, replace $(CP) with ginstall.
+INSTALL=$(CP)
+# The default value of RM is "rm -f."  If "rm.exe" is found, comment out:
+RM=del
 LDLIBS=-L. -lz
 LD=$(CC) -s -o
 LDSHARED=$(CC)
@@ -77,15 +78,21 @@ libz.a: $(OBJS)
 install: $(INCL) $(LIBS)
 	-@if not exist $(INCLUDE_PATH)\nul mkdir $(INCLUDE_PATH)
 	-@if not exist $(LIBRARY_PATH)\nul mkdir $(LIBRARY_PATH)
-	for %%f in ($(INCL)) do $(INSTALL) %%f $(INCLUDE_PATH)
-	for %%p in ($(LIBS)) do $(INSTALL) %%p $(LIBRARY_PATH)
+	$(INSTALL) zlib.h $(INCLUDE_PATH)
+	$(INSTALL) zconf.h $(INCLUDE_PATH)
+	$(INSTALL) libz.a $(LIBRARY_PATH)
 
 uninstall:
-	for %%f in ($(INCL)) do $(RM) $(INCLUDE_PATH)\%%f
-	for %%p in ($(LIBS)) do $(RM) $(LIBRARY_PATH)\%%p
+	$(RM) $(INCLUDE_PATH)\zlib.h
+	$(RM) $(INCLUDE_PATH)\zconf.h
+	$(RM) $(LIBRARY_PATH)\libz.a
 
 clean:
-	for %%p in (*.d *.o *.exe libz.a libz.so* foo.gz) do $(RM) %%p
+	$(RM) *.d
+	$(RM) *.o
+	$(RM) *.exe
+	$(RM) libz.a
+	$(RM) foo.gz
 
 DEPS := $(wildcard *.d)
 ifneq ($(DEPS),)

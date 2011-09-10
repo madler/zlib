@@ -4,6 +4,10 @@
 # of if you need special compiler, flags or install directory.
 # Otherwise, you can just use directly "make test; make install"
 #
+# To create a shared library, use "configure --shared"; by default a static
+# library is created. If the primitive shared library support provided here
+# does not work, use ftp://prep.ai.mit.edu/pub/gnu/libtool-*.tar.gz
+#
 # To impose specific compiler or flags or install directory, use for example:
 #    prefix=$HOME CC=cc CFLAGS="-O4" ./configure
 # or for csh/tcsh users:
@@ -11,22 +15,33 @@
 # LDSHARED is the command to be used to create a shared library
 
 LIBS=libz.a
+SHAREDLIB=libz.so
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 AR=${AR-"ar rc"}
 RANLIB=${RANLIB-"ranlib"}
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-$prefix}
+shared_ext='.so'
+shared=0
+
+case "$1" in
+  -s* | --s*) shared=1; shift;;
+  -h* | --h*) echo 'syntax: configure [ --shared ]'; exit 0;;
+esac
 
 test -z "$CC" && echo Checking for gcc...
 test=ztest$$
 cat > $test.c <<EOF
 int hello() { printf("hello\n"); }
 EOF
-if test -z "$CC" && (gcc -c -O3 $test.c) 2>/dev/null; then
+if test -z "$CC" -o "$CC" = "gcc" && (gcc -c -O3 $test.c) 2>/dev/null; then
   CC=gcc
   SFLAGS=${CFLAGS-"-fPIC -O3"}
   CFLAGS=${CFLAGS-"-O3"}
-  LDSHARED=${LDSHARED-"gcc -shared"}
+  case `(uname -s || echo unknown) 2>/dev/null` in
+  Linux | linux) LDSHARED=${LDSHARED-"gcc -shared -Wl,-soname,libz.so.1"};;
+  *)             LDSHARED=${LDSHARED-"gcc -shared"};;
+  esac
 else
   # find system name and corresponding cc options
   CC=${CC-cc}
@@ -50,35 +65,55 @@ else
 	     LDSHARED=${LDSHARED-"cc -dy -KPIC -G"};;
   HP-UX*)    SFLAGS=${CFLAGS-"-O +z"}
 	     CFLAGS=${CFLAGS-"-O"}
-	     LDSHARED=${LDSHARED-"ld -b"}
-	     SHAREDLIBS='libz.sl';;
-  # send working options for other systems to gzip@prep.ai.mit.edu
+	     LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
+	     shared_ext='.sl'
+	     SHAREDLIB='libz.sl';;
+  UNIX_System_V\ 4.2.0) 
+	     SFLAGS=${CFLAGS-"-KPIC -O"}
+	     CFLAGS=${CFLAGS-"-O"}
+	     LDSHARED=${LDSHARED-"cc -G"};;
+  # send working options for other systems to support@gzip.org
   *)         SFLAGS=${CFLAGS-"-O"}
 	     CFLAGS=${CFLAGS-"-O"}
 	     LDSHARED=${LDSHARED-"cc -shared"};;
   esac
 fi
 
-echo Checking for shared library support...
-# we must test in two steps (cc then ld), required at least on SunOS 4.x
-if test "`($CC -c $SFLAGS $test.c) 2>&1`" = "" &&
-   test "`($LDSHARED -o $test.so $test.o) 2>&1`" = ""; then
-  CFLAGS="$SFLAGS"
-  LIBS='libz.so.$(VER)'
-  echo Building shared library libz.so.$VER with $CC.
-else
+if test $shared -eq 1; then
+  echo Checking for shared library support...
+  # we must test in two steps (cc then ld), required at least on SunOS 4.x
+  if test "`($CC -c $SFLAGS $test.c) 2>&1`" = "" &&
+     test "`($LDSHARED -o $test$shared_ext $test.o) 2>&1`" = ""; then
+    CFLAGS="$SFLAGS"
+    LIBS="$SHAREDLIB.$VER"
+    echo Building shared library $SHAREDLIB.$VER with $CC.
+  else
+    echo No shared library suppport.
+    shared=0;
+  fi
+fi
+if test $shared -eq 0; then
   LDSHARED="$CC"
   echo Building static library $LIBS version $VER with $CC.
 fi
-rm -f $test.[co] $test.so
+rm -f $test.[co] $test$shared_ext
+
+if test -f /usr/include/unistd.h; then
+  CFLAGS="$CFLAGS -DHAVE_UNISTD_H"
+fi
+
+if test ! -f /usr/include/errno.h; then
+  CFLAGS="$CFLAGS -DNO_ERRNO_H"
+fi
 
 # udpate Makefile
 sed < Makefile.in "
-/^CC *=/s/=.*/=$CC/
+/^CC *=/s,=.*,=$CC,
 /^CFLAGS *=/s/=.*/=$CFLAGS/
-/^LDSHARED *=/s/=.*/=$LDSHARED/
+/^LDSHARED *=/s%=.*%=$LDSHARED%
 /^LIBS *=/s,=.*,=$LIBS,
-/^AR *=/s/=.*/=$AR/
+/^SHAREDLIB *=/s,=.*,=$SHAREDLIB,
+/^AR *=/s,=.*,=$AR,
 /^RANLIB *=/s,=.*,=$RANLIB,
 /^VER *=/s/=.*/=$VER/
 /^prefix *=/s,=.*,=$prefix,

@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-1996 Jean-loup Gailly
+ * Copyright (C) 1995-1998 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -29,7 +29,7 @@
  *          Addison-Wesley, 1983. ISBN 0-201-06672-6.
  */
 
-/* $Id: trees.c,v 1.11 1996/07/24 13:41:06 me Exp $ */
+/* @(#) $Id$ */
 
 #include "deflate.h"
 
@@ -56,16 +56,16 @@
 #define REPZ_11_138  18
 /* repeat a zero length 11-138 times  (7 bits of repeat count) */
 
-local int extra_lbits[LENGTH_CODES] /* extra bits for each length code */
+local const int extra_lbits[LENGTH_CODES] /* extra bits for each length code */
    = {0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0};
 
-local int extra_dbits[D_CODES] /* extra bits for each distance code */
+local const int extra_dbits[D_CODES] /* extra bits for each distance code */
    = {0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
 
-local int extra_blbits[BL_CODES]/* extra bits for each bit length code */
+local const int extra_blbits[BL_CODES]/* extra bits for each bit length code */
    = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7};
 
-local uch bl_order[BL_CODES]
+local const uch bl_order[BL_CODES]
    = {16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};
 /* The lengths of the bit length codes are sent in order of decreasing
  * probability, to avoid transmitting the lengths for unused bit length codes.
@@ -109,7 +109,7 @@ local int base_dist[D_CODES];
 
 struct static_tree_desc_s {
     ct_data *static_tree;        /* static tree or NULL */
-    intf    *extra_bits;         /* extra bits for each code or NULL */
+    const intf *extra_bits;      /* extra bits for each code or NULL */
     int     extra_base;          /* base index for extra_bits */
     int     elems;               /* max number of elements in the tree */
     int     max_length;          /* max bit length for the codes */
@@ -154,7 +154,7 @@ local void copy_block     OF((deflate_state *s, charf *buf, unsigned len,
 
 #else /* DEBUG */
 #  define send_code(s, c, tree) \
-     { if (verbose>2) fprintf(stderr,"\ncd %3d ",(c)); \
+     { if (z_verbose>2) fprintf(stderr,"\ncd %3d ",(c)); \
        send_bits(s, tree[c].Code, tree[c].Len); }
 #endif
 
@@ -416,7 +416,7 @@ local void gen_bitlen(s, desc)
     ct_data *tree  = desc->dyn_tree;
     int max_code   = desc->max_code;
     ct_data *stree = desc->stat_desc->static_tree;
-    intf *extra    = desc->stat_desc->extra_bits;
+    const intf *extra = desc->stat_desc->extra_bits;
     int base       = desc->stat_desc->extra_base;
     int max_length = desc->stat_desc->max_length;
     int h;              /* heap index */

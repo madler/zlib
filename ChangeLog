@@ -1,13 +1,103 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.7 (20 Jan 1998)
+- fix gzseek which was broken in write mode
+- return error for gzseek to negative absolute position
+- fix configure for Linux (Chun-Chung Chen)
+- increase stack space for MSC (Tim Wegner)
+- get_crc_table and inflateSyncPoint are EXPORTed (Gilles Vollant)
+- define EXPORTVA for gzprintf (Gilles Vollant)
+- added man page zlib.3 (Rick Rodgers)
+- for contrib/untgz, fix makedir() and improve Makefile
+
+- check gzseek in write mode in example.c
+- allocate extra buffer for seeks only if gzseek is actually called
+- avoid signed/unsigned comparisons (Tim Wegner, Gilles Vollant)
+- add inflateSyncPoint in zconf.h
+- fix list of exported functions in nt/zlib.dnt and mdsos/zlib.def
+
+Changes in 1.0.6 (19 Jan 1998)
+- add functions gzprintf, gzputc, gzgetc, gztell, gzeof, gzseek, gzrewind and
+  gzsetparams (thanks to Roland Giersig and Kevin Ruland for some of this code)
+- Fix a deflate bug occuring only with compression level 0 (thanks to
+  Andy Buckler for finding this one).
+- In minigzip, pass transparently also the first byte for .Z files.
+- return Z_BUF_ERROR instead of Z_OK if output buffer full in uncompress()
+- check Z_FINISH in inflate (thanks to Marc Schluper)
+- Implement deflateCopy (thanks to Adam Costello)
+- make static libraries by default in configure, add --shared option.
+- move MSDOS or Windows specific files to directory msdos
+- suppress the notion of partial flush to simplify the interface
+  (but the symbol Z_PARTIAL_FLUSH is kept for compatibility with 1.0.4)
+- suppress history buffer provided by application to simplify the interface
+  (this feature was not implemented anyway in 1.0.4)
+- next_in and avail_in must be initialized before calling inflateInit or
+  inflateInit2
+- add EXPORT in all exported functions (for Windows DLL)
+- added Makefile.nt (thanks to Stephen Williams)
+- added the unsupported "contrib" directory:
+   contrib/asm386/ by Gilles Vollant <info@winimage.com>
+	386 asm code replacing longest_match().
+   contrib/iostream/ by Kevin Ruland <kevin@rodin.wustl.edu>
+        A C++ I/O streams interface to the zlib gz* functions
+   contrib/iostream2/  by Tyge Løvset <Tyge.Lovset@cmr.no>
+	Another C++ I/O streams interface
+   contrib/untgz/  by "Pedro A. Aranda Guti\irrez" <paag@tid.es>
+	A very simple tar.gz file extractor using zlib
+   contrib/visual-basic.txt by Carlos Rios <c_rios@sonda.cl>
+        How to use compress(), uncompress() and the gz* functions from VB.
+- pass params -f (filtered data), -h (huffman only), -1 to -9 (compression
+  level) in minigzip (thanks to Tom Lane)
+
+- use const for rommable constants in deflate
+- added test for gzseek and gztell in example.c
+- add undocumented function inflateSyncPoint() (hack for Paul Mackerras)
+- add undocumented function zError to convert error code to string
+  (for Tim Smithers)
+- Allow compilation of gzio with -DNO_DEFLATE to avoid the compression code.
+- Use default memcpy for Symantec MSDOS compiler.
+- Add EXPORT keyword for check_func (needed for Windows DLL)
+- add current directory to LD_LIBRARY_PATH for "make test"
+- create also a link for libz.so.1
+- added support for FUJITSU UXP/DS (thanks to Toshiaki Nomura)
+- use $(SHAREDLIB) instead of libz.so in Makefile.in (for HPUX)
+- added -soname for Linux in configure (Chun-Chung Chen,
+- assign numbers to the exported functions in zlib.def (for Windows DLL)
+- add advice in zlib.h for best usage of deflateSetDictionary
+- work around compiler bug on Atari (cast Z_NULL in call of s->checkfn)
+- allow compilation with ANSI keywords only enabled for TurboC in large model
+- avoid "versionString"[0] (Borland bug)
+- add NEED_DUMMY_RETURN for Borland
+- use variable z_verbose for tracing in debug mode (Peter Deutsch).
+- allow compilation with CC
+- defined STDC for OS/2 (David Charlap)	
+- limit external names to 8 chars for MVS (Thomas Lund)
+- in minigzip.c, use static buffers only for 16-bit systems
+- fix suffix check for "minigzip -d foo.gz"
+- do not return an error for the 2nd of two consecutive gzflush() (Felix Lee)
+- use _fdopen instead of fdopen for MSC >= 6.0 (Thomas Fanslau)
+- added makelcc.bat for lcc-win32 (Tom St Denis)
+- in Makefile.dj2, use copy and del instead of install and rm (Frank Donahoe)
+- Avoid expanded $Id$. Use "rcs -kb" or "cvs admin -kb" to avoid Id expansion.
+- check for unistd.h in configure (for off_t)
+- use Tracev instead of Trace in infblock.c
+- remove useless check parameter in inflate_blocks_free
+- avoid useless assignment of s->check to itself in inflate_blocks_new
+- do not flush twice in gzclose (thanks to Ken Raeburn)
+- rename FOPEN as F_OPEN to avoid clash with /usr/include/sys/file.h
+- use NO_ERRNO_H instead of enumeration of operating systems with errno.h
+- work around buggy fclose on pipes for HP/UX
+- support zlib DLL with BORLAND C++ 5.0 (thanks to Glenn Randers-Pehrson)
+- fix configure if CC is already equal to gcc
+
 Changes in 1.0.5 (3 Jan 98)
 - Fix inflate to terminate gracefully when fed corrupted or invalid data
 - Use const for rommable constants in inflate
 - Eliminate memory leaks on error conditions in inflate
 - Removed some vestigial code in inflate
 - Update web address in README
-
+  
 Changes in 1.0.4 (24 Jul 96)
 - In very rare conditions, deflate(s, Z_FINISH) could fail to produce an EOF
   bit, so the decompressor could decompress all the correct data but went

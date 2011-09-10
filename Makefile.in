@@ -22,12 +22,14 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.5
+VER=1.0.7
 LIBS=libz.a
+SHAREDLIB=libz.so
 
 AR=ar rc
 RANLIB=ranlib
 TAR=tar
+SHELL=/bin/sh
 
 prefix=/usr/local
 exec_prefix = $(prefix)
@@ -37,22 +39,30 @@ OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
 
 TEST_OBJS = example.o minigzip.o
 
-DISTFILES = README INDEX ChangeLog configure Make*[a-z0-9] descrip.mms \
-	    zlib.def zlib.rc algorithm.doc  *.[ch]
+DISTFILES = README INDEX ChangeLog configure Make*[a-z0-9] *.[ch] descrip.mms \
+  algorithm.txt zlib.3 msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
+  nt/Makefile.nt nt/zlib.dnt  contrib/README.contrib contrib/*.txt \
+  contrib/asm386/*.asm contrib/asm386/*.c \
+  contrib/asm386/*.bat contrib/asm386/*.mak contrib/iostream/*.cpp \
+  contrib/iostream/*.h  contrib/iostream2/*.h contrib/iostream2/*.cpp \
+  contrib/untgz/Makefile contrib/untgz/*.c contrib/untgz/*.w32
 
 all: example minigzip
 
 test: all
-	./example
-	echo hello world | ./minigzip | ./minigzip -d 
+	@LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
+	./example ; \
+	echo hello world | ./minigzip | ./minigzip -d
 
 libz.a: $(OBJS)
 	$(AR) $@ $(OBJS)
-	-@ ($(RANLIB) $@ || true) 2>/dev/null
+	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
 
-libz.so.$(VER): $(OBJS)
+$(SHAREDLIB).$(VER): $(OBJS)
 	$(LDSHARED) -o $@ $(OBJS)
-	rm -f libz.so; ln -s $@ libz.so
+	rm -f $(SHAREDLIB) $(SHAREDLIB).1
+	ln -s $@ $(SHAREDLIB)
+	ln -s $@ $(SHAREDLIB).1
 
 example: example.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
@@ -68,21 +78,27 @@ install: $(LIBS)
 	cp $(LIBS) $(exec_prefix)/lib
 	cd $(exec_prefix)/lib; chmod 644 $(LIBS)
 	-@(cd $(exec_prefix)/lib; $(RANLIB) libz.a || true) >/dev/null 2>&1
-	cd $(exec_prefix)/lib; if test -f libz.so.$(VER); then \
-	  ln -s libz.so.$(VER) libz.so; \
+	cd $(exec_prefix)/lib; if test -f $(SHAREDLIB).$(VER); then \
+	  rm -f $(SHAREDLIB) $(SHAREDLIB).1; \
+	  ln -s $(SHAREDLIB).$(VER) $(SHAREDLIB); \
+	  ln -s $(SHAREDLIB).$(VER) $(SHAREDLIB).1; \
+	  (ldconfig || true)  >/dev/null 2>&1; \
 	fi
 # The ranlib in install is needed on NeXTSTEP which checks file times
+# ldconfig is for Linux
 
 uninstall:
 	cd $(exec_prefix)/lib; rm -f $(LIBS); \
-	if test -f libz.so; then \
+	if test -f $(SHAREDLIB); then \
 	 v=`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p'<$(prefix)/include/zlib.h`;\
-	 rm -f libz.so.$$v libz.so; \
+	 rm -f $(SHAREDLIB).$$v $(SHAREDLIB); \
 	fi
-	cd $(prefix)/include; rm -f zlib.h zconf.h
+	cdz $(prefix)/include; rm -f zlib.h zconf.h
 
 clean:
 	rm -f *.o *~ example minigzip libz.a libz.so* foo.gz
+
+distclean:	clean
 
 zip:
 	mv Makefile Makefile~; cp -p Makefile.in Makefile

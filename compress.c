@@ -1,9 +1,9 @@
 /* compress.c -- compress a memory buffer
- * Copyright (C) 1995-1996 Jean-loup Gailly.
+ * Copyright (C) 1995-1998 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: compress.c,v 1.10 1996/05/23 16:51:12 me Exp $ */
+/* @(#) $Id$ */
 
 #include "zlib.h"
 
@@ -19,7 +19,7 @@
    enough memory, Z_BUF_ERROR if there was not enough room in the output
    buffer.
 */
-int compress (dest, destLen, source, sourceLen)
+int EXPORT compress (dest, destLen, source, sourceLen)
     Bytef *dest;
     uLongf *destLen;
     const Bytef *source;

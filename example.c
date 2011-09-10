@@ -1,9 +1,9 @@
 /* example.c -- usage example of the zlib compression library
- * Copyright (C) 1995-1996 Jean-loup Gailly.
+ * Copyright (C) 1995-1998 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.16 1996/05/23 17:11:28 me Exp $ */
+/* @(#) $Id$ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -86,16 +86,17 @@ void test_gzio(out, in, uncompr, uncomprLen)
     int err;
     int len = strlen(hello)+1;
     gzFile file;
+    z_off_t pos;
 
     file = gzopen(out, "wb");
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
-
-    if (gzwrite(file, (const voidp)hello, (unsigned)len) != len) {
-        fprintf(stderr, "gzwrite err: %s\n", gzerror(file, &err));
+    if (gzprintf(file, "%s, %s!", "hello", "hello") != len-1) {
+        fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
     }
+    gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
     file = gzopen(in, "rb");
@@ -108,13 +109,28 @@ void test_gzio(out, in, uncompr, uncomprLen)
     if (uncomprLen != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
     }
-    gzclose(file);
-
     if (strcmp((char*)uncompr, hello)) {
         fprintf(stderr, "bad gzread\n");
     } else {
         printf("gzread(): %s\n", uncompr);
     }
+
+    pos = gzseek(file, -7L, SEEK_CUR);
+    if (pos != 7 || gztell(file) != pos) {
+	fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
+		pos, gztell(file));
+    }
+    uncomprLen = gzread(file, uncompr, (unsigned)uncomprLen);
+    if (uncomprLen != 7) {
+        fprintf(stderr, "gzread err after gzseek: %s\n", gzerror(file, &err));
+    }
+    if (strcmp((char*)uncompr, hello+7)) {
+        fprintf(stderr, "bad gzread after gzseek\n");
+    } else {
+        printf("gzread() after gzseek: %s\n", uncompr);
+    }
+
+    gzclose(file);
 }
 
 /* ===========================================================================
@@ -171,11 +187,12 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.zfree = (free_func)0;
     d_stream.opaque = (voidpf)0;
 
+    d_stream.next_in  = compr;
+    d_stream.avail_in = 0;
+    d_stream.next_out = uncompr;
+
     err = inflateInit(&d_stream);
     CHECK_ERR(err, "inflateInit");
-
-    d_stream.next_in  = compr;
-    d_stream.next_out = uncompr;
 
     while (d_stream.total_out < uncomprLen && d_stream.total_in < comprLen) {
         d_stream.avail_in = d_stream.avail_out = 1; /* force small buffers */
@@ -263,11 +280,11 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.zfree = (free_func)0;
     d_stream.opaque = (voidpf)0;
 
-    err = inflateInit(&d_stream);
-    CHECK_ERR(err, "inflateInit");
-
     d_stream.next_in  = compr;
     d_stream.avail_in = (uInt)comprLen;
+
+    err = inflateInit(&d_stream);
+    CHECK_ERR(err, "inflateInit");
 
     for (;;) {
         d_stream.next_out = uncompr;            /* discard the output */
@@ -339,12 +356,13 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
     d_stream.zfree = (free_func)0;
     d_stream.opaque = (voidpf)0;
 
+    d_stream.next_in  = compr;
+    d_stream.avail_in = 2; /* just read the zlib header */
+
     err = inflateInit(&d_stream);
     CHECK_ERR(err, "inflateInit");
 
-    d_stream.next_in  = compr;
     d_stream.next_out = uncompr;
-    d_stream.avail_in = 2; /* just read the zlib header */
     d_stream.avail_out = (uInt)uncomprLen;
 
     inflate(&d_stream, Z_NO_FLUSH);
@@ -417,11 +435,11 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.zfree = (free_func)0;
     d_stream.opaque = (voidpf)0;
 
-    err = inflateInit(&d_stream);
-    CHECK_ERR(err, "inflateInit");
-
     d_stream.next_in  = compr;
     d_stream.avail_in = (uInt)comprLen;
+
+    err = inflateInit(&d_stream);
+    CHECK_ERR(err, "inflateInit");
 
     d_stream.next_out = uncompr;
     d_stream.avail_out = (uInt)uncomprLen;
@@ -461,8 +479,9 @@ int main(argc, argv)
     Byte *compr, *uncompr;
     uLong comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
     uLong uncomprLen = comprLen;
+    static const char* myVersion = ZLIB_VERSION;
 
-    if (zlibVersion()[0] != ZLIB_VERSION[0]) {
+    if (zlibVersion()[0] != myVersion[0]) {
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);
 
@@ -479,7 +498,6 @@ int main(argc, argv)
         printf("out of memory\n");
 	exit(1);
     }
-
     test_compress(compr, comprLen, uncompr, uncomprLen);
 
     test_gzio((argc > 1 ? argv[1] : "foo.gz"),
