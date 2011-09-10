@@ -28,9 +28,10 @@ LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.2.0.6
 LIBS=libz.a
 SHAREDLIB=libz.so
+SHAREDLIBV=libz.so.1.2.0.7
+SHAREDLIBM=libz.so.1
 
 AR=ar rc
 RANLIB=ranlib
@@ -51,19 +52,6 @@ OBJA =
 # to use the asm code: make OBJA=match.o
 
 TEST_OBJS = example.o minigzip.o
-
-# Note: this has not been updated for zlib 1.2.0
-DISTFILES = README FAQ INDEX ChangeLog configure Make*[a-z0-9] *.[ch] *.mms \
-  algorithm.txt zlib.3 zlib.html \
-  msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
-  nt/Make*[a-z0-9] nt/zlib.dnt amiga/Make*.??? os2/M*.os2 os2/zlib.def \
-  contrib/RE*.contrib contrib/*.txt contrib/asm386/*.asm contrib/asm386/*.c \
-  contrib/asm386/*.bat contrib/asm386/zlibvc.d?? contrib/asm[56]86/*.?86 \
-  contrib/asm[56]86/*.S contrib/iostream/*.cpp \
-  contrib/iostream/*.h  contrib/iostream2/*.h contrib/iostream2/*.cpp \
-  contrib/untgz/Makefile contrib/untgz/*.c contrib/untgz/*.w32 \
-  contrib/minizip/[CM]*[pe] contrib/minizip/*.[ch] contrib/minizip/*.[td]?? \
-  contrib/delphi*/*.???
 
 all: example minigzip
 
@@ -88,11 +76,11 @@ match.o: match.S
 	mv _match.o match.o
 	rm -f _match.s
 
-$(SHAREDLIB).$(VER): $(OBJS)
+$(SHAREDLIBV): $(OBJS)
 	$(LDSHARED) -o $@ $(OBJS)
-	rm -f $(SHAREDLIB) $(SHAREDLIB).1
+	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
-	ln -s $@ $(SHAREDLIB).1
+	ln -s $@ $(SHAREDLIBM)
 
 example: example.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
@@ -110,10 +98,10 @@ install: $(LIBS)
 	cp $(LIBS) $(libdir)
 	cd $(libdir); chmod 755 $(LIBS)
 	-@(cd $(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
-	cd $(libdir); if test -f $(SHAREDLIB).$(VER); then \
-	  rm -f $(SHAREDLIB) $(SHAREDLIB).1; \
-	  ln -s $(SHAREDLIB).$(VER) $(SHAREDLIB); \
-	  ln -s $(SHAREDLIB).$(VER) $(SHAREDLIB).1; \
+	cd $(libdir); if test -f $(SHAREDLIBV); then \
+	  rm -f $(SHAREDLIB) $(SHAREDLIBM); \
+	  ln -s $(SHAREDLIBV) $(SHAREDLIB); \
+	  ln -s $(SHAREDLIBV) $(SHAREDLIBM); \
 	  (ldconfig || true)  >/dev/null 2>&1; \
 	fi
 	cp zlib.3 $(man3dir)
@@ -123,20 +111,15 @@ install: $(LIBS)
 
 uninstall:
 	cd $(includedir); \
-	v=$(VER); \
-	if test -f zlib.h; then \
-	  v=`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`; \
-          rm -f zlib.h zconf.h; \
-	fi; \
 	cd $(libdir); rm -f libz.a; \
-	if test -f $(SHAREDLIB).$$v; then \
-	  rm -f $(SHAREDLIB).$$v $(SHAREDLIB) $(SHAREDLIB).1; \
+	if test -f $(SHAREDLIBV); then \
+	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
 	fi
 	cd $(man3dir); rm -f zlib.3
 
 mostlyclean: clean
 clean:
-	rm -f *.o *~ example minigzip libz.a libz.so* foo.gz so_locations \
+	rm -f *.o *~ example minigzip libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 
 maintainer-clean: distclean
@@ -144,28 +127,6 @@ distclean: clean
 	cp -p Makefile.in Makefile
 	cp -p zconf.in.h zconf.h
 	rm -f .DS_Store
-
-zip:
-	echo Warning: this has not been updated for zlib 1.2.0 -- do not use
-	mv Makefile Makefile~; cp -p Makefile.in Makefile
-	rm -f test.c ztest*.c contrib/minizip/test.zip
-	v=`sed -n -e 's/\.//g' -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
-	zip -ul9 zlib$$v $(DISTFILES)
-	mv Makefile~ Makefile
-
-dist:
-	echo Warning: this has not been updated for zlib 1.2.0 -- do not use
-	mv Makefile Makefile~; cp -p Makefile.in Makefile
-	rm -f test.c ztest*.c contrib/minizip/test.zip
-	d=zlib-`sed -n '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`;\
-	rm -f $$d.tar.gz; \
-	if test ! -d ../$$d; then rm -f ../$$d; ln -s `pwd` ../$$d; fi; \
-	files=""; \
-	for f in $(DISTFILES); do files="$$files $$d/$$f"; done; \
-	cd ..; \
-	GZIP=-9 $(TAR) chofz $$d/$$d.tar.gz $$files; \
-	if test ! -d $$d; then rm -f $$d; fi
-	mv Makefile~ Makefile
 
 tags:
 	etags *.[ch]

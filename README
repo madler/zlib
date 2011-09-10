@@ -1,6 +1,6 @@
 ZLIB DATA COMPRESSION LIBRARY
 
-zlib 1.2.0.6 is a general purpose data compression library.  All the code is
+zlib 1.2.0.7 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
 (Request for Comments) 1950 to 1952 in the files
 http://www.ietf.org/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate format)
@@ -8,7 +8,7 @@ and rfc1952.txt (gzip format). These documents are also available in other
 formats from ftp://ftp.uu.net/graphics/png/documents/zlib/zdoc-index.html
 
 All functions of the compression library are documented in the file zlib.h
-(volunteer to write man pages welcome, contact jloup@gzip.org). A usage example
+(volunteer to write man pages welcome, contact zlib@gzip.org). A usage example
 of the library is given in the file example.c which also tests that the library
 is working correctly. Another example is given in the file minigzip.c. The
 compression library itself is composed of all source files except example.c and
@@ -34,12 +34,12 @@ Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan. 1997
 issue of  Dr. Dobb's Journal; a copy of the article is available in
 http://dogma.net/markn/articles/zlibtool/zlibtool.htm
 
-The changes made in version 1.2.0.6 are documented in the file ChangeLog.
+The changes made in version 1.2.0.7 are documented in the file ChangeLog.
 
 Unsupported third party contributions are provided in directory "contrib".
 
 A Java implementation of zlib is available in the Java Development Kit
-http://www.javasoft.com/products/JDK/1.1/docs/api/Package-java.util.zip.html
+http://java.sun.com/j2se/1.4.2/docs/api/java/util/zip/package-summary.html
 See the zlib home page http://www.zlib.org for details.
 
 A Perl interface to zlib written by Paul Marquess <pmqs@cpan.org> is in the
@@ -51,26 +51,16 @@ available in Python 1.5 and later versions, see
 http://www.python.org/doc/lib/module-zlib.html
 
 A zlib binding for TCL written by Andreas Kupries <a.kupries@westend.com> is
-availlable at http://www.westend.com/~kupries/doc/trf/man/man.html
+availlable at http://www.oche.de/~akupries/soft/trf/trf_zip.html
 
 An experimental package to read and write files in .zip format, written on top
-of zlib by Gilles Vollant <info@winimage.com>, is available at
-http://www.winimage.com/zLibDll/unzip.html and also in the contrib/minizip
-directory of zlib.
+of zlib by Gilles Vollant <info@winimage.com>, is available in the
+contrib/minizip directory of zlib.
 
 
 Notes for some targets:
 
-- To build a Windows DLL version, include in a DLL project zlib.def, zlib.rc
-  and all .c files except example.c and minigzip.c; compile with -DZLIB_DLL The
-  zlib DLL support was initially done by Alessandro Iacopetti and is now
-  maintained by Gilles Vollant <info@winimage.com>. Check the zlib DLL home
-  page at http://www.winimage.com/zLibDll
-
-  From Visual Basic, you can call the DLL functions which do not take a
-  structure as argument: compress, uncompress and all gz* functions. See
-  contrib/visual-basic.txt for more information, or get
-  http://www.tcfb.com/dowseware/cmp-z-it.zip
+- For Windows DLL versions, please see win32/DLL_FAQ.txt
 
 - For 64-bit Irix, deflate.c must be compiled without any optimization. With
   -O, one libpng test fails. The test works in 32 bit mode (with the -n32
@@ -90,8 +80,11 @@ Notes for some targets:
 - For Turbo C the small model is supported only with reduced performance to
   avoid any far allocation; it was tested with -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
 
-- For PalmOs, see http://www.cs.uit.no/~perm/PASTA/pilot/software.html Per
-  Harald Myrvang <perm@stud.cs.uit.no>
+- For PalmOs, see http://palmzlib.sourceforge.net/
+
+- When building a shared, i.e. dynamic library on Mac OS X, the library must be
+  installed before testing (do "make install" before "make test"), since the
+  library location is specified in the library.
 
 
 Acknowledgments:

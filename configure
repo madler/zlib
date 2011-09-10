@@ -20,8 +20,9 @@
 
 LIBS=libz.a
 LDFLAGS="-L. ${LIBS}"
-SHAREDLIB=libz.so
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
+VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
+VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
 AR=${AR-"ar rc"}
 RANLIB=${RANLIB-"ranlib"}
 prefix=${prefix-/usr/local}
@@ -55,10 +56,6 @@ case "$1" in
     esac
 done
 
-if [ $shared -eq 1 ]; then
-  LDFLAGS="-L. ${SHAREDLIB}"
-fi
-
 test=ztest$$
 cat > $test.c <<EOF
 extern int getchar();
@@ -85,6 +82,13 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   HP-UX*)        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl';;
+  Darwin*)   shared_ext='.dylib'
+             SHAREDLIB=libz$shared_ext
+             SHAREDLIBV=libz.$VER$shared_ext
+             SHAREDLIBM=libz.$VER1$shared_ext
+             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name /usr/lib/$SHAREDLIBV -compatibility_version $VER2 -current_version $VER"}
+             libdir='/usr/lib'
+             includedir='/usr/include';;
   *)             LDSHARED=${LDSHARED-"$cc -shared"};;
   esac
 else
@@ -102,7 +106,7 @@ else
              LDSHARED=${LDSHARED-"cc -shared"};;
   OSF1\ V4*) SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
-             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,$SHAREDLIB -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"};;
+             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,libz.so -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"};;
   OSF1*)     SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
              LDSHARED=${LDSHARED-"cc -shared"};;
@@ -143,14 +147,18 @@ else
   esac
 fi
 
+SHAREDLIB=${SHAREDLIB-"libz$shared_ext"}
+SHAREDLIBV=${SHAREDLIBV-"libz$shared_ext.$VER"}
+SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
+
 if test $shared -eq 1; then
   echo Checking for shared library support...
   # we must test in two steps (cc then ld), required at least on SunOS 4.x
   if test "`($CC -c $SFLAGS $test.c) 2>&1`" = "" &&
      test "`($LDSHARED -o $test$shared_ext $test.o) 2>&1`" = ""; then
     CFLAGS="$SFLAGS"
-    LIBS="$SHAREDLIB.$VER"
-    echo Building shared library $SHAREDLIB.$VER with $CC.
+    LIBS="$SHAREDLIBV"
+    echo Building shared library $SHAREDLIBV with $CC.
   elif test -z "$old_cc" -a -z "$old_cflags"; then
     echo No shared library support.
     shared=0;
@@ -162,6 +170,8 @@ fi
 if test $shared -eq 0; then
   LDSHARED="$CC"
   echo Building static library $LIBS version $VER with $CC.
+else
+  LDFLAGS="-L. ${SHAREDLIBV}"
 fi
 
 cat > $test.c <<EOF
@@ -422,19 +432,20 @@ rm -f $test.[co] $test$shared_ext
 
 # udpate Makefile
 sed < Makefile.in "
-/^CC *=/s%=.*%=$CC%
-/^CFLAGS *=/s%=.*%=$CFLAGS%
-/^CPP *=/s%=.*%=$CPP%
-/^LDSHARED *=/s%=.*%=$LDSHARED%
-/^LIBS *=/s%=.*%=$LIBS%
-/^SHAREDLIB *=/s%=.*%=$SHAREDLIB%
-/^AR *=/s%=.*%=$AR%
-/^RANLIB *=/s%=.*%=$RANLIB%
-/^VER *=/s%=.*%=$VER%
-/^prefix *=/s%=.*%=$prefix%
-/^exec_prefix *=/s%=.*%=$exec_prefix%
-/^libdir *=/s%=.*%=$libdir%
-/^includedir *=/s%=.*%=$includedir%
-/^mandir *=/s%=.*%=$mandir%
-/^LDFLAGS *=/s%=.*%=$LDFLAGS%
+/^CC *=/s#=.*#=$CC#
+/^CFLAGS *=/s#=.*#=$CFLAGS#
+/^CPP *=/s#=.*#=$CPP#
+/^LDSHARED *=/s#=.*#=$LDSHARED#
+/^LIBS *=/s#=.*#=$LIBS#
+/^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
+/^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
+/^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
+/^AR *=/s#=.*#=$AR#
+/^RANLIB *=/s#=.*#=$RANLIB#
+/^prefix *=/s#=.*#=$prefix#
+/^exec_prefix *=/s#=.*#=$exec_prefix#
+/^libdir *=/s#=.*#=$libdir#
+/^includedir *=/s#=.*#=$includedir#
+/^mandir *=/s#=.*#=$mandir#
+/^LDFLAGS *=/s#=.*#=$LDFLAGS#
 " > Makefile

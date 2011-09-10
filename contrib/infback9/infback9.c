@@ -321,7 +321,7 @@ void FAR *out_desc;
                 break;
             }
             length = (unsigned)hold & 0xffff;
-            Tracev((stderr, "inflate:       stored length %u\n",
+            Tracev((stderr, "inflate:       stored length %lu\n",
                     length));
             INITBITS();
 
@@ -507,7 +507,7 @@ void FAR *out_desc;
                 length += BITS(extra);
                 DROPBITS(extra);
             }
-            Tracevv((stderr, "inflate:         length %u\n", length));
+            Tracevv((stderr, "inflate:         length %lu\n", length));
 
             /* get distance code */
             for (;;) {
@@ -545,7 +545,7 @@ void FAR *out_desc;
                 mode = BAD;
                 break;
             }
-            Tracevv((stderr, "inflate:         distance %u\n", offset));
+            Tracevv((stderr, "inflate:         distance %lu\n", offset));
 
             /* copy match from window to output */
             do {

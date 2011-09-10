@@ -1,17 +1,28 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.0.7 (21 September 2003)
+- Correct some debug formats in contrib/infback9
+- Cast a type in a debug statement in trees.c
+- Change search and replace delimiter in configure from % to # [Beebe]
+- Update contrib/untgz to 0.2 with various fixes [Truta]
+- Add build support for Amiga [Nikl]
+- Remove some directories in old that have been updated to 1.2
+- Add dylib building for Mac OS X in configure and Makefile.in
+- Remove old distribution stuff from Makefile
+- Update README to point for DLL_FAQ.txt, and add comment on Mac OS X
+- Update links in README
+
 Changes in 1.2.0.6 (13 September 2003)
 - Minor FAQ updates
 - Update contrib/minizip to 1.00 [Vollant]
 - Remove test of gz functions in example.c when GZ_COMPRESS defined [Truta]
-- Updated POSTINC comment for 68060 [Nikl]
-- Added contrib/infback9 with deflate64 decoding (unsupported)
+- Update POSTINC comment for 68060 [Nikl]
+- Add contrib/infback9 with deflate64 decoding (unsupported)
 - For MVS define NO_vsnprintf and undefine FAR [van Burik]
 - Add pragma for fdopen on MVS [van Burik]
 
 Changes in 1.2.0.5 (8 September 2003)
-- Add infback9 diffs to contrib
 - Add OF to inflateBackEnd() declaration in zlib.h
 - Remember start when using gzdopen in the middle of a file
 - Use internal off_t counters in gz* functions to properly handle seeks

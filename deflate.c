@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.0.6 Copyright 1995-2003 Jean-loup Gailly ";
+   " deflate 1.2.0.7 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot

@@ -181,6 +181,9 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #      define vsnprintf _vsnprintf
 #    endif
 #  endif
+#  ifdef __SASC
+#    define NO_vsnprintf
+#  endif
 #endif
 
 #ifdef HAVE_STRERROR
