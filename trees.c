@@ -29,7 +29,7 @@
  *          Addison-Wesley, 1983. ISBN 0-201-06672-6.
  */
 
-/* $Id: trees.c,v 1.3 1995/04/29 13:49:46 jloup Exp $ */
+/* $Id: trees.c,v 1.4 1995/05/01 16:53:44 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -723,6 +723,22 @@ local void send_all_trees(s, lcodes, dcodes, blcodes)
 }
 
 /* ===========================================================================
+ * Send a stored block
+ */
+void ct_stored_block(s, buf, stored_len, eof)
+    deflate_state *s;
+    char *buf;        /* input block */
+    ulg stored_len;   /* length of input block */
+    int eof;          /* true if this is the last block for a file */
+{
+    send_bits(s, (STORED_BLOCK<<1)+eof, 3);  /* send block type */
+    s->compressed_len = (s->compressed_len + 3 + 7) & ~7L;
+    s->compressed_len += (stored_len + 4) << 3;
+
+    copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
+}
+
+/* ===========================================================================
  * Determine the best encoding for the current block: dynamic trees, static
  * trees or store, and output the encoded block to the zip file. This function
  * returns the total compressed length for the file so far.
@@ -771,8 +787,8 @@ ulg ct_flush_block(s, buf, stored_len, eof)
      * the whole file is transformed into a stored file:
      */
 #ifdef STORED_FILE_OK
-#  ifdef FORCE_METHOD
-    if (level == 1 && eof && compressed_len == 0L) { /* force stored file */
+#  ifdef FORCE_STORED_FILE
+    if (eof && compressed_len == 0L) { /* force stored file */
 #  else
     if (stored_len <= opt_lenb && eof && s->compressed_len==0L && seekable()) {
 #  endif
@@ -785,8 +801,8 @@ ulg ct_flush_block(s, buf, stored_len, eof)
     } else
 #endif /* STORED_FILE_OK */
 
-#ifdef FORCE_METHOD
-    if (level == 2 && buf != (char*)0) { /* force stored block */
+#ifdef FORCE_STORED
+    if (buf != (char*)0) { /* force stored block */
 #else
     if (stored_len+4 <= opt_lenb && buf != (char*)0) {
                        /* 4: two words for the lengths */
@@ -797,14 +813,10 @@ ulg ct_flush_block(s, buf, stored_len, eof)
          * successful. If LIT_BUFSIZE <= WSIZE, it is never too late to
          * transform a block into a stored block.
          */
-        send_bits(s, (STORED_BLOCK<<1)+eof, 3);  /* send block type */
-        s->compressed_len = (s->compressed_len + 3 + 7) & ~7L;
-        s->compressed_len += (stored_len + 4) << 3;
+	ct_stored_block(s, buf, stored_len, eof);
 
-        copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
-
-#ifdef FORCE_METHOD
-    } else if (level == 3) { /* force static trees */
+#ifdef FORCE_STATIC
+    } else if (static_lenb >= 0) { /* force static trees */
 #else
     } else if (static_lenb == opt_lenb) {
 #endif

@@ -3,11 +3,16 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: crc32.c,v 1.4 1995/04/14 14:55:12 jloup Exp $ */
+/* $Id: crc32.c,v 1.5 1995/05/01 13:55:46 jloup Exp $ */
 
 #include "zlib.h"
 
 extern uLong crc_table[];   /* crc table, defined below */
+
+#define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+#define DO2(buf)  DO1(buf); DO1(buf);
+#define DO4(buf)  DO2(buf); DO2(buf);
+#define DO8(buf)  DO4(buf); DO4(buf);
 
 /* ========================================================================= */
 uLong crc32(crc, buf, len)
@@ -17,8 +22,13 @@ uLong crc32(crc, buf, len)
 {
     if (buf == Z_NULL) return 0L;
     crc = crc ^ 0xffffffffL;
+    while (len >= 8)
+    {
+      DO8(buf);
+      len -= 8;
+    }
     if (len) do {
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+      DO1(buf);
     } while (--len);
     return crc ^ 0xffffffffL;
 }
@@ -29,7 +39,7 @@ uLong crc32(crc, buf, len)
  */
 #ifdef DYNAMIC_CRC_TABLE
 
-void make_crc_table()
+local void make_crc_table()
 {
   uLong c;
   int n, k;

@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.6 1995/04/29 16:53:46 jloup Exp $ */
+/* $Id: example.c,v 1.7 1995/05/01 16:57:22 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -182,6 +182,81 @@ void test_inflate(compr)
 }
 
 /* ===========================================================================
+ * Test deflate() with full flush
+ */
+void test_flush(compr)
+    Byte compr[];
+{
+    z_stream c_stream; /* compression stream */
+    int err;
+    int len = strlen(hello)+1;
+
+    c_stream.zalloc = (alloc_func)0;
+    c_stream.zfree = (free_func)0;
+
+    err = deflateInit(&c_stream, Z_DEFAULT_COMPRESSION);
+    CHECK_ERR(err, "deflateInit");
+
+    c_stream.next_in  = (Byte*)hello;
+    c_stream.next_out = compr;
+    c_stream.avail_in = 3;
+    c_stream.avail_out = BUFLEN;
+    err = deflate(&c_stream, Z_FULL_FLUSH);
+    CHECK_ERR(err, "deflate");
+
+    compr[3]++; /* force an error in first compressed block */
+    c_stream.avail_in = len - 3;
+
+    err = deflate(&c_stream, Z_FINISH);
+    if (err != Z_STREAM_END) {
+	CHECK_ERR(err, "deflate");
+    }
+    err = deflateEnd(&c_stream);
+    CHECK_ERR(err, "deflateEnd");
+}
+
+/* ===========================================================================
+ * Test inflateSync()
+ */
+void test_sync(compr)
+    Byte compr[];
+{
+    local Byte uncompr[BUFLEN];
+    int err;
+    z_stream d_stream; /* decompression stream */
+
+    strcpy((char*)uncompr, "garbage");
+
+    d_stream.zalloc = (alloc_func)0;
+    d_stream.zfree = (free_func)0;
+
+    err = inflateInit(&d_stream);
+    CHECK_ERR(err, "inflateInit");
+
+    d_stream.next_in  = compr;
+    d_stream.next_out = uncompr;
+    d_stream.avail_in = 2; /* just read the zlib header */
+    d_stream.avail_out = sizeof(uncompr);
+
+    inflate(&d_stream, Z_NO_FLUSH);
+    CHECK_ERR(err, "inflate");
+
+    d_stream.avail_in = BUFLEN-2; /* let inflate read all compressed data */
+    err = inflateSync(&d_stream); /* skip the damaged part */
+    CHECK_ERR(err, "inflateSync");
+
+    err = inflate(&d_stream, Z_FINISH);
+    if (err != Z_DATA_ERROR) {
+        fprintf(stderr, "inflate should report DATA_ERROR\n");
+	/* Because of incorrect adler32 */
+    }
+    err = inflateEnd(&d_stream);
+    CHECK_ERR(err, "inflateEnd");
+
+    printf("after inflateSync(): %s\n", uncompr);
+}
+
+/* ===========================================================================
  * Usage:  example [output.gz  [input.gz]]
  */
 
@@ -204,8 +279,10 @@ void main(argc, argv)
 	      (argc > 2 ? argv[2] : "foo.gz"));
 
     test_deflate(compr);
-
     test_inflate(compr);
+
+    test_flush(compr);
+    test_sync(compr);
 
     exit(0);
 }

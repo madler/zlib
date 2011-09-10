@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zconf.h,v 1.9 1995/04/29 12:02:14 jloup Exp $ */
+/* $Id: zconf.h,v 1.10 1995/04/30 19:27:14 jloup Exp $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H
@@ -32,10 +32,16 @@
 #  define STDC
 #endif
 
-#ifdef MAXSEG_64K
-#  define MAX_MEM_LEVEL 8
-#else
-#  define MAX_MEM_LEVEL 9
+#ifndef MAX_MEM_LEVEL
+#  ifdef MAXSEG_64K
+#    define MAX_MEM_LEVEL 8
+#  else
+#    define MAX_MEM_LEVEL 9
+#  endif
+#endif
+
+#ifndef MAX_WBITS
+#  define MAX_WBITS   15 /* 32K LZ77 window */
 #endif
 
 			/* Type declarations */
@@ -52,7 +58,7 @@
   typedef unsigned char  Byte;  /* 8 bits */
 #endif
 #ifndef uInt
-  typedef unsigned int   uInt;  /* may be 16 or 32 bits */
+  typedef unsigned int   uInt;  /* 16 bits or more */
 #endif
 #ifndef uLong
   typedef unsigned long  uLong; /* 32 bits or more */

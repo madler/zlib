@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* $Id: gzio.c,v 1.5 1995/04/29 17:13:56 jloup Exp $ */
+/* $Id: gzio.c,v 1.6 1995/04/30 19:52:21 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -128,7 +128,7 @@ local gzFile gz_open (path, mode, fd)
     
     if (s->mode == 'w') {
 	err = deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION,
-			   DEFLATED, -WBITS, MEM_LEVEL, 0);
+			   DEFLATED, -MAX_WBITS, MAX_MEM_LEVEL, 0);
 	/* windowBits is passed < 0 to suppress zlib header */
 
 	s->stream.next_out = s->outbuf = ALLOC(Z_BUFSIZE);
@@ -137,7 +137,7 @@ local gzFile gz_open (path, mode, fd)
 	    return destroy(s), (gzFile)Z_NULL;
 	}
     } else {
-	err = inflateInit2(&(s->stream), -WBITS);
+	err = inflateInit2(&(s->stream), -MAX_WBITS);
 	s->stream.next_in  = s->inbuf = ALLOC(Z_BUFSIZE);
 
 	if (err != Z_OK || s->inbuf == Z_NULL) {
@@ -249,7 +249,7 @@ int gzread (file, buf, len)
 	    len--; n++;
 	}
 	if (len == 0) return n;
-	return n + fread(buf, 1, len, s->file);
+	return n + fread(b, 1, len, s->file);
     }
     if (s->z_err == Z_DATA_ERROR) return -1; /* bad .gz file */
     if (s->z_err == Z_STREAM_END) return 0;  /* don't read crc as data */

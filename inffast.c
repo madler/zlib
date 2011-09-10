@@ -73,6 +73,7 @@ z_stream *z;
 	e = -e;
 	if (e & 64)		/* end of block */
 	{
+	  Tracevv((stderr, "inflate:         * end of block\n"));
           UNGRAB
 	  UPDATE
 	  return Z_STREAM_END;
@@ -83,6 +84,9 @@ z_stream *z;
     /* process literal or length (end of block already trapped) */
     if (e & 16)			/* then it's a literal */
     {
+      Tracevv((stderr, t->base >= 0x20 && t->base < 0x7f ?
+		"inflate:         * literal '%c'\n" :
+		"inflate:         * literal 0x%02x\n", t->base));
       *q++ = (Byte)t->base;
       m--;
     }
@@ -91,6 +95,7 @@ z_stream *z;
       /* get length of block to copy (already have extra bits) */
       c = t->base + ((uInt)b & inflate_mask[e]);
       DUMPBITS(e);
+      Tracevv((stderr, "inflate:         * length %u\n", c));
 
       /* decode distance base of block to copy */
       GRABBITS(15);		/* max bits for distance code */
@@ -109,13 +114,14 @@ z_stream *z;
       DUMPBITS(t->bits)
 
       /* get extra bits to add to distance base */
-      GRABBITS(e)           /* get extra bits (up to 13) */
+      GRABBITS((uInt)e)		/* get extra bits (up to 13) */
       d = t->base + ((uInt)b & inflate_mask[e]);
       DUMPBITS(e)
+      Tracevv((stderr, "inflate:         * distance %u\n", d));
 
       /* do the copy */
       m -= c;
-      if (q - s->window >= d)		/* if offset before destination, */
+      if ((uInt)(q - s->window) >= d)	/* if offset before destination, */
       {					/*  just copy */
 	r = q - d;
 	*q++ = *r++;  c--;		/* minimum count is three, */
@@ -128,7 +134,7 @@ z_stream *z;
       {
 	e = d - (q - s->window);	/* bytes from offset to end */
 	r = s->end - e;			/* pointer to offset */
-	if (c > e)			/* if source crosses, */
+	if (c > (uInt)e)		/* if source crosses, */
 	{
 	  c -= e;			/* copy to end of window */
 	  do {

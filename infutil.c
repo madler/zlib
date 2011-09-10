@@ -44,7 +44,9 @@ int r;
     s->check = (*s->checkfn)(s->check, q, n);
 
   /* copy as far as end of window */
-  while (n--) *p++ = *q++;
+  zmemcpy(p, q, n);
+  p += n;
+  q += n;
 
   /* see if more to copy at beginning of window */
   if (q == s->end)
@@ -68,7 +70,9 @@ int r;
       s->check = (*s->checkfn)(s->check, q, n);
 
     /* copy */
-    while (n--) *p++ = *q++;
+    zmemcpy(p, q, n);
+    p += n;
+    q += n;
   }
 
   /* update pointers */

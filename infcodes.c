@@ -29,7 +29,7 @@ struct inflate_codes_state {
       LIT,	/* o: got literal, waiting for output space */
       WASH,	/* o: got eob, possibly still output waiting */
       END,	/* x: got eob and all data flushed */
-      BAD}	/* x: got error */
+      BADCODE}	/* x: got error */
     mode;		/* current inflate_codes mode */
 
   /* mode dependent information */
@@ -70,6 +70,7 @@ z_stream *z;
     c->dbits = (Byte)bd;
     c->ltree = tl;
     c->dtree = td;
+    Tracev((stderr, "inflate:       codes new\n"));
   }
   return c;
 }
@@ -107,7 +108,7 @@ int r;
 	LOAD
 	if (r != Z_OK)
 	{
-	  c->mode = r == Z_STREAM_END ? WASH : BAD;
+	  c->mode = r == Z_STREAM_END ? WASH : BADCODE;
 	  break;
 	}
       }
@@ -124,7 +125,7 @@ int r;
       {
         if (e == -128)		/* invalid code */
 	{
-	  c->mode = BAD;
+	  c->mode = BADCODE;
 	  z->msg = "invalid literal/length code";
 	  r = Z_DATA_ERROR;
 	  LEAVE
@@ -132,6 +133,7 @@ int r;
 	e = -e;
 	if (e & 64)		/* end of block */
 	{
+	  Tracevv((stderr, "inflate:         end of block\n"));
 	  c->mode = WASH;
 	  break;
 	}
@@ -142,6 +144,9 @@ int r;
       if (e & 16)		/* literal */
       {
 	c->sub.lit = t->base;
+	Tracevv((stderr, t->base >= 0x20 && t->base < 0x7f ?
+		 "inflate:         literal '%c'\n" :
+		 "inflate:         literal 0x%02x\n", t->base));
 	c->mode = LIT;
 	break;
       }
@@ -155,6 +160,7 @@ int r;
       DUMPBITS(j)
       c->sub.code.need = c->dbits;
       c->sub.code.tree = c->dtree;
+      Tracevv((stderr, "inflate:         length %u\n", c->len));
       c->mode = DIST;
     case DIST:		/* i: get distance next */
       j = c->sub.code.need;
@@ -165,7 +171,7 @@ int r;
       {
         if (e == -128)
 	{
-	  c->mode = BAD;
+	  c->mode = BADCODE;
 	  z->msg = "invalid distance code";
 	  r = Z_DATA_ERROR;
 	  LEAVE
@@ -182,6 +188,7 @@ int r;
       NEEDBITS(j)
       c->sub.copy.dist += (uInt)b & inflate_mask[j];
       DUMPBITS(j)
+      Tracevv((stderr, "inflate:         distance %u\n", c->sub.copy.dist));
       c->mode = COPY;
     case COPY:		/* o: copying bytes in window, waiting for space */
       f = (uInt)(q - s->window) < c->sub.copy.dist ?
@@ -210,7 +217,7 @@ int r;
     case END:
       r = Z_STREAM_END;
       LEAVE
-    case BAD:		/* x: got error */
+    case BADCODE:	/* x: got error */
       r = Z_DATA_ERROR;
       LEAVE
     default:
@@ -227,4 +234,5 @@ z_stream *z;
   inflate_trees_free(c->dtree, z);
   inflate_trees_free(c->ltree, z);
   ZFREE(z, c);
+  Tracev((stderr, "inflate:       codes free\n"));
 }

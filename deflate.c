@@ -47,7 +47,7 @@
  *
  */
 
-/* $Id: deflate.c,v 1.5 1995/04/29 16:52:05 jloup Exp $ */
+/* $Id: deflate.c,v 1.6 1995/05/01 17:23:57 jloup Exp $ */
 
 #include "deflate.h"
 
@@ -152,12 +152,20 @@ local  void check_match __P((deflate_state *s, IPos start, IPos match,
     s->prev[(str) & s->w_mask] = match_head = s->head[s->ins_h], \
     s->head[s->ins_h] = (str))
 
+/* ===========================================================================
+ * Initialize the hash table (avoiding 64K overflow for 16 bit systems).
+ * prev[] will be initialized on the fly.
+ */
+#define CLEAR_HASH(s) \
+    s->head[s->hash_size-1] = NIL; \
+    zmemzero((char*)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
+
 /* ========================================================================= */
 int deflateInit (strm, level)
     z_stream *strm;
     int level;
 {
-    return deflateInit2 (strm, level, DEFLATED, WBITS, MEM_LEVEL, 0);
+    return deflateInit2 (strm, level, DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, 0);
     /* To do: ignore strm->next_in if we use it as window */
 }
 
@@ -345,6 +353,13 @@ int deflate (strm, flush)
 	} else {
 	    if (deflate_slow(strm->state, flush)) return Z_OK;
 	}
+	/* ??? remember Z_FULL_FLUSH if we didn't have enough space */
+	if (flush == Z_FULL_FLUSH) {
+	    ct_stored_block(strm->state, (char*)0, 0L, 0); /* special marker */
+	    flush_pending(strm);
+	    CLEAR_HASH(strm->state);             /* forget history */
+	    if (strm->avail_out == 0) return Z_OK;
+	}
     }
     Assert(strm->avail_out > 0, "bug2");
 
@@ -435,12 +450,7 @@ local void lm_init (s)
 
     s->window_size = (ulg)2L*s->w_size;
 
-
-    /* Initialize the hash table (avoiding 64K overflow for 16 bit systems).
-     * prev[] will be initialized on the fly.
-     */
-    s->head[s->hash_size-1] = NIL;
-    zmemzero((char*)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
+    CLEAR_HASH(s);
 
     /* Set the default configuration parameters:
      */
@@ -930,8 +940,10 @@ local int deflate_slow(s, flush)
             s->lookahead--;
         }
     }
-    if (s->match_available) ct_tally (s, 0, s->window[s->strstart-1]);
-
+    if (s->match_available) {
+	ct_tally (s, 0, s->window[s->strstart-1]);
+	s->match_available = 0;
+    }
     FLUSH_BLOCK(s, flush == Z_FINISH);
     return 0;
 }

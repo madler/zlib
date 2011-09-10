@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.8 April 29th, 1995.
+  version 0.9 April 30th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.8"
+#define ZLIB_VERSION "0.9"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -81,7 +81,7 @@ typedef struct z_stream_s {
    opaque before calling the init function. All other fields are set by the
    compression library and must not be updated by the application.
 
-   The opaque value provided by the application will be passed as first
+   The opaque value provided by the application will be passed as the first
    parameter for calls of zalloc and zfree. This can be useful for custom
    memory management. The compression library attaches no meaning to the
    opaque value.
@@ -89,7 +89,12 @@ typedef struct z_stream_s {
    zalloc must return Z_NULL if there is not enough memory for the object.
    On 16-bit systems, the functions zalloc and zfree must be able to allocate
    exactly 65536 bytes, but will not be required to allocate more than this
-   if the symbol MAXSEG_64K is defined (see zconf.h).
+   if the symbol MAXSEG_64K is defined (see zconf.h). WARNING: On MSDOS,
+   pointers returned by zalloc for objects of exactly 65536 bytes *must*
+   have their offset normalized to zero. The default allocation function
+   provided by this library ensures this (see zutil.c). To reduce memory
+   requirements and avoid any allocation of 64K objects, at the expense of
+   compression ratio, compile the library with -DMAX_WBITS=14 (see zconf.h).
 
    The fields total_in and total_out can be used for statistics or
    progress reports. After compression, total_in holds the total size of
@@ -265,7 +270,7 @@ extern int inflate __P((z_stream *strm, int flush));
 
     If the parameter flush is set to Z_PARTIAL_FLUSH, inflate flushes as much
   output as possible to the output buffer. The flushing behavior of inflate is
-  not specified for values of the flush paramater other than Z_PARTIAL_FLUSH
+  not specified for values of the flush parameter other than Z_PARTIAL_FLUSH
   and Z_FINISH, but the current implementation actually flushes as much output
   as possible anyway.
 
@@ -367,7 +372,7 @@ extern int deflateCopy __P((z_stream *dest,
      Sets the destination stream as a complete copy of the source stream.  If
    the source stream is using an application-supplied history buffer, a new
    buffer is allocated for the destination stream.  The compressed output
-   buffer is always application-supplied. It's the responsability of the
+   buffer is always application-supplied. It's the responsibility of the
    application to provide the correct values of next_out and avail_out for the
    next call of deflate.
 
@@ -430,12 +435,13 @@ extern int inflateInit2 __P((z_stream *strm,
 
 extern int inflateSync __P((z_stream *strm));
 /* 
-    Skips invalid compressed data until the special marker and a valid block
-  can be found, or until all available input is skipped. No output is provided.
+    Skips invalid compressed data until the special marker (see deflate()
+  above) can be found, or until all available input is skipped. No output
+  is provided.
 
-    inflateSync returns Z_OK if a valid block has been found, Z_BUF_ERROR if
-  no more input was provided, Z_DATA_ERROR if not valid block has been found,
-  Z_STREAM_ERROR if the stream structure was inconsistent. In the success
+    inflateSync returns Z_OK if the special marker has been found, Z_BUF_ERROR
+  if no more input was provided, Z_DATA_ERROR if no marker has been found,
+  or Z_STREAM_ERROR if the stream structure was inconsistent. In the success
   case, the application may save the current current value of total_in which
   indicates where valid compressed data was found. In the error case, the
   application may repeatedly call inflateSync, providing more input each time,
@@ -469,7 +475,7 @@ extern int compress __P((Byte *dest,   uLong *destLen,
      Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
    size of the destination buffer, which must be at least 0.1% larger than
-   sourceLen plus 8 bytes. Upon exit, destLen is the actual size of the
+   sourceLen plus 12 bytes. Upon exit, destLen is the actual size of the
    compressed buffer.
      This function can be used to compress a whole file at once if the
    input file is mmap'ed.
@@ -505,7 +511,7 @@ extern gzFile gzopen  __P((char *path, char *mode));
    is as in fopen ("rb" or "wb"). gzopen can also be used to read a file
    which is not in gzip format; in this case gzread will directly read from
    the file without decompression.
-     gzopen return NULL if the file could not be opened or if there was
+     gzopen returns NULL if the file could not be opened or if there was
    insufficient memory to allocate the (de)compression state; errno
    can be checked to distinguish the two cases (if errno is zero, the
    zlib error is Z_MEM_ERROR).
@@ -516,7 +522,7 @@ extern gzFile gzdopen  __P((int fd, char *mode));
      gzdopen() associates a gzFile with the file descriptor fd.  File
    descriptors are obtained from calls like open, dup, creat, or pipe.
    The mode parameter is as in fopen ("rb" or "wb").
-     gzdopen return NULL if there was insufficient memory to allocate
+     gzdopen returns NULL if there was insufficient memory to allocate
    the (de)compression state.
 */
 
@@ -574,7 +580,7 @@ extern uLong adler32 __P((uLong adler, Byte *buf, uInt len));
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. If buf is NULL, this function returns
    the required initial value for the checksum.
-   An Adler-32 cheksum is almost as reliable as a CRC32 but can be computed
+   An Adler-32 checksum is almost as reliable as a CRC32 but can be computed
    much faster. Usage example:
 
      uLong adler = adler32(0L, Z_NULL, 0);

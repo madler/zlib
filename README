@@ -1,6 +1,4 @@
-zlib 0.8 is a beta version of a general purpose compression library.
-This is the first version with no known bugs. (There may still be
-problem on SGI, to be checked.)
+zlib 0.9 is a beta version of a general purpose compression library.
 
 The data format used by the zlib library is described in the
 file zlib-3.1.doc, deflate-1.1.doc and gzip-4.1.doc, available
@@ -11,18 +9,17 @@ zlib.h. A usage example of the library is given in the file example.c
 which also tests that the library is working correctly.
 To compile all files and run the test program, just type: make test
 
-The changes made in version 0.8 are documented in the file ChangeLog.
-The main changes since 0.71 are:
-- added fast inflate (inffast.c)
-- deflate(Z_FINISH) now returns Z_STREAM_END when done. Warning: this
-  is incompatible with previous versions of zlib which returned Z_OK.
-- work around a nasty TurboC compiler bug
+The changes made in version 0.9 are documented in the file ChangeLog.
+The main changes since 0.8 are:
+- don't assume that zalloc clears the allocated memory
+- let again gzread copy uncompressed data unchanged (was working in 0.71)
+- deflate(Z_FULL_FLUSH), inflateReset and inflateSync are now fully implemented
 
 On MSDOS, this version works in both large and small model. However
 small model compression works only for small values of MEM_LEVEL and
 WBITS (see zutil.h). Small model decompression should work up to WBITS=15.
-This version of zlib does not yet support small or medium model with
-far allocation of big objects.
+This version of zlib does not support small or medium model with far
+allocation of big objects.
 
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler

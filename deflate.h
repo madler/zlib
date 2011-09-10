@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: deflate.h,v 1.3 1995/04/14 12:39:45 jloup Exp $ */
+/* $Id: deflate.h,v 1.4 1995/05/01 15:08:45 jloup Exp $ */
 
 #include "zutil.h"
 
@@ -268,3 +268,5 @@ typedef struct internal_state {
 void ct_init       __P((deflate_state *s));
 int  ct_tally      __P((deflate_state *s, int dist, int lc));
 ulg ct_flush_block __P((deflate_state *s, char *buf, ulg stored_len, int eof));
+void ct_stored_block __P((deflate_state *s, char *buf, ulg stored_len,
+			  int eof));

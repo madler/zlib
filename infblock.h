@@ -11,16 +11,21 @@
 struct inflate_blocks_state;
 
 extern struct inflate_blocks_state * inflate_blocks_new __P((
-    z_stream *z,
-    check_func c,               /* check function */
-    uInt w));                   /* window size */
+    z_stream *,
+    check_func,                 /* check function */
+    uInt));                     /* window size */
 
 extern int inflate_blocks __P((
     struct inflate_blocks_state *,
     z_stream *,
     int));			/* initial return code */
 
+extern void inflate_blocks_reset __P((
+    struct inflate_blocks_state *,
+    z_stream *,
+    uLong *));                  /* check value on output */
+
 extern int inflate_blocks_free __P((
     struct inflate_blocks_state *,
     z_stream *,
-    uLong *));                        /* check value on output */
+    uLong *));                  /* check value on output */

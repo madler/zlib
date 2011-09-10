@@ -60,6 +60,28 @@ local uInt border[] = {	/* Order of the bit length code lengths */
       the two sets of lengths.
  */
 
+
+void inflate_blocks_reset(s, z, c)
+struct inflate_blocks_state *s;
+z_stream *z;
+uLong *c;
+{
+  if (s->checkfn != Z_NULL)
+    *c = s->check;
+  if (s->mode == BTREE || s->mode == DTREE)
+    ZFREE(z, s->sub.trees.blens);
+  if (s->mode == CODES)
+    inflate_codes_free(s->sub.codes, z);
+  s->mode = TYPE;
+  s->bitk = 0;
+  s->bitb = 0;
+  s->read = s->write = s->window;
+  if (s->checkfn != Z_NULL)
+    s->check = (*s->checkfn)(0L, Z_NULL, 0);
+  Trace((stderr, "inflate:   blocks reset\n"));
+}
+
+
 struct inflate_blocks_state *inflate_blocks_new(z, c, w)
 z_stream *z;
 check_func c;
@@ -75,13 +97,11 @@ uInt w;
     ZFREE(z, s);
     return Z_NULL;
   }
-  s->mode = TYPE;
-  s->bitk = 0;
-  s->read = s->write = s->window;
   s->end = s->window + w;
   s->checkfn = c;
-  if (s->checkfn != Z_NULL)
-    s->check = (*s->checkfn)(0L, Z_NULL, 0);
+  s->mode = TYPE;
+  Trace((stderr, "inflate:   blocks allocated\n"));
+  inflate_blocks_reset(s, z, &s->check);
   return s;
 }
 
@@ -112,12 +132,16 @@ int r;
       switch (t >> 1)
       {
         case 0:				/* stored */
+	  Trace((stderr, "inflate:     stored block%s\n",
+		 s->last ? " (last)" : ""));
 	  DUMPBITS(3)
 	  t = k & 7;			/* go to byte boundary */
 	  DUMPBITS(t)
 	  s->mode = LENS;		/* get length of stored block */
 	  break;
 	case 1:				/* fixed */
+	  Trace((stderr, "inflate:     fixed codes block%s\n",
+		 s->last ? " (last)" : ""));
 	  {
 	    uInt bl, bd;
 	    inflate_huft *tl, *td;
@@ -134,12 +158,14 @@ int r;
 	  s->mode = CODES;
 	  break;
 	case 2:				/* dynamic */
+	  Trace((stderr, "inflate:     dynamic codes block%s\n",
+		 s->last ? " (last)" : ""));
 	  DUMPBITS(3)
 	  s->mode = TABLE;
 	  break;
 	case 3:				/* illegal */
 	  DUMPBITS(3)
-	  s->mode = INF_ERROR;
+	  s->mode = BAD;
 	  z->msg = "invalid block type";
 	  r = Z_DATA_ERROR;
 	  LEAVE
@@ -149,13 +175,14 @@ int r;
       NEEDBITS(32)
       if ((~b) >> 16 != (b & 0xffff))
       {
-        s->mode = INF_ERROR;
+        s->mode = BAD;
 	z->msg = "invalid stored block lengths";
 	r = Z_DATA_ERROR;
 	LEAVE
       }
       k = 0;				/* dump bits */
       s->sub.left = (uInt)b & 0xffff;
+      Tracev((stderr, "inflate:       stored length %u\n", s->sub.left));
       s->mode = s->sub.left ? STORED : TYPE;
       break;
     case STORED:
@@ -164,6 +191,9 @@ int r;
 	NEEDOUT
 	OUTBYTE(NEXTBYTE)
       } while (--s->sub.left);
+      Tracev((stderr, "inflate:       stored end, %lu total out\n",
+	      z->total_out + (q >= s->read ? q - s->read :
+	      (s->end - s->read) + (q - s->window))));
       s->mode = s->last ? DRY : TYPE;
       break;
     case TABLE:
@@ -172,7 +202,7 @@ int r;
 #ifndef PKZIP_BUG_WORKAROUND
       if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29)
       {
-        s->mode = INF_ERROR;
+        s->mode = BAD;
         z->msg = "too many length or distance symbols";
 	r = Z_DATA_ERROR;
 	LEAVE
@@ -188,6 +218,7 @@ int r;
       }
       DUMPBITS(14)
       s->sub.trees.index = 0;
+      Tracev((stderr, "inflate:       table sizes ok\n"));
       s->mode = BTREE;
     case BTREE:
       while (s->sub.trees.index < 4 + (s->sub.trees.table >> 10))
@@ -205,10 +236,11 @@ int r;
       {
         r = t;
 	if (r == Z_DATA_ERROR)
-	  s->mode = INF_ERROR;
+	  s->mode = BAD;
 	LEAVE
       }
       s->sub.trees.index = 0;
+      Tracev((stderr, "inflate:       bits tree ok\n"));
       s->mode = DTREE;
     case DTREE:
       while (t = s->sub.trees.table,
@@ -240,7 +272,7 @@ int r;
 	  if (i + j > 258 + (t & 0x1f) + ((t >> 5) & 0x1f) ||
 	      (c == 16 && i < 1))
 	  {
-	    s->mode = INF_ERROR;
+	    s->mode = BAD;
 	    z->msg = "invalid bit length repeat";
 	    r = Z_DATA_ERROR;
 	    LEAVE
@@ -267,10 +299,11 @@ int r;
 	if (t != Z_OK)
 	{
 	  if (t == (uInt)Z_DATA_ERROR)
-	    s->mode = INF_ERROR;
+	    s->mode = BAD;
 	  r = t;
 	  LEAVE
 	}
+        Tracev((stderr, "inflate:       trees ok\n"));
 	if ((c = inflate_codes_new(bl, bd, tl, td, z)) == Z_NULL)
 	{
 	  inflate_trees_free(td, z);
@@ -289,17 +322,20 @@ int r;
       r = Z_OK;
       inflate_codes_free(s->sub.codes, z);
       LOAD
+      Tracev((stderr, "inflate:       codes end, %lu total out\n",
+	      z->total_out + (q >= s->read ? q - s->read :
+	      (s->end - s->read) + (q - s->window))));
       if (!s->last)
       {
         s->mode = TYPE;
-      break;
+	break;
       }
       if (k > 7)              /* return unused byte, if any */
       {
         Assert(k < 16, "inflate_codes grabbed too many bytes")
         k -= 8;
-      n++;
-      p--;                    /* can always return one */
+	n++;
+	p--;                    /* can always return one */
       }
       s->mode = DRY;
     case DRY:
@@ -310,7 +346,7 @@ int r;
     case DONE:
       r = Z_STREAM_END;
       LEAVE
-    case INF_ERROR:
+    case BAD:
       r = Z_DATA_ERROR;
       LEAVE
     default:
@@ -325,13 +361,9 @@ struct inflate_blocks_state *s;
 z_stream *z;
 uLong *c;
 {
-  if (s->checkfn != Z_NULL)
-    *c = s->check;
-  if (s->mode == BTREE || s->mode == DTREE)
-    ZFREE(z, s->sub.trees.blens);
-  if (s->mode == CODES)
-    inflate_codes_free(s->sub.codes, z);
+  inflate_blocks_reset(s, z, c);
   ZFREE(z, s->window);
   ZFREE(z, s);
+  Trace((stderr, "inflate:   blocks freed\n"));
   return Z_OK;
 }

@@ -1,5 +1,5 @@
-CC=cc
-CFLAGS=-O
+CC=gcc
+CFLAGS=-O2
 #CFLAGS=-g -DDEBUG
 LDFLAGS=-L. -lgz
 
@@ -33,11 +33,11 @@ clean:
 	rm -f *.o example minigzip inftest libgz.a foo.gz
 
 zip:
-	zip -ul9 zlib README ChangeLog Makefile Makefile.??? Makefile.?? *.[ch]
+	zip -ul9 zlib README ChangeLog Makefile *.[ch]
 
 tgz:
 	cd ..; tar cfz zlib/zlib.tgz zlib/README zlib/ChangeLog zlib/Makefile \
-		zlib/Makefile.??? zlib/Makefile.?? zlib/*.[ch]
+		zlib/*.[ch]
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
@@ -48,8 +48,7 @@ deflate.o: deflate.h zutil.h zlib.h zconf.h
 example.o: zlib.h zconf.h
 gzio.o: zutil.h zlib.h zconf.h
 infblock.o: zutil.h zlib.h zconf.h infblock.h inftrees.h infcodes.h infutil.h
-infcodes.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infcodes.h inffast.h
-inffast.o: zutil.h zlib.h zconf.h inftrees.h infutil.h inffast.h
+infcodes.o: zutil.h zlib.h zconf.h inftrees.h infutil.h infcodes.h
 inflate.o: zutil.h zlib.h zconf.h infblock.h
 inftest.o: zutil.h zlib.h zconf.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h

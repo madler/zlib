@@ -22,7 +22,7 @@ struct inflate_blocks_state {
       CODES,	/* processing fixed or dynamic block */
       DRY,	/* output remaining window bytes */
       DONE,	/* finished last block, done */
-      INF_ERROR}/* got a data error--stuck here */
+      BAD}	/* got a data error--stuck here */
     mode;		/* current inflate_block mode */
 
   /* mode dependent information */
@@ -63,13 +63,7 @@ struct inflate_blocks_state {
 #define LOADIN {p=z->next_in;n=z->avail_in;b=s->bitb;k=s->bitk;}
 #define NEEDBYTE {if(n)r=Z_OK;else LEAVE}
 #define NEXTBYTE (n--,*p++)
-#ifdef __TURBOC__ /* bug in TurboC compiler, bad code for b << 0 */
-#  define NEEDBITS(j) {\
-  while(k<(j)){NEEDBYTE;b=k?b|(((uLong)NEXTBYTE)<<k):NEXTBYTE;k+=8;}\
-}
-#else
-#  define NEEDBITS(j) {while(k<(j)){NEEDBYTE;b|=((uLong)NEXTBYTE)<<k;k+=8;}}
-#endif
+#define NEEDBITS(j) {while(k<(j)){NEEDBYTE;b|=((uLong)NEXTBYTE)<<k;k+=8;}}
 #define DUMPBITS(j) {b>>=(j);k-=(j);}
 /*   output bytes */
 #define WAVAIL (q<s->read?s->read-q-1:s->end-q)

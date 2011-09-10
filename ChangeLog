@@ -1,10 +1,22 @@
 		ChangeLog file for zlib
 
+Changes in 0.9 (1 May 95)
+- don't assume that zalloc clears the allocated memory (the TurboC bug
+  was Mark's bug after all :)
+- let again gzread copy uncompressed data unchanged (was working in 0.71)
+- deflate(Z_FULL_FLUSH), inflateReset and inflateSync are now fully implemented
+- added a test of inflateSync in example.c
+- moved MAX_WBITS to zconf.h because users might want to change that.
+- document explicitly that zalloc(64K) on MSDOS must return a normalized
+  pointer (zero offset)
+- added Makefiles for Microsoft C, Turbo C, Borland C++
+
 Changes in 0.8 (29 April 95)
 - added fast inflate (inffast.c)
 - deflate(Z_FINISH) now returns Z_STREAM_END when done. Warning: this
   is incompatible with previous versions of zlib which returned Z_OK.
 - work around a TurboC compiler bug (bad code for b << 0, see infutil.h)
+  (actually that was not a compiler bug, see 0.81 above)
 - gzread no longer reads one extra byte in certain cases
 - In gzio destroy(), don't reference a freed structure
 - avoid many warnings for MSDOS
