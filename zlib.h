@@ -1,7 +1,7 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3.4, December 21st, 2009
+  version 1.2.3.5, Jan 8th, 2010
 
-  Copyright (C) 1995-2009 Jean-loup Gailly and Mark Adler
+  Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.3.4"
-#define ZLIB_VERNUM 0x1234
+#define ZLIB_VERSION "1.2.3.5"
+#define ZLIB_VERNUM 0x1235
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 3
@@ -744,6 +744,9 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
    size is given as input, inflate() will return with the error code
    Z_DATA_ERROR instead of trying to allocate a larger window.
 
+     windowBits can also be zero to request that inflate use the window size in
+   the zlib header of the compressed stream.
+
      windowBits can also be -8..-15 for raw inflate. In this case, -windowBits
    determines the window size. inflate() will then process raw deflate data,
    not looking for a zlib or gzip header, not generating a check value, and not
@@ -1148,11 +1151,18 @@ ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
    buffer, or Z_DATA_ERROR if the input data was corrupted or incomplete.
 */
 
+/*
+     This library supports reading and writing files in gzip (.gz) format
+  with an interface similar to that of stdio using the functions that start
+  with "gz". The gzip format is different from the zlib format. gzip is a
+  gzip wrapper, documented in RFC 1952, wrapped around a deflate stream.
+
+*/
 
 typedef voidp gzFile;
 
 /*
-ZEXTERN gzFile ZEXPORT gzopen  OF((const char *path, const char *mode));
+ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
 
      Opens a gzip (.gz) file for reading or writing. The mode parameter
    is as in fopen ("rb" or "wb") but can also include a compression level
@@ -1169,7 +1179,7 @@ ZEXTERN gzFile ZEXPORT gzopen  OF((const char *path, const char *mode));
    can be checked to distinguish the two cases (if errno is zero, the
    zlib error is Z_MEM_ERROR).  */
 
-ZEXTERN gzFile ZEXPORT gzdopen  OF((int fd, const char *mode));
+ZEXTERN gzFile ZEXPORT gzdopen OF((int fd, const char *mode));
 /*
      gzdopen() associates a gzFile with the file descriptor fd.  File
    descriptors are obtained from calls like open, dup, creat, pipe or
@@ -1182,6 +1192,20 @@ ZEXTERN gzFile ZEXPORT gzdopen  OF((int fd, const char *mode));
    the (de)compression state.
 */
 
+ZEXTERN int ZEXPORT gzbuffer OF((gzFile file, unsigned size));
+/*
+     Set the internal buffer size used by this library's functions. The default
+   buffer size is 8192 bytes. This function must be called after gz_open() or
+   gz_dopen(), and before any other calls that read or write the file. The
+   buffer memory allocation is always deferred to the first read or write. Two
+   buffers are allocated, either both of the specified size when writing, or
+   one of the specified size and the other twice that size when reading. A
+   larger buffer size of, for example, 64K or 128K bytes will noticeably
+   increase the speed of decompression (reading).
+     gz_buffer() returns 0 on success, or -1 on failure, such as being called
+   too late.
+*/
+
 ZEXTERN int ZEXPORT gzsetparams OF((gzFile file, int level, int strategy));
 /*
      Dynamically update the compression level or strategy. See the description
@@ -1190,7 +1214,7 @@ ZEXTERN int ZEXPORT gzsetparams OF((gzFile file, int level, int strategy));
    opened for writing.
 */
 
-ZEXTERN int ZEXPORT    gzread  OF((gzFile file, voidp buf, unsigned len));
+ZEXTERN int ZEXPORT gzread OF((gzFile file, voidp buf, unsigned len));
 /*
      Reads the given number of uncompressed bytes from the compressed file.
    If the input file was not in gzip format, gzread copies the given number
@@ -1198,25 +1222,26 @@ ZEXTERN int ZEXPORT    gzread  OF((gzFile file, voidp buf, unsigned len));
      gzread returns the number of uncompressed bytes actually read (0 for
    end of file, -1 for error). */
 
-ZEXTERN int ZEXPORT    gzwrite OF((gzFile file,
-                                   voidpc buf, unsigned len));
+ZEXTERN int ZEXPORT gzwrite OF((gzFile file,
+                                voidpc buf, unsigned len));
 /*
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of uncompressed bytes actually written
    (0 in case of error).
 */
 
-ZEXTERN int ZEXPORTVA   gzprintf OF((gzFile file, const char *format, ...));
+ZEXTERN int ZEXPORTVA gzprintf OF((gzFile file, const char *format, ...));
 /*
-     Converts, formats, and writes the args to the compressed file under
+     Converts, formats, and writes the arguments to the compressed file under
    control of the format string, as in fprintf. gzprintf returns the number of
-   uncompressed bytes actually written (0 in case of error).  The number of
-   uncompressed bytes written is limited to 4095. The caller should assure that
-   this limit is not exceeded. If it is exceeded, then gzprintf() will return
-   return an error (0) with nothing written. In this case, there may also be a
-   buffer overflow with unpredictable consequences, which is possible only if
-   zlib was compiled with the insecure functions sprintf() or vsprintf()
-   because the secure snprintf() or vsnprintf() functions were not available.
+   uncompressed bytes actually written, or 0 in case of error. The number of
+   uncompressed bytes written is limited to 8191, or one less than the buffer
+   size given to gz_buffer(). The caller should assure that this limit is not
+   exceeded. If it is exceeded, then gzprintf() will return an error (0) with
+   nothing written. In this case, there may also be a buffer overflow with
+   unpredictable consequences, which is possible only if zlib was compiled
+   with the insecure functions sprintf() or vsprintf() because the secure
+   snprintf() or vsnprintf() functions were not available.
 */
 
 ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));
@@ -1257,7 +1282,7 @@ ZEXTERN int ZEXPORT    gzungetc OF((int c, gzFile file));
    or gzrewind().
 */
 
-ZEXTERN int ZEXPORT    gzflush OF((gzFile file, int flush));
+ZEXTERN int ZEXPORT gzflush OF((gzFile file, int flush));
 /*
      Flushes all pending output into the compressed file. The parameter
    flush is as in the deflate() function. The return value is the zlib
@@ -1268,8 +1293,8 @@ ZEXTERN int ZEXPORT    gzflush OF((gzFile file, int flush));
 */
 
 /*
-ZEXTERN z_off_t ZEXPORT    gzseek OF((gzFile file,
-                                      z_off_t offset, int whence));
+ZEXTERN z_off_t ZEXPORT gzseek OF((gzFile file,
+                                   z_off_t offset, int whence));
 
       Sets the starting position for the next gzread or gzwrite on the
    given compressed file. The offset represents a number of bytes in the
@@ -1298,9 +1323,21 @@ ZEXTERN z_off_t ZEXPORT    gztell OF((gzFile file));
 
      Returns the starting position for the next gzread or gzwrite on the
    given compressed file. This position represents a number of bytes in the
-   uncompressed data stream.
+   uncompressed data stream, and is zero when starting, even if appending
+   or reading a gzip stream from the middle of a file using gz_dopen().
 
    gztell(file) is equivalent to gzseek(file, 0L, SEEK_CUR)
+*/
+
+/*
+ZEXTERN z_off_t ZEXPORT gzoffset OF((gzFile file));
+
+     Returns the current offset in the file being read or written. This offset
+   includes the count of bytes that precede the gzip stream, for example when
+   appending or when using gz_dopen() for reading. When reading, the offset
+   includes data that has been used to generate what has been provided as
+   uncompressed data so far, but does not include as yet unused buffered input.
+   On error, gz_offset() returns -1.
 */
 
 ZEXTERN int ZEXPORT gzeof OF((gzFile file));
@@ -1319,8 +1356,20 @@ ZEXTERN int ZEXPORT    gzclose OF((gzFile file));
 /*
      Flushes all pending output if necessary, closes the compressed file
    and deallocates all the (de)compression state. The return value is the zlib
-   error number.  Note that once file is close, you cannot call gzerror with
+   error number.  Note that once file is closed, you cannot call gzerror with
    file, since its structures have been deallocated.
+*/
+
+ZEXTERN int ZEXPORT gzclose_r OF((gzFile file));
+ZEXTERN int ZEXPORT gzclose_w OF((gzFile file));
+/*
+    Same as gz_close(), but gz_close_r() is only for use when reading, and
+   gz_close_w() is only for use when writing. The advantage to using these
+   instead of gz_close() is that they avoid linking in zlib compression or
+   decompression code that is not used when only reading or only writing
+   respectively. If gz_close() is used, then both compression and
+   decompression code will be included the application when linking to a
+   static zlib library.
 */
 
 ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
@@ -1439,6 +1488,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
    ZEXTERN gzFile ZEXPORT gzopen64 OF((const char *, const char *));
    ZEXTERN off64_t ZEXPORT gzseek64 OF((gzFile, off64_t, int));
    ZEXTERN off64_t ZEXPORT gztell64 OF((gzFile));
+   ZEXTERN off64_t ZEXPORT gzoffset64 OF((gzFile));
    ZEXTERN uLong ZEXPORT adler32_combine64 OF((uLong, uLong, off64_t));
    ZEXTERN uLong ZEXPORT crc32_combine64 OF((uLong, uLong, off64_t));
 #endif
@@ -1447,12 +1497,14 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
 #  define gzopen gzopen64
 #  define gzseek gzseek64
 #  define gztell gztell64
+#  define gzoffset gzoffset64
 #  define adler32_combine adler32_combine64
 #  define crc32_combine crc32_combine64
 #  ifndef _LARGEFILE64_SOURCE
      ZEXTERN gzFile ZEXPORT gzopen64 OF((const char *, const char *));
      ZEXTERN off_t ZEXPORT gzseek64 OF((gzFile, off_t, int));
      ZEXTERN off_t ZEXPORT gztell64 OF((gzFile));
+     ZEXTERN off_t ZEXPORT gzoffset64 OF((gzFile));
      ZEXTERN uLong ZEXPORT adler32_combine64 OF((uLong, uLong, off_t));
      ZEXTERN uLong ZEXPORT crc32_combine64 OF((uLong, uLong, off_t));
 #  endif
@@ -1460,6 +1512,7 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
    ZEXTERN gzFile ZEXPORT gzopen OF((const char *, const char *));
    ZEXTERN z_off_t ZEXPORT gzseek OF((gzFile, z_off_t, int));
    ZEXTERN z_off_t ZEXPORT gztell OF((gzFile));
+   ZEXTERN z_off_t ZEXPORT gzoffset OF((gzFile));
    ZEXTERN uLong ZEXPORT adler32_combine OF((uLong, uLong, z_off_t));
    ZEXTERN uLong ZEXPORT crc32_combine OF((uLong, uLong, z_off_t));
 #endif

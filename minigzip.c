@@ -1,5 +1,5 @@
 /* minigzip.c -- simulate gzip using the zlib compression library
- * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * Copyright (C) 1995-2006, 2010 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -53,6 +53,70 @@
 #ifndef WIN32 /* unlink already in stdio.h for WIN32 */
   extern int unlink OF((const char *));
 #endif
+
+#if defined(UNDER_CE) && defined(NO_ERRNO_H)
+#  include <windows.h>
+#  define perror(s) pwinerror(s)
+
+/* Map the Windows error number in ERROR to a locale-dependent error
+   message string and return a pointer to it.  Typically, the values
+   for ERROR come from GetLastError.
+
+   The string pointed to shall not be modified by the application,
+   but may be overwritten by a subsequent call to strwinerror
+
+   The strwinerror function does not change the current setting
+   of GetLastError.  */
+
+static char *strwinerror (error)
+     DWORD error;
+{
+    static char buf[1024];
+
+    wchar_t *msgbuf;
+    DWORD lasterr = GetLastError();
+    DWORD chars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+	| FORMAT_MESSAGE_ALLOCATE_BUFFER,
+	NULL,
+	error,
+	0, /* Default language */
+	(LPVOID)&msgbuf,
+	0,
+	NULL);
+    if (chars != 0) {
+        /* If there is an \r\n appended, zap it.  */
+        if (chars >= 2
+            && msgbuf[chars - 2] == '\r' && msgbuf[chars - 1] == '\n') {
+            chars -= 2;
+            msgbuf[chars] = 0;
+        }
+
+        if (chars > sizeof (buf) - 1) {
+            chars = sizeof (buf) - 1;
+            msgbuf[chars] = 0;
+        }
+
+        wcstombs(buf, msgbuf, chars + 1);
+        LocalFree(msgbuf);
+    }
+    else {
+        sprintf(buf, "unknown win32 error (%ld)", error);
+    }
+
+    SetLastError(lasterr);
+    return buf;
+}
+
+static void pwinerror (s)
+    const char *s;
+{
+    if (s && *s)
+        fprintf(stderr, "%s: %s\n", s, strwinerror(GetLastError ()));
+    else
+        fprintf(stderr, "%s\n", strwinerror(GetLastError ()));
+}
+
+#endif /* UNDER_CE && NO_ERRNO_H */
 
 #ifndef GZ_SUFFIX
 #  define GZ_SUFFIX ".gz"

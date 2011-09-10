@@ -32,9 +32,9 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.4
+SHAREDLIBV=libz.so.1.2.3.5
 SHAREDLIBM=libz.so.1
-LIBS=$(STATICLIB) $(SHAREDLIB)
+LIBS=$(STATICLIB) $(SHAREDLIB) $(SHAREDLIBV)
 
 AR=ar rc
 RANLIB=ranlib
@@ -50,11 +50,11 @@ mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 
-OBJC = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
-       zutil.o inflate.o infback.o inftrees.o inffast.o
+OBJC = adler32.o compress.o crc32.o deflate.o gzclose.o gzio.o gzlib.o gzread.o \
+	gzwrite.o infback.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 
-PIC_OBJC = adler32.lo compress.lo crc32.lo gzio.lo uncompr.lo deflate.lo trees.lo \
-       zutil.lo inflate.lo infback.lo inftrees.lo inffast.lo
+PIC_OBJC = adler32.lo compress.lo crc32.lo deflate.lo gzclose.lo gzio.lo gzlib.lo gzread.lo \
+	gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo uncompr.lo zutil.lo
 
 # to use the asm code: make OBJA=match.o, PIC_OBJA=match.lo
 OBJA =
@@ -221,6 +221,7 @@ depend:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 adler32.o gzio.o zutil.o: zutil.h zlib.h zconf.h zlibdefs.h
+gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h zlibdefs.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h zlibdefs.h
 crc32.o: zutil.h zlib.h zconf.h zlibdefs.h crc32.h
 deflate.o: deflate.h zutil.h zlib.h zconf.h zlibdefs.h
@@ -230,6 +231,7 @@ inftrees.o: zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
 trees.o: deflate.h zutil.h zlib.h zconf.h zlibdefs.h trees.h
 
 adler32.lo gzio.lo zutil.lo: zutil.h zlib.h zconf.h zlibdefs.h
+gzclose.lo gzlib.lo gzread.lo gzwrite.lo: zlib.h zconf.h zlibdefs.h gzguts.h
 compress.lo example.lo minigzip.lo uncompr.lo: zlib.h zconf.h zlibdefs.h
 crc32.lo: zutil.h zlib.h zconf.h zlibdefs.h crc32.h
 deflate.lo: deflate.h zutil.h zlib.h zconf.h zlibdefs.h

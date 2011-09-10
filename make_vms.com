@@ -85,8 +85,16 @@ $   CALL MAKE crc32.OBJ "CC ''CCOPT' crc32" -
                 crc32.c zlib.h zconf.h zlibdefs.h
 $   CALL MAKE deflate.OBJ "CC ''CCOPT' deflate" -
                 deflate.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
+$   CALL MAKE gzclose.OBJ "CC ''CCOPT' gzclose" -
+                gzclose.c zlib.h zconf.h zlibdefs.h gzguts.h
 $   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio" -
                 gzio.c zutil.h zlib.h zconf.h zlibdefs.h
+$   CALL MAKE gzlib.OBJ "CC ''CCOPT' gzlib" -
+                gzlib.c zlib.h zconf.h zlibdefs.h gzguts.h
+$   CALL MAKE gzread.OBJ "CC ''CCOPT' gzread" -
+                gzread.c zlib.h zconf.h zlibdefs.h gzguts.h
+$   CALL MAKE gzwrite.OBJ "CC ''CCOPT' gzwrite" -
+                gzwrite.c zlib.h zconf.h zlibdefs.h gzguts.h
 $   CALL MAKE infback.OBJ "CC ''CCOPT' infback" -
                 infback.c zutil.h inftrees.h inflate.h inffast.h inffixed.h
 $   CALL MAKE inffast.OBJ "CC ''CCOPT' inffast" -

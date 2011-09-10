@@ -1,5 +1,5 @@
 /* infback.c -- inflate using a call-back interface
- * Copyright (C) 1995-2008 Mark Adler
+ * Copyright (C) 1995-2009 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -55,7 +55,7 @@ int stream_size;
     state->wbits = windowBits;
     state->wsize = 1U << windowBits;
     state->window = window;
-    state->write = 0;
+    state->wnext = 0;
     state->whave = 0;
     return Z_OK;
 }

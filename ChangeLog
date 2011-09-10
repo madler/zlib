@@ -1,6 +1,27 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.5 (8 Jan 2010)
+- Add space after #if in zutil.h for some compilers
+- Fix relatively harmless bug in deflate_fast() [Exarevsky]
+- Fix same problem in deflate_slow()
+- Add $(SHAREDLIBV) to LIBS in Makefile.in [Brown]
+- Add deflate_rle() for faster Z_RLE strategy run-length encoding
+- Add deflate_huff() for faster Z_HUFFMAN_ONLY encoding
+- Change name of "write" variable in inffast.c to avoid library collisions
+- Fix premature EOF from gzread() in gzio.c [Brown]
+- Use zlib header window size if windowBits is 0 in inflateInit2()
+- Remove compressBound() call in deflate.c to avoid linking compress.o
+- Replace use of errno in gz* with functions, support WinCE [Alves]
+- Provide alternative to perror() in minigzip.c for WinCE [Alves]
+- Don't use _vsnprintf on later versions of MSVC [Lowman]
+- Add CMake build script and input file [Lowman]
+- Update contrib/minizip to 1.1 [Svensson, Vollant]
+- Moved nintendods directory from contrib to .
+- Replace gzio.c with a new set of routines with the same functionality
+- Add gzbuffer(), gzoffset(), gzclose_r(), gzclose_w() as part of above
+- Update contrib/minizip to 1.1b
+
 Changes in 1.2.3.4 (21 Dec 2009)
 - Use old school .SUFFIXES in Makefile.in for FreeBSD compatibility
 - Update comments in configure and Makefile.in for default --shared
@@ -25,7 +46,7 @@ Changes in 1.2.3.4 (21 Dec 2009)
 - Fix static and shared Makefile.in targets to be independent
 - Correct error return bug in gz_open() by setting state [Brown]
 - Put spaces before ;;'s in configure for better sh compatibility
-- Added pigz.c (parallel implementation of gzip) to examples/
+- Add pigz.c (parallel implementation of gzip) to examples/
 - Correct constant in crc32.c to UL [Leventhal]
 - Reject negative lengths in crc32_combine()
 - Add inflateReset2() function to work like inflateEnd()/inflateInit2()
@@ -57,7 +78,7 @@ Changes in 1.2.3.4 (21 Dec 2009)
 - Allow negative bits in inflatePrime() to delete existing bit buffer
 - Add Z_TREES flush option to inflate() to return at end of trees
 - Add inflateMark() to return current state information for random access
-- Added Makefile for NintendoDS to contrib [Costa]
+- Add Makefile for NintendoDS to contrib [Costa]
 - Add -w in configure compile tests to avoid spurious warnings [Beucler]
 - Fix typos in zlib.h comments for deflateSetDictionary()
 - Fix EOF detection in transparent gzread() [Maier]

@@ -45,7 +45,7 @@
  * - Rearrange window copies in inflate_fast() for speed and simplification
  * - Unroll last copy for window match in inflate_fast()
  * - Use local copies of window variables in inflate_fast() for speed
- * - Pull out common write == 0 case for speed in inflate_fast()
+ * - Pull out common wnext == 0 case for speed in inflate_fast()
  * - Make op and len in inflate_fast() unsigned for consistency
  * - Add FAR to lcode and dcode declarations in inflate_fast()
  * - Simplified bad distance check in inflate_fast()
@@ -117,7 +117,7 @@ z_streamp strm;
     state->head = Z_NULL;
     state->wsize = 0;
     state->whave = 0;
-    state->write = 0;
+    state->wnext = 0;
     state->hold = 0;
     state->bits = 0;
     state->lencode = state->distcode = state->next = state->codes;
@@ -152,7 +152,7 @@ int windowBits;
     }
 
     /* set number of window bits, free window if different */
-    if (windowBits < 8 || windowBits > 15)
+    if (windowBits && (windowBits < 8 || windowBits > 15))
         return Z_STREAM_ERROR;
     if (state->wbits != windowBits && state->window != Z_NULL) {
         ZFREE(strm, state->window);
@@ -375,7 +375,7 @@ unsigned out;
     /* if window not in use yet, initialize */
     if (state->wsize == 0) {
         state->wsize = 1U << state->wbits;
-        state->write = 0;
+        state->wnext = 0;
         state->whave = 0;
     }
 
@@ -383,22 +383,22 @@ unsigned out;
     copy = out - strm->avail_out;
     if (copy >= state->wsize) {
         zmemcpy(state->window, strm->next_out - state->wsize, state->wsize);
-        state->write = 0;
+        state->wnext = 0;
         state->whave = state->wsize;
     }
     else {
-        dist = state->wsize - state->write;
+        dist = state->wsize - state->wnext;
         if (dist > copy) dist = copy;
-        zmemcpy(state->window + state->write, strm->next_out - copy, dist);
+        zmemcpy(state->window + state->wnext, strm->next_out - copy, dist);
         copy -= dist;
         if (copy) {
             zmemcpy(state->window, strm->next_out - copy, copy);
-            state->write = copy;
+            state->wnext = copy;
             state->whave = state->wsize;
         }
         else {
-            state->write += dist;
-            if (state->write == state->wsize) state->write = 0;
+            state->wnext += dist;
+            if (state->wnext == state->wsize) state->wnext = 0;
             if (state->whave < state->wsize) state->whave += dist;
         }
     }
@@ -654,7 +654,9 @@ int flush;
             }
             DROPBITS(4);
             len = BITS(4) + 8;
-            if (len > state->wbits) {
+            if (state->wbits == 0)
+                state->wbits = len;
+            else if (len > state->wbits) {
                 strm->msg = (char *)"invalid window size";
                 state->mode = BAD;
                 break;
@@ -1128,15 +1130,12 @@ int flush;
                     break;
 #endif
                 }
-                if (copy > state->write) {
-                    copy -= state->write;
-                    /* %% problem here if copy > state->wsize -- avoid? */
-                    /* %% or can (state->window + state->wsize) - copy */
-                    /* %% but really should detect and reject this case */
+                if (copy > state->wnext) {
+                    copy -= state->wnext;
                     from = state->window + (state->wsize - copy);
                 }
                 else
-                    from = state->window + (state->write - copy);
+                    from = state->window + (state->wnext - copy);
                 if (copy > state->length) copy = state->length;
             }
             else {                              /* copy from output */

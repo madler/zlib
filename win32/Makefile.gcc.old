@@ -45,8 +45,6 @@ ARFLAGS = rcs
 RC = windres
 RCFLAGS = --define GCC_WINDRES
 
-STRIP = strip
-
 CP = cp -fp
 # If GNU install is available, replace $(CP) with install.
 INSTALL = $(CP)
@@ -55,17 +53,17 @@ RM = rm -f
 prefix = /usr/local
 exec_prefix = $(prefix)
 
-OBJS = adler32.o compress.o crc32.o deflate.o gzclose.o gzio.o gzlib.o gzread.o \
-       gzwrite.o infback.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
+       inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 OBJA =
 
-all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) example.exe minigzip.exe example_d.exe minigzip_d.exe
+all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) example minigzip example_d minigzip_d
 
-test: example.exe minigzip.exe
+test: example minigzip
 	./example
 	echo hello world | ./minigzip | ./minigzip -d
 
-testdll: example_d.exe minigzip_d.exe
+testdll: example_d minigzip_d
 	./example_d
 	echo hello world | ./minigzip_d | ./minigzip_d -d
 
@@ -81,20 +79,20 @@ $(STATICLIB): $(OBJS) $(OBJA)
 $(IMPLIB): $(SHAREDLIB)
 
 $(SHAREDLIB): win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
-	$(CC) -shared -Wl,--out-implib,$(IMPLIB) \
-	-o $@ win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
-	$(STRIP) $@
+	dllwrap --driver-name $(CC) --def win32/zlib.def \
+	  --implib $(IMPLIB) -o $@ $(OBJS) $(OBJA) zlibrc.o
+	strip $@
 
-example.exe: example.o $(STATICLIB)
+example: example.o $(STATICLIB)
 	$(LD) $(LDFLAGS) -o $@ example.o $(STATICLIB)
 
-minigzip.exe: minigzip.o $(STATICLIB)
+minigzip: minigzip.o $(STATICLIB)
 	$(LD) $(LDFLAGS) -o $@ minigzip.o $(STATICLIB)
 
-example_d.exe: example.o $(IMPLIB)
+example_d: example.o $(IMPLIB)
 	$(LD) $(LDFLAGS) -o $@ example.o $(IMPLIB)
 
-minigzip_d.exe: minigzip.o $(IMPLIB)
+minigzip_d: minigzip.o $(IMPLIB)
 	$(LD) $(LDFLAGS) -o $@ minigzip.o $(IMPLIB)
 
 zlibrc.o: win32/zlib1.rc
@@ -132,11 +130,7 @@ compress.o: zlib.h zconf.h
 crc32.o: crc32.h zlib.h zconf.h
 deflate.o: deflate.h zutil.h zlib.h zconf.h
 example.o: zlib.h zconf.h
-gzclose.o: zlib.h zconf.h gzguts.h
 gzio.o: zutil.h zlib.h zconf.h
-gzlib.o: zlib.h zconf.h gzguts.h
-gzread.o: zlib.h zconf.h gzguts.h
-gzwrite.o: zlib.h zconf.h gzguts.h
 inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h

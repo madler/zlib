@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * Copyright (C) 1995-2010 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -17,24 +17,24 @@
 #include "zlib.h"
 
 #ifdef STDC
-#  ifndef _WIN32_WCE
+#  if !(defined(_WIN32_WCE) && defined(_MSV_VER))
 #    include <stddef.h>
 #  endif
 #  include <string.h>
 #  include <stdlib.h>
 #endif
-#if defined(NO_ERRNO_H) || defined(_WIN32_WCE)
-#   ifdef _WIN32_WCE
-      /* The Microsoft C Run-Time Library for Windows CE doesn't have
-       * errno.  We define it as a global variable to simplify porting.
-       * Its value is always 0 and should not be used.  We rename it to
-       * avoid conflict with other libraries that use the same workaround.
-       */
-#     define errno z_errno
-#   endif
-    extern int errno;
+
+#if defined(UNDER_CE) && defined(NO_ERRNO_H)
+#  define zseterrno(ERR) SetLastError((DWORD)(ERR))
+#  define zerrno() ((int)GetLastError())
 #else
-#   include <errno.h>
+#  ifdef NO_ERRNO_H
+     extern int errno;
+#  else
+#    include <errno.h>
+#  endif
+#  define zseterrno(ERR) do { errno = (ERR); } while (0)
+#  define zerrno() errno
 #endif
 
 #ifndef local
@@ -87,7 +87,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
 #  define OS_CODE  0x00
 #  if defined(__TURBOC__) || defined(__BORLANDC__)
-#    if(__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
+#    if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
        /* Allow compilation with ANSI keywords only enabled */
        void _Cdecl farfree( void *block );
        void *_Cdecl farmalloc( unsigned long nbytes );
@@ -213,7 +213,9 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  ifdef WIN32
      /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
 #    if !defined(vsnprintf) && !defined(NO_vsnprintf)
-#      define vsnprintf _vsnprintf
+#      if !defined(_MSC_VER) || ( defined(_MSC_VER) && _MSC_VER < 1500 )
+#         define vsnprintf _vsnprintf
+#      endif
 #    endif
 #  endif
 #  ifdef __SASC

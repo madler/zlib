@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2009 Jean-loup Gailly.
+ * Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.3.4 Copyright 1995-2009 Jean-loup Gailly ";
+   " deflate 1.2.3.5 Copyright 1995-2010 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -79,19 +79,18 @@ local block_state deflate_fast   OF((deflate_state *s, int flush));
 #ifndef FASTEST
 local block_state deflate_slow   OF((deflate_state *s, int flush));
 #endif
+local block_state deflate_rle    OF((deflate_state *s, int flush));
+local block_state deflate_huff   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
 local void putShortMSB    OF((deflate_state *s, uInt b));
 local void flush_pending  OF((z_streamp strm));
 local int read_buf        OF((z_streamp strm, Bytef *buf, unsigned size));
-#ifndef FASTEST
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
       uInt longest_match  OF((deflate_state *s, IPos cur_match));
 #else
 local uInt longest_match  OF((deflate_state *s, IPos cur_match));
 #endif
-#endif
-local uInt longest_match_fast OF((deflate_state *s, IPos cur_match));
 
 #ifdef DEBUG
 local  void check_match OF((deflate_state *s, IPos start, IPos match,
@@ -432,9 +431,10 @@ int ZEXPORT deflateParams(strm, level, strategy)
     }
     func = configuration_table[s->level].func;
 
-    if (func != configuration_table[level].func && strm->total_in != 0) {
+    if ((strategy != s->strategy || func != configuration_table[level].func) &&
+        strm->total_in != 0) {
         /* Flush the last buffer: */
-        err = deflate(strm, Z_PARTIAL_FLUSH);
+        err = deflate(strm, Z_BLOCK);
     }
     if (s->level != level) {
         s->level = level;
@@ -536,7 +536,8 @@ uLong ZEXPORT deflateBound(strm, sourceLen)
         return complen + wraplen;
 
     /* default settings: return tight bound for that case */
-    return compressBound(sourceLen) - 6 + wraplen;
+    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
+           (sourceLen >> 25) + 13 - 6 + wraplen;
 }
 
 /* =========================================================================
@@ -816,7 +817,9 @@ int ZEXPORT deflate (strm, flush)
         (flush != Z_NO_FLUSH && s->status != FINISH_STATE)) {
         block_state bstate;
 
-        bstate = (*(configuration_table[s->level].func))(s, flush);
+        bstate = s->strategy == Z_HUFFMAN_ONLY ? deflate_huff(s, flush) :
+                    (s->strategy == Z_RLE ? deflate_rle(s, flush) :
+                        (*(configuration_table[s->level].func))(s, flush));
 
         if (bstate == finish_started || bstate == finish_done) {
             s->status = FINISH_STATE;
@@ -1200,12 +1203,13 @@ local uInt longest_match(s, cur_match)
     return s->lookahead;
 }
 #endif /* ASMV */
-#endif /* FASTEST */
+
+#else /* FASTEST */
 
 /* ---------------------------------------------------------------------------
- * Optimized version for level == 1 or strategy == Z_RLE only
+ * Optimized version for FASTEST only
  */
-local uInt longest_match_fast(s, cur_match)
+local uInt longest_match(s, cur_match)
     deflate_state *s;
     IPos cur_match;                             /* current match */
 {
@@ -1257,6 +1261,8 @@ local uInt longest_match_fast(s, cur_match)
     s->match_start = cur_match;
     return (uInt)len <= s->lookahead ? (uInt)len : s->lookahead;
 }
+
+#endif /* FASTEST */
 
 #ifdef DEBUG
 /* ===========================================================================
@@ -1336,7 +1342,6 @@ local void fill_window(s)
                later. (Using level 0 permanently is not an optimal usage of
                zlib, so we don't care about this pathological case.)
              */
-            /* %%% avoid this when Z_RLE */
             n = s->hash_size;
             p = &s->head[n];
             do {
@@ -1516,7 +1521,7 @@ local block_state deflate_fast(s, flush)
     deflate_state *s;
     int flush;
 {
-    IPos hash_head = NIL; /* head of the hash chain */
+    IPos hash_head;       /* head of the hash chain */
     int bflush;           /* set if current block must be flushed */
 
     for (;;) {
@@ -1536,6 +1541,7 @@ local block_state deflate_fast(s, flush)
         /* Insert the string window[strstart .. strstart+2] in the
          * dictionary, and set hash_head to the head of the hash chain:
          */
+        hash_head = NIL;
         if (s->lookahead >= MIN_MATCH) {
             INSERT_STRING(s, s->strstart, hash_head);
         }
@@ -1548,19 +1554,8 @@ local block_state deflate_fast(s, flush)
              * of window index 0 (in particular we have to avoid a match
              * of the string with itself at the start of the input file).
              */
-#ifdef FASTEST
-            if ((s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) ||
-                (s->strategy == Z_RLE && s->strstart - hash_head == 1)) {
-                s->match_length = longest_match_fast (s, hash_head);
-            }
-#else
-            if (s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) {
-                s->match_length = longest_match (s, hash_head);
-            } else if (s->strategy == Z_RLE && s->strstart - hash_head == 1) {
-                s->match_length = longest_match_fast (s, hash_head);
-            }
-#endif
-            /* longest_match() or longest_match_fast() sets match_start */
+            s->match_length = longest_match (s, hash_head);
+            /* longest_match() sets match_start */
         }
         if (s->match_length >= MIN_MATCH) {
             check_match(s, s->strstart, s->match_start, s->match_length);
@@ -1622,7 +1617,7 @@ local block_state deflate_slow(s, flush)
     deflate_state *s;
     int flush;
 {
-    IPos hash_head = NIL;    /* head of hash chain */
+    IPos hash_head;          /* head of hash chain */
     int bflush;              /* set if current block must be flushed */
 
     /* Process the input block. */
@@ -1643,6 +1638,7 @@ local block_state deflate_slow(s, flush)
         /* Insert the string window[strstart .. strstart+2] in the
          * dictionary, and set hash_head to the head of the hash chain:
          */
+        hash_head = NIL;
         if (s->lookahead >= MIN_MATCH) {
             INSERT_STRING(s, s->strstart, hash_head);
         }
@@ -1658,12 +1654,8 @@ local block_state deflate_slow(s, flush)
              * of window index 0 (in particular we have to avoid a match
              * of the string with itself at the start of the input file).
              */
-            if (s->strategy != Z_HUFFMAN_ONLY && s->strategy != Z_RLE) {
-                s->match_length = longest_match (s, hash_head);
-            } else if (s->strategy == Z_RLE && s->strstart - hash_head == 1) {
-                s->match_length = longest_match_fast (s, hash_head);
-            }
-            /* longest_match() or longest_match_fast() sets match_start */
+            s->match_length = longest_match (s, hash_head);
+            /* longest_match() sets match_start */
 
             if (s->match_length <= 5 && (s->strategy == Z_FILTERED
 #if TOO_FAR <= 32767
@@ -1741,7 +1733,6 @@ local block_state deflate_slow(s, flush)
 }
 #endif /* FASTEST */
 
-#if 0
 /* ===========================================================================
  * For Z_RLE, simply look for runs of bytes, generate matches only of distance
  * one.  Do not maintain a hash table.  (It will be regenerated if this run of
@@ -1751,11 +1742,9 @@ local block_state deflate_rle(s, flush)
     deflate_state *s;
     int flush;
 {
-    int bflush;         /* set if current block must be flushed */
-    uInt run;           /* length of run */
-    uInt max;           /* maximum length of run */
-    uInt prev;          /* byte at distance one to match */
-    Bytef *scan;        /* scan for end of run */
+    int bflush;             /* set if current block must be flushed */
+    uInt prev;              /* byte at distance one to match */
+    Bytef *scan, *strend;   /* scan goes up to strend for length of run */
 
     for (;;) {
         /* Make sure that we always have enough lookahead, except
@@ -1771,23 +1760,33 @@ local block_state deflate_rle(s, flush)
         }
 
         /* See how many times the previous byte repeats */
-        run = 0;
-        if (s->strstart > 0) {      /* if there is a previous byte, that is */
-            max = s->lookahead < MAX_MATCH ? s->lookahead : MAX_MATCH;
+        s->match_length = 0;
+        if (s->lookahead >= MIN_MATCH && s->strstart > 0) {
             scan = s->window + s->strstart - 1;
-            prev = *scan++;
-            do {
-                if (*scan++ != prev)
-                    break;
-            } while (++run < max);
+            prev = *scan;
+            if (prev == *++scan && prev == *++scan && prev == *++scan) {
+                strend = s->window + s->strstart + MAX_MATCH;
+                do {
+                } while (prev == *++scan && prev == *++scan &&
+                         prev == *++scan && prev == *++scan &&
+                         prev == *++scan && prev == *++scan &&
+                         prev == *++scan && prev == *++scan &&
+                         scan < strend);
+                s->match_length = MAX_MATCH - (int)(strend - scan);
+                if (s->match_length > s->lookahead)
+                    s->match_length = s->lookahead;
+            }
         }
 
         /* Emit match if have run of MIN_MATCH or longer, else emit literal */
-        if (run >= MIN_MATCH) {
-            check_match(s, s->strstart, s->strstart - 1, run);
-            _tr_tally_dist(s, 1, run - MIN_MATCH, bflush);
-            s->lookahead -= run;
-            s->strstart += run;
+        if (s->match_length >= MIN_MATCH) {
+            check_match(s, s->strstart, s->strstart - 1, s->match_length);
+
+            _tr_tally_dist(s, 1, s->match_length - MIN_MATCH, bflush);
+
+            s->lookahead -= s->match_length;
+            s->strstart += s->match_length;
+            s->match_length = 0;
         } else {
             /* No match, output a literal byte */
             Tracevv((stderr,"%c", s->window[s->strstart]));
@@ -1800,4 +1799,36 @@ local block_state deflate_rle(s, flush)
     FLUSH_BLOCK(s, flush == Z_FINISH);
     return flush == Z_FINISH ? finish_done : block_done;
 }
-#endif
+
+/* ===========================================================================
+ * For Z_HUFFMAN_ONLY, do not look for matches.  Do not maintain a hash table.
+ * (It will be regenerated if this run of deflate switches away from Huffman.)
+ */
+local block_state deflate_huff(s, flush)
+    deflate_state *s;
+    int flush;
+{
+    int bflush;             /* set if current block must be flushed */
+
+    for (;;) {
+        /* Make sure that we have a literal to write. */
+        if (s->lookahead == 0) {
+            fill_window(s);
+            if (s->lookahead == 0) {
+                if (flush == Z_NO_FLUSH)
+                    return need_more;
+                break;      /* flush the current block */
+            }
+        }
+
+        /* Output a literal byte */
+        s->match_length = 0;
+        Tracevv((stderr,"%c", s->window[s->strstart]));
+        _tr_tally_lit (s, s->window[s->strstart], bflush);
+        s->lookahead--;
+        s->strstart++;
+        if (bflush) FLUSH_BLOCK(s, 0);
+    }
+    FLUSH_BLOCK(s, flush == Z_FINISH);
+    return flush == Z_FINISH ? finish_done : block_done;
+}

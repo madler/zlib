@@ -35,6 +35,7 @@ EXPORTS
     uncompress
     gzopen
     gzdopen
+    gzbuffer
     gzsetparams
     gzread
     gzwrite
@@ -48,9 +49,12 @@ EXPORTS
     gzseek
     gzrewind
     gztell
+    gzoffset
     gzeof
     gzdirect
     gzclose
+    gzclose_r
+    gzclose_w
     gzerror
     gzclearerr
 ; checksum functions
@@ -67,6 +71,7 @@ EXPORTS
     gzopen64
     gzseek64
     gztell64
+    gzoffset64
     adler32_combine64
     crc32_combine64
     zError

@@ -1,3 +1,4 @@
+CMakeLists.txt  cmake build file
 ChangeLog       history of changes
 FAQ             Frequently Asked Questions about zlib
 INDEX           this file
@@ -6,7 +7,7 @@ Makefile.in     makefile for Unix (template for configure)
 README          guess what
 configure       configure script for Unix
 make_vms.com	makefile for VMS
-treebuild.xml	see http://treebuild.metux.de/
+treebuild.xml	XML description of source file dependencies
 zlib.3		Man page for zlib
 zlib.map	Linux symbol information
 zlib.pc.in	Template for pkg-config descriptor
@@ -16,12 +17,14 @@ amiga/          makefiles for Amiga SAS C
 as400/          makefiles for IBM AS/400
 doc/		documentation for formats and algorithms
 msdos/          makefiles for MSDOS
+nintendods/	makefile for Nintendo DS
 old/            makefiles for various architectures and zlib documentation
                 files that have not yet been updated for zlib 1.2.x
 projects/       projects for various Integrated Development Environments
 qnx/            makefiles for QNX
 watcom/		makefiles for OpenWatcom
 win32/          makefiles for Windows
+zlibdefs.h.cmakein      input file for cmake build
 
                 zlib public header files (required for library use):
 zconf.h
@@ -35,7 +38,12 @@ crc32.c
 crc32.h
 deflate.c
 deflate.h
+gzclose.c
+gzguts.h
 gzio.c
+gzlib.c
+gzread.c
+gzwrite.c
 infback.c
 inffast.c
 inffast.h

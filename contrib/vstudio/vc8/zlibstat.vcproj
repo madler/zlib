@@ -760,8 +760,19 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\gzio.c"
-				>
+				RelativePath="..\..\..\gzclose.c">
+			</File>
+			<File
+				RelativePath="..\..\..\gzio.c">
+			</File>
+			<File
+				RelativePath="..\..\..\gzlib.c">
+			</File>
+			<File
+				RelativePath="..\..\..\gzread.c">
+			</File>
+			<File
+				RelativePath="..\..\..\gzwrite.c">
 			</File>
 			<File
 				RelativePath="..\..\..\infback.c"

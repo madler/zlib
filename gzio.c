@@ -1,11 +1,13 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-2009 Jean-loup Gailly.
+ * Copyright (C) 1995-2010 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_GZCOMPRESS to avoid the compression code.
  */
 
 /* @(#) $Id$ */
+
+#ifdef OLD_GZIO
 
 #ifdef _LARGEFILE64_SOURCE
 #  ifndef _LARGEFILE_SOURCE
@@ -37,6 +39,60 @@ struct internal_state {int dummy;}; /* for buggy compilers */
 #ifndef Z_PRINTF_BUFSIZE
 #  define Z_PRINTF_BUFSIZE 4096
 #endif
+
+#if defined UNDER_CE && defined NO_ERRNO_H
+#  include <windows.h>
+
+/* Map the Windows error number in ERROR to a locale-dependent error
+   message string and return a pointer to it.  Typically, the values
+   for ERROR come from GetLastError.
+
+   The string pointed to shall not be modified by the application,
+   but may be overwritten by a subsequent call to strwinerror
+
+   The strwinerror function does not change the current setting
+   of GetLastError.  */
+
+local char *strwinerror (error)
+     DWORD error;
+{
+    static char buf[1024];
+
+    wchar_t *msgbuf;
+    DWORD lasterr = GetLastError();
+    DWORD chars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+	| FORMAT_MESSAGE_ALLOCATE_BUFFER,
+	NULL,
+	error,
+	0, /* Default language */
+	(LPVOID)&msgbuf,
+	0,
+	NULL);
+    if (chars != 0) {
+        /* If there is an \r\n appended, zap it.  */
+        if (chars >= 2
+            && msgbuf[chars - 2] == '\r' && msgbuf[chars - 1] == '\n') {
+            chars -= 2;
+            msgbuf[chars] = 0;
+        }
+
+        if (chars > sizeof (buf) - 1) {
+            chars = sizeof (buf) - 1;
+            msgbuf[chars] = 0;
+        }
+
+        wcstombs(buf, msgbuf, chars + 1);
+        LocalFree(msgbuf);
+    }
+    else {
+        sprintf(buf, "unknown win32 error (%ld)", error);
+    }
+
+    SetLastError(lasterr);
+    return buf;
+}
+
+#endif /* UNDER_CE && NO_ERRNO_H */
 
 #ifdef __MVS__
 #  pragma map (fdopen , "\174\174FDOPEN")
@@ -191,9 +247,10 @@ local gzFile gz_open (path, mode, fd, use64)
     }
     s->stream.avail_out = Z_BUFSIZE;
 
-    errno = 0;
-    s->file = fd < 0 ? (use64 ? F_OPEN64(path, fmode) : F_OPEN(path, fmode)) :
-              (FILE*)fdopen(fd, fmode);
+    zseterrno(0);
+    s->file = fd == -1 ?
+              (use64 ? F_OPEN64(path, fmode) : F_OPEN(path, fmode)) :
+                                               (FILE*)fdopen(fd, fmode);
 
     if (s->file == NULL) {
         return destroy(s), (gzFile)Z_NULL;
@@ -250,7 +307,7 @@ gzFile ZEXPORT gzdopen (fd, mode)
 {
     char name[46];      /* allow for up to 128-bit integers */
 
-    if (fd < 0) return (gzFile)Z_NULL;
+    if (fd == -1) return (gzFile)Z_NULL;
     sprintf(name, "<fd:%d>", fd); /* for debugging */
 
     return gz_open (name, mode, fd, 0);
@@ -291,7 +348,7 @@ local int get_byte(s)
 {
     if (s->z_eof) return EOF;
     if (s->stream.avail_in == 0) {
-        errno = 0;
+        zseterrno(0);
         s->stream.avail_in = (uInt)fread(s->inbuf, 1, Z_BUFSIZE, s->file);
         if (s->stream.avail_in == 0) {
             s->z_eof = 1;
@@ -327,7 +384,7 @@ local void check_header(s)
     len = s->stream.avail_in;
     if (len < 2) {
         if (len) s->inbuf[0] = s->stream.next_in[0];
-        errno = 0;
+        zseterrno(0);
         len = (uInt)fread(s->inbuf + len, 1, Z_BUFSIZE >> len, s->file);
         if (len == 0) s->z_eof = 1;
         if (len == 0 && ferror(s->file)) s->z_err = Z_ERRNO;
@@ -403,7 +460,7 @@ local int destroy (s)
     }
     if (s->file != NULL && fclose(s->file)) {
 #ifdef ESPIPE
-        if (errno != ESPIPE) /* fclose is broken for pipes in HP/UX */
+        if (zerrno() != ESPIPE) /* fclose is broken for pipes in HP/UX */
 #endif
             err = Z_ERRNO;
     }
@@ -432,7 +489,7 @@ int ZEXPORT gzread (file, buf, len)
     if (s == NULL || s->mode != 'r') return Z_STREAM_ERROR;
 
     if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) return -1;
-    if (s->z_err == Z_STREAM_END || s->z_eof) return 0;  /* EOF */
+    if (s->z_err == Z_STREAM_END) return 0;  /* EOF */
 
     next_out = (Byte*)buf;
     s->stream.next_out = (Bytef*)buf;
@@ -472,12 +529,12 @@ int ZEXPORT gzread (file, buf, len)
             len -= s->stream.avail_out;
             s->in  += len;
             s->out += len;
-            if (feof(s->file)) s->z_eof = 1;
+            if (len == 0 && feof(s->file)) s->z_eof = 1;
             return (int)len;
         }
         if (s->stream.avail_in == 0 && !s->z_eof) {
 
-            errno = 0;
+            zseterrno(0);
             s->stream.avail_in = (uInt)fread(s->inbuf, 1, Z_BUFSIZE, s->file);
             if (s->stream.avail_in == 0) {
                 s->z_eof = 1;
@@ -1039,10 +1096,14 @@ int ZEXPORT gzclose (file)
     return destroy((gz_stream*)file);
 }
 
-#if defined(STDC) && !defined(_WIN32_WCE)
-#  define zstrerror(errnum) strerror(errnum)
+#if defined UNDER_CE && defined NO_ERRNO_H
+#  define zstrerror(errnum) strwinerror((DWORD)errnum)
 #else
-#  define zstrerror(errnum) ""
+#  if defined (STDC)
+#    define zstrerror(errnum) strerror(errnum)
+#  else
+#    define zstrerror(errnum) ""
+#  endif
 #endif
 
 /* ===========================================================================
@@ -1066,7 +1127,7 @@ const char * ZEXPORT gzerror (file, errnum)
     *errnum = s->z_err;
     if (*errnum == Z_OK) return (const char*)"";
 
-    m = (char*)(*errnum == Z_ERRNO ? zstrerror(errno) : s->stream.msg);
+    m = (char*)(*errnum == Z_ERRNO ? zstrerror(zerrno()) : s->stream.msg);
 
     if (m == NULL || *m == '\0') m = (char*)ERR_MSG(s->z_err);
 
@@ -1092,3 +1153,44 @@ void ZEXPORT gzclearerr (file)
     s->z_eof = 0;
     clearerr(s->file);
 }
+
+/* new functions in gzlib, but only partially implemented here */
+
+int ZEXPORT gzbuffer (file, size)
+    gzFile file;
+    unsigned size;
+{
+    return -1;
+}
+
+z_off_t ZEXPORT gzoffset (file)
+    gzFile file;
+{
+    return -1;
+}
+
+z_off64_t ZEXPORT gzoffset64 (file)
+    gzFile file;
+{
+    return -1;
+}
+
+int ZEXPORT gzclose_r (file)
+    gzFile file;
+{
+    return gzclose(file);
+}
+
+int ZEXPORT gzclose_w (file)
+    gzFile file;
+{
+    return gzclose(file);
+}
+
+int gzio_old = 1;
+
+#else /* !OLD_GZIO */
+
+int gzio_old = 0;
+
+#endif /* OLD_GZIO */
