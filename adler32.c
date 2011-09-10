@@ -1,9 +1,9 @@
 /* adler32.c -- compute the Adler-32 checksum of a data stream
- * Copyright (C) 1995 Mark Adler
+ * Copyright (C) 1995-1996 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: adler32.c,v 1.6 1995/05/03 17:27:08 jloup Exp $ */
+/* $Id: adler32.c,v 1.9 1996/01/30 21:59:09 me Exp $ */
 
 #include "zlib.h"
 
@@ -11,16 +11,16 @@
 #define NMAX 5552
 /* NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1 */
 
-#define DO1(buf)  {s1 += *buf++; s2 += s1;}
-#define DO2(buf)  DO1(buf); DO1(buf);
-#define DO4(buf)  DO2(buf); DO2(buf);
-#define DO8(buf)  DO4(buf); DO4(buf);
-#define DO16(buf) DO8(buf); DO8(buf);
+#define DO1(buf,i)  {s1 += buf[i]; s2 += s1;}
+#define DO2(buf,i)  DO1(buf,i); DO1(buf,i+1);
+#define DO4(buf,i)  DO2(buf,i); DO2(buf,i+2);
+#define DO8(buf,i)  DO4(buf,i); DO4(buf,i+4);
+#define DO16(buf)   DO8(buf,0); DO8(buf,8);
 
 /* ========================================================================= */
 uLong adler32(adler, buf, len)
     uLong adler;
-    Bytef *buf;
+    const Bytef *buf;
     uInt len;
 {
     unsigned long s1 = adler & 0xffff;
@@ -34,10 +34,12 @@ uLong adler32(adler, buf, len)
         len -= k;
         while (k >= 16) {
             DO16(buf);
+	    buf += 16;
             k -= 16;
         }
         if (k != 0) do {
-            DO1(buf);
+            s1 += *buf++;
+	    s2 += s1;
         } while (--k);
         s1 %= BASE;
         s2 %= BASE;

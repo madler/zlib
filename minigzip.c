@@ -1,5 +1,5 @@
 /* minigzip.c -- simulate gzip using the zlib compression library
- * Copyright (C) 1995 Jean-loup Gailly.
+ * Copyright (C) 1995-1996 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -13,7 +13,7 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.5 1995/05/03 17:27:11 jloup Exp $ */
+/* $Id: minigzip.c,v 1.8 1996/01/30 21:59:23 me Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -24,7 +24,7 @@
 #else
    extern void exit  OF((int));
 #endif
-extern int unlink OF((const char *));
+
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32)
 #  include <fcntl.h>
@@ -35,11 +35,14 @@ extern int unlink OF((const char *));
 #endif
 
 #ifdef VMS
+#  define unlink delete
 #  define GZ_SUFFIX "-gz"
 #else
 #  define GZ_SUFFIX ".gz"
 #endif
 #define SUFFIX_LEN sizeof(GZ_SUFFIX)
+
+extern int unlink OF((const char *));
 
 #define BUFLEN 4096
 #define MAX_NAME_LEN 1024
@@ -52,7 +55,7 @@ extern int unlink OF((const char *));
 
 char *prog;
 
-void error           OF((char *msg));
+void error           OF((const char *msg));
 void gz_compress     OF((FILE   *in, gzFile out));
 void gz_uncompress   OF((gzFile in, FILE   *out));
 void file_compress   OF((char  *file));
@@ -63,7 +66,7 @@ int  main            OF((int argc, char *argv[]));
  * Display error message and exit
  */
 void error(msg)
-    char *msg;
+    const char *msg;
 {
     fprintf(stderr, "%s: %s\n", prog, msg);
     exit(1);
@@ -88,7 +91,7 @@ void gz_compress(in, out)
         }
         if (len == 0) break;
 
-        if (gzwrite(out, buf, len) != len) error(gzerror(out, &err));
+        if (gzwrite(out, buf, (unsigned)len) != len) error(gzerror(out, &err));
     }
     fclose(in);
     if (gzclose(out) != Z_OK) error("failed gzclose");
@@ -110,7 +113,9 @@ void gz_uncompress(in, out)
         if (len < 0) error (gzerror(in, &err));
         if (len == 0) break;
 
-        if (fwrite(buf, 1, len, out) != (uInt)len) error("failed fwrite");
+        if ((int)fwrite(buf, 1, (unsigned)len, out) != len) {
+	    error("failed fwrite");
+	}
     }
     if (fclose(out)) error("failed fclose");
 

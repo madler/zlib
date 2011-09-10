@@ -1,25 +1,24 @@
 # Makefile for zlib
-# Borland C++   ************ UNTESTED ***********
+# Borland C++   
 
-# To use, do "make -fmakefile.bor"
-# To compile in small model, set below: MODEL=-ms
+# This version of the zlib makefile was adapted by Chris Young for use
+# with Borland C 4.5x with the Dos Power Pack for a 32-bit protected mode
+# flat memory model.  It was created for use with POV-Ray ray tracer and
+# you may choose to edit the CFLAGS to suit your needs but the
+# switches -WX and -DMSDOS are required.
+# -- Chris Young 76702.1655@compuserve.com
 
-# WARNING: the small model is supported but only for small values of
-# MAX_WBITS and MAX_MEM_LEVEL. For example:
-#    -DMAX_WBITS=11 -DDEF_WBITS=11 -DMAX_MEM_LEVEL=3
-# If you wish to reduce the memory requirements (default 256K for big
-# objects plus a few K), you can add to CFLAGS below: 
-#   -DMAX_MEM_LEVEL=7 -DMAX_WBITS=14
+# To use, do "make -fmakefile.b32"
+
 # See zconf.h for details about the memory requirements.
 
-# ------------- Turbo C++, Borland C++ -------------
-MODEL=-ml
-CFLAGS=-O2 -Z $(MODEL)
-CC=bcc
-LD=bcc
+# ------------- Borland C++ -------------
+MODEL=-WX 
+CFLAGS= $(MODEL) -P-C -K -N- -k- -d -3 -r- -v- -f -DMSDOS
+CC=bcc32
+LD=bcc32
 LIB=tlib
-#   replace bcc with tcc for Turbo C++ 1.0, with bcc32 for the 32 bit version
-LDFLAGS=$(MODEL)
+LDFLAGS= $(MODEL)
 O=.obj
 
 # variables

@@ -1,55 +1,62 @@
-zlib 1.0 is a general purpose data compression library.
-All the code is reentrant (thread safe).
-
-The data format used by the zlib library is described in the
-files zlib-3.2.doc, deflate-1.2.doc and gzip-4.2.doc, available
-in ftp://ftp.uu.net/pub/archiving/zip/doc
+zlib 1.0.1 is a general purpose data compression library.  All the code
+is reentrant (thread safe).  The data format used by the zlib library
+is described in the files zlib-3.3.doc, deflate-1.3.doc and
+gzip-4.3.doc, available in various formats from
+ftp://swrinde.nde.swri.edu/pub/png/documents/zlib/
 
 All functions of the compression library are documented in the file
 zlib.h. A usage example of the library is given in the file example.c
 which also tests that the library is working correctly. Another
-example is given in the file minigzip.c.
+example is given in the file minigzip.c. The compression library itself
+is composed of all source files except example.c and minigzip.c.
 
-To compile all files and run the test program, just type: make test
-(For MSDOS, use one of the special makefiles such as Makefile.msc;
-for VMS, use Make_vms.com or descrip.mms.)
-To install the zlib library (libz.a) in /usr/local/lib, type: make install
-To install in a different directory, use for example:
-  make install prefix=$HOME
-This will install in $HOME/lib instead of /usr/local/lib.
+To compile all files and run the test program, follow the instructions
+given at the top of Makefile. In short "make test; make install"
+should work for most machines.  For MSDOS, use one of the special
+makefiles such as Makefile.msc; for VMS, use Make_vms.com or descrip.mms.
 
-Questions about zlib should be sent to <zlib@quest.jpl.nasa.gov>.
+Questions about zlib should be sent to <zlib@quest.jpl.nasa.gov> or,
+if this fails, to the addresses given below in the Copyright section.
 
-The changes made in version 1.0 are documented in the file ChangeLog.
-The main changes since 0.95 are:
-- allow compression level 0 (no compression)
-- add deflateParams in zlib.h: allow dynamic change of compression level
-  and compression strategy.
-- test large buffers and deflateParams in example.c
-- declare Z_DEFLATED in zlib.h (possible parameter for deflateInit2)
-- fixes for 64-bit systems (needed for Alpha and Cray)
-- always return Z_BUF_ERROR when deflate() has nothing to do
-- fix some very unlikely race conditions.
-- several minor fixes for better portability
-- free in reverse order of allocation to help memory manager
+The changes made in version 1.0.1 are documented in the file ChangeLog.
+Version number 1.0 was skipped to avoid confusion with version 0.99
+which had some references to 1.0 already. The main changes since 0.99 are:
+
+- fix array overlay in deflate.c which sometimes caused bad compressed data
+- fix inflate bug with empty stored block
+- fix MSDOS medium model which was broken in 0.99
+- fix deflateParams() which could generated bad compressed data.
+- added an INDEX file
+- new makefiles for DJGPP (Makefile.dj2), 32-bit Borland (Makefile.b32),
+  Watcom (Makefile.wat), Amiga SAS/C (Makefile.sas)
+- several portability improvements
 
 Notes for some targets:
 
-- For MSDOS, the small and medium models have been tested only with
-  Microsoft C.  (This should work for Borland C also, but I don't have
-  a Borland compiler to test with.) The small model was tested with
-  Turbo C but only with reduced performance to avoid any far
-  allocation; it was tested with -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
-
-  MS Visual C++1.5 in far model gives:
-     warning C4746: 'z_errmsg' : unsized array treated as '__far'
-     warning C4746: 'inflate_mask' : unsized array treated as  '__far'
-  Ignore those warnings.
+- For Turbo C the small model is supported only with reduced performance to
+  avoid any far allocation; it was tested with -DMAX_WBITS=11 -DMAX_MEM_LEVEL=3
 
 - For 64-bit Iris, deflate.c must be compiled without any optimization.
-  With -O, one libpng test fails. The test works in 32 bit mode (with the
-  -32 compiler flag).
+  With -O, one libpng test fails. The test works in 32 bit mode (with
+  the -32 compiler flag).
 
+- zlib doesn't work with gcc 2.6.3 on a DEC 3000/300LX under OSF/1 2.1   
+  it works when compiled with cc.
+
+- zlib doesn't work on HP-UX 9.05 with one cc compiler (the one not
+  accepting the -O option). It works with the other cc compiler.
+
+A Perl interface to zlib written by Paul Marquess <pmarquess@bfsec.bt.co.uk>
+is in the CPAN (Comprehensive Perl Archive Network) sites, such as:
+ftp://ftp.cis.ufl.edu/pub/perl/CPAN/modules/by-module/Compress/Compress-Zlib*
+
+
+Acknowledgments:
+
+  The deflate format used by zlib was defined by Phil Katz. The deflate
+  and zlib specifications were written by Peter Deutsch. Thanks to all the
+  people who reported problems and suggested various improvements in zlib;
+  they are too numerous to cite here.
 
 Copyright notice:
 

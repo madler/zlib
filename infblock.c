@@ -1,5 +1,5 @@
 /* infblock.c -- interpret and process block types to last block
- * Copyright (C) 1995 Mark Adler
+ * Copyright (C) 1995-1996 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -81,7 +81,7 @@ uLongf *c;
   s->bitb = 0;
   s->read = s->write = s->window;
   if (s->checkfn != Z_NULL)
-    s->check = (*s->checkfn)(0L, Z_NULL, 0);
+    z->adler = s->check = (*s->checkfn)(0L, Z_NULL, 0);
   Trace((stderr, "inflate:   blocks reset\n"));
 }
 
@@ -110,6 +110,9 @@ uInt w;
 }
 
 
+#ifdef DEBUG
+  extern uInt inflate_hufts;
+#endif
 int inflate_blocks(s, z, r)
 inflate_blocks_statef *s;
 z_stream *z;
@@ -172,7 +175,7 @@ int r;
         case 3:                         /* illegal */
           DUMPBITS(3)
           s->mode = BAD;
-          z->msg = "invalid block type";
+          z->msg = (char*)"invalid block type";
           r = Z_DATA_ERROR;
           LEAVE
       }
@@ -182,14 +185,14 @@ int r;
       if ((((~b) >> 16) & 0xffff) != (b & 0xffff))
       {
         s->mode = BAD;
-        z->msg = "invalid stored block lengths";
+        z->msg = (char*)"invalid stored block lengths";
         r = Z_DATA_ERROR;
         LEAVE
       }
       s->sub.left = (uInt)b & 0xffff;
       b = k = 0;                      /* dump bits */
       Tracev((stderr, "inflate:       stored length %u\n", s->sub.left));
-      s->mode = s->sub.left ? STORED : TYPE;
+      s->mode = s->sub.left ? STORED : (s->last ? DRY : TYPE);
       break;
     case STORED:
       if (n == 0)
@@ -215,7 +218,7 @@ int r;
       if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29)
       {
         s->mode = BAD;
-        z->msg = "too many length or distance symbols";
+        z->msg = (char*)"too many length or distance symbols";
         r = Z_DATA_ERROR;
         LEAVE
       }
@@ -285,7 +288,7 @@ int r;
               (c == 16 && i < 1))
           {
             s->mode = BAD;
-            z->msg = "invalid bit length repeat";
+            z->msg = (char*)"invalid bit length repeat";
             r = Z_DATA_ERROR;
             LEAVE
           }
@@ -306,6 +309,9 @@ int r;
         bl = 9;         /* must be <= 9 for lookahead assumptions */
         bd = 6;         /* must be <= 9 for lookahead assumptions */
         t = s->sub.trees.table;
+#ifdef DEBUG
+      inflate_hufts = 0;
+#endif
         t = inflate_trees_dynamic(257 + (t & 0x1f), 1 + ((t >> 5) & 0x1f),
                                   s->sub.trees.blens, &bl, &bd, &tl, &td, z);
         if (t != Z_OK)
@@ -315,7 +321,8 @@ int r;
           r = t;
           LEAVE
         }
-        Tracev((stderr, "inflate:       trees ok\n"));
+        Tracev((stderr, "inflate:       trees ok, %d * %d bytes used\n",
+              inflate_hufts, sizeof(inflate_huft)));
         if ((c = inflate_codes_new(bl, bd, tl, td, z)) == Z_NULL)
         {
           inflate_trees_free(td, z);
@@ -382,4 +389,14 @@ uLongf *c;
   ZFREE(z, s);
   Trace((stderr, "inflate:   blocks freed\n"));
   return Z_OK;
+}
+
+
+void inflate_set_dictionary(s, d, n)
+inflate_blocks_statef *s;
+const Bytef *d;
+uInt  n;
+{
+  zmemcpy((charf *)s->window, d, n);
+  s->read = s->write = s->window + n;
 }

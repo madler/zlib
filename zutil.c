@@ -1,9 +1,9 @@
 /* zutil.c -- target dependent utility functions for the compression library
- * Copyright (C) 1995 Jean-loup Gailly.
+ * Copyright (C) 1995-1996 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.8 1995/05/03 17:27:12 jloup Exp $ */
+/* $Id: zutil.c,v 1.12 1996/01/30 21:59:29 me Exp $ */
 
 #include <stdio.h>
 
@@ -15,16 +15,18 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 extern void exit OF((int));
 #endif
 
-char *zlib_version = ZLIB_VERSION;
+const char *zlib_version = ZLIB_VERSION;
 
-char *z_errmsg[] = {
-"stream end",          /* Z_STREAM_END    1 */
-"",                    /* Z_OK            0 */
-"file error",          /* Z_ERRNO        (-1) */
-"stream error",        /* Z_STREAM_ERROR (-2) */
-"data error",          /* Z_DATA_ERROR   (-3) */
-"insufficient memory", /* Z_MEM_ERROR    (-4) */
-"buffer error",        /* Z_BUF_ERROR    (-5) */
+const char *z_errmsg[10] = {
+"need dictionary",     /* Z_NEED_DICT       2  */
+"stream end",          /* Z_STREAM_END      1  */
+"",                    /* Z_OK              0  */
+"file error",          /* Z_ERRNO         (-1) */
+"stream error",        /* Z_STREAM_ERROR  (-2) */
+"data error",          /* Z_DATA_ERROR    (-3) */
+"insufficient memory", /* Z_MEM_ERROR     (-4) */
+"buffer error",        /* Z_BUF_ERROR     (-5) */
+"incompatible version",/* Z_VERSION_ERROR (-6) */
 ""};
 
 
@@ -60,9 +62,9 @@ void zmemzero(dest, len)
 #endif
 
 #ifdef __TURBOC__
-#if !defined(__SMALL__) && !defined(__MEDIUM__) && !defined(__32BIT__)
-/* Small and medium model are for now limited to near allocation with
- * reduced MAX_WBITS and MAX_MEM_LEVEL
+#if (defined( __BORLANDC__) || !defined(SMALL_MEDIUM)) && !defined(__32BIT__)
+/* Small and medium model in Turbo C are for now limited to near allocation
+ * with reduced MAX_WBITS and MAX_MEM_LEVEL
  */
 #  define MY_ZCALLOC
 
@@ -100,9 +102,6 @@ voidpf zcalloc (voidpf opaque, unsigned items, unsigned size)
      */
     if (bsize < 65520L) {
         buf = farmalloc(bsize);
-#ifdef DEBUG
-        zmemzero(buf, (uInt)bsize);
-#endif
         if (*(ush*)&buf != 0) return buf;
     } else {
         buf = farmalloc(bsize + 16L);
@@ -114,10 +113,6 @@ voidpf zcalloc (voidpf opaque, unsigned items, unsigned size)
     *((ush*)&buf+1) += ((ush)((uch*)buf-0) + 15) >> 4;
     *(ush*)&buf = 0;
     table[next_ptr++].new_ptr = buf;
-#ifdef DEBUG
-    zmemzero(buf, (uInt)65535);
-    ((uch*)buf)[65535] = 0;
-#endif
     return buf;
 }
 
@@ -146,7 +141,8 @@ void  zcfree (voidpf opaque, voidpf ptr)
 #endif /* __TURBOC__ */
 
 
-#ifdef M_I86 /* Microsoft C */
+#if defined(M_I86) && !(defined(__WATCOMC__) && defined(__386__))
+/* Microsoft C */
 
 #  define MY_ZCALLOC
 
@@ -182,6 +178,7 @@ voidpf zcalloc (opaque, items, size)
     unsigned items;
     unsigned size;
 {
+    if (opaque) items += size - size; /* make compiler happy */
     return (voidpf)calloc(items, size);
 }
 
@@ -190,6 +187,7 @@ void  zcfree (opaque, ptr)
     voidpf ptr;
 {
     free(ptr);
+    if (opaque) return; /* make compiler happy */
 }
 
 #endif /* MY_ZCALLOC */

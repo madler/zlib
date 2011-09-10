@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995 Jean-loup Gailly.
+ * Copyright (C) 1995-1996 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -9,11 +9,42 @@
 #define _ZCONF_H
 
 /*
-     The library does not install any signal handler. It is recommended to
-  add at least a handler for SIGSEGV when decompressing; the library checks
-  the consistency of the input data whenever possible but may go nuts
-  for some forms of corrupted input.
+ * If you *really* need a unique prefix for all types and library functions,
+ * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
  */
+#ifdef Z_PREFIX
+#  define deflateInit_	z_deflateInit_
+#  define deflate	z_deflate
+#  define deflateEnd	z_deflateEnd
+#  define inflateInit_ 	z_inflateInit_
+#  define inflate	z_inflate
+#  define inflateEnd	z_inflateEnd
+#  define deflateInit2_	z_deflateInit2_
+#  define deflateSetDictionary z_deflateSetDictionary
+#  define deflateCopy	z_deflateCopy
+#  define deflateReset	z_deflateReset
+#  define deflateParams	z_deflateParams
+#  define inflateInit2_	z_inflateInit2_
+#  define inflateSetDictionary z_inflateSetDictionary
+#  define inflateSync	z_inflateSync
+#  define inflateReset	z_inflateReset
+#  define compress	z_compress
+#  define uncompress	z_uncompress
+#  define adler32	z_adler32
+#  define crc32		z_crc32
+#  define get_crc_table z_get_crc_table
+
+#  define Byte		z_Byte
+#  define uInt		z_uInt
+#  define uLong		z_uLong
+/* #  define Bytef	z_Bytef */
+#  define charf		z_charf
+#  define intf		z_intf
+#  define uIntf		z_uIntf
+#  define uLongf	z_uLongf
+#  define voidpf	z_voidpf
+#  define voidp		z_voidp
+#endif
 
 #if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #  define WIN32
@@ -43,12 +74,15 @@
 #  define STDC
 #endif
 
-#if !defined(STDC) && !defined(const)
-#  define const
+#ifndef STDC
+#  ifndef const /* cannot use !defined(STDC) && !defined(const) on Mac */
+#    define const
+#  endif
 #endif
 
 #ifdef	__MWERKS__ /* Metrowerks CodeWarrior declares fileno() in unix.h */
 #  include <unix.h>
+#  define NO_DUMMY_DECL /* buggy compiler merges all .h files incorrectly */
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */
@@ -95,6 +129,7 @@
  * just define FAR to be empty.
  */
 #if defined(M_I86SM) || defined(M_I86MM) /* MSC small or medium model */
+#  define SMALL_MEDIUM
 #  ifdef _MSC_VER
 #    define FAR __far
 #  else
@@ -102,20 +137,28 @@
 #  endif
 #endif
 #if defined(__BORLANDC__) && (defined(__SMALL__) || defined(__MEDIUM__))
-#    define FAR _far /* completely untested, just a best guess */
+#    define SMALL_MEDIUM
+#    define FAR __far
 #endif
 #ifndef FAR
 #   define FAR
+#endif
+/* The Watcom compiler defines M_I86SM and __SMALL__ even in 32 bit mode */
+#if defined(__WATCOMC__) && defined(__386__)
+#  undef FAR
+#  define FAR
+#  undef SMALL_MEDIUM
 #endif
 
 typedef unsigned char  Byte;  /* 8 bits */
 typedef unsigned int   uInt;  /* 16 bits or more */
 typedef unsigned long  uLong; /* 32 bits or more */
 
-typedef Byte FAR Bytef;
-typedef char FAR charf;
-typedef int FAR intf;
-typedef uInt FAR uIntf;
+/* "typedef Byte  FAR Bytef;" doesn't work with Borland C/C++ */
+#define Bytef Byte  FAR 
+typedef char  FAR charf;
+typedef int   FAR intf;
+typedef uInt  FAR uIntf;
 typedef uLong FAR uLongf;
 
 #ifdef STDC
