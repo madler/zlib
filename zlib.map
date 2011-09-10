@@ -42,3 +42,12 @@ ZLIB_1.2.2.3 {
 ZLIB_1.2.2.4 {
     inflatePrime;
 } ZLIB_1.2.2.3;
+
+ZLIB_1.2.3.3 {
+    inflateUndermine;
+} ZLIB_1.2.2.4;
+
+ZLIB_1.2.3.4 {
+    inflateReset2;
+    inflateMark;
+} ZLIB_1.2.3.3;

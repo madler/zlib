@@ -1,6 +1,67 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.4 (21 Dec 2009)
+- Use old school .SUFFIXES in Makefile.in for FreeBSD compatibility
+- Update comments in configure and Makefile.in for default --shared
+- Fix test -z's in configure [Marquess]
+- Build examplesh and minigzipsh when not testing
+- Change NULL's to Z_NULL's in deflate.c and in comments in zlib.h
+- Import LDFLAGS from the environment in configure
+- Fix configure to populate SFLAGS with discovered CFLAGS options
+- Adapt make_vms.com to the new Makefile.in [Zinser]
+- Add zlib2ansi script for C++ compilation [Marquess]
+- Add _FILE_OFFSET_BITS=64 test to make test (when applicable)
+- Add AMD64 assembler code for longest match to contrib [Teterin]
+- Include options from $SFLAGS when doing $LDSHARED
+- Simplify 64-bit file support by introducing z_off64_t type
+- Make shared object files in objs directory to work around old Sun cc
+- Use only three-part version number for Darwin shared compiles
+- Add rc option to ar in Makefile.in for when ./configure not run
+- Add -WI,-rpath,. to LDFLAGS for OSF 1 V4*
+- Set LD_LIBRARYN32_PATH for SGI IRIX shared compile
+- Protect against _FILE_OFFSET_BITS being defined when compiling zlib
+- Rename Makefile.in targets allstatic to static and allshared to shared
+- Fix static and shared Makefile.in targets to be independent
+- Correct error return bug in gz_open() by setting state [Brown]
+- Put spaces before ;;'s in configure for better sh compatibility
+- Added pigz.c (parallel implementation of gzip) to examples/
+- Correct constant in crc32.c to UL [Leventhal]
+- Reject negative lengths in crc32_combine()
+- Add inflateReset2() function to work like inflateEnd()/inflateInit2()
+- Include sys/types.h for _LARGEFILE64_SOURCE [Brown]
+- Correct typo in doc/algorithm.txt [Janik]
+- Fix bug in adler32_combine() [Zhu]
+- Catch missing-end-of-block-code error in all inflates and in puff
+    Assures that random input to inflate eventually results in an error
+- Added enough.c (calculation of ENOUGH for inftrees.h) to examples/
+- Update ENOUGH and its usage to reflect discovered bounds
+- Fix gzerror() error report on empty input file [Brown]
+- Add ush casts in trees.c to avoid pedantic runtime errors
+- Fix typo in zlib.h uncompress() description [Reiss]
+- Correct inflate() comments with regard to automatic header detection
+- Remove deprecation comment on Z_PARTIAL_FLUSH (it stays)
+- Put new version of gzlog (2.0) in examples with interruption recovery
+- Add puff compile option to permit invalid distance-too-far streams
+- Add puff TEST command options, ability to read piped input
+- Prototype the *64 functions in zlib.h when _FILE_OFFSET_BITS == 64, but
+  _LARGEFILE64_SOURCE not defined
+- Fix Z_FULL_FLUSH to truly erase the past by resetting s->strstart
+- Fix deflateSetDictionary() to use all 32K for output consistency
+- Remove extraneous #define MIN_LOOKAHEAD in deflate.c (in deflate.h)
+- Clear bytes after deflate lookahead to avoid use of uninitialized data
+- Change a limit in inftrees.c to be more transparent to Coverity Prevent
+- Update win32/zlib.def with exported symbols from zlib.h
+- Correct spelling error in zlib.h [Willem]
+- Allow Z_BLOCK for deflate() to force a new block
+- Allow negative bits in inflatePrime() to delete existing bit buffer
+- Add Z_TREES flush option to inflate() to return at end of trees
+- Add inflateMark() to return current state information for random access
+- Added Makefile for NintendoDS to contrib [Costa]
+- Add -w in configure compile tests to avoid spurious warnings [Beucler]
+- Fix typos in zlib.h comments for deflateSetDictionary()
+- Fix EOF detection in transparent gzread() [Maier]
+
 Changes in 1.2.3.3 (2 October 2006)
 - Make --shared the default for configure, add a --static option
 - Add compile option to permit invalid distance-too-far streams
@@ -10,7 +71,7 @@ Changes in 1.2.3.3 (2 October 2006)
 - Use ftello() and fseeko() if available instead of ftell() and fseek()
 - Provide two versions of all functions that use the z_off_t type for
   binary compatibility -- a normal version and a 64-bit offset version,
-  per the Large File Support Extension when _LARGEFILE64_SUPPORT is
+  per the Large File Support Extension when _LARGEFILE64_SOURCE is
   defined; use the 64-bit versions by default when _FILE_OFFSET_BITS
   is defined to be 64
 - Add a --uname= option to configure to perhaps help with cross-compiling

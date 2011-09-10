@@ -53,7 +53,7 @@
 
 /* Definitions for doing the crc four data bytes at a time. */
 #ifdef BYFOUR
-#  define REV(w) (((w)>>24)+(((w)>>8)&0xff00)+ \
+#  define REV(w) ((((w)>>24)&0xff)+(((w)>>8)&0xff00)+ \
                 (((w)&0xff00)<<8)+(((w)&0xff)<<24))
    local unsigned long crc32_little OF((unsigned long,
                         const unsigned char FAR *, unsigned));
@@ -68,11 +68,7 @@
 local unsigned long gf2_matrix_times OF((unsigned long *mat,
                                          unsigned long vec));
 local void gf2_matrix_square OF((unsigned long *square, unsigned long *mat));
-#ifdef _LARGEFILE64_SOURCE
-   local uLong crc32_combine_(uLong crc1, uLong crc2, off64_t len2);
-#else
-   local uLong crc32_combine_(uLong crc1, uLong crc2, z_off_t len2);
-#endif
+local uLong crc32_combine_(uLong crc1, uLong crc2, z_off64_t len2);
 
 
 #ifdef DYNAMIC_CRC_TABLE
@@ -376,23 +372,19 @@ local void gf2_matrix_square(square, mat)
 local uLong crc32_combine_(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
-#ifdef _LARGEFILE64_SOURCE
-    off64_t len2;
-#else
-    z_off_t len2;
-#endif
+    z_off64_t len2;
 {
     int n;
     unsigned long row;
     unsigned long even[GF2_DIM];    /* even-power-of-two zeros operator */
     unsigned long odd[GF2_DIM];     /* odd-power-of-two zeros operator */
 
-    /* degenerate case */
-    if (len2 == 0)
+    /* degenerate case (also disallow negative lengths) */
+    if (len2 <= 0)
         return crc1;
 
     /* put operator for one zero bit in odd */
-    odd[0] = 0xedb88320L;           /* CRC-32 polynomial */
+    odd[0] = 0xedb88320UL;          /* CRC-32 polynomial */
     row = 1;
     for (n = 1; n < GF2_DIM; n++) {
         odd[n] = row;
@@ -441,20 +433,10 @@ uLong ZEXPORT crc32_combine(crc1, crc2, len2)
     return crc32_combine_(crc1, crc2, len2);
 }
 
-#ifdef _LARGEFILE64_SOURCE
 uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
-    off64_t len2;
+    z_off64_t len2;
 {
     return crc32_combine_(crc1, crc2, len2);
 }
-#else
-uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
-    uLong crc1;
-    uLong crc2;
-    z_off_t len2;
-{
-    return crc32_combine_(crc1, crc2, len2);
-}
-#endif

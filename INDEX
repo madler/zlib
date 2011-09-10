@@ -10,6 +10,7 @@ treebuild.xml	see http://treebuild.metux.de/
 zlib.3		Man page for zlib
 zlib.map	Linux symbol information
 zlib.pc.in	Template for pkg-config descriptor
+zlib2ansi	perl script to convert source files for C++ compilation
 
 amiga/          makefiles for Amiga SAS C
 as400/          makefiles for IBM AS/400

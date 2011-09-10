@@ -1,5 +1,5 @@
 /* deflate.h -- internal compression state
- * Copyright (C) 1995-2005 Jean-loup Gailly
+ * Copyright (C) 1995-2009 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -260,6 +260,13 @@ typedef struct internal_state {
      * are always zero.
      */
 
+    ulg high_water;
+    /* High water mark offset in window for initialized bytes -- bytes above
+     * this are set to zero in order to avoid memory check warnings when
+     * longest match routines access bytes past the input.  This is then
+     * updated to the new high water mark.
+     */
+
 } FAR deflate_state;
 
 /* Output a byte on the stream.
@@ -277,6 +284,10 @@ typedef struct internal_state {
 /* In order to simplify the code, particularly on 16 bit machines, match
  * distances are limited to MAX_DIST instead of WSIZE.
  */
+
+#define WIN_INIT MAX_MATCH
+/* Number of bytes after end of data in window to initialize in order to avoid
+   memory checker errors from longest match routines */
 
         /* in trees.c */
 void _tr_init         OF((deflate_state *s));

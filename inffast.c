@@ -1,5 +1,5 @@
 /* inffast.c -- fast decoding
- * Copyright (C) 1995-2006 Mark Adler
+ * Copyright (C) 1995-2008 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -188,7 +188,8 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                     op = dist - op;             /* distance back in window */
                     if (op > whave) {
                         if (state->sane) {
-                            strm->msg = (char *)"invalid distance too far back";
+                            strm->msg =
+                                (char *)"invalid distance too far back";
                             state->mode = BAD;
                             break;
                         }

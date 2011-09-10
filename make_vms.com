@@ -10,6 +10,7 @@ $!
 $!------------------------------------------------------------------------------
 $! Version history
 $! 0.01 20060120 First version to receive a number
+$! 0.02 20061008 Adapt to new Makefile.in
 $!
 $ on error then goto err_exit
 $!
@@ -353,7 +354,7 @@ $!
 $CREA_OLIST:
 $ open/read min makefile.in
 $ open/write mod modules.opt
-$ src_check = "OBJS ="
+$ src_check = "OBJC ="
 $MRLOOP:
 $ read/end=mrdone min rec
 $ if (f$extract(0,6,rec) .nes. src_check) then goto mrloop

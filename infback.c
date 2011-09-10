@@ -1,5 +1,5 @@
 /* infback.c -- inflate using a call-back interface
- * Copyright (C) 1995-2006 Mark Adler
+ * Copyright (C) 1995-2008 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -438,7 +438,16 @@ void FAR *out_desc;
             /* handle error breaks in while */
             if (state->mode == BAD) break;
 
-            /* build code tables */
+            /* check for end-of-block code (better have one) */
+            if (state->lens[256] == 0) {
+                strm->msg = (char *)"invalid code -- missing end-of-block";
+                state->mode = BAD;
+                break;
+            }
+
+            /* build code tables -- note: do not change the lenbits or distbits
+               values here (9 and 6) without reading the comments in inftrees.h
+               concerning the ENOUGH constants, which depend on those values */
             state->next = state->codes;
             state->lencode = (code const FAR *)(state->next);
             state->lenbits = 9;

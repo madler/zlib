@@ -1,5 +1,5 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * Copyright (C) 1995-2009 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_GZCOMPRESS to avoid the compression code.
@@ -71,43 +71,32 @@ static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 
 typedef struct gz_stream {
     z_stream stream;
-    int      z_err;   /* error code for last stream operation */
-    int      z_eof;   /* set if end of input file */
-    FILE     *file;   /* .gz file */
-    Byte     *inbuf;  /* input buffer */
-    Byte     *outbuf; /* output buffer */
-    uLong    crc;     /* crc32 of uncompressed data */
-    char     *msg;    /* error message */
-    char     *path;   /* path name for debugging only */
-    int      transparent; /* 1 if input file is not a .gz file */
-    char     mode;    /* 'w' or 'r' */
-#ifdef _LARGEFILE64_SOURCE
-    off64_t  start;   /* start of compressed data in file (header skipped) */
-    off64_t  in;      /* bytes into deflate or inflate */
-    off64_t  out;     /* bytes out of deflate or inflate */
-#else
-    z_off_t  start;   /* start of compressed data in file (header skipped) */
-    z_off_t  in;      /* bytes into deflate or inflate */
-    z_off_t  out;     /* bytes out of deflate or inflate */
-#endif
-    int      back;    /* one character push-back */
-    int      last;    /* true if push-back is last character */
+    int         z_err;      /* error code for last stream operation */
+    int         z_eof;      /* set if end of input file */
+    FILE        *file;      /* .gz file */
+    Byte        *inbuf;     /* input buffer */
+    Byte        *outbuf;    /* output buffer */
+    uLong       crc;        /* crc32 of uncompressed data */
+    char        *msg;       /* error message */
+    char        *path;      /* path name for debugging only */
+    int         transparent; /* 1 if input file is not a .gz file */
+    char        mode;       /* 'w' or 'r' */
+    z_off64_t   start;      /* start of compressed data in file */
+    z_off64_t   in;         /* bytes into deflate or inflate */
+    z_off64_t   out;        /* bytes out of deflate or inflate */
+    int         back;       /* one character push-back */
+    int         last;       /* true if push-back is last character */
 } gz_stream;
 
 
-local gzFile gz_open      OF((const char *path, const char *mode, int fd,
-                              int use64));
-#ifdef _LARGEFILE64_SOURCE
-local off64_t gz_seek OF((gzFile file, off64_t offset, int whence, int use64));
-#else
-local z_off_t gz_seek OF((gzFile file, z_off_t offset, int whence, int use64));
-#endif
-local int do_flush        OF((gzFile file, int flush));
-local int    get_byte     OF((gz_stream *s));
-local void   check_header OF((gz_stream *s));
-local int    destroy      OF((gz_stream *s));
-local void   putLong      OF((FILE *file, uLong x));
-local uLong  getLong      OF((gz_stream *s));
+local gzFile gz_open      OF((const char *, const char *, int, int));
+local z_off64_t  gz_seek  OF((gzFile, z_off64_t, int, int));
+local int    do_flush     OF((gzFile, int));
+local int    get_byte     OF((gz_stream *));
+local void   check_header OF((gz_stream *));
+local int    destroy      OF((gz_stream *));
+local void   putLong      OF((FILE *, uLong));
+local uLong  getLong      OF((gz_stream *));
 
 /* ===========================================================================
      Opens a gzip (.gz) file for reading or writing. The mode parameter
@@ -143,6 +132,7 @@ local gzFile gz_open (path, mode, fd, use64)
     s->stream.next_in = s->inbuf = Z_NULL;
     s->stream.next_out = s->outbuf = Z_NULL;
     s->stream.avail_in = s->stream.avail_out = 0;
+    s->stream.state = Z_NULL;
     s->file = NULL;
     s->z_err = Z_OK;
     s->z_eof = 0;
@@ -442,7 +432,7 @@ int ZEXPORT gzread (file, buf, len)
     if (s == NULL || s->mode != 'r') return Z_STREAM_ERROR;
 
     if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) return -1;
-    if (s->z_err == Z_STREAM_END) return 0;  /* EOF */
+    if (s->z_err == Z_STREAM_END || s->z_eof) return 0;  /* EOF */
 
     next_out = (Byte*)buf;
     s->stream.next_out = (Bytef*)buf;
@@ -482,7 +472,7 @@ int ZEXPORT gzread (file, buf, len)
             len -= s->stream.avail_out;
             s->in  += len;
             s->out += len;
-            if (len == 0) s->z_eof = 1;
+            if (feof(s->file)) s->z_eof = 1;
             return (int)len;
         }
         if (s->stream.avail_in == 0 && !s->z_eof) {
@@ -803,15 +793,9 @@ int ZEXPORT gzflush (file, flush)
       SEEK_END is not implemented, returns error.
       In this version of the library, gzseek can be extremely slow.
 */
-#ifdef _LARGEFILE64_SOURCE
-local off64_t gz_seek (file, offset, whence, use64)
+local z_off64_t gz_seek (file, offset, whence, use64)
     gzFile file;
-    off64_t offset;
-#else
-local z_off_t gz_seek (file, offset, whence, use64)
-    gzFile file;
-    z_off_t offset;
-#endif
+    z_off64_t offset;
     int whence;
     int use64;
 {
@@ -914,23 +898,17 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
     return (z_off_t)gz_seek(file, offset, whence, 0);
 }
 
+z_off64_t ZEXPORT gzseek64 (file, offset, whence)
+    gzFile file;
+    z_off64_t offset;
+    int whence;
+{
 #ifdef _LARGEFILE64_SOURCE
-off64_t ZEXPORT gzseek64 (file, offset, whence)
-    gzFile file;
-    off64_t offset;
-    int whence;
-{
     return gz_seek(file, offset, whence, 1);
-}
 #else
-z_off_t ZEXPORT gzseek64 (file, offset, whence)
-    gzFile file;
-    z_off_t offset;
-    int whence;
-{
     return gz_seek(file, offset, whence, 0);
-}
 #endif
+}
 
 /* ===========================================================================
      Rewinds input file.
@@ -968,11 +946,7 @@ z_off_t ZEXPORT gztell (file)
 /* ===========================================================================
      64-bit version
 */
-#ifdef _LARGEFILE64_SOURCE
-off64_t ZEXPORT gztell64 (file)
-#else
-z_off_t ZEXPORT gztell64 (file)
-#endif
+z_off64_t ZEXPORT gztell64 (file)
     gzFile file;
 {
     return gzseek64(file, 0L, SEEK_CUR);

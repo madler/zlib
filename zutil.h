@@ -167,6 +167,12 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #pragma warn -8066
 #endif
 
+#ifdef _LARGEFILE64_SOURCE
+#  define z_off64_t off64_t
+#else
+#  define z_off64_t z_off_t
+#endif
+
         /* common defaults */
 
 #ifndef OS_CODE

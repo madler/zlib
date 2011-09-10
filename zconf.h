@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * Copyright (C) 1995-2007 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -352,6 +352,10 @@ typedef uLong FAR uLongf;
 #endif
 
 #include "zlibdefs.h"       /* created by configure */
+
+#ifdef _LARGEFILE64_SOURCE
+#  include <sys/types.h>
+#endif
 
 #ifndef SEEK_SET
 #  define SEEK_SET        0       /* Seek from beginning of file.  */
