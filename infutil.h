@@ -13,42 +13,42 @@ struct inflate_blocks_state {
 
   /* mode */
   enum {
-      TYPE,	/* get type bits (3, including end bit) */
-      LENS,	/* get lengths for stored */
-      STORED,	/* processing stored block */
-      TABLE,	/* get table lengths */
-      BTREE,	/* get bit lengths tree for a dynamic block */
-      DTREE,	/* get length, distance trees for a dynamic block */
-      CODES,	/* processing fixed or dynamic block */
-      DRY,	/* output remaining window bytes */
-      DONE,	/* finished last block, done */
-      BAD}	/* got a data error--stuck here */
-    mode;		/* current inflate_block mode */
+      TYPE,     /* get type bits (3, including end bit) */
+      LENS,     /* get lengths for stored */
+      STORED,   /* processing stored block */
+      TABLE,    /* get table lengths */
+      BTREE,    /* get bit lengths tree for a dynamic block */
+      DTREE,    /* get length, distance trees for a dynamic block */
+      CODES,    /* processing fixed or dynamic block */
+      DRY,      /* output remaining window bytes */
+      DONE,     /* finished last block, done */
+      BAD}      /* got a data error--stuck here */
+    mode;               /* current inflate_block mode */
 
   /* mode dependent information */
   union {
-    uInt left;		/* if STORED, bytes left to copy */
+    uInt left;          /* if STORED, bytes left to copy */
     struct {
-      uInt table;		/* table lengths (14 bits) */
-      uInt index;		/* index into blens (or border) */
-      uInt *blens;		/* bit lengths of codes */
-      uInt bb;			/* bit length tree depth */
-      inflate_huft *tb;		/* bit length decoding tree */
-    } trees;		/* if DTREE, decoding info for trees */
+      uInt table;               /* table lengths (14 bits) */
+      uInt index;               /* index into blens (or border) */
+      uInt *blens;              /* bit lengths of codes */
+      uInt bb;                  /* bit length tree depth */
+      inflate_huft *tb;         /* bit length decoding tree */
+    } trees;            /* if DTREE, decoding info for trees */
     struct inflate_codes_state
-      *codes;		/* if CODES, current state */
-  } sub;		/* submode */
-  uInt last;		/* true if this block is the last block */
+      *codes;           /* if CODES, current state */
+  } sub;                /* submode */
+  uInt last;            /* true if this block is the last block */
 
   /* mode independent information */
-  uInt bitk;		/* bits in bit buffer */
-  uLong bitb;		/* bit buffer */
-  Byte *window;		/* sliding window */
-  Byte *end;		/* one byte after sliding window */
-  Byte *read;		/* window read pointer */
-  Byte *write;		/* window write pointer */
+  uInt bitk;            /* bits in bit buffer */
+  uLong bitb;           /* bit buffer */
+  Byte *window;         /* sliding window */
+  Byte *end;            /* one byte after sliding window */
+  Byte *read;           /* window read pointer */
+  Byte *write;          /* window write pointer */
   check_func checkfn;   /* check function */
-  uLong check;		/* check on output */
+  uLong check;          /* check on output */
 
 };
 

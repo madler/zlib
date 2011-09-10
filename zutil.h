@@ -8,12 +8,18 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: zutil.h,v 1.8 1995/05/02 15:44:46 jloup Exp $ */
+/* $Id: zutil.h,v 1.9 1995/05/03 17:27:12 jloup Exp $ */
 
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H
 
 #include "zlib.h"
+
+#ifdef __GNUC__
+#  define INLINE inline
+#else
+#  define INLINE
+#endif
 
 #ifdef MSDOS
 #   include <stddef.h>
@@ -39,7 +45,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #define ERR_RETURN(strm,err) return (strm->msg=z_errmsg[1-err], err)
 /* To be used only when the state is known to be valid */
 
-	/* common constants */
+        /* common constants */
 
 #define DEFLATED   8
 
@@ -62,7 +68,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #define MAX_MATCH  258
 /* The minimum and maximum match lengths */
 
-	/* target dependencies */
+        /* target dependencies */
 
 #ifdef MSDOS
 #  define OS_CODE  0x00
@@ -107,7 +113,7 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define OS_CODE  0x0a
 #endif
 
-	/* Common defaults */
+        /* Common defaults */
 
 #ifndef OS_CODE
 #  define OS_CODE  0x03  /* assume Unix */
@@ -126,7 +132,10 @@ extern char *z_errmsg[]; /* indexed by 1-zlib_error */
 #  define zstrerror(errnum) ""
 #endif
 
-#if defined(STDC) && !defined(HAVE_MEMCPY)
+#if defined(pyr) && !defined(NO_MEMCPY)
+#  define NO_MEMCPY
+#endif
+#if defined(STDC) && !defined(HAVE_MEMCPY) && !defined(NO_MEMCPY)
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY

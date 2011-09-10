@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* $Id: gzio.c,v 1.7 1995/05/02 12:22:08 jloup Exp $ */
+/* $Id: gzio.c,v 1.8 1995/05/03 17:27:09 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -68,13 +68,13 @@ local int destroy (s)
 
     if (s->stream.state != NULL) {
        if (s->mode == 'w') {
-	   err = deflateEnd(&(s->stream));
+           err = deflateEnd(&(s->stream));
        } else if (s->mode == 'r') {
-	   err = inflateEnd(&(s->stream));
+           err = inflateEnd(&(s->stream));
        }
     }
     if (s->file != NULL && fclose(s->file)) {
-	err = Z_ERRNO;
+        err = Z_ERRNO;
     }
     if (s->z_err < 0) err = s->z_err;
     zcfree((voidp)0, s);
@@ -115,34 +115,34 @@ local gzFile gz_open (path, mode, fd)
 
     s->path = (char*)ALLOC(strlen(path)+1);
     if (s->path == NULL) {
-	return destroy(s), (gzFile)Z_NULL;
+        return destroy(s), (gzFile)Z_NULL;
     }
     strcpy(s->path, path); /* do this early for debugging */
 
     s->mode = '\0';
     do {
-	if (*p == 'r') s->mode = 'r';
-	if (*p == 'w') s->mode = 'w';
+        if (*p == 'r') s->mode = 'r';
+        if (*p == 'w') s->mode = 'w';
     } while (*p++);
     if (s->mode == '\0') return destroy(s), (gzFile)Z_NULL;
     
     if (s->mode == 'w') {
-	err = deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION,
-			   DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0);
-	/* windowBits is passed < 0 to suppress zlib header */
+        err = deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION,
+                           DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0);
+        /* windowBits is passed < 0 to suppress zlib header */
 
-	s->stream.next_out = s->outbuf = ALLOC(Z_BUFSIZE);
+        s->stream.next_out = s->outbuf = ALLOC(Z_BUFSIZE);
 
-	if (err != Z_OK || s->outbuf == Z_NULL) {
-	    return destroy(s), (gzFile)Z_NULL;
-	}
+        if (err != Z_OK || s->outbuf == Z_NULL) {
+            return destroy(s), (gzFile)Z_NULL;
+        }
     } else {
-	err = inflateInit2(&(s->stream), -MAX_WBITS);
-	s->stream.next_in  = s->inbuf = ALLOC(Z_BUFSIZE);
+        err = inflateInit2(&(s->stream), -MAX_WBITS);
+        s->stream.next_in  = s->inbuf = ALLOC(Z_BUFSIZE);
 
-	if (err != Z_OK || s->inbuf == Z_NULL) {
-	    return destroy(s), (gzFile)Z_NULL;
-	}
+        if (err != Z_OK || s->inbuf == Z_NULL) {
+            return destroy(s), (gzFile)Z_NULL;
+        }
     }
     s->stream.avail_out = Z_BUFSIZE;
 
@@ -150,55 +150,55 @@ local gzFile gz_open (path, mode, fd)
     s->file = fd < 0 ? FOPEN(path, mode) : fdopen(fd, mode);
 
     if (s->file == NULL) {
-	return destroy(s), (gzFile)Z_NULL;
+        return destroy(s), (gzFile)Z_NULL;
     }
     if (s->mode == 'w') {
-	/* Write a very simple .gz header:
-	 */
-	fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", GZ_MAGIC_1, GZ_MAGIC_2,
-	       DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
-    } else {
-	/* Check and skip the header:
+        /* Write a very simple .gz header:
          */
-	Byte c1 = 0, c2 = 0;
-	Byte method = 0;
-	Byte flags = 0;
-	Byte xflags = 0;
-	Byte time[4];
-	Byte osCode;
-	int c;
+        fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", GZ_MAGIC_1, GZ_MAGIC_2,
+               DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
+    } else {
+        /* Check and skip the header:
+         */
+        Byte c1 = 0, c2 = 0;
+        Byte method = 0;
+        Byte flags = 0;
+        Byte xflags = 0;
+        Byte time[4];
+        Byte osCode;
+        int c;
 
-	s->stream.avail_in = fread(s->inbuf, 1, 2, s->file);
-	if (s->stream.avail_in != 2 || s->inbuf[0] != GZ_MAGIC_1
-	    || s->inbuf[1] != GZ_MAGIC_2) {
-	    s->transparent = 1;
-	    return (gzFile)s;
-	}
-	s->stream.avail_in = 0;
-	fscanf(s->file,"%c%c%4c%c%c", &method, &flags, time, &xflags, &osCode);
+        s->stream.avail_in = fread(s->inbuf, 1, 2, s->file);
+        if (s->stream.avail_in != 2 || s->inbuf[0] != GZ_MAGIC_1
+            || s->inbuf[1] != GZ_MAGIC_2) {
+            s->transparent = 1;
+            return (gzFile)s;
+        }
+        s->stream.avail_in = 0;
+        fscanf(s->file,"%c%c%4c%c%c", &method, &flags, time, &xflags, &osCode);
 
-	if (method != DEFLATED || feof(s->file) || (flags & RESERVED) != 0) {
-	    s->z_err = Z_DATA_ERROR;
-	    return (gzFile)s;
-	}
-	if ((flags & EXTRA_FIELD) != 0) { /* skip the extra field */
-	    long len;
-	    fscanf(s->file, "%c%c", &c1, &c2);
-	    len = c1 + ((long)c2<<8);
-	    fseek(s->file, len, SEEK_CUR);
-	}
-	if ((flags & ORIG_NAME) != 0) { /* skip the original file name */
-	    while ((c = getc(s->file)) != 0 && c != EOF) ;
-	}
-	if ((flags & COMMENT) != 0) {   /* skip the .gz file comment */
-	    while ((c = getc(s->file)) != 0 && c != EOF) ;
-	}
-	if ((flags & HEAD_CRC) != 0) {  /* skip the header crc */
-	    fscanf(s->file, "%c%c", &c1, &c2);
-	}
-	if (feof(s->file)) {
-	    s->z_err = Z_DATA_ERROR;
-	}
+        if (method != DEFLATED || feof(s->file) || (flags & RESERVED) != 0) {
+            s->z_err = Z_DATA_ERROR;
+            return (gzFile)s;
+        }
+        if ((flags & EXTRA_FIELD) != 0) { /* skip the extra field */
+            long len;
+            fscanf(s->file, "%c%c", &c1, &c2);
+            len = c1 + ((long)c2<<8);
+            fseek(s->file, len, SEEK_CUR);
+        }
+        if ((flags & ORIG_NAME) != 0) { /* skip the original file name */
+            while ((c = getc(s->file)) != 0 && c != EOF) ;
+        }
+        if ((flags & COMMENT) != 0) {   /* skip the .gz file comment */
+            while ((c = getc(s->file)) != 0 && c != EOF) ;
+        }
+        if ((flags & HEAD_CRC) != 0) {  /* skip the header crc */
+            fscanf(s->file, "%c%c", &c1, &c2);
+        }
+        if (feof(s->file)) {
+            s->z_err = Z_DATA_ERROR;
+        }
     }
     return (gzFile)s;
 }
@@ -240,16 +240,16 @@ int gzread (file, buf, len)
     if (s == NULL || s->mode != 'r') return Z_STREAM_ERROR;
 
     if (s->transparent) {
-	unsigned n = 0;
-	Byte *b = (Byte*)buf;
-	/* Copy the first two (non-magic) bytes if not done already */
-	while (s->stream.avail_in > 0 && len > 0) {
-	    *b++ = *s->stream.next_in++;
-	    s->stream.avail_in--;
-	    len--; n++;
-	}
-	if (len == 0) return n;
-	return n + fread(b, 1, len, s->file);
+        unsigned n = 0;
+        Byte *b = (Byte*)buf;
+        /* Copy the first two (non-magic) bytes if not done already */
+        while (s->stream.avail_in > 0 && len > 0) {
+            *b++ = *s->stream.next_in++;
+            s->stream.avail_in--;
+            len--; n++;
+        }
+        if (len == 0) return n;
+        return n + fread(b, 1, len, s->file);
     }
     if (s->z_err == Z_DATA_ERROR) return -1; /* bad .gz file */
     if (s->z_err == Z_STREAM_END) return 0;  /* don't read crc as data */
@@ -259,24 +259,24 @@ int gzread (file, buf, len)
 
     while (s->stream.avail_out != 0) {
 
-	if (s->stream.avail_in == 0 && !s->z_eof) {
+        if (s->stream.avail_in == 0 && !s->z_eof) {
 
-	    errno = 0;
-	    s->stream.avail_in =
-		fread(s->inbuf, 1, Z_BUFSIZE, s->file);
-	    if (s->stream.avail_in == 0) {
-		s->z_eof = 1;
-	    } else if (s->stream.avail_in == (uInt)EOF) {
-		s->stream.avail_in = 0;
-		s->z_eof = 1;
-		s->z_err = Z_ERRNO;
-		break;
-	    }
-	    s->stream.next_in = s->inbuf;
-	}
-	s->z_err = inflate(&(s->stream), Z_NO_FLUSH);
+            errno = 0;
+            s->stream.avail_in =
+                fread(s->inbuf, 1, Z_BUFSIZE, s->file);
+            if (s->stream.avail_in == 0) {
+                s->z_eof = 1;
+            } else if (s->stream.avail_in == (uInt)EOF) {
+                s->stream.avail_in = 0;
+                s->z_eof = 1;
+                s->z_err = Z_ERRNO;
+                break;
+            }
+            s->stream.next_in = s->inbuf;
+        }
+        s->z_err = inflate(&(s->stream), Z_NO_FLUSH);
 
-	if (s->z_err == Z_STREAM_END ||
+        if (s->z_err == Z_STREAM_END ||
             s->z_err != Z_OK  || s->z_eof) break;
     }
     len -= s->stream.avail_out;
@@ -302,18 +302,18 @@ int gzwrite (file, buf, len)
 
     while (s->stream.avail_in != 0) {
 
-	if (s->stream.avail_out == 0) {
+        if (s->stream.avail_out == 0) {
 
-	    s->stream.next_out = s->outbuf;
-	    if (fwrite(s->outbuf, 1, Z_BUFSIZE, s->file) != Z_BUFSIZE) {
-		s->z_err = Z_ERRNO;
-		break;
-	    }
-	    s->stream.avail_out = Z_BUFSIZE;
-	}
-	s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
+            s->stream.next_out = s->outbuf;
+            if (fwrite(s->outbuf, 1, Z_BUFSIZE, s->file) != Z_BUFSIZE) {
+                s->z_err = Z_ERRNO;
+                break;
+            }
+            s->stream.avail_out = Z_BUFSIZE;
+        }
+        s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
 
-	if (s->z_err != Z_OK) break;
+        if (s->z_err != Z_OK) break;
     }
     s->crc = crc32(s->crc, buf, len);
 
@@ -339,25 +339,25 @@ int gzflush (file, flush)
     s->stream.avail_in = 0; /* should be zero already anyway */
 
     for (;;) {
-	len = Z_BUFSIZE - s->stream.avail_out;
+        len = Z_BUFSIZE - s->stream.avail_out;
 
-	if (len != 0) {
-	    if (fwrite(s->outbuf, 1, len, s->file) != len) {
-		s->z_err = Z_ERRNO;
-		return Z_ERRNO;
-	    }
-	    s->stream.next_out = s->outbuf;
-	    s->stream.avail_out = Z_BUFSIZE;
-	}
-	if (done) break;
-	s->z_err = deflate(&(s->stream), flush);
+        if (len != 0) {
+            if (fwrite(s->outbuf, 1, len, s->file) != len) {
+                s->z_err = Z_ERRNO;
+                return Z_ERRNO;
+            }
+            s->stream.next_out = s->outbuf;
+            s->stream.avail_out = Z_BUFSIZE;
+        }
+        if (done) break;
+        s->z_err = deflate(&(s->stream), flush);
 
         /* deflate has finished flushing only when it hasn't used up
          * all the available space in the output buffer: 
          */
         done = (s->stream.avail_out != 0 || s->z_err == Z_STREAM_END);
  
-	if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
+        if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
     }
     return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
 }
@@ -371,8 +371,8 @@ local void putLong (file, x)
 {
     int n;
     for (n = 0; n < 4; n++) {
-	fputc((int)(x & 0xff), file);
-	x >>= 8;
+        fputc((int)(x & 0xff), file);
+        x >>= 8;
     }
 }
 
@@ -386,8 +386,8 @@ local uLong getLong (buf)
     Byte *p = buf+4;
 
     do {
-	x <<= 8;
-	x |= *--p; 
+        x <<= 8;
+        x |= *--p; 
     } while (p != buf);
     return x;
 }
@@ -406,31 +406,31 @@ int gzclose (file)
     if (s == NULL) return Z_STREAM_ERROR;
 
     if (s->mode == 'w') {
-	err = gzflush (file, Z_FINISH);
-	if (err != Z_OK) return destroy(file);
+        err = gzflush (file, Z_FINISH);
+        if (err != Z_OK) return destroy(file);
 
-	putLong (s->file, s->crc);
-	putLong (s->file, s->stream.total_in);
+        putLong (s->file, s->crc);
+        putLong (s->file, s->stream.total_in);
 
     } else if (s->mode == 'r' && s->z_err == Z_STREAM_END) {
 
-	/* slide CRC and original size if they are at the end of inbuf */
-	if ((n = s->stream.avail_in) < 8  && !s->z_eof) {
-	    Byte *p = s->inbuf;
-	    Byte *q = s->stream.next_in;
-	    while (n--) { *p++ = *q++; };
+        /* slide CRC and original size if they are at the end of inbuf */
+        if ((n = s->stream.avail_in) < 8  && !s->z_eof) {
+            Byte *p = s->inbuf;
+            Byte *q = s->stream.next_in;
+            while (n--) { *p++ = *q++; };
 
-	    n = s->stream.avail_in;
-	    n += fread(p, 1, 8, s->file);
-	    s->stream.next_in = s->inbuf;
-	}
-	/* check CRC and original size */
-	if (n < 8 ||
-	    getLong(s->stream.next_in) != s->crc ||
-	    getLong(s->stream.next_in + 4) != s->stream.total_out) {
+            n = s->stream.avail_in;
+            n += fread(p, 1, 8, s->file);
+            s->stream.next_in = s->inbuf;
+        }
+        /* check CRC and original size */
+        if (n < 8 ||
+            getLong(s->stream.next_in) != s->crc ||
+            getLong(s->stream.next_in + 4) != s->stream.total_out) {
 
-	    s->z_err = Z_DATA_ERROR;
-	}
+            s->z_err = Z_DATA_ERROR;
+        }
     }
     return destroy(file);
 }
@@ -450,8 +450,8 @@ char*  gzerror (file, errnum)
     gz_stream *s = (gz_stream*)file;
 
     if (s == NULL) {
-	*errnum = Z_STREAM_ERROR;
-	return z_errmsg[1-Z_STREAM_ERROR];
+        *errnum = Z_STREAM_ERROR;
+        return z_errmsg[1-Z_STREAM_ERROR];
     }
     *errnum = s->z_err;
     if (*errnum == Z_OK) return "";

@@ -1,5 +1,14 @@
 		ChangeLog file for zlib
 
+Changes in 0.92 (3 May 95)
+- don't assume that char is signed (problem on SGI)
+- Clear bit buffer when starting a stored block
+- no memcpy on Pyramid
+- suppressed inftest.c
+- optimized fill_window, put longest_match inline for gcc
+- optimized inflate on stored blocks.
+- untabify all sources to simplify patches
+
 Changes in 0.91 (2 May 95)
 - Default MEM_LEVEL is 8 (not 9 for Unix) as documented in zlib.h
 - Document the memory requirements in zconf.h

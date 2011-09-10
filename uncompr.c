@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: uncompr.c,v 1.4 1995/04/10 16:22:22 jloup Exp $ */
+/* $Id: uncompr.c,v 1.5 1995/05/03 17:27:12 jloup Exp $ */
 
 #include "zlib.h"
 
@@ -48,8 +48,8 @@ int uncompress (dest, destLen, source, sourceLen)
 
     err = inflate(&stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-	inflateEnd(&stream);
-	return err;
+        inflateEnd(&stream);
+        return err;
     }
     *destLen = stream.total_out;
 

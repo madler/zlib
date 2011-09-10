@@ -13,32 +13,32 @@ struct internal_state {
 
   /* mode */
   enum {
-      METHOD,	/* waiting for method byte */
-      FLAG,	/* waiting for flag byte */
-      BLOCKS,	/* decompressing blocks */
-      CHECK4,	/* four check bytes to go */
-      CHECK3,	/* three check bytes to go */
-      CHECK2,	/* two check bytes to go */
-      CHECK1,	/* one check byte to go */
-      DONE,	/* finished check, done */
-      BAD}	/* got an error--stay here */
-    mode;		/* current inflate mode */
+      METHOD,   /* waiting for method byte */
+      FLAG,     /* waiting for flag byte */
+      BLOCKS,   /* decompressing blocks */
+      CHECK4,   /* four check bytes to go */
+      CHECK3,   /* three check bytes to go */
+      CHECK2,   /* two check bytes to go */
+      CHECK1,   /* one check byte to go */
+      DONE,     /* finished check, done */
+      BAD}      /* got an error--stay here */
+    mode;               /* current inflate mode */
 
   /* mode dependent information */
   union {
-    uInt method;	/* if FLAGS, method byte */
+    uInt method;        /* if FLAGS, method byte */
     struct {
       uLong was;                /* computed check value */
       uLong need;               /* stream check value */
     } check;            /* if CHECK, check values to compare */
-    uInt marker;	/* if BAD, inflateSync's marker bytes count */
-  } sub;	/* submode */
+    uInt marker;        /* if BAD, inflateSync's marker bytes count */
+  } sub;        /* submode */
 
   /* mode independent information */
-  int  nowrap;		/* flag for no wrapper */
-  uInt wbits;  		/* log2(window size)  (8..15, defaults to 15) */
+  int  nowrap;          /* flag for no wrapper */
+  uInt wbits;           /* log2(window size)  (8..15, defaults to 15) */
   struct inflate_blocks_state
-    *blocks;		/* current inflate_blocks state */
+    *blocks;            /* current inflate_blocks state */
 
 };
 
@@ -135,7 +135,7 @@ int inflate(z, f)
 z_stream *z;
 int f;
 {
-  int r = f;	/* to avoid warning about unused f */
+  int r = f;    /* to avoid warning about unused f */
   uInt b;
 
   if (z == Z_NULL || z->next_in == Z_NULL)
@@ -148,16 +148,16 @@ int f;
       if (((z->state->sub.method = NEXTBYTE) & 0xf) != DEFLATED)
       {
         z->state->mode = BAD;
-	z->msg = "unknown compression method";
-	z->state->sub.marker = 5;	/* can't try inflateSync */
-	break;
+        z->msg = "unknown compression method";
+        z->state->sub.marker = 5;       /* can't try inflateSync */
+        break;
       }
       if ((z->state->sub.method >> 4) + 8 > z->state->wbits)
       {
         z->state->mode = BAD;
-	z->msg = "invalid window size";
-	z->state->sub.marker = 5;	/* can't try inflateSync */
-	break;
+        z->msg = "invalid window size";
+        z->state->sub.marker = 5;       /* can't try inflateSync */
+        break;
       }
       z->state->mode = FLAG;
     case FLAG:
@@ -165,16 +165,16 @@ int f;
       if ((b = NEXTBYTE) & 0x20)
       {
         z->state->mode = BAD;
-	z->msg = "invalid reserved bit";
-	z->state->sub.marker = 5;	/* can't try inflateSync */
-	break;
+        z->msg = "invalid reserved bit";
+        z->state->sub.marker = 5;       /* can't try inflateSync */
+        break;
       }
       if (((z->state->sub.method << 8) + b) % 31)
       {
         z->state->mode = BAD;
-	z->msg = "incorrect header check";
-	z->state->sub.marker = 5;	/* can't try inflateSync */
-	break;
+        z->msg = "incorrect header check";
+        z->state->sub.marker = 5;       /* can't try inflateSync */
+        break;
       }
       Trace((stderr, "inflate: zlib header ok\n"));
       z->state->mode = BLOCKS;
@@ -183,17 +183,17 @@ int f;
       if (r == Z_DATA_ERROR)
       {
         z->state->mode = BAD;
-	z->state->sub.marker = 0;	/* can try inflateSync */
-	break;
+        z->state->sub.marker = 0;       /* can try inflateSync */
+        break;
       }
       if (r != Z_STREAM_END)
-	return r;
+        return r;
       r = Z_OK;
       inflate_blocks_reset(z->state->blocks, z, &z->state->sub.check.was);
       if (z->state->nowrap)
       {
-	z->state->mode = DONE;
-	break;
+        z->state->mode = DONE;
+        break;
       }
       z->state->mode = CHECK4;
     case CHECK4:
@@ -216,8 +216,8 @@ int f;
       {
         z->state->mode = BAD;
         z->msg = "incorrect data check";
-	z->state->sub.marker = 5;	/* can't try inflateSync */
-	break;
+        z->state->sub.marker = 5;       /* can't try inflateSync */
+        break;
       }
       Trace((stderr, "inflate: zlib check ok\n"));
       z->state->mode = DONE;
@@ -234,10 +234,10 @@ int f;
 int inflateSync(z)
 z_stream *z;
 {
-  uInt n;	/* number of bytes to look at */
-  Byte *p;	/* pointer to bytes */
-  uInt m;	/* number of marker bytes found in a row */
-  uLong r, w;	/* temporaries to save total_in and total_out */
+  uInt n;       /* number of bytes to look at */
+  Byte *p;      /* pointer to bytes */
+  uInt m;       /* number of marker bytes found in a row */
+  uLong r, w;   /* temporaries to save total_in and total_out */
 
   /* set up */
   if (z == Z_NULL || z->state == Z_NULL)

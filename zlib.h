@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.91 May 2nd, 1995.
+  version 0.92 May 3rd, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.91"
+#define ZLIB_VERSION "0.92"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -103,7 +103,7 @@ typedef struct z_stream_s {
    a single step).
 */
 
-			/* constants */
+                        /* constants */
 
 #define Z_NO_FLUSH      0
 #define Z_PARTIAL_FLUSH 1
@@ -142,7 +142,7 @@ extern char *zlib_version;
    not compatible with the zlib.h header file used by the application.
  */
 
-			/* basic functions */
+                        /* basic functions */
 
 extern int deflateInit __P((z_stream *strm, int level));
 /* 
@@ -313,8 +313,8 @@ extern int inflateEnd __P((z_stream *strm));
 */
 
 extern int deflateInit2 __P((z_stream *strm,
-			     int  level,
-			     int  method,
+                             int  level,
+                             int  method,
                              int  windowBits,
                              int  memLevel,
                              int  strategy));

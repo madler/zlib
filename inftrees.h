@@ -16,12 +16,18 @@
    indicates an unused code.  If a code with exop == -128 is looked up,
    this implies an error in the data. */
 
+#if defined(STDC) || defined(sgi)
+typedef signed char Char;
+#else
+typedef char Char; /* just hope that char is signed */
+#endif
+
 typedef struct inflate_huft_s inflate_huft;
 struct inflate_huft_s {
   union {
     struct {
-      char Exop;        /* number of extra bits or operation */
-      char Bits;        /* number of bits in this code or subcode */
+      Char Exop;        /* number of extra bits or operation */
+      Byte Bits;        /* number of bits in this code or subcode */
     } what;
     Byte *pad;          /* pad structure to a power of 2 (4 bytes for */
   } word;               /*  16-bit, 8 bytes for 32-bit machines) */
@@ -36,27 +42,27 @@ struct inflate_huft_s {
 #endif
 
 extern int inflate_trees_bits __P((
-    uInt *,			/* 19 code lengths */
-    uInt *,			/* bits tree desired/actual depth */
-    inflate_huft **,		/* bits tree result */
-    z_stream *));		/* for zalloc, zfree functions */
+    uInt *,                     /* 19 code lengths */
+    uInt *,                     /* bits tree desired/actual depth */
+    inflate_huft **,            /* bits tree result */
+    z_stream *));               /* for zalloc, zfree functions */
 
 extern int inflate_trees_dynamic __P((
-    uInt,			/* number of literal/length codes */
-    uInt,			/* number of distance codes */
-    uInt *,			/* that many (total) code lengths */
-    uInt *,			/* literal desired/actual bit depth */
-    uInt *,			/* distance desired/actual bit depth */
-    inflate_huft **,		/* literal/length tree result */
-    inflate_huft **,		/* distance tree result */
-    z_stream *));		/* for zalloc, zfree functions */
+    uInt,                       /* number of literal/length codes */
+    uInt,                       /* number of distance codes */
+    uInt *,                     /* that many (total) code lengths */
+    uInt *,                     /* literal desired/actual bit depth */
+    uInt *,                     /* distance desired/actual bit depth */
+    inflate_huft **,            /* literal/length tree result */
+    inflate_huft **,            /* distance tree result */
+    z_stream *));               /* for zalloc, zfree functions */
 
 extern int inflate_trees_fixed __P((
-    uInt *,			/* literal desired/actual bit depth */
-    uInt *,			/* distance desired/actual bit depth */
-    inflate_huft **,		/* literal/length tree result */
-    inflate_huft **));		/* distance tree result */
+    uInt *,                     /* literal desired/actual bit depth */
+    uInt *,                     /* distance desired/actual bit depth */
+    inflate_huft **,            /* literal/length tree result */
+    inflate_huft **));          /* distance tree result */
 
 extern int inflate_trees_free __P((
-    inflate_huft *,		/* tables to free */
-    z_stream *));		/* for zfree function */
+    inflate_huft *,             /* tables to free */
+    z_stream *));               /* for zfree function */

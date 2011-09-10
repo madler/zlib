@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zutil.c,v 1.7 1995/05/02 15:54:47 jloup Exp $ */
+/* $Id: zutil.c,v 1.8 1995/05/03 17:27:12 jloup Exp $ */
 
 #include <stdio.h>
 
@@ -42,7 +42,7 @@ void zmemcpy(dest, source, len)
 {
     if (len == 0) return;
     do {
-	*dest++ = *source++; /* ??? to be unrolled */
+        *dest++ = *source++; /* ??? to be unrolled */
     } while (--len != 0);
 }
 
@@ -52,7 +52,7 @@ void zmemzero(dest, len)
 {
     if (len == 0) return;
     do {
-	*dest++ = 0;  /* ??? to be unrolled */
+        *dest++ = 0;  /* ??? to be unrolled */
     } while (--len != 0);
 }
 #endif
@@ -91,10 +91,10 @@ voidp zcalloc (voidp opaque, unsigned items, unsigned size)
     ulg bsize = (ulg)items*size;
 
     if (bsize < 65536L) {
-	buf = farmalloc(bsize);
-	if (*(ush*)&buf != 0) return buf;
+        buf = farmalloc(bsize);
+        if (*(ush*)&buf != 0) return buf;
     } else {
-	buf = farmalloc(bsize + 16L);
+        buf = farmalloc(bsize + 16L);
     }
     if (buf == NULL || next_ptr >= MAX_PTR) return NULL;
     table[next_ptr].org_ptr = buf;
@@ -110,19 +110,19 @@ void  zcfree (voidp opaque, voidp ptr)
 {
     int n;
     if (*(ush*)&ptr != 0) { /* object < 64K */
-	farfree(ptr);
-	return;
+        farfree(ptr);
+        return;
     }
     /* Find the original pointer */
     for (n = 0; n < next_ptr; n++) {
-	if (ptr != table[n].new_ptr) continue;
+        if (ptr != table[n].new_ptr) continue;
 
-	farfree(table[n].org_ptr);
-	while (++n < next_ptr) {
-	    table[n-1] = table[n];
-	}
-	next_ptr--;
-	return;
+        farfree(table[n].org_ptr);
+        while (++n < next_ptr) {
+            table[n-1] = table[n];
+        }
+        next_ptr--;
+        return;
     }
     ptr = opaque; /* just to make some compilers happy */
     z_error("zcfree: ptr not found");

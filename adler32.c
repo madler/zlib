@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: adler32.c,v 1.5 1995/04/14 14:49:51 jloup Exp $ */
+/* $Id: adler32.c,v 1.6 1995/05/03 17:27:08 jloup Exp $ */
 
 #include "zutil.h"
 
@@ -30,17 +30,17 @@ uLong adler32(adler, buf, len)
     if (buf == Z_NULL) return 1L;
 
     while (len > 0) {
-	k = len < NMAX ? len : NMAX;
-	len -= k;
-	while (k >= 16) {
-	    DO16(buf);
-	    k -= 16;
-	}
-	if (k != 0) do {
-	    DO1(buf);
-	} while (--k);
-	s1 %= BASE;
-	s2 %= BASE;
+        k = len < NMAX ? len : NMAX;
+        len -= k;
+        while (k >= 16) {
+            DO16(buf);
+            k -= 16;
+        }
+        if (k != 0) do {
+            DO1(buf);
+        } while (--k);
+        s1 %= BASE;
+        s2 %= BASE;
     }
     return (s2 << 16) | s1;
 }

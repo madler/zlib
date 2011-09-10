@@ -16,37 +16,37 @@ struct internal_state  {int dummy;}; /* for buggy compilers */
 
 
 local int huft_build __P((
-    uInt *,		/* code lengths in bits */
-    uInt,		/* number of codes */
-    uInt,		/* number of "simple" codes */
-    uInt *,		/* list of base values for non-simple codes */
-    uInt *,		/* list of extra bits for non-simple codes */
-    inflate_huft **,	/* result: starting table */
-    uInt *,		/* maximum lookup bits (returns actual) */
-    z_stream *));	/* for zalloc function */
+    uInt *,             /* code lengths in bits */
+    uInt,               /* number of codes */
+    uInt,               /* number of "simple" codes */
+    uInt *,             /* list of base values for non-simple codes */
+    uInt *,             /* list of extra bits for non-simple codes */
+    inflate_huft **,    /* result: starting table */
+    uInt *,             /* maximum lookup bits (returns actual) */
+    z_stream *));       /* for zalloc function */
 
 local voidp falloc __P((
-    voidp,		/* opaque pointer (not used) */
-    uInt,		/* number of items */
-    uInt));		/* size of item */
+    voidp,              /* opaque pointer (not used) */
+    uInt,               /* number of items */
+    uInt));             /* size of item */
 
 local void ffree __P((
-    voidp q,		/* opaque pointer (not used) */
-    voidp p));		/* what to free (not used) */
+    voidp q,            /* opaque pointer (not used) */
+    voidp p));          /* what to free (not used) */
 
 /* Tables for deflate from PKZIP's appnote.txt. */
-local uInt cplens[] = {	/* Copy lengths for literal codes 257..285 */
+local uInt cplens[] = { /* Copy lengths for literal codes 257..285 */
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
         /* actually lengths - 2; also see note #13 above about 258 */
-local uInt cplext[] = {	/* Extra bits for literal codes 257..285 */
+local uInt cplext[] = { /* Extra bits for literal codes 257..285 */
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 128, 128}; /* 128==invalid */
-local uInt cpdist[] = {	/* Copy offsets for distance codes 0..29 */
+local uInt cpdist[] = { /* Copy offsets for distance codes 0..29 */
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
         8193, 12289, 16385, 24577};
-local uInt cpdext[] = {	/* Extra bits for distance codes */
+local uInt cpdext[] = { /* Extra bits for distance codes */
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
         12, 12, 13, 13};
@@ -100,32 +100,32 @@ uInt *d;                /* list of base values for non-simple codes */
 uInt *e;                /* list of extra bits for non-simple codes */
 inflate_huft **t;       /* result: starting table */
 uInt *m;                /* maximum lookup bits, returns actual */
-z_stream *zs;		/* for zalloc function */
+z_stream *zs;           /* for zalloc function */
 /* Given a list of code lengths and a maximum table size, make a set of
    tables to decode that set of codes.  Return Z_OK on success, Z_BUF_ERROR
    if the given code set is incomplete (the tables are still built in this
    case), Z_DATA_ERROR if the input is invalid (all zero length codes or an
    over-subscribed set of lengths), or Z_MEM_ERROR if not enough memory. */
 {
-  uInt a;			/* counter for codes of length k */
-  uInt c[BMAX+1];		/* bit length count table */
-  uInt f;			/* i repeats in table every f entries */
-  int g;			/* maximum code length */
-  int h;			/* table level */
-  register uInt i;		/* counter, current code */
-  register uInt j;		/* counter */
-  register int k;		/* number of bits in current code */
-  int l;			/* bits per table (returned in m) */
-  register uInt *p;		/* pointer into c[], b[], or v[] */
-  register inflate_huft *q;	/* points to current table */
-  inflate_huft r;		/* table entry for structure assignment */
-  inflate_huft *u[BMAX];	/* table stack */
-  uInt v[N_MAX];		/* values in order of bit length */
-  register int w;		/* bits before this table == (l * h) */
-  uInt x[BMAX+1];		/* bit offsets, then code stack */
-  uInt *xp;			/* pointer into x */
-  int y;			/* number of dummy codes added */
-  uInt z;			/* number of entries in current table */
+  uInt a;                       /* counter for codes of length k */
+  uInt c[BMAX+1];               /* bit length count table */
+  uInt f;                       /* i repeats in table every f entries */
+  int g;                        /* maximum code length */
+  int h;                        /* table level */
+  register uInt i;              /* counter, current code */
+  register uInt j;              /* counter */
+  register int k;               /* number of bits in current code */
+  int l;                        /* bits per table (returned in m) */
+  register uInt *p;             /* pointer into c[], b[], or v[] */
+  register inflate_huft *q;     /* points to current table */
+  inflate_huft r;               /* table entry for structure assignment */
+  inflate_huft *u[BMAX];        /* table stack */
+  uInt v[N_MAX];                /* values in order of bit length */
+  register int w;               /* bits before this table == (l * h) */
+  uInt x[BMAX+1];               /* bit offsets, then code stack */
+  uInt *xp;                     /* pointer into x */
+  int y;                        /* number of dummy codes added */
+  uInt z;                       /* number of entries in current table */
 
 
   /* Generate counts for each bit length */
@@ -133,7 +133,7 @@ z_stream *zs;		/* for zalloc function */
 #define C0 *p++ = 0;
 #define C2 C0 C0 C0 C0
 #define C4 C2 C2 C2 C2
-  C4				/* clear c[]--assume BMAX+1 is 16 */
+  C4                            /* clear c[]--assume BMAX+1 is 16 */
   p = b;  i = n;
   do {
     c[*p++]++;                  /* assume all entries <= BMAX */
@@ -193,8 +193,8 @@ z_stream *zs;		/* for zalloc function */
   p = v;                        /* grab values in bit order */
   h = -1;                       /* no tables yet--level -1 */
   w = -l;                       /* bits decoded == (l * h) */
-  u[0] = (inflate_huft *)Z_NULL;	/* just to keep compilers happy */
-  q = (inflate_huft *)Z_NULL;	/* ditto */
+  u[0] = (inflate_huft *)Z_NULL;        /* just to keep compilers happy */
+  q = (inflate_huft *)Z_NULL;   /* ditto */
   z = 0;                        /* ditto */
 
   /* go through the bit lengths (k already is bits in shortest code) */
@@ -217,25 +217,25 @@ z_stream *zs;		/* for zalloc function */
           f -= a + 1;           /* deduct codes from patterns left */
           xp = c + k;
           if (j < z)
-	    while (++j < z)	/* try smaller tables up to z bits */
-	    {
-	      if ((f <<= 1) <= *++xp)
-		break;		/* enough codes to use up j bits */
-	      f -= *xp;		/* else deduct codes from patterns */
-	    }
+            while (++j < z)     /* try smaller tables up to z bits */
+            {
+              if ((f <<= 1) <= *++xp)
+                break;          /* enough codes to use up j bits */
+              f -= *xp;         /* else deduct codes from patterns */
+            }
         }
         z = 1 << j;             /* table entries for j-bit table */
 
         /* allocate and link in new table */
         if ((q = (inflate_huft *)ZALLOC
-	     (zs,z + 1,sizeof(inflate_huft))) == Z_NULL)
+             (zs,z + 1,sizeof(inflate_huft))) == Z_NULL)
         {
           if (h)
             inflate_trees_free(u[0], zs);
-          return Z_MEM_ERROR;	/* not enough memory */
+          return Z_MEM_ERROR;   /* not enough memory */
         }
 #ifdef DEBUG
-	inflate_hufts += z + 1;
+        inflate_hufts += z + 1;
 #endif
         *t = q + 1;             /* link to list for huft_free() */
         *(t = &(q->next)) = (inflate_huft *)Z_NULL;
@@ -245,8 +245,8 @@ z_stream *zs;		/* for zalloc function */
         if (h)
         {
           x[h] = i;             /* save pattern for backing up */
-          r.bits = (char)l;     /* bits to dump before this table */
-          r.exop = -(char)j;    /* bits in this table */
+          r.bits = (Byte)l;     /* bits to dump before this table */
+          r.exop = -(Char)j;    /* bits in this table */
           r.next = q;           /* pointer to this table */
           j = i >> (w - l);     /* (get around Turbo C bug) */
           u[h-1][j] = r;        /* connect to last table */
@@ -254,17 +254,17 @@ z_stream *zs;		/* for zalloc function */
       }
 
       /* set up table entry in r */
-      r.bits = (char)(k - w);
+      r.bits = (Byte)(k - w);
       if (p >= v + n)
-        r.exop = -128;          /* out of values--invalid code */
+        r.exop = (Char)(-128);        /* out of values--invalid code */
       else if (*p < s)
       {
-        r.exop = (char)(*p < 256 ? 16 : -64);   /* 256 is end-of-block code */
+        r.exop = (Char)(*p < 256 ? 16 : -64);   /* 256 is end-of-block code */
         r.base = *p++;          /* simple code is just the value */
       }
       else
       {
-        r.exop = (char)e[*p - s];       /* non-simple--look up in lists */
+        r.exop = (Char)e[*p - s];       /* non-simple--look up in lists */
         r.base = d[*p++ - s];
       }
 
@@ -294,10 +294,10 @@ z_stream *zs;		/* for zalloc function */
 
 
 int inflate_trees_bits(c, bb, tb, z)
-uInt *c;		/* 19 code lengths */
-uInt *bb;		/* bits tree desired/actual depth */
-inflate_huft **tb;	/* bits tree result */
-z_stream *z;		/* for zfree function */
+uInt *c;                /* 19 code lengths */
+uInt *bb;               /* bits tree desired/actual depth */
+inflate_huft **tb;      /* bits tree result */
+z_stream *z;            /* for zfree function */
 {
   int r;
 
@@ -315,14 +315,14 @@ z_stream *z;		/* for zfree function */
 
 
 int inflate_trees_dynamic(nl, nd, c, bl, bd, tl, td, z)
-uInt nl;		/* number of literal/length codes */
-uInt nd;		/* number of distance codes */
-uInt *c;		/* that many (total) code lengths */
-uInt *bl;		/* literal desired/actual bit depth */
-uInt *bd;		/* distance desired/actual bit depth */
-inflate_huft **tl;	/* literal/length tree result */
-inflate_huft **td;	/* distance tree result */
-z_stream *z;		/* for zfree function */
+uInt nl;                /* number of literal/length codes */
+uInt nd;                /* number of distance codes */
+uInt *c;                /* that many (total) code lengths */
+uInt *bl;               /* literal desired/actual bit depth */
+uInt *bd;               /* distance desired/actual bit depth */
+inflate_huft **tl;      /* literal/length tree result */
+inflate_huft **td;      /* distance tree result */
+z_stream *z;            /* for zfree function */
 {
   int r;
 
@@ -367,7 +367,7 @@ z_stream *z;		/* for zfree function */
 /* build fixed tables only once--keep them here */
 local int fixed_lock = 0;
 local int fixed_built = 0;
-#define FIXEDH 530	/* number of hufts used by fixed tables */
+#define FIXEDH 530      /* number of hufts used by fixed tables */
 local uInt fixed_left = FIXEDH;
 local inflate_huft fixed_mem[FIXEDH];
 local uInt fixed_bl;
@@ -377,9 +377,9 @@ local inflate_huft *fixed_td;
 
 
 local voidp falloc(q, n, s)
-voidp q;	/* opaque pointer (not used) */
-uInt n;		/* number of items */
-uInt s;		/* size of item */
+voidp q;        /* opaque pointer (not used) */
+uInt n;         /* number of items */
+uInt s;         /* size of item */
 {
   Assert(s == sizeof(inflate_huft) && n <= fixed_left,
          "inflate_trees falloc overflow");
@@ -399,19 +399,19 @@ voidp p;
 
 
 int inflate_trees_fixed(bl, bd, tl, td)
-uInt *bl;		/* literal desired/actual bit depth */
-uInt *bd;		/* distance desired/actual bit depth */
-inflate_huft **tl;	/* literal/length tree result */
-inflate_huft **td;	/* distance tree result */
+uInt *bl;               /* literal desired/actual bit depth */
+uInt *bd;               /* distance desired/actual bit depth */
+inflate_huft **tl;      /* literal/length tree result */
+inflate_huft **td;      /* distance tree result */
 {
   /* build fixed tables if not built already--lock out other instances */
   while (++fixed_lock > 1)
     fixed_lock--;
   if (!fixed_built)
   {
-    int k;		/* temporary variable */
-    unsigned c[288];	/* length list for huft_build */
-    z_stream z;		/* for falloc function */
+    int k;              /* temporary variable */
+    unsigned c[288];    /* length list for huft_build */
+    z_stream z;         /* for falloc function */
 
     /* set up fake z_stream for memory routines */
     z.zalloc = falloc;
@@ -449,8 +449,8 @@ inflate_huft **td;	/* distance tree result */
 
 
 int inflate_trees_free(t, z)
-inflate_huft *t;	/* table to free */
-z_stream *z;		/* for zfree function */
+inflate_huft *t;        /* table to free */
+z_stream *z;            /* for zfree function */
 /* Free the malloc'ed tables built by huft_build(), which makes a linked
    list of the tables it made, with the links in a dummy first entry of
    each table. */

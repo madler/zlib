@@ -8,7 +8,7 @@
    subject to change. Applications should only use zlib.h.
  */
 
-/* $Id: deflate.h,v 1.4 1995/05/01 15:08:45 jloup Exp $ */
+/* $Id: deflate.h,v 1.5 1995/05/03 17:27:09 jloup Exp $ */
 
 #include "zutil.h"
 
@@ -90,7 +90,7 @@ typedef struct internal_state {
     Byte  data_type;     /* UNKNOWN, BINARY or ASCII */
     Byte  method;        /* STORED (for zip only) or DEFLATED */
 
-    		/* used by deflate.c: */
+                /* used by deflate.c: */
 
     uInt  w_size;        /* LZ77 window size (32K by default) */
     uInt  w_bits;        /* log2(w_size)  (8..16) */
@@ -173,7 +173,7 @@ typedef struct internal_state {
 
      int nice_match; /* Stop searching when current match exceeds this */
 
-    		/* used by trees.c: */
+                /* used by trees.c: */
 
     ct_data dyn_ltree[HEAP_SIZE];   /* literal and length tree */
     ct_data dyn_dtree[2*D_CODES+1]; /* distance tree */
@@ -264,9 +264,9 @@ typedef struct internal_state {
  * distances are limited to MAX_DIST instead of WSIZE.
  */
 
-	/* in trees.c */
+        /* in trees.c */
 void ct_init       __P((deflate_state *s));
 int  ct_tally      __P((deflate_state *s, int dist, int lc));
 ulg ct_flush_block __P((deflate_state *s, char *buf, ulg stored_len, int eof));
 void ct_stored_block __P((deflate_state *s, char *buf, ulg stored_len,
-			  int eof));
+                          int eof));

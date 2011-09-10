@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: zconf.h,v 1.11 1995/05/02 13:07:21 jloup Exp $ */
+/* $Id: zconf.h,v 1.12 1995/05/03 17:27:12 jloup Exp $ */
 
 #ifndef _ZCONF_H
 #define _ZCONF_H
@@ -59,7 +59,7 @@
  for small objects.
 */
 
-			/* Type declarations */
+                        /* Type declarations */
 
 #ifndef __P /* function prototypes */
 #  ifdef STDC

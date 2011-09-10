@@ -35,19 +35,19 @@ inflate_huft *tl, *td;
 struct inflate_blocks_state *s;
 z_stream *z;
 {
-  inflate_huft *t;	/* temporary pointer */
-  int e;		/* extra bits or operation */
-  uLong b;		/* bit buffer */
-  uInt k;		/* bits in bit buffer */
-  Byte *p;		/* input data pointer */
-  uInt n;		/* bytes available there */
-  Byte *q;		/* output window write pointer */
-  uInt m;		/* bytes to end of window or read pointer */
-  uInt ml;		/* mask for literal/length tree */
-  uInt md;		/* mask for distance tree */
-  uInt c;		/* bytes to copy */
-  uInt d;		/* distance back to copy from */
-  Byte *r;		/* copy source pointer */
+  inflate_huft *t;      /* temporary pointer */
+  int e;                /* extra bits or operation */
+  uLong b;              /* bit buffer */
+  uInt k;               /* bits in bit buffer */
+  Byte *p;              /* input data pointer */
+  uInt n;               /* bytes available there */
+  Byte *q;              /* output window write pointer */
+  uInt m;               /* bytes to end of window or read pointer */
+  uInt ml;              /* mask for literal/length tree */
+  uInt md;              /* mask for distance tree */
+  uInt c;               /* bytes to copy */
+  uInt d;               /* distance back to copy from */
+  Byte *r;              /* copy source pointer */
 
   /* load input, output, bit values */
   LOAD
@@ -57,40 +57,40 @@ z_stream *z;
   md = inflate_mask[bd];
 
   /* do until not enough input or output space for fast loop */
-  do {				/* assume called with m >= 258 && n >= 10 */
+  do {                          /* assume called with m >= 258 && n >= 10 */
     /* get literal/length code */
-    GRABBITS(20)		/* max bits for literal/length code */
+    GRABBITS(20)                /* max bits for literal/length code */
     if ((e = (t = tl + ((uInt)b & ml))->exop) < 0)
       do {
-	if (e == -128)
-	{
-	  z->msg = "invalid literal/length code";
+        if (e == -128)
+        {
+          z->msg = "invalid literal/length code";
           UNGRAB
-	  UPDATE
-	  return Z_DATA_ERROR;
-	}
-	DUMPBITS(t->bits)
-	e = -e;
-	if (e & 64)		/* end of block */
-	{
-	  Tracevv((stderr, "inflate:         * end of block\n"));
+          UPDATE
+          return Z_DATA_ERROR;
+        }
+        DUMPBITS(t->bits)
+        e = -e;
+        if (e & 64)             /* end of block */
+        {
+          Tracevv((stderr, "inflate:         * end of block\n"));
           UNGRAB
-	  UPDATE
-	  return Z_STREAM_END;
-	}
+          UPDATE
+          return Z_STREAM_END;
+        }
       } while ((e = (t = t->next + ((uInt)b & inflate_mask[e]))->exop) < 0);
     DUMPBITS(t->bits)
 
     /* process literal or length (end of block already trapped) */
-    if (e & 16)			/* then it's a literal */
+    if (e & 16)                 /* then it's a literal */
     {
       Tracevv((stderr, t->base >= 0x20 && t->base < 0x7f ?
-		"inflate:         * literal '%c'\n" :
-		"inflate:         * literal 0x%02x\n", t->base));
+                "inflate:         * literal '%c'\n" :
+                "inflate:         * literal 0x%02x\n", t->base));
       *q++ = (Byte)t->base;
       m--;
     }
-    else			/* it's a length */
+    else                        /* it's a length */
     {
       /* get length of block to copy (already have extra bits) */
       c = t->base + ((uInt)b & inflate_mask[e]);
@@ -98,53 +98,53 @@ z_stream *z;
       Tracevv((stderr, "inflate:         * length %u\n", c));
 
       /* decode distance base of block to copy */
-      GRABBITS(15);		/* max bits for distance code */
+      GRABBITS(15);             /* max bits for distance code */
       if ((e = (t = td + ((uInt)b & md))->exop) < 0)
-	do {
-	  if (e == -128)
-	  {
-	    z->msg = "invalid distance code";
-	    UNGRAB
-	    UPDATE
-	    return Z_DATA_ERROR;
-	  }
-	  DUMPBITS(t->bits)
-	  e = -e;
-	} while ((e = (t = t->next + ((uInt)b & inflate_mask[e]))->exop) < 0);
+        do {
+          if (e == -128)
+          {
+            z->msg = "invalid distance code";
+            UNGRAB
+            UPDATE
+            return Z_DATA_ERROR;
+          }
+          DUMPBITS(t->bits)
+          e = -e;
+        } while ((e = (t = t->next + ((uInt)b & inflate_mask[e]))->exop) < 0);
       DUMPBITS(t->bits)
 
       /* get extra bits to add to distance base */
-      GRABBITS((uInt)e)		/* get extra bits (up to 13) */
+      GRABBITS((uInt)e)         /* get extra bits (up to 13) */
       d = t->base + ((uInt)b & inflate_mask[e]);
       DUMPBITS(e)
       Tracevv((stderr, "inflate:         * distance %u\n", d));
 
       /* do the copy */
       m -= c;
-      if ((uInt)(q - s->window) >= d)	/* if offset before destination, */
-      {					/*  just copy */
-	r = q - d;
-	*q++ = *r++;  c--;		/* minimum count is three, */
-	*q++ = *r++;  c--;		/*  so unroll loop a little */
-	do {
-	  *q++ = *r++;
-	} while (--c);
+      if ((uInt)(q - s->window) >= d)   /* if offset before destination, */
+      {                                 /*  just copy */
+        r = q - d;
+        *q++ = *r++;  c--;              /* minimum count is three, */
+        *q++ = *r++;  c--;              /*  so unroll loop a little */
+        do {
+          *q++ = *r++;
+        } while (--c);
       }
-      else				/* else offset after destination */
+      else                              /* else offset after destination */
       {
-	e = d - (q - s->window);	/* bytes from offset to end */
-	r = s->end - e;			/* pointer to offset */
-	if (c > (uInt)e)		/* if source crosses, */
-	{
-	  c -= e;			/* copy to end of window */
-	  do {
-	    *q++ = *r++;
-	  } while (--e);
-	  r = s->window;		/* copy rest from start of window */
-	}
-	do {				/* copy all or what's left */
-	  *q++ = *r++;
-	} while (--c);
+        e = d - (q - s->window);        /* bytes from offset to end */
+        r = s->end - e;                 /* pointer to offset */
+        if (c > (uInt)e)                /* if source crosses, */
+        {
+          c -= e;                       /* copy to end of window */
+          do {
+            *q++ = *r++;
+          } while (--e);
+          r = s->window;                /* copy rest from start of window */
+        }
+        do {                            /* copy all or what's left */
+          *q++ = *r++;
+        } while (--c);
       }
     }
   } while (m >= 258 && n >= 10);

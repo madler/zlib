@@ -18,7 +18,7 @@ extern struct inflate_blocks_state * inflate_blocks_new __P((
 extern int inflate_blocks __P((
     struct inflate_blocks_state *,
     z_stream *,
-    int));			/* initial return code */
+    int));                      /* initial return code */
 
 extern void inflate_blocks_reset __P((
     struct inflate_blocks_state *,

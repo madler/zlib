@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* $Id: example.c,v 1.8 1995/05/02 15:52:32 jloup Exp $ */
+/* $Id: example.c,v 1.9 1995/05/03 17:27:09 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -27,7 +27,7 @@ extern void exit  __P((int));
 #define CHECK_ERR(err, msg) { \
     if (err != Z_OK) { \
         fprintf(stderr, "%s error: %d\n", msg, err); \
-	exit(1); \
+        exit(1); \
     } \
 }
 
@@ -60,9 +60,9 @@ void test_compress()
     CHECK_ERR(err, "uncompress");
 
     if (strcmp((char*)uncompr, hello)) {
-	fprintf(stderr, "bad uncompress\n");
+        fprintf(stderr, "bad uncompress\n");
     } else {
-	printf("uncompress(): %s\n", uncompr);
+        printf("uncompress(): %s\n", uncompr);
     }
 }
 
@@ -81,31 +81,31 @@ void test_gzio(out, in)
 
     file = gzopen(out, "wb");
     if (file == NULL) {
-	fprintf(stderr, "gzopen error\n");
-	exit(1);
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
     }
 
     if (gzwrite(file, hello, len) != len) {
-	fprintf(stderr, "gzwrite err: %s\n", gzerror(file, &err));
+        fprintf(stderr, "gzwrite err: %s\n", gzerror(file, &err));
     }
     gzclose(file);
 
     file = gzopen(in, "rb");
     if (file == NULL) {
-	fprintf(stderr, "gzopen error\n");
+        fprintf(stderr, "gzopen error\n");
     }
     strcpy((char*)uncompr, "garbage");
 
     uncomprLen = gzread(file, uncompr, uncomprLen);
     if (uncomprLen != len) {
-	fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
+        fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
     }
     gzclose(file);
 
     if (strcmp((char*)uncompr, hello)) {
-	fprintf(stderr, "bad gzread\n");
+        fprintf(stderr, "bad gzread\n");
     } else {
-	printf("gzread(): %s\n", uncompr);
+        printf("gzread(): %s\n", uncompr);
     }
 }
 
@@ -129,16 +129,16 @@ void test_deflate(compr)
     c_stream.next_out = compr;
 
     while (c_stream.total_in != (uLong)len) {
-	c_stream.avail_in = c_stream.avail_out = 1; /* force small buffers */
-	err = deflate(&c_stream, Z_NO_FLUSH);
-	CHECK_ERR(err, "deflate");
+        c_stream.avail_in = c_stream.avail_out = 1; /* force small buffers */
+        err = deflate(&c_stream, Z_NO_FLUSH);
+        CHECK_ERR(err, "deflate");
     }
     /* Finish the stream, still forcing small buffers: */
     for (;;) {
-	c_stream.avail_out = 1;
-	err = deflate(&c_stream, Z_FINISH);
-	if (err == Z_STREAM_END) break;
-	CHECK_ERR(err, "deflate");
+        c_stream.avail_out = 1;
+        err = deflate(&c_stream, Z_FINISH);
+        if (err == Z_STREAM_END) break;
+        CHECK_ERR(err, "deflate");
     }
 
     err = deflateEnd(&c_stream);
@@ -167,19 +167,19 @@ void test_inflate(compr)
     d_stream.next_out = uncompr;
 
     for (;;) {
-	d_stream.avail_in = d_stream.avail_out = 1; /* force small buffers */
-	err = inflate(&d_stream, Z_NO_FLUSH);
-	if (err == Z_STREAM_END) break;
-	CHECK_ERR(err, "inflate");
+        d_stream.avail_in = d_stream.avail_out = 1; /* force small buffers */
+        err = inflate(&d_stream, Z_NO_FLUSH);
+        if (err == Z_STREAM_END) break;
+        CHECK_ERR(err, "inflate");
     }
 
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-	fprintf(stderr, "bad inflate\n");
+        fprintf(stderr, "bad inflate\n");
     } else {
-	printf("inflate(): %s\n", uncompr);
+        printf("inflate(): %s\n", uncompr);
     }
 }
 
@@ -211,7 +211,7 @@ void test_flush(compr)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-	CHECK_ERR(err, "deflate");
+        CHECK_ERR(err, "deflate");
     }
     err = deflateEnd(&c_stream);
     CHECK_ERR(err, "deflateEnd");
@@ -250,7 +250,7 @@ void test_sync(compr)
     err = inflate(&d_stream, Z_FINISH);
     if (err != Z_DATA_ERROR) {
         fprintf(stderr, "inflate should report DATA_ERROR\n");
-	/* Because of incorrect adler32 */
+        /* Because of incorrect adler32 */
     }
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
@@ -269,16 +269,16 @@ void main(argc, argv)
     local Byte compr[BUFLEN];
 
     if (zlib_version[0] != ZLIB_VERSION[0]) {
-	fprintf(stderr, "incompatible zlib version\n");
-	exit(1);
+        fprintf(stderr, "incompatible zlib version\n");
+        exit(1);
 
     } else if (strcmp(zlib_version, ZLIB_VERSION) != 0) {
-	fprintf(stderr, "warning: different zlib version\n");
+        fprintf(stderr, "warning: different zlib version\n");
     }
     test_compress();
 
     test_gzio((argc > 1 ? argv[1] : "foo.gz"),
-	      (argc > 2 ? argv[2] : "foo.gz"));
+              (argc > 2 ? argv[2] : "foo.gz"));
 
     test_deflate(compr);
     test_inflate(compr);

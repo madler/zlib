@@ -13,7 +13,7 @@
  * or in pipe mode.
  */
 
-/* $Id: minigzip.c,v 1.4 1995/05/02 15:54:22 jloup Exp $ */
+/* $Id: minigzip.c,v 1.5 1995/05/03 17:27:11 jloup Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -75,14 +75,14 @@ void gz_compress(in, out)
     int err;
 
     for (;;) {
-	len = fread(buf, 1, sizeof(buf), in);
-	if (ferror(in)) {
-	    perror("fread");
-	    exit(1);
-	}
-	if (len == 0) break;
+        len = fread(buf, 1, sizeof(buf), in);
+        if (ferror(in)) {
+            perror("fread");
+            exit(1);
+        }
+        if (len == 0) break;
 
-	if (gzwrite(out, buf, len) != len) error(gzerror(out, &err));
+        if (gzwrite(out, buf, len) != len) error(gzerror(out, &err));
     }
     fclose(in);
     if (gzclose(out) != Z_OK) error("failed gzclose");
@@ -100,11 +100,11 @@ void gz_uncompress(in, out)
     int err;
 
     for (;;) {
-	len = gzread(in, buf, sizeof(buf));
-	if (len < 0) error (gzerror(in, &err));
-	if (len == 0) break;
+        len = gzread(in, buf, sizeof(buf));
+        if (len < 0) error (gzerror(in, &err));
+        if (len == 0) break;
 
-	if (fwrite(buf, 1, len, out) != (uInt)len) error("failed fwrite");
+        if (fwrite(buf, 1, len, out) != (uInt)len) error("failed fwrite");
     }
     if (fclose(out)) error("failed fclose");
 
@@ -128,13 +128,13 @@ void file_compress(file)
 
     in = fopen(file, "rb");
     if (in == NULL) {
-	perror(file);
-	exit(1);
+        perror(file);
+        exit(1);
     }
     out = gzopen(outfile, "wb");
     if (out == NULL) {
-	fprintf(stderr, "%s: can't gzopen %s\n", prog, outfile);
-	exit(1);
+        fprintf(stderr, "%s: can't gzopen %s\n", prog, outfile);
+        exit(1);
     }
     gz_compress(in, out);
 
@@ -157,23 +157,23 @@ void file_uncompress(file)
     strcpy(buf, file);
 
     if (len > 3 && strcmp(file+len-3, ".gz") == 0) {
-	infile = file;
-	outfile = buf;
-	outfile[len-3] = '\0';
+        infile = file;
+        outfile = buf;
+        outfile[len-3] = '\0';
     } else {
-	outfile = file;
-	infile = buf;
-	strcat(infile, ".gz");
+        outfile = file;
+        infile = buf;
+        strcat(infile, ".gz");
     }
     in = gzopen(infile, "rb");
     if (in == NULL) {
-	fprintf(stderr, "%s: can't gzopen %s\n", prog, infile);
-	exit(1);
+        fprintf(stderr, "%s: can't gzopen %s\n", prog, infile);
+        exit(1);
     }
     out = fopen(outfile, "wb");
     if (out == NULL) {
-	perror(file);
-	exit(1);
+        perror(file);
+        exit(1);
     }
 
     gz_uncompress(in, out);
@@ -197,31 +197,31 @@ void main(argc, argv)
     argc--, argv++;
 
     if (argc > 0) {
-	uncompr = (strcmp(*argv, "-d") == 0);
-	if (uncompr) {
-	    argc--, argv++;
-	}
+        uncompr = (strcmp(*argv, "-d") == 0);
+        if (uncompr) {
+            argc--, argv++;
+        }
     }
     if (argc == 0) {
         SET_BINARY_MODE(stdin);
         SET_BINARY_MODE(stdout);
-	if (uncompr) {
-	    file = gzdopen(fileno(stdin), "rb");
+        if (uncompr) {
+            file = gzdopen(fileno(stdin), "rb");
             if (file == NULL) error("can't gzdopen stdin");
-	    gz_uncompress(file, stdout);
-	} else {
-	    file = gzdopen(fileno(stdout), "wb");
+            gz_uncompress(file, stdout);
+        } else {
+            file = gzdopen(fileno(stdout), "wb");
             if (file == NULL) error("can't gzdopen stdout");
-	    gz_compress(stdin, file);
-	}
+            gz_compress(stdin, file);
+        }
     } else {
-	do {
-	    if (uncompr) {
-		file_uncompress(*argv);
-	    } else {
-		file_compress(*argv);
-	    }
-	} while (argv++, --argc);
+        do {
+            if (uncompr) {
+                file_uncompress(*argv);
+            } else {
+                file_compress(*argv);
+            }
+        } while (argv++, --argc);
     }
     exit(0);
 }
