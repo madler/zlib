@@ -76,7 +76,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   SFLAGS=${CFLAGS-"-fPIC -O3"}
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
-  Linux | linux) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
+  Linux | linux | GNU | GNU/*) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
   CYGWIN* | Cygwin* | cygwin* )
              EXE='.exe';;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4

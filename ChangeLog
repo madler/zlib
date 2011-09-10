@@ -1,6 +1,14 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.1 (17 November 2003)
+- Remove a tab in contrib/gzappend/gzappend.c
+- Update some interfaces in contrib for new zlib functions
+- Update zlib version number in some contrib entries
+- Add Windows CE definition for ptrdiff_t in zutil.h [Mai, Truta]
+- Support shared libraries on Hurd and KFreeBSD [Brown]
+- Fix error in NO_DIVIDE option of adler32.c
+
 Changes in 1.2.0.8 (4 November 2003)
 - Update version in contrib/delphi/ZLib.pas and contrib/pascal/zlibpas.pas
 - Add experimental NO_DIVIDE #define in adler32.c
@@ -18,7 +26,7 @@ Changes in 1.2.0.8 (4 November 2003)
 - Add -p to mkdir's in Makefile.in [vda]
 - Fix configure to properly detect presence or lack of printf functions
 - Add AS400 support [Monnerat]
-- Added a little Cygwin support [Wilson]
+- Add a little Cygwin support [Wilson]
 
 Changes in 1.2.0.7 (21 September 2003)
 - Correct some debug formats in contrib/infback9

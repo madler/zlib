@@ -167,7 +167,7 @@ local void rotate(unsigned char *list, unsigned len, unsigned rot)
 /* structure for gzip file read operations */
 typedef struct {
     int fd;                     /* file descriptor */
-    int size;              	/* 1 << size is bytes in buf */
+    int size;                   /* 1 << size is bytes in buf */
     unsigned left;              /* bytes available at next */
     unsigned char *buf;         /* buffer */
     unsigned char *next;        /* next byte in buffer */

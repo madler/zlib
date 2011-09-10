@@ -146,17 +146,6 @@ private package ZLib.Thin is
       strategy : Int)
       return     Int;       -- zlib.h:506
 
-   function deflateBound
-     (strm     : Z_Streamp;
-      sourceLen : ULong)
-      return     Int;       -- zlib.h:595
-
-   function deflatePrime
-     (strm     : Z_Streamp;
-      bits     : Int;
-      value    : Int)
-      return     Int;       -- zlib.h:604
-
    function inflateSetDictionary
      (strm       : Z_Streamp;
       dictionary : Byte_Access;
@@ -399,6 +388,12 @@ private package ZLib.Thin is
 
    function zlibCompileFlags return ULong;
 
+   function deflatePrime
+     (strm     : Z_Streamp;
+      bits     : Int;
+      value    : Int)
+      return     Int;
+
 private
 
    type Z_Stream is record            -- zlib.h:68
@@ -432,8 +427,6 @@ private
    pragma Import (C, deflateCopy, "deflateCopy");
    pragma Import (C, deflateReset, "deflateReset");
    pragma Import (C, deflateParams, "deflateParams");
-   pragma Import (C, deflateBound, "deflateBound");
-   pragma Import (C, deflatePrime, "deflatePrime");
    pragma Import (C, inflateSetDictionary, "inflateSetDictionary");
    pragma Import (C, inflateSync, "inflateSync");
    pragma Import (C, inflateReset, "inflateReset");
@@ -467,13 +460,14 @@ private
    pragma Import (C, inflateSyncPoint, "inflateSyncPoint");
    pragma Import (C, get_crc_table, "get_crc_table");
 
-   --  since zlib 1.2.0:
+   --  added in zlib 1.2.1:
 
    pragma Import (C, inflateCopy, "inflateCopy");
    pragma Import (C, compressBound, "compressBound");
    pragma Import (C, deflateBound, "deflateBound");
    pragma Import (C, gzungetc, "gzungetc");
    pragma Import (C, zlibCompileFlags, "zlibCompileFlags");
+   pragma Import (C, deflatePrime, "deflatePrime");
 
    pragma Import (C, inflateBackInit, "inflateBackInit_");
 

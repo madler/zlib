@@ -166,6 +166,7 @@ function deflateEnd; external;
 function deflateInit_; external;
 function deflateInit2_; external;
 function deflateParams; external;
+function deflatePrime; external;
 function deflateReset; external;
 function deflateSetDictionary; external;
 function inflate; external;

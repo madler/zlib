@@ -14,7 +14,7 @@ we recommend the users to update their ZLib unit.
 Summary of modifications
 ========================
 
-- Improved makefile, adapted to zlib version 1.2.0.
+- Improved makefile, adapted to zlib version 1.2.1.
 
 - Some field types from TZStreamRec are changed from Integer to
   Longint, for consistency with the zlib.h header, and for 64-bit
