@@ -73,7 +73,7 @@ local void quit(char *why)
 local int partcompress(FILE *in, z_streamp def)
 {
     int ret, flush;
-    char raw[RAWLEN];
+    unsigned char raw[RAWLEN];
 
     flush = Z_NO_FLUSH;
     do {
@@ -96,7 +96,7 @@ local int partcompress(FILE *in, z_streamp def)
 local int recompress(z_streamp inf, z_streamp def)
 {
     int ret, flush;
-    char raw[RAWLEN];
+    unsigned char raw[RAWLEN];
 
     flush = Z_NO_FLUSH;
     do {
@@ -129,8 +129,8 @@ int main(int argc, char **argv)
     int ret;                /* return code */
     unsigned size;          /* requested fixed output block size */
     unsigned have;          /* bytes written by deflate() call */
-    char *blk;              /* intermediate and final stream */
-    char *tmp;              /* close to desired size stream */
+    unsigned char *blk;     /* intermediate and final stream */
+    unsigned char *tmp;     /* close to desired size stream */
     z_stream def, inf;      /* zlib deflate and inflate states */
 
     /* get requested output size */
@@ -163,8 +163,7 @@ int main(int argc, char **argv)
     if (ret == Z_STREAM_END && def.avail_out >= EXCESS) {
         /* write block to stdout */
         have = size + EXCESS - def.avail_out;
-        ret = fwrite(blk, 1, have, stdout);
-        if (ret != have || ferror(stdout))
+        if (fwrite(blk, 1, have, stdout) != have || ferror(stdout))
             quit("error writing output");
 
         /* clean up and print results to stderr */
@@ -217,8 +216,7 @@ int main(int argc, char **argv)
 
     /* done -- write block to stdout */
     have = size - def.avail_out;
-    ret = fwrite(blk, 1, have, stdout);
-    if (ret != have || ferror(stdout))
+    if (fwrite(blk, 1, have, stdout) != have || ferror(stdout))
         quit("error writing output");
 
     /* clean up and print results to stderr */

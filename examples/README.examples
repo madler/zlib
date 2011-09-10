@@ -35,3 +35,8 @@ zpipe.c
     reads and writes zlib streams from stdin to stdout
     - illustrates the proper use of deflate() and inflate()
     - deeply commented in zlib_how.html (see above)
+
+zran.c
+    index a zlib or gzip stream and randomly access it
+    - illustrates the use of Z_BLOCK, inflatePrime(), and
+      inflateSetDictionary() to provide random access

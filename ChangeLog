@@ -1,6 +1,30 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.2.4 (11 July 2005)
+- Add inflatePrime() function for starting inflation at bit boundary
+- Avoid some Visual C warnings in deflate.c
+- Avoid more silly Visual C warnings in inflate.c and inftrees.c for 64-bit
+  compile
+- Fix some spelling errors in comments [Betts]
+- Correct inflateInit2() error return documentation in zlib.h
+- Added zran.c example of compressed data random access to examples
+  directory, shows use of inflatePrime()
+- Fix cast for assignments to strm->state in inflate.c and infback.c
+- Fix zlibCompileFlags() in zutil.c to use 1L for long shifts [Oberhumer]
+- Move declarations of gf2 functions to right place in crc32.c [Oberhumer]
+- Add cast in trees.c t avoid a warning [Oberhumer]
+- Avoid some warnings in fitblk.c, gun.c, gzjoin.c in examples [Oberhumer]
+- Update make_vms.com [Zinser]
+- Initialize state->write in inflateReset() since copied in inflate_fast()
+- Be more strict on incomplete code sets in inflate_table() and increase
+  ENOUGH and MAXD -- this repairs a possible security vulnerability for
+  invalid inflate input.  Thanks to Tavis Ormandy and Markus Oberhumer for
+  discovering the vulnerability and providing test cases.
+- Add ia64 support to configure for HP-UX [Smith]
+- Add error return to gzread() for format or i/o error [Levin]
+- Use malloc.h for OS/2 [Necasek]
+
 Changes in 1.2.2.3 (27 May 2005)
 - Replace 1U constants in inflate.c and inftrees.c for 64-bit compile
 - Typecast fread() return values in gzio.c [Vollant]
@@ -511,7 +535,7 @@ Changes in 1.0.7 (20 Jan 1998)
 Changes in 1.0.6 (19 Jan 1998)
 - add functions gzprintf, gzputc, gzgetc, gztell, gzeof, gzseek, gzrewind and
   gzsetparams (thanks to Roland Giersig and Kevin Ruland for some of this code)
-- Fix a deflate bug occuring only with compression level 0 (thanks to
+- Fix a deflate bug occurring only with compression level 0 (thanks to
   Andy Buckler for finding this one).
 - In minigzip, pass transparently also the first byte for .Z files.
 - return Z_BUF_ERROR instead of Z_OK if output buffer full in uncompress()

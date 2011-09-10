@@ -82,9 +82,16 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
                  LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"};;
-  HP-UX*)        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
+  HP-UX*)
+         LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
+         case `(uname -m || echo unknown) 2>/dev/null` in
+         ia64)
+                 shared_ext='.so'
+                 SHAREDLIB='libz.so';;
+         *)
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl';;
+         esac;;
   Darwin*)   shared_ext='.dylib'
              SHAREDLIB=libz$shared_ext
              SHAREDLIBV=libz.$VER$shared_ext
@@ -100,8 +107,14 @@ else
              CFLAGS=${CFLAGS-"-O"}
 #            LDSHARED=${LDSHARED-"ld -b +vnocompatwarnings"}
              LDSHARED=${LDSHARED-"ld -b"}
+         case `(uname -m || echo unknown) 2>/dev/null` in
+         ia64)
+             shared_ext='.so'
+             SHAREDLIB='libz.so';;
+         *)
              shared_ext='.sl'
              SHAREDLIB='libz.sl';;
+         esac;;
   IRIX*)     SFLAGS=${CFLAGS-"-ansi -O2 -rpath ."}
              CFLAGS=${CFLAGS-"-ansi -O2"}
              LDSHARED=${LDSHARED-"cc -shared"};;

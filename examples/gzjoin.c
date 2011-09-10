@@ -26,6 +26,7 @@
  * Change history:
  *
  * 1.0  11 Dec 2004     - First version
+ * 1.1  12 Jun 2005     - Changed ssize_t to long for portability
  */
 
 /*
@@ -118,7 +119,7 @@ local bin *bopen(char *name)
    1 indicating that end-of-file was reached */
 local int bload(bin *in)
 {
-    ssize_t len;
+    long len;
 
     if (in == NULL)
         return -1;
@@ -126,7 +127,7 @@ local int bload(bin *in)
         return 0;
     in->next = in->buf;
     do {
-        len = read(in->fd, in->buf + in->left, CHUNK - in->left);
+        len = (long)read(in->fd, in->buf + in->left, CHUNK - in->left);
         if (len < 0)
             return -1;
         in->left += (unsigned)len;

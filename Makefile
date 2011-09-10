@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-2003 Jean-loup Gailly.
+# Copyright (C) 1995-2005 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
@@ -30,7 +30,7 @@ CPP=$(CC) -E
 
 LIBS=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.2.3
+SHAREDLIBV=libz.so.1.2.2.4
 SHAREDLIBM=libz.so.1
 
 AR=ar rc

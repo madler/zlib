@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-2004 Jean-loup Gailly
+ * Copyright (C) 1995-2005 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -555,7 +555,7 @@ local void gen_bitlen(s, desc)
         while (n != 0) {
             m = s->heap[--h];
             if (m > max_code) continue;
-            if (tree[m].Len != (unsigned) bits) {
+            if ((unsigned) tree[m].Len != (unsigned) bits) {
                 Trace((stderr,"code %d bits %d->%d\n", m, tree[m].Len, bits));
                 s->opt_len += ((long)bits - (long)tree[m].Len)
                               *(long)tree[m].Freq;

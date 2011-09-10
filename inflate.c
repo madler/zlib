@@ -117,10 +117,27 @@ z_streamp strm;
     state->head = Z_NULL;
     state->wsize = 0;
     state->whave = 0;
+    state->write = 0;
     state->hold = 0;
     state->bits = 0;
     state->lencode = state->distcode = state->next = state->codes;
     Tracev((stderr, "inflate: reset\n"));
+    return Z_OK;
+}
+
+int ZEXPORT inflatePrime(strm, bits, value)
+z_streamp strm;
+int bits;
+int value;
+{
+    struct inflate_state FAR *state;
+
+    if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
+    state = (struct inflate_state FAR *)strm->state;
+    if (bits > 16 || state->bits + bits > 32) return Z_STREAM_ERROR;
+    value &= (1L << bits) - 1;
+    state->hold += value << state->bits;
+    state->bits += bits;
     return Z_OK;
 }
 
@@ -146,7 +163,7 @@ int stream_size;
             ZALLOC(strm, 1, sizeof(struct inflate_state));
     if (state == Z_NULL) return Z_MEM_ERROR;
     Tracev((stderr, "inflate: allocated\n"));
-    strm->state = (voidpf)state;
+    strm->state = (struct internal_state FAR *)state;
     if (windowBits < 0) {
         state->wrap = 0;
         windowBits = -windowBits;
@@ -1310,6 +1327,7 @@ z_streamp source;
     struct inflate_state FAR *state;
     struct inflate_state FAR *copy;
     unsigned char FAR *window;
+    unsigned wsize;
 
     /* check input */
     if (dest == Z_NULL || source == Z_NULL || source->state == Z_NULL ||
@@ -1335,15 +1353,16 @@ z_streamp source;
     zmemcpy(dest, source, sizeof(z_stream));
     zmemcpy(copy, state, sizeof(struct inflate_state));
     if (state->lencode >= state->codes &&
-        state->lencode <= state->codes + ENOUGH - 1)
-    {
+        state->lencode <= state->codes + ENOUGH - 1) {
         copy->lencode = copy->codes + (state->lencode - state->codes);
         copy->distcode = copy->codes + (state->distcode - state->codes);
     }
     copy->next = copy->codes + (state->next - state->codes);
-    if (window != Z_NULL)
-        zmemcpy(window, state->window, (uInt)(1U << state->wbits));
+    if (window != Z_NULL) {
+        wsize = 1U << state->wbits;
+        zmemcpy(window, state->window, wsize);
+    }
     copy->window = window;
-    dest->state = (voidpf)copy;
+    dest->state = (struct internal_state FAR *)copy;
     return Z_OK;
 }

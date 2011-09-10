@@ -1,7 +1,7 @@
 /* gun.c -- simple gunzip to give an example of the use of inflateBack()
  * Copyright (C) 2003, 2005 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
-   Version 1.2  20 March 2005  Mark Adler */
+   Version 1.3  12 June 2005  Mark Adler */
 
 /* Version history:
    1.0  16 Feb 2003  First version for testing of inflateBack()
@@ -14,6 +14,7 @@
                      Add a bunch of comments
    1.2  20 Mar 2005  Add Unix compress (LZW) decompression
                      Copy file attributes from input file to output file
+   1.3  12 Jun 2005  Add casts for error messages [Oberhumer]
  */
 
 /*
@@ -221,12 +222,12 @@ local int lunpipe(unsigned have, unsigned char *next, struct ind *indp,
     if (last == -1)
         return Z_BUF_ERROR;
     if (flags & 0x60) {
-        strm->msg = "unknown lzw flags set";
+        strm->msg = (char *)"unknown lzw flags set";
         return Z_DATA_ERROR;
     }
     max = flags & 0x1f;
     if (max < 9 || max > 16) {
-        strm->msg = "lzw bits out of range";
+        strm->msg = (char *)"lzw bits out of range";
         return Z_DATA_ERROR;
     }
     if (max == 9)                           /* 9 doesn't really mean 9 */
@@ -246,7 +247,7 @@ local int lunpipe(unsigned have, unsigned char *next, struct ind *indp,
     if (NEXT() == -1)                       /* missing a bit */
         return Z_BUF_ERROR;
     if (last & 1) {                         /* code must be < 256 */
-        strm->msg = "invalid lzw code";
+        strm->msg = (char *)"invalid lzw code";
         return Z_DATA_ERROR;
     }
     rem = (unsigned)last >> 1;              /* remaining 7 bits */
@@ -313,7 +314,7 @@ local int lunpipe(unsigned have, unsigned char *next, struct ind *indp,
                to detect random or corrupted input after a compress header.
                In any case, the prev > end check must be retained. */
             if (code != end + 1 || prev > end) {
-                strm->msg = "invalid lzw code";
+                strm->msg = (char *)"invalid lzw code";
                 return Z_DATA_ERROR;
             }
             match[stack++] = (unsigned char)final;
@@ -394,7 +395,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
             break;                          /* empty gzip stream is ok */
         }
         if (last != 31 || (NEXT() != 139 && last != 157)) {
-            strm->msg = "incorrect header check";
+            strm->msg = (char *)"incorrect header check";
             ret = first ? Z_DATA_ERROR : Z_ERRNO;
             break;                          /* not a gzip or compress header */
         }
@@ -410,7 +411,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
         ret = Z_BUF_ERROR;
         if (NEXT() != 8) {                  /* only deflate method allowed */
             if (last == -1) break;
-            strm->msg = "unknown compression method";
+            strm->msg = (char *)"unknown compression method";
             ret = Z_DATA_ERROR;
             break;
         }
@@ -423,7 +424,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
         NEXT();
         if (last == -1) break;
         if (flags & 0xe0) {
-            strm->msg = "unknown header flags set";
+            strm->msg = (char *)"unknown header flags set";
             ret = Z_DATA_ERROR;
             break;
         }
@@ -476,7 +477,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
             NEXT() != ((outd.crc >> 24) & 0xff)) {
             /* crc error */
             if (last != -1) {
-                strm->msg = "incorrect data check";
+                strm->msg = (char *)"incorrect data check";
                 ret = Z_DATA_ERROR;
             }
             break;
@@ -487,7 +488,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
             NEXT() != ((outd.total >> 24) & 0xff)) {
             /* length error */
             if (last != -1) {
-                strm->msg = "incorrect length check";
+                strm->msg = (char *)"incorrect length check";
                 ret = Z_DATA_ERROR;
             }
             break;
@@ -641,7 +642,7 @@ int main(int argc, char **argv)
     argv++;
     test = 0;
     if (argc && strcmp(*argv, "-h") == 0) {
-        fprintf(stderr, "gun 1.2 (20 Mar 2005)\n");
+        fprintf(stderr, "gun 1.3 (12 Jun 2005)\n");
         fprintf(stderr, "Copyright (c) 2005 Mark Adler\n");
         fprintf(stderr, "usage: gun [-t] [file1.gz [file2.Z ...]]\n");
         return 0;

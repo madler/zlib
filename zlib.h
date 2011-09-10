@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.2.3, May 27th, 2005
+  version 1.2.2.4, July 11th, 2005
 
   Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.2.3"
-#define ZLIB_VERNUM 0x1223
+#define ZLIB_VERSION "1.2.2.4"
+#define ZLIB_VERNUM 0x1224
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -726,11 +726,11 @@ ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
    a crc32 instead of an adler32.
 
      inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
-   memory, Z_STREAM_ERROR if a parameter is invalid (such as a negative
-   memLevel). msg is set to null if there is no error message.  inflateInit2
-   does not perform any decompression apart from reading the zlib header if
-   present: this will be done by inflate(). (So next_in and avail_in may be
-   modified, but next_out and avail_out are unchanged.)
+   memory, Z_STREAM_ERROR if a parameter is invalid (such as a null strm). msg
+   is set to null if there is no error message.  inflateInit2 does not perform
+   any decompression apart from reading the zlib header if present: this will
+   be done by inflate(). (So next_in and avail_in may be modified, but next_out
+   and avail_out are unchanged.)
 */
 
 ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
@@ -794,6 +794,22 @@ ZEXTERN int ZEXPORT inflateReset OF((z_streamp strm));
 
       inflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
    stream state was inconsistent (such as zalloc or state being NULL).
+*/
+
+ZEXTERN int ZEXPORT inflatePrime OF((z_streamp strm,
+                                     int bits,
+                                     int value));
+/*
+     This function inserts bits in the inflate input stream.  The intent is
+  that this function is used to start inflating at a bit position in the
+  middle of a byte.  The provided bits will be used before any bytes are used
+  from next_in.  This function should only be used with raw inflate, and
+  should be used before the first inflate() call after inflateInit2() or
+  inflateReset().  bits must be less than or equal to 16, and that many of the
+  least significant bits of value will be inserted in the input.
+
+      inflatePrime returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
 */
 
 ZEXTERN int ZEXPORT inflateGetHeader OF((z_streamp strm,
