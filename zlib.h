@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.2, October 3rd, 2004
+  version 1.2.2.1, October 31st, 2004
 
   Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.2"
-#define ZLIB_VERNUM 0x1220
+#define ZLIB_VERSION "1.2.2.1"
+#define ZLIB_VERNUM 0x1221
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -95,12 +95,35 @@ typedef struct z_stream_s {
     free_func  zfree;   /* used to free the internal state */
     voidpf     opaque;  /* private data object passed to zalloc and zfree */
 
-    int     data_type;  /* best guess about the data type: ascii or binary */
+    int     data_type;  /* best guess about the data type: binary or text */
     uLong   adler;      /* adler32 value of the uncompressed data */
     uLong   reserved;   /* reserved for future use */
 } z_stream;
 
 typedef z_stream FAR *z_streamp;
+
+/*
+     gzip header information passed to and from zlib routines.  See RFC 1952
+  for more details on the meanings of these fields.
+*/
+typedef struct gz_header_s {
+    int     text;       /* true if compressed data believed to be text */
+    uLong   time;       /* modification time */
+    int     xflags;     /* extra flags (not used when writing a gzip file) */
+    int     os;         /* operating system */
+    Bytef   *extra;     /* pointer to extra field or Z_NULL if none */
+    uInt    extra_len;  /* extra field length (valid if extra != Z_NULL) */
+    uInt    extra_max;  /* space at extra (only when reading header) */
+    Bytef   *name;      /* pointer to zero-terminated file name or Z_NULL */
+    uInt    name_max;   /* space at name (only when reading header) */
+    Bytef   *comment;   /* pointer to zero-terminated comment or Z_NULL */
+    uInt    comm_max;   /* space at comment (only when reading header) */
+    int     hcrc;       /* true if there was or will be a header crc */
+    int     done;       /* true when done reading gzip header (not used
+                           when writing a gzip file) */
+} gz_header;
+
+typedef gz_header FAR *gz_headerp;
 
 /*
    The application must update next_in and avail_in when avail_in has
@@ -170,7 +193,8 @@ typedef z_stream FAR *z_streamp;
 /* compression strategy; see deflateInit2() below for details */
 
 #define Z_BINARY   0
-#define Z_ASCII    1
+#define Z_TEXT     1
+#define Z_ASCII    Z_TEXT   /* for compatibility with 1.2.2 and earlier */
 #define Z_UNKNOWN  2
 /* Possible values of the data_type field (though see inflate()) */
 
@@ -244,6 +268,10 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
   and with zero avail_out, it must be called again after making room in the
   output buffer because there might be more output pending.
 
+    Normally the parameter flush is set to Z_NO_FLUSH, which allows deflate to
+  decide how much data to accumualte before producing output, in order to
+  maximize compression.
+
     If the parameter flush is set to Z_SYNC_FLUSH, all pending output is
   flushed to the output buffer and the output is aligned on a byte boundary, so
   that the decompressor can get all input data available so far. (In particular
@@ -255,7 +283,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
   Z_SYNC_FLUSH, and the compression state is reset so that decompression can
   restart from this point if previous compressed data has been damaged or if
   random access is desired. Using Z_FULL_FLUSH too often can seriously degrade
-  the compression.
+  compression.
 
     If deflate returns with avail_out == 0, this function must be called again
   with the same value of the flush parameter and more output space (updated
@@ -280,8 +308,8 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
     deflate() sets strm->adler to the adler32 checksum of all input read
   so far (that is, total_in bytes).
 
-    deflate() may update data_type if it can make a good guess about
-  the input data type (Z_ASCII or Z_BINARY). In doubt, the data is considered
+    deflate() may update strm->data_type if it can make a good guess about
+  the input data type (Z_BINARY or Z_TEXT). In doubt, the data is considered
   binary. This field is only for information purposes and does not affect
   the compression algorithm in any manner.
 
@@ -616,6 +644,30 @@ ZEXTERN int ZEXPORT deflatePrime OF((z_streamp strm,
    stream state was inconsistent.
 */
 
+ZEXTERN int ZEXPORT deflateSetHeader OF((z_streamp strm,
+                                         gz_headerp head));
+/*
+      deflateSetHeader() provides gzip header information for when a gzip
+   stream is requested by deflateInit2().  deflateSetHeader() may be called
+   after deflateInit2() or deflateReset() and before the first call of
+   deflate().  The text, time, os, extra field, name, and comment information
+   in the provided gz_header structure are written to the gzip header (xflag is
+   ignored -- the extra flags are set according to the compression level).  The
+   caller must assure that, if not Z_NULL, name and comment are terminated with
+   a zero byte, and that if extra is not Z_NULL, that extra_len bytes are
+   available there.  If hcrc is true, a gzip header crc is included.  Note that
+   the current versions of the command-line version of gzip (up through version
+   1.3.x) do not support header crc's, and will report that it is a "multi-part
+   gzip file" and give up.
+
+      If deflateSetHeader is not used, the default gzip header has text false,
+   the time set to zero, and os set to 255, with no extra, name, or comment
+   fields.  The gzip header is returned to the default state by deflateReset().
+
+      deflateSetHeader returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
+*/
+
 /*
 ZEXTERN int ZEXPORT inflateInit2 OF((z_streamp strm,
                                      int  windowBits));
@@ -664,11 +716,14 @@ ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
                                              uInt  dictLength));
 /*
      Initializes the decompression dictionary from the given uncompressed byte
-   sequence. This function must be called immediately after a call of inflate
-   if this call returned Z_NEED_DICT. The dictionary chosen by the compressor
-   can be determined from the adler32 value returned by this call of
-   inflate. The compressor and decompressor must use exactly the same
-   dictionary (see deflateSetDictionary).
+   sequence. This function must be called immediately after a call of inflate,
+   if that call returned Z_NEED_DICT. The dictionary chosen by the compressor
+   can be determined from the adler32 value returned by that call of inflate.
+   The compressor and decompressor must use exactly the same dictionary (see
+   deflateSetDictionary).  For raw inflate, this function can be called
+   immediately after inflateInit2() or inflateReset() and before any call of
+   inflate() to set the dictionary.  The application must insure that the
+   dictionary that was used for compression is provided.
 
      inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
    parameter is invalid (such as NULL dictionary) or the stream state is
@@ -719,8 +774,48 @@ ZEXTERN int ZEXPORT inflateReset OF((z_streamp strm));
    stream state was inconsistent (such as zalloc or state being NULL).
 */
 
+ZEXTERN int ZEXPORT inflateGetHeader OF((z_streamp strm,
+                                         gz_headerp head));
 /*
-ZEXTERN int ZEXPORT inflateBackInit OF((z_stream FAR *strm, int windowBits,
+      inflateGetHeader() requests that gzip header information be stored in the
+   provided gz_header structure.  inflateGetHeader() may be called after
+   inflateInit2() or inflateReset(), and before the first call of inflate().
+   As inflate() processes the gzip stream, head->done is zero until the header
+   is completed, at which time head->done is set to one.  If a zlib stream is
+   being decoded, then head->done is set to -1 to indicate that there will be
+   no gzip header information forthcoming.  Note that Z_BLOCK can be used to
+   force inflate() to return immediately after header processing is complete
+   and before any actual data is decompressed.
+
+      The text, time, xflags, and os fields are filled in with the gzip header
+   contents.  hcrc is set to true if there is a header CRC.  (The header CRC
+   was valid if done is set to one.)  If extra is not Z_NULL, then extra_max
+   contains the maximum number of bytes to write to extra.  Once done is true,
+   extra_len contains the actual extra field length, and extra contains the
+   extra field, or that field truncated if extra_max is less than extra_len.
+   If name is not Z_NULL, then up to name_max characters are written there,
+   terminated with a zero unless the length is greater than name_max.  If
+   comment is not Z_NULL, then up to comm_max characters are written there,
+   terminated with a zero unless the length is greater than comm_max.  When
+   any of extra, name, or comment are not Z_NULL and the respective field is
+   not present in the header, then that field is set to Z_NULL to signal its
+   absence.  This allows the use of deflateSetHeader() with the returned
+   structure to duplicate the header.  However if those fields are set to
+   allocated memory, then the application will need to save those pointers
+   elsewhere so that they can be eventually freed.
+
+      If inflateGetHeader is not used, then the header information is simply
+   discarded.  The header is always checked for validity, including the header
+   CRC if present.  inflateReset() will reset the process to discard the header
+   information.  The application would need to call inflateGetHeader() again to
+   retrieve the header from the next gzip stream.
+
+      inflateGetHeader returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
+*/
+
+/*
+ZEXTERN int ZEXPORT inflateBackInit OF((z_streamp strm, int windowBits,
                                         unsigned char FAR *window));
 
      Initialize the internal stream state for decompression using inflateBack()
@@ -744,7 +839,7 @@ ZEXTERN int ZEXPORT inflateBackInit OF((z_stream FAR *strm, int windowBits,
 typedef unsigned (*in_func) OF((void FAR *, unsigned char FAR * FAR *));
 typedef int (*out_func) OF((void FAR *, unsigned char FAR *, unsigned));
 
-ZEXTERN int ZEXPORT inflateBack OF((z_stream FAR *strm,
+ZEXTERN int ZEXPORT inflateBack OF((z_streamp strm,
                                     in_func in, void FAR *in_desc,
                                     out_func out, void FAR *out_desc));
 /*
@@ -813,7 +908,7 @@ ZEXTERN int ZEXPORT inflateBack OF((z_stream FAR *strm,
    that inflateBack() cannot return Z_OK.
 */
 
-ZEXTERN int ZEXPORT inflateBackEnd OF((z_stream FAR *strm));
+ZEXTERN int ZEXPORT inflateBackEnd OF((z_streamp strm));
 /*
      All memory allocated by inflateBackInit() is freed.
 
@@ -1119,7 +1214,6 @@ ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
 */
 
 ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
-
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. If buf is NULL, this function returns
@@ -1135,12 +1229,21 @@ ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
      if (adler != original_adler) error();
 */
 
+ZEXTERN uLong ZEXPORT adler32_combine OF((uLong adler1, uLong adler2,
+                                          uLong len2));
+/*
+     Combine two Adler-32 checksums into one.  For two sequences of bytes, seq1
+   and seq2 with lengths len1 and len2, Adler-32 checksums were calculated for
+   each, adler1 and adler2.  adler32_combine() returns the Adler-32 checksum of
+   seq1 and seq2 concatenated, requiring only adler1, adler2, and len2.
+*/
+
 ZEXTERN uLong ZEXPORT crc32   OF((uLong crc, const Bytef *buf, uInt len));
 /*
-     Update a running crc with the bytes buf[0..len-1] and return the updated
-   crc. If buf is NULL, this function returns the required initial value
-   for the crc. Pre- and post-conditioning (one's complement) is performed
-   within this function so it shouldn't be done by the application.
+     Update a running CRC-32 with the bytes buf[0..len-1] and return the
+   updated CRC-32. If buf is NULL, this function returns the required initial
+   value for the for the crc. Pre- and post-conditioning (one's complement) is
+   performed within this function so it shouldn't be done by the application.
    Usage example:
 
      uLong crc = crc32(0L, Z_NULL, 0);
@@ -1149,6 +1252,16 @@ ZEXTERN uLong ZEXPORT crc32   OF((uLong crc, const Bytef *buf, uInt len));
        crc = crc32(crc, buffer, length);
      }
      if (crc != original_crc) error();
+*/
+
+ZEXTERN uLong ZEXPORT crc32_combine OF((uLong crc1, uLong crc2, uLong len2));
+
+/*
+     Combine two CRC-32 check values into one.  For two sequences of bytes,
+   seq1 and seq2 with lengths len1 and len2, CRC-32 check values were
+   calculated for each, crc1 and crc2.  crc32_combine() returns the CRC-32
+   check value of seq1 and seq2 concatenated, requiring only crc1, crc2, and
+   len2.
 */
 
 
@@ -1167,7 +1280,7 @@ ZEXTERN int ZEXPORT deflateInit2_ OF((z_streamp strm, int  level, int  method,
                                       int stream_size));
 ZEXTERN int ZEXPORT inflateInit2_ OF((z_streamp strm, int  windowBits,
                                       const char *version, int stream_size));
-ZEXTERN int ZEXPORT inflateBackInit_ OF((z_stream FAR *strm, int windowBits,
+ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
                                          unsigned char FAR *window,
                                          const char *version,
                                          int stream_size));

@@ -47,7 +47,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Win32_DLL_Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
+# ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT CPP /YX
@@ -58,7 +58,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 zlib1.lib /nologo /subsystem:console /machine:I386 /libpath:"Win32_DLL_Release"
+# ADD LINK32 /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 DLL Debug"
 
@@ -73,7 +73,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_DLL_Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT CPP /YX
@@ -84,7 +84,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 zlib1d.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"Win32_DLL_Debug"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 DLL ASM Release"
 
@@ -99,7 +99,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_DLL_ASM_Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
+# ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT CPP /YX
@@ -110,7 +110,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 zlib1.lib /nologo /subsystem:console /machine:I386 /libpath:"Win32_DLL_ASM_Release"
+# ADD LINK32 /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 DLL ASM Debug"
 
@@ -125,7 +125,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_DLL_ASM_Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT CPP /YX
@@ -136,7 +136,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 zlib1d.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"Win32_DLL_ASM_Debug"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 LIB Release"
 
@@ -151,7 +151,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_LIB_Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
+# ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT CPP /YX
@@ -162,7 +162,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 zlib.lib /nologo /subsystem:console /machine:I386 /libpath:"Win32_LIB_Release"
+# ADD LINK32 /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 LIB Debug"
 
@@ -177,7 +177,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_LIB_Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT CPP /YX
@@ -188,7 +188,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 zlibd.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"Win32_LIB_Debug"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 LIB ASM Release"
 
@@ -203,7 +203,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_LIB_ASM_Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
+# ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /FD /c
 # SUBTRACT CPP /YX
@@ -214,7 +214,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 zlib.lib /nologo /subsystem:console /machine:I386 /libpath:"Win32_LIB_ASM_Release"
+# ADD LINK32 /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "minigzip - Win32 LIB ASM Debug"
 
@@ -229,7 +229,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Win32_LIB_ASM_Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
 # ADD CPP /nologo /MDd /W3 /Gm /ZI /Od /D "WIN32" /D "_DEBUG" /FD /GZ /c
 # SUBTRACT CPP /YX
@@ -240,7 +240,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 zlibd.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"Win32_LIB_ASM_Debug"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 

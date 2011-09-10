@@ -1,6 +1,26 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.2.1 (31 October 2004)
+- Allow inflateSetDictionary() call for raw inflate
+- Fix inflate header crc check bug for file names and comments
+- Add deflateSetHeader() and gz_header structure for custom gzip headers
+- Add inflateGetheader() to retrieve gzip headers
+- Add crc32_combine() and adler32_combine() functions
+- Add alloc_func, free_func, in_func, out_func to Z_PREFIX list
+- Use zstreamp consistently in zlib.h (inflate_back functions)
+- Remove GUNZIP condition from definition of inflate_mode in inflate.h
+  and in contrib/inflate86/inffast.S [Truta, Anderson]
+- Add support for AMD64 in contrib/inflate86/inffas86.c [Anderson]
+- Update projects/README.projects and projects/visualc6 [Truta]
+- Update win32/DLL_FAQ.txt [Truta]
+- Avoid warning under NO_GZCOMPRESS in gzio.c; fix typo [Truta]
+- Deprecate Z_ASCII; use Z_TEXT instead [Truta]
+- Use a new algorithm for setting strm->data_type in trees.c [Truta]
+- Do not define an exit() prototype in zutil.c unless DEBUG defined
+- Remove prototype of exit() from zutil.c, example.c, minigzip.c [Truta]
+- Add comment in zlib.h for Z_NO_FLUSH parameter to deflate()
+
 Changes in 1.2.2 (3 October 2004)
 - Update zlib.h comments on gzip in-memory processing
 - Set adler to 1 in inflateReset() to support Java test suite [Walles]

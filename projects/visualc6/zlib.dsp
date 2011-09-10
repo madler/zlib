@@ -435,7 +435,7 @@ InputPath=..\..\contrib\masmx86\gvmat32.asm
 InputName=gvmat32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -447,7 +447,7 @@ InputPath=..\..\contrib\masmx86\gvmat32.asm
 InputName=gvmat32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -467,7 +467,7 @@ InputPath=..\..\contrib\masmx86\gvmat32.asm
 InputName=gvmat32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -479,7 +479,7 @@ InputPath=..\..\contrib\masmx86\gvmat32.asm
 InputName=gvmat32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -549,7 +549,7 @@ InputPath=..\..\contrib\masmx86\inffas32.asm
 InputName=inffas32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -561,7 +561,7 @@ InputPath=..\..\contrib\masmx86\inffas32.asm
 InputName=inffas32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -581,7 +581,7 @@ InputPath=..\..\contrib\masmx86\inffas32.asm
 InputName=inffas32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 
@@ -593,7 +593,7 @@ InputPath=..\..\contrib\masmx86\inffas32.asm
 InputName=inffas32
 
 "$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+	ml.exe /nologo /c /coff /Cx /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
 # End Custom Build
 

@@ -43,6 +43,10 @@
 #  define get_crc_table         z_get_crc_table
 #  define zError                z_zError
 
+#  define alloc_func            z_alloc_func
+#  define free_func             z_free_func
+#  define in_func               z_in_func
+#  define out_func              z_out_func
 #  define Byte                  z_Byte
 #  define uInt                  z_uInt
 #  define uLong                 z_uLong

@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-2003 Jean-loup Gailly
+ * Copyright (C) 1995-2004 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -930,8 +930,25 @@ void _tr_flush_block(s, buf, stored_len, eof)
     /* Build the Huffman trees unless a stored block is forced */
     if (s->level > 0) {
 
-         /* Check if the file is ascii or binary */
-        if (s->strm->data_type == Z_UNKNOWN) set_data_type(s);
+        /* Check if the file is binary or text */
+        if (stored_len > 0 && s->strm->data_type == Z_UNKNOWN)
+            set_data_type(s);
+
+#ifdef DEBUG
+        /* Write out literal/length frequencies for benchmarking */
+        if (z_verbose) {
+            FILE *freq;
+            freq = fopen("defreq.txt", "a");
+            if (freq != NULL) {
+                int n;
+                fputs("ltree:", freq);
+                for (n = 0; n < L_CODES; n++)
+                    fprintf(freq, " %d", s->dyn_ltree[n].Freq);
+                putc('\n', freq);
+                fclose(freq);
+            }
+        }
+#endif
 
         /* Construct the literal and distance trees */
         build_tree(s, (tree_desc *)(&(s->l_desc)));
@@ -1117,21 +1134,24 @@ local void compress_block(s, ltree, dtree)
 }
 
 /* ===========================================================================
- * Set the data type to ASCII or BINARY, using a crude approximation:
- * binary if more than 20% of the bytes are <= 6 or >= 128, ascii otherwise.
- * IN assertion: the fields freq of dyn_ltree are set and the total of all
- * frequencies does not exceed 64K (to fit in an int on 16 bit machines).
+ * Set the data type to BINARY or TEXT, using a crude approximation:
+ * set it to Z_TEXT if all symbols are either printable characters (33 to 255)
+ * or white spaces (9 to 13, or 32); or set it to Z_BINARY otherwise.
+ * IN assertion: the fields Freq of dyn_ltree are set.
  */
 local void set_data_type(s)
     deflate_state *s;
 {
-    int n = 0;
-    unsigned ascii_freq = 0;
-    unsigned bin_freq = 0;
-    while (n < 7)        bin_freq += s->dyn_ltree[n++].Freq;
-    while (n < 128)    ascii_freq += s->dyn_ltree[n++].Freq;
-    while (n < LITERALS) bin_freq += s->dyn_ltree[n++].Freq;
-    s->strm->data_type = bin_freq > (ascii_freq >> 2) ? Z_BINARY : Z_ASCII;
+    int n;
+
+    for (n = 0; n < 9; n++)
+        if (s->dyn_ltree[n].Freq != 0)
+            break;
+    if (n == 9)
+        for (n = 14; n < 32; n++)
+            if (s->dyn_ltree[n].Freq != 0)
+                break;
+    s->strm->data_type = (n == 32) ? Z_TEXT : Z_BINARY;
 }
 
 /* ===========================================================================

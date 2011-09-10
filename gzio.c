@@ -1,5 +1,5 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-2003 Jean-loup Gailly.
+ * Copyright (C) 1995-2004 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_GZCOMPRESS to avoid the compression code.
@@ -11,7 +11,7 @@
 
 #include "zutil.h"
 
-#ifdef NO_DEFLATE       /* for compatiblity with old definition */
+#ifdef NO_DEFLATE       /* for compatibility with old definition */
 #  define NO_GZCOMPRESS
 #endif
 
@@ -941,7 +941,6 @@ local uLong getLong (s)
 int ZEXPORT gzclose (file)
     gzFile file;
 {
-    int err;
     gz_stream *s = (gz_stream*)file;
 
     if (s == NULL) return Z_STREAM_ERROR;
@@ -950,8 +949,8 @@ int ZEXPORT gzclose (file)
 #ifdef NO_GZCOMPRESS
         return Z_STREAM_ERROR;
 #else
-        err = do_flush (file, Z_FINISH);
-        if (err != Z_OK) return destroy((gz_stream*)file);
+        if (do_flush (file, Z_FINISH) != Z_OK)
+            return destroy((gz_stream*)file);
 
         putLong (s->file, s->crc);
         putLong (s->file, (uLong)(s->in & 0xffffffff));
