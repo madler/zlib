@@ -1,3 +1,12 @@
+Change in 0.21: (10 Mar 03)
+- bug fixes
+
+Change in 0.17: (27 Jan 02)
+- bug fixes
+
+Change in 0.16: (19 Jan 02)
+- Support of ioapi for virtualize zip file access
+
 Change in 0.15: (19 Mar 98)
 - fix memory leak in minizip.c
 

@@ -1,5 +1,29 @@
 
-		ChangeLog file for zlib
+                ChangeLog file for zlib
+Changes in 1.2.0.1 (17 March 2003)
+- Add Z_RLE strategy for run-length encoding [Truta]
+    - When Z_RLE requested, restrict matches to distance one
+    - Update zlib.h, minigzip.c, gzopen(), gzdopen() for Z_RLE
+- Correct FASTEST compilation to allow level == 0
+- Clean up what gets compiled for FASTEST
+- Incorporate changes to zconf.in.h [Vollant]
+    - Refine detection of Turbo C need for dummy returns
+    - Refine ZLIB_DLL compilation
+    - Include additional header file on VMS for off_t typedef
+- Try to use _vsnprintf where it supplants vsprintf [Vollant]
+- Add some casts in inffast.c
+- Enchance comments in zlib.h on what happens if the gzprintf() tries to
+  write more than 4095 bytes before compression
+- Remove unused state from inflateBackEnd()
+- Remove exit(0) from minigzip.c, example.c
+- Get rid of all those darn tabs
+- Add "check" target to Makefile.in that does the same thing as "test"
+- Add "mostlyclean" and "maintainer-clean" targets to Makefile.in
+- Update contrib/inflate86 [Anderson]
+- Update contrib/testzlib, contrib/vstudio, contrib/minizip [Vollant]
+- Add msdos and win32 directories with makefiles [Truta]
+- More additions and improvements to the FAQ
+
 Changes in 1.2.0 (9 March 2003)
 - New and improved inflate code
     - About 20% faster
@@ -236,13 +260,13 @@ Changes in 1.0.6 (19 Jan 1998)
 - added Makefile.nt (thanks to Stephen Williams)
 - added the unsupported "contrib" directory:
    contrib/asm386/ by Gilles Vollant <info@winimage.com>
-	386 asm code replacing longest_match().
+        386 asm code replacing longest_match().
    contrib/iostream/ by Kevin Ruland <kevin@rodin.wustl.edu>
         A C++ I/O streams interface to the zlib gz* functions
    contrib/iostream2/  by Tyge Løvset <Tyge.Lovset@cmr.no>
-	Another C++ I/O streams interface
+        Another C++ I/O streams interface
    contrib/untgz/  by "Pedro A. Aranda Guti\irrez" <paag@tid.es>
-	A very simple tar.gz file extractor using zlib
+        A very simple tar.gz file extractor using zlib
    contrib/visual-basic.txt by Carlos Rios <c_rios@sonda.cl>
         How to use compress(), uncompress() and the gz* functions from VB.
 - pass params -f (filtered data), -h (huffman only), -1 to -9 (compression
@@ -269,7 +293,7 @@ Changes in 1.0.6 (19 Jan 1998)
 - add NEED_DUMMY_RETURN for Borland
 - use variable z_verbose for tracing in debug mode (L. Peter Deutsch).
 - allow compilation with CC
-- defined STDC for OS/2 (David Charlap)	
+- defined STDC for OS/2 (David Charlap)
 - limit external names to 8 chars for MVS (Thomas Lund)
 - in minigzip.c, use static buffers only for 16-bit systems
 - fix suffix check for "minigzip -d foo.gz"

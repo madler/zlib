@@ -24,7 +24,7 @@ LDFLAGS=libz.a
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.2.0
+VER=1.2.0.1
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -61,6 +61,7 @@ DISTFILES = README FAQ INDEX ChangeLog configure Make*[a-z0-9] *.[ch] *.mms \
 
 all: example minigzip
 
+check: test
 test: all
 	@LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
 	echo hello world | ./minigzip | ./minigzip -d || \
@@ -123,10 +124,12 @@ uninstall:
 	  rm -f $(SHAREDLIB).$$v $(SHAREDLIB) $(SHAREDLIB).1; \
 	fi
 
+mostlyclean: clean
 clean:
 	rm -f *.o *~ example minigzip libz.a libz.so* foo.gz so_locations \
 	   _match.s maketree
 
+maintainer-clean: distclean
 distclean:	clean
 	cp -p Makefile.in Makefile
 	cp -p zconf.in.h zconf.h

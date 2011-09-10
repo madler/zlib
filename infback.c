@@ -603,11 +603,8 @@ void FAR *out_desc;
 int ZEXPORT inflateBackEnd(strm)
 z_stream FAR *strm;
 {
-    struct inflate_state FAR *state;
-
     if (strm == Z_NULL || strm->state == Z_NULL || strm->zfree == Z_NULL)
         return Z_STREAM_ERROR;
-    state = (struct inflate_state FAR *)strm->state;
     ZFREE(strm, strm->state);
     strm->state = Z_NULL;
     Tracev((stderr, "inflate: end\n"));

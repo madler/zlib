@@ -1,0 +1,76 @@
+# Makefile for zlib.dll -- Microsoft (Visual) C.
+# Author: Cosmin Truta, 11-Mar-2003.
+#
+# Usage: nmake -f win32/Makefile-dll.msc
+
+CC = cl
+LD = cl
+CFLAGS = -nologo -MD -O2
+LDFLAGS = -nologo
+
+OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj \
+       inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
+
+# targets
+all: zlib.dll zlib.lib example.exe minigzip.exe
+
+zlib.lib: $(OBJS)
+	lib -out:$@ $(OBJS)
+
+zlib.dll: $(OBJS) win32/zlib.def
+	link -release -def:win32/zlib.def -dll -out:$@ $(OBJS)
+
+zlib.lib: zlib.dll
+
+example.exe: example.obj zlib.lib
+	$(LD) $(LDFLAGS) example.obj zlib.lib
+
+minigzip.exe: minigzip.obj zlib.lib
+	$(LD) $(LDFLAGS) minigzip.obj zlib.lib
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $*.c
+
+adler32.obj: adler32.c zlib.h zconf.h
+
+compress.obj: compress.c zlib.h zconf.h
+
+crc32.obj: crc32.c zlib.h zconf.h crc32.h
+
+deflate.obj: deflate.c deflate.h zutil.h zlib.h zconf.h
+
+gzio.obj: gzio.c zutil.h zlib.h zconf.h
+
+infback.obj: infback.c zutil.h zlib.h zconf.h inftrees.h inflate.h \
+             inffast.h inffixed.h
+
+inffast.obj: inffast.c zutil.h zlib.h zconf.h inftrees.h inflate.h \
+             inffast.h
+
+inflate.obj: inflate.c zutil.h zlib.h zconf.h inftrees.h inflate.h \
+             inffast.h inffixed.h
+
+inftrees.obj: inftrees.c zutil.h zlib.h zconf.h inftrees.h
+
+trees.obj: trees.c zutil.h zlib.h zconf.h deflate.h trees.h
+
+uncompr.obj: uncompr.c zlib.h zconf.h
+
+zutil.obj: zutil.c zutil.h zlib.h zconf.h
+
+example.obj: example.c zlib.h zconf.h
+
+minigzip.obj: minigzip.c zlib.h zconf.h
+
+# testing
+test: example.exe minigzip.exe
+	example
+	echo hello world | minigzip | minigzip -d 
+
+# cleanup
+clean:
+	del *.obj
+	del *.dll
+	del *.lib
+	del *.exp
+	del *.exe

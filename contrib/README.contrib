@@ -12,7 +12,7 @@ asm586/ and asm686/    by Brian Raiter <breadbox@muppetlabs.com>
         See http://www.muppetlabs.com/~breadbox/software/assembly.html
 
 blast/      by Mark Adler <madler@alumni.caltech.edu>
-	Decompressor for output of PKWare Data Compression Library
+	Decompressor for output of PKWare Data Compression Library (DCL)
 
 delphi/     by Bob Dellaca <bobdl@xtra.co.nz>
 	Support for Delphi
@@ -33,8 +33,15 @@ iostream/   by Kevin Ruland <kevin@rodin.wustl.edu>
 iostream2/  by Tyge Løvset <Tyge.Lovset@cmr.no>
 	Another C++ I/O streams interface
 
+testzlib/    by Gilles Vollant <info@winimage.com>
+	Example of the use of zlib
+
 untgz/      by "Pedro A. Aranda Guti\irrez" <paag@tid.es>
 	A very simple tar.gz file extractor using zlib
 
 visual-basic.txt by Carlos Rios <c_rios@sonda.cl>
         How to use compress(), uncompress() and the gz* functions from VB.
+
+vstudio/    by Gilles Vollant <info@winimage.com>
+	Building zlib DLL with Visual Studio .NET
+	Includes x86 inffast.asm for MASM

@@ -133,7 +133,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                     hold += (unsigned long)(PUP(in)) << bits;
                     bits += 8;
                 }
-                len += hold & ((1U << op) - 1);
+                len += (unsigned)hold & ((1U << op) - 1);
                 hold >>= op;
                 bits -= op;
             }
@@ -161,7 +161,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                         bits += 8;
                     }
                 }
-                dist += hold & ((1U << op) - 1);
+                dist += (unsigned)hold & ((1U << op) - 1);
                 hold >>= op;
                 bits -= op;
                 Tracevv((stderr, "inflate:         distance %u\n", dist));

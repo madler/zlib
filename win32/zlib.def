@@ -1,12 +1,5 @@
-LIBRARY		"zlib"
-
-DESCRIPTION	'"""zlib data compression library"""'
-
-
-VERSION		1.11
-
-
-HEAPSIZE	1048576,8192
+LIBRARY		zlib.dll
+DESCRIPTION	"zlib compression library for Windows"
 
 EXPORTS
     adler32                        @1
@@ -50,25 +43,7 @@ EXPORTS
     compress2                      @39
     gzputs                         @40
     gzgets                         @41
-
-	unzOpen                       @61
-	unzClose                      @62
-	unzGetGlobalInfo              @63
-	unzGetCurrentFileInfo         @64
-	unzGoToFirstFile              @65
-	unzGoToNextFile               @66
-	unzOpenCurrentFile            @67
-	unzReadCurrentFile            @68
-	unztell                       @70
-	unzeof                        @71
-	unzCloseCurrentFile           @72
-	unzGetGlobalComment           @73
-	unzStringFileNameCompare      @74
-	unzLocateFile                 @75
-	unzGetLocalExtrafield         @76
-
-	zipOpen                       @80
-	zipOpenNewFileInZip           @81
-	zipWriteInFileInZip           @82
-	zipCloseFileInZip             @83
-	zipClose                      @84
+; The following functions exist since zlib-1.2.0
+;   deflateBound                   @42
+;   compressBound                  @43
+; etc.

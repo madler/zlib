@@ -1,0 +1,105 @@
+# Makefile for zlib, derived from Makefile.dj2.
+# Modified for mingw32 by C. Spieler, 6/16/98.
+# Updated for zlib-1.2.x by Cosmin Truta, 11-Mar-2003.
+# Tested under Cygwin and MinGW.
+
+# Copyright (C) 1995-1998 Jean-loup Gailly.
+# For conditions of distribution and use, see copyright notice in zlib.h 
+
+# To compile, or to compile and test, type:
+# 
+#   make -fmakefile.gcc;  make test -fmakefile.gcc
+# 
+# To install libz.a, zconf.h and zlib.h in the system directories, type:
+# 
+#    make install -fmakefile.gcc
+# 
+
+LIB = libz.a
+SHAREDLIB = libz.so
+VER = 1.2.0
+
+CC = gcc
+#CFLAGS = -DDEBUG -MMD -g
+CFLAGS = $(LOC) -O3 -Wall
+
+AS = $(CC)
+ASFLAGS = $(LOC) -Wall
+
+LD = $(CC)
+LDFLAGS = $(LOC) -s
+
+AR = ar
+ARFLAGS = rcs
+
+CP = cp -fp
+# If GNU install is available, replace $(CP) with install.
+INSTALL = $(CP)
+RM = rm -f
+
+prefix = /usr/local
+exec_prefix = $(prefix)
+
+OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
+       inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+
+# to use the asm code: make OBJA=match.o
+OBJA =
+
+TEST_OBJS = example.o minigzip.o
+
+all: $(LIB) example minigzip
+
+test: all
+	./example
+	echo hello world | ./minigzip | ./minigzip -d 
+
+.c.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+libz.a: $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
+
+example: example.o $(LIB)
+	$(LD) -o $@ $< $(LIB)
+
+minigzip: minigzip.o $(LIB)
+	$(LD) -o $@ $< $(LIB)
+
+
+# INCLUDE_PATH and LIBRARY_PATH were set for [make] in djgpp.env .
+
+.PHONY : uninstall clean
+
+install: zlib.h zconf.h $(LIB)
+	-@if not exist $(INCLUDE_PATH)/nul mkdir $(INCLUDE_PATH)
+	-@if not exist $(LIBRARY_PATH)/nul mkdir $(LIBRARY_PATH)
+	$(INSTALL) zlib.h $(INCLUDE_PATH)
+	$(INSTALL) zconf.h $(INCLUDE_PATH)
+	$(INSTALL) $(LIB) $(LIBRARY_PATH)
+
+uninstall:
+	$(RM) $(INCLUDE_PATH)/zlib.h
+	$(RM) $(INCLUDE_PATH)/zconf.h
+	$(RM) $(LIBRARY_PATH)/libz.a
+
+clean:
+	$(RM) *.o
+	$(RM) *.exe
+	$(RM) libz.a
+	$(RM) foo.gz
+
+adler32.o: zlib.h zconf.h
+compress.o: zlib.h zconf.h
+crc32.o: crc32.h zlib.h zconf.h
+deflate.o: deflate.h zutil.h zlib.h zconf.h
+example.o: zlib.h zconf.h
+gzio.o: zutil.h zlib.h zconf.h
+inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inftrees.o: zutil.h zlib.h zconf.h inftrees.h
+minigzip.o:  zlib.h zconf.h 
+trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
+uncompr.o: zlib.h zconf.h
+zutil.o: zutil.h zlib.h zconf.h  

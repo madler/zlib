@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.0, March 9th, 2003
+  version 1.2.0.1, March 17th, 2003
 
   Copyright (C) 1995-2003 Jean-loup Gailly and Mark Adler
 
@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.0"
+#define ZLIB_VERSION "1.2.0.1"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -165,6 +165,7 @@ typedef z_stream FAR *z_streamp;
 
 #define Z_FILTERED            1
 #define Z_HUFFMAN_ONLY        2
+#define Z_RLE                 3
 #define Z_DEFAULT_STRATEGY    0
 /* compression strategy; see deflateInit2() below for details */
 
@@ -461,14 +462,16 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
 
      The strategy parameter is used to tune the compression algorithm. Use the
    value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data produced by a
-   filter (or predictor), or Z_HUFFMAN_ONLY to force Huffman encoding only (no
-   string match).  Filtered data consists mostly of small values with a
-   somewhat random distribution. In this case, the compression algorithm is
-   tuned to compress them better. The effect of Z_FILTERED is to force more
-   Huffman coding and less string matching; it is somewhat intermediate
-   between Z_DEFAULT and Z_HUFFMAN_ONLY. The strategy parameter only affects
-   the compression ratio but not the correctness of the compressed output even
-   if it is not set appropriately.
+   filter (or predictor), Z_HUFFMAN_ONLY to force Huffman encoding only (no
+   string match), or Z_RLE to limit match distances to one (run-length
+   encoding). Filtered data consists mostly of small values with a somewhat
+   random distribution. In this case, the compression algorithm is tuned to
+   compress them better. The effect of Z_FILTERED is to force more Huffman
+   coding and less string matching; it is somewhat intermediate between
+   Z_DEFAULT and Z_HUFFMAN_ONLY. Z_RLE is designed to be almost as fast as
+   Z_HUFFMAN_ONLY, but give better compression for PNG image data. The strategy
+   parameter only affects the compression ratio but not the correctness of the
+   compressed output even if it is not set appropriately.
 
       deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_STREAM_ERROR if a parameter is invalid (such as an invalid
@@ -843,8 +846,9 @@ ZEXTERN gzFile ZEXPORT gzopen  OF((const char *path, const char *mode));
      Opens a gzip (.gz) file for reading or writing. The mode parameter
    is as in fopen ("rb" or "wb") but can also include a compression level
    ("wb9") or a strategy: 'f' for filtered data as in "wb6f", 'h' for
-   Huffman only compression as in "wb1h". (See the description
-   of deflateInit2 for more information about the strategy parameter.)
+   Huffman only compression as in "wb1h", or 'R' for run-length encoding
+   as in "wb1R". (See the description of deflateInit2 for more information
+   about the strategy parameter.)
 
      gzopen can be used to read a file which is not in gzip format; in this
    case gzread will directly read from the file without decompression.
@@ -896,9 +900,12 @@ ZEXTERN int ZEXPORTVA   gzprintf OF((gzFile file, const char *format, ...));
      Converts, formats, and writes the args to the compressed file under
    control of the format string, as in fprintf. gzprintf returns the number of
    uncompressed bytes actually written (0 in case of error).  The number of
-   uncompressed bytes written is limited to 4095.  The caller should assure
-   that this limit is not exceeded, since otherwise a buffer overflow may
-   result.
+   uncompressed bytes written is limited to 4095. The caller should assure that
+   this limit is not exceeded. If it is exceeded, then either gzprintf() will
+   return an error (0) with nothing written, or there will be a buffer overflow
+   with unpredictable consequences. The latter is possible only if zlib was
+   compiled with insecure variants of printf, i.e. sprintf() or vsprintf()
+   because the secure snprintf() or vsnprintf() functions were not available.
 */
 
 ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));

@@ -70,14 +70,14 @@
  * - Changed many types to unsigned or unsigned short to avoid warnings
  * - Added inflateCopy() function
  *
- * 1.2.0	9 Mar 2003
+ * 1.2.0        9 Mar 2003
  * - Changed inflateBack() interface to provide separate opaque descriptors
  *   for the in() and out() functions
  * - Changed inflateBack() argument and in_func typedef to swap the length
  *   and buffer address return values for the input function
  * - Check next_in and next_out for Z_NULL on entry to inflate()
  *
- * Remainder of change history is in ChangeLog in zlib distribution.
+ * The history for versions past 1.2.0 are in ChangeLog in zlib distribution.
  */
 
 #include "zutil.h"

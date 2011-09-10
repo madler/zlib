@@ -150,6 +150,30 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
          /* functions */
 
+#ifdef __STDC_VERSION__
+#  if __STDC_VERSION__ >= 199901L
+#    ifndef STDC99
+#      define STDC99
+#    endif
+#  endif
+#endif
+#if !defined(STDC99) && !(defined(__TURBOC__) && __TURBOC__ >= 0x550) && !defined(VSNPRINTF_DEFINED)
+#  ifdef MSDOS
+     /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
+        but for now we just assume it doesn't. */
+#    define NO_vsnprintf
+#  endif
+#  ifdef WIN32
+     /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
+#    if !defined(vsnprintf) && !defined(__TURBOC__)
+#      define vsnprintf _vsnprintf
+#    endif
+#  endif
+#  ifdef __TURBOC__
+#    define NO_vsnprintf
+#  endif
+#endif
+
 #ifdef HAVE_STRERROR
    extern char *strerror OF((int));
 #  define zstrerror(errnum) strerror(errnum)
