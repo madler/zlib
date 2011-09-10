@@ -1,5 +1,5 @@
 /* zutil.c -- target dependent utility functions for the compression library
- * Copyright (C) 1995-2002 Jean-loup Gailly.
+ * Copyright (C) 1995-2003 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -13,7 +13,7 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 extern void exit OF((int));
 #endif
 
-const char *z_errmsg[10] = {
+const char * const z_errmsg[10] = {
 "need dictionary",     /* Z_NEED_DICT       2  */
 "stream end",          /* Z_STREAM_END      1  */
 "",                    /* Z_OK              0  */
@@ -95,6 +95,7 @@ void zmemzero(dest, len)
 
 #ifdef __TURBOC__
 #if (defined( __BORLANDC__) || !defined(SMALL_MEDIUM)) && !defined(__32BIT__)
+#if !defined(__linux)
 /* Small and medium model in Turbo C are for now limited to near allocation
  * with reduced MAX_WBITS and MAX_MEM_LEVEL
  */
@@ -170,6 +171,7 @@ void  zcfree (voidpf opaque, voidpf ptr)
     Assert(0, "zcfree: ptr not found");
 }
 #endif
+#endif
 #endif /* __TURBOC__ */
 
 
@@ -201,6 +203,7 @@ void  zcfree (voidpf opaque, voidpf ptr)
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
 
 #ifndef STDC
+extern voidp  malloc OF((uInt size));
 extern voidp  calloc OF((uInt items, uInt size));
 extern void   free   OF((voidpf ptr));
 #endif
@@ -211,7 +214,8 @@ voidpf zcalloc (opaque, items, size)
     unsigned size;
 {
     if (opaque) items += size - size; /* make compiler happy */
-    return (voidpf)calloc(items, size);
+    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+                              (voidpf)calloc(items, size);
 }
 
 void  zcfree (opaque, ptr)

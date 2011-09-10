@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2002 Jean-loup Gailly.
+ * Copyright (C) 1995-2003 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.1.4 Copyright 1995-2002 Jean-loup Gailly ";
+   " deflate 1.2.0 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -212,7 +212,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 {
     deflate_state *s;
     int noheader = 0;
-    static const char* my_version = ZLIB_VERSION;
+    static const char my_version[] = ZLIB_VERSION;
 
     ushf *overlay;
     /* We overlay pending_buf and d_buf+l_buf. This works since the average
@@ -273,6 +273,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     if (s->window == Z_NULL || s->prev == Z_NULL || s->head == Z_NULL ||
         s->pending_buf == Z_NULL) {
+        s->status = FINISH_STATE;
         strm->msg = (char*)ERR_MSG(Z_MEM_ERROR);
         deflateEnd (strm);
         return Z_MEM_ERROR;
@@ -299,10 +300,12 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     IPos hash_head = 0;
 
     if (strm == Z_NULL || strm->state == Z_NULL || dictionary == Z_NULL ||
-        strm->state->status != INIT_STATE) return Z_STREAM_ERROR;
+        (!strm->state->noheader && strm->state->status != INIT_STATE))
+        return Z_STREAM_ERROR;
 
     s = strm->state;
-    strm->adler = adler32(strm->adler, dictionary, dictLength);
+    if (!s->noheader)
+        strm->adler = adler32(strm->adler, dictionary, dictLength);
 
     if (length < MIN_MATCH) return Z_OK;
     if (length > MAX_DIST(s)) {
@@ -392,6 +395,47 @@ int ZEXPORT deflateParams(strm, level, strategy)
     }
     s->strategy = strategy;
     return err;
+}
+
+/* =========================================================================
+ * For the default windowBits of 15 and memLevel of 8, this function returns
+ * a close to exact, as well as small, upper bound on the compressed size.
+ * They are coded as constants here for a reason--if the #define's are
+ * changed, then this function needs to be changed as well.  The return
+ * value for 15 and 8 only works for those exact settings.
+ *
+ * For any setting other than those defaults for windowBits and memLevel,
+ * the value returned is a conservative worst case for the maximum expansion
+ * resulting from using fixed blocks instead of stored blocks, which deflate
+ * can emit on compressed data for some combinations of the parameters.
+ *
+ * This function could be more sophisticated to provide closer upper bounds
+ * for every combination of windowBits and memLevel, as well as noheader.
+ * But even the conservative upper bound of about 14% expansion does not
+ * seem onerous for output buffer allocation.
+ */
+uLong ZEXPORT deflateBound(strm, sourceLen)
+    z_streamp strm;
+    uLong sourceLen;
+{
+    deflate_state *s;
+    uLong destLen;
+
+    /* conservative upper bound */
+    destLen = sourceLen +
+              ((sourceLen + 7) >> 3) + ((sourceLen + 63) >> 6) + 11;
+
+    /* if can't get parameters, return conservative bound */
+    if (strm == Z_NULL || strm->state == Z_NULL)
+        return destLen;
+
+    /* if not default parameters, return conservative bound */
+    s = strm->state;
+    if (s->w_bits != 15 || s->hash_bits != 8 + 7)
+        return destLen;
+
+    /* default settings: return tight bound for that case */
+    return compressBound(sourceLen);
 }
 
 /* =========================================================================

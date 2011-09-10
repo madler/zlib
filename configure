@@ -72,8 +72,11 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   SFLAGS=${CFLAGS-"-fPIC -O3"}
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
-  Linux | linux) LDSHARED=${LDSHARED-"gcc -shared -Wl,-soname,libz.so.1"};;
-  *)             LDSHARED=${LDSHARED-"gcc -shared"};;
+  Linux | linux) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
+  HP-UX*)        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
+                 shared_ext='.sl'
+                 SHAREDLIB='libz.sl';;
+  *)             LDSHARED=${LDSHARED-"$cc -shared"};;
   esac
 else
   # find system name and corresponding cc options
@@ -116,6 +119,10 @@ else
 	     SFLAGS=${CFLAGS-"-Kconform_pic -O"}
 	     CFLAGS=${CFLAGS-"-O"}
 	     LDSHARED=${LDSHARED-"cc -G"};;
+  OpenUNIX\ 5) 
+	     SFLAGS=${CFLAGS-"-KPIC -O"}
+	     CFLAGS=${CFLAGS-"-O"}
+	     LDSHARED=${LDSHARED-"cc -G"};;
   # send working options for other systems to support@gzip.org
   *)         SFLAGS=${CFLAGS-"-O"}
 	     CFLAGS=${CFLAGS-"-O"}
@@ -149,13 +156,219 @@ cat > $test.c <<EOF
 int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  CFLAGS="$CFLAGS -DHAVE_UNISTD_H"
+  sed < zconf.in.h "/HAVE_UNISTD_H/s%0%1%" > zconf.h
   echo "Checking for unistd.h... Yes."
 else
+  cp -p zconf.in.h zconf.h
   echo "Checking for unistd.h... No."
 fi
 
 cat > $test.c <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+
+#if (defined(__MSDOS__) || defined(_WINDOWS) || defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__STDC__) || defined(__cplusplus) || defined(__OS2__)) && !defined(STDC)
+#  define STDC
+#endif
+
+int main() 
+{
+#ifndef STDC
+  choke me
+#endif
+
+  return 0;
+}
+EOF
+
+if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  echo "Checking whether to use vsnprintf() or snprintf()... using vsnprintf()"
+
+  cat > $test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest(char *fmt, ...)
+{
+  char buf[20];
+  va_list ap;
+
+  va_start(ap, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, ap);
+  va_end(ap);
+  return 0;
+}
+
+int main()
+{
+  return (mytest("Hello%d\n", 1));
+}
+EOF
+  
+  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    echo "Checking for vsnprintf() in stdio.h... Yes."
+
+    cat >$test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest(char *fmt, ...)
+{
+  int i;
+  char buf[20];
+  va_list ap;
+
+  va_start(ap, fmt);
+  i = vsnprintf(buf, sizeof(buf), fmt, ap);
+  va_end(ap);
+  return 0;
+}
+
+int main()
+{
+  return (mytest("Hello%d\n", 1));
+}
+EOF
+
+    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+      echo "Checking for return value of vsnprintf()... Yes."
+    else
+      CFLAGS="$CFLAGS -DHAS_vsnprintf_void"
+      echo "Checking for return value of vsnprintf()... No."
+      echo "  WARNING: apparently vsnprintf() does not return a value. zlib"
+      echo "  can build but will be open to possible string-format security"
+      echo "  vulnerabilities."
+    fi
+  else
+    CFLAGS="$CFLAGS -DNO_vsnprintf"
+    echo "Checking for vsnprintf() in stdio.h... No."
+    echo "  WARNING: vsnprintf() not found, falling back to vsprintf(). zlib"
+    echo "  can build but will be open to possible buffer-overflow security"
+    echo "  vulnerabilities."
+
+    cat >$test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest(char *fmt, ...)
+{
+  int i;
+  char buf[20];
+  va_list ap;
+
+  va_start(ap, fmt);
+  i = vsprintf(buf, fmt, ap);
+  va_end(ap);
+  return 0;
+}
+
+int main() 
+{
+  return (mytest("Hello%d\n", 1));
+}
+EOF
+
+    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+      echo "Checking for return value of vsprintf()... Yes."
+    else
+      CFLAGS="$CFLAGS -DHAS_vsprintf_void"
+      echo "Checking for return value of vsprintf()... No."
+      echo "  WARNING: apparently vsprintf() does not return a value. zlib"
+      echo "  can build but will be open to possible string-format security"
+      echo "  vulnerabilities."
+    fi
+  fi
+else
+  echo "Checking whether to use vsnprintf() or snprintf()... using snprintf()"
+
+  cat >$test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest() 
+{
+  char buf[20];
+
+  snprintf(buf, sizeof(buf), "%s", "foo");
+  return 0;
+}
+
+int main() 
+{
+  return (mytest());
+}
+EOF
+
+  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    echo "Checking for snprintf() in stdio.h... Yes."
+
+    cat >$test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest(char *fmt, ...)
+{
+  int i;
+  char buf[20];
+
+  i = snprintf(buf, sizeof(buf), "%s", "foo");
+  return 0;
+}
+
+int main() 
+{
+  return (mytest());
+}
+EOF
+
+    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+      echo "Checking for return value of snprintf()... Yes."
+    else
+      CFLAGS="$CFLAGS -DHAS_snprintf_void"
+      echo "Checking for return value of snprintf()... No."
+      echo "  WARNING: apparently snprintf() does not return a value. zlib"
+      echo "  can build but will be open to possible string-format security"
+      echo "  vulnerabilities."
+    fi
+  else
+    CFLAGS="$CFLAGS -DNO_snprintf"
+    echo "Checking for snprintf() in stdio.h... No."
+    echo "  WARNING: snprintf() not found, falling back to sprintf(). zlib"
+    echo "  can build but will be open to possible buffer-overflow security"
+    echo "  vulnerabilities."
+
+    cat >$test.c <<EOF
+#include <stdio.h>
+#include <stdarg.h>
+
+int mytest(char *fmt, ...) 
+{
+  int i;
+  char buf[20];
+
+  i = sprintf(buf, "%s", "foo");
+  return 0;
+}
+
+int main() 
+{
+  return (mytest());
+}
+EOF
+
+    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+      echo "Checking for return value of sprintf()... Yes."
+    else
+      CFLAGS="$CFLAGS -DHAS_sprintf_void"
+      echo "Checking for return value of sprintf()... No."
+      echo "  WARNING: apparently sprintf() does not return a value. zlib"
+      echo "  can build but will be open to possible string-format security"
+      echo "  vulnerabilities."
+    fi
+  fi
+fi
+
+cat >$test.c <<EOF
 #include <errno.h>
 int main() { return 0; }
 EOF

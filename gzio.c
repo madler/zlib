@@ -1,5 +1,5 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-2002 Jean-loup Gailly.
+ * Copyright (C) 1995-2003 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_DEFLATE to avoid the compression code.
@@ -24,10 +24,15 @@ struct internal_state {int dummy;}; /* for buggy compilers */
 #  define Z_PRINTF_BUFSIZE 4096
 #endif
 
+#ifndef STDC
+extern voidp  malloc OF((uInt size));
+extern void   free   OF((voidpf ptr));
+#endif
+
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
 
-static int gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
+static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 
 /* gzip flag byte */
 #define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
@@ -268,19 +273,33 @@ local void check_header(s)
     uInt len;
     int c;
 
-    /* Check the gzip magic header */
-    for (len = 0; len < 2; len++) {
-	c = get_byte(s);
-	if (c != gz_magic[len]) {
-	    if (len != 0) s->stream.avail_in++, s->stream.next_in--;
-	    if (c != EOF) {
-		s->stream.avail_in++, s->stream.next_in--;
-		s->transparent = 1;
-	    }
-	    s->z_err = s->stream.avail_in != 0 ? Z_OK : Z_STREAM_END;
-	    return;
-	}
+    /* Assure two bytes in the buffer so we can peek ahead -- handle case
+       where first byte of header is at the end of the buffer after the last
+       gzip segment */
+    len = s->stream.avail_in;
+    if (len < 2) {
+        if (len) s->inbuf[0] = s->stream.next_in[0];
+        errno = 0;
+        len = fread(s->inbuf + len, 1, Z_BUFSIZE >> len, s->file);
+        if (len == 0 && ferror(s->file)) s->z_err = Z_ERRNO;
+        s->stream.avail_in += len;
+        s->stream.next_in = s->inbuf;
+        if (s->stream.avail_in < 2) {
+            s->transparent = s->stream.avail_in;
+            return;
+        }
     }
+
+    /* Peek ahead to check the gzip magic header */
+    if (s->stream.next_in[0] != gz_magic[0] ||
+	s->stream.next_in[1] != gz_magic[1]) {
+        s->transparent = 1;
+        return;
+    }
+    s->stream.avail_in -= 2;
+    s->stream.next_in += 2;
+
+    /* Check the rest of the gzip header */
     method = get_byte(s);
     flags = get_byte(s);
     if (method != Z_DEFLATED || (flags & RESERVED) != 0) {
@@ -485,7 +504,7 @@ char * ZEXPORT gzgets(file, buf, len)
 */
 int ZEXPORT gzwrite (file, buf, len)
     gzFile file;
-    const voidp buf;
+    voidpc buf;
     unsigned len;
 {
     gz_stream *s = (gz_stream*)file;
@@ -529,14 +548,32 @@ int ZEXPORTVA gzprintf (gzFile file, const char *format, /* args */ ...)
     int len;
 
     va_start(va, format);
-#ifdef HAS_vsnprintf
-    (void)vsnprintf(buf, sizeof(buf), format, va);
-#else
+#ifdef NO_vsnprintf
+#  ifdef HAS_vsprintf_void
     (void)vsprintf(buf, format, va);
-#endif
     va_end(va);
     len = strlen(buf); /* some *sprintf don't return the nb of bytes written */
     if (len <= 0) return 0;
+#  else
+    len = vsprintf(buf, format, va);
+    va_end(va);
+    if (len <= 0 || len >= sizeof(buf))
+        return 0;
+#  endif
+#else
+#  ifdef HAS_vsnprintf_void
+    (void)vsnprintf(buf, sizeof(buf), format, va);
+    va_end(va);
+    len = strlen(buf);
+    if (len <= 0)
+        return 0;
+#  else
+    len = vsnprintf(buf, sizeof(buf), format, va);
+    va_end(va);
+    if (len <= 0 || len >= sizeof(buf))
+        return 0;
+#  endif
+#endif
 
     return gzwrite(file, buf, (unsigned)len);
 }
@@ -552,15 +589,32 @@ int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
     char buf[Z_PRINTF_BUFSIZE];
     int len;
 
-#ifdef HAS_snprintf
-    snprintf(buf, sizeof(buf), format, a1, a2, a3, a4, a5, a6, a7, a8,
-	     a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
-#else
+#ifdef NO_snprintf
+#  ifdef HAS_sprintf_void
     sprintf(buf, format, a1, a2, a3, a4, a5, a6, a7, a8,
 	    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
-#endif
     len = strlen(buf); /* old sprintf doesn't return the nb of bytes written */
     if (len <= 0) return 0;
+#  else
+    len = sprintf(buf, format, a1, a2, a3, a4, a5, a6, a7, a8,
+	        a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
+    if (len <= 0 || len >= sizeof(buf))
+        return 0;
+#  endif
+#else
+#  ifdef HAS_snprintf_void
+    snprintf(buf, sizeof(buf), format, a1, a2, a3, a4, a5, a6, a7, a8,
+	     a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
+    len = strlen(buf);
+    if (len <= 0)
+        return 0;
+#  else
+    len = snprintf(buf, sizeof(buf), format, a1, a2, a3, a4, a5, a6, a7, a8,
+	         a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
+    if (len <= 0 || len >= sizeof(buf))
+        return 0;
+#  endif
+#endif
 
     return gzwrite(file, buf, len);
 }
@@ -681,6 +735,7 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
 	/* At this point, offset is the number of zero bytes to write. */
 	if (s->inbuf == Z_NULL) {
 	    s->inbuf = (Byte*)ALLOC(Z_BUFSIZE); /* for seeking */
+            if (s->inbuf == Z_NULL) return -1L;
 	    zmemzero(s->inbuf, Z_BUFSIZE);
 	}
 	while (offset > 0)  {
@@ -723,6 +778,7 @@ z_off_t ZEXPORT gzseek (file, offset, whence)
 
     if (offset != 0 && s->outbuf == Z_NULL) {
 	s->outbuf = (Byte*)ALLOC(Z_BUFSIZE);
+        if (s->outbuf == Z_NULL) return -1L;
     }
     while (offset > 0)  {
 	int size = Z_BUFSIZE;
@@ -862,12 +918,13 @@ const char*  ZEXPORT gzerror (file, errnum)
     *errnum = s->z_err;
     if (*errnum == Z_OK) return (const char*)"";
 
-    m =  (char*)(*errnum == Z_ERRNO ? zstrerror(errno) : s->stream.msg);
+    m = (char*)(*errnum == Z_ERRNO ? zstrerror(errno) : s->stream.msg);
 
     if (m == NULL || *m == '\0') m = (char*)ERR_MSG(s->z_err);
 
     TRYFREE(s->msg);
     s->msg = (char*)ALLOC(strlen(s->path) + strlen(m) + 3);
+    if (s->msg == Z_NULL) return (const char*)ERR_MSG(Z_MEM_ERROR);
     strcpy(s->msg, s->path);
     strcat(s->msg, ": ");
     strcat(s->msg, m);

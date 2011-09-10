@@ -11,11 +11,17 @@ asm586/ and asm686/    by Brian Raiter <breadbox@muppetlabs.com>
         asm code for Pentium and Pentium Pro
         See http://www.muppetlabs.com/~breadbox/software/assembly.html
 
-delphi/      by Bob Dellaca <bobdl@xtra.co.nz>
+blast/      by Mark Adler <madler@alumni.caltech.edu>
+	Decompressor for output of PKWare Data Compression Library
+
+delphi/     by Bob Dellaca <bobdl@xtra.co.nz>
 	Support for Delphi
 
-delphi2/     by Davide Moretti <dave@rimini.com>
+delphi2/    by Davide Moretti <dave@rimini.com>
         Another support for C++Builder and Delphi
+
+inflate86/  by Chris Anderson <christop@charm.net>
+	Tuned x86 gcc asm code to replace inflate_fast()
 
 minizip/    by Gilles Vollant <info@winimage.com>
 	Mini zip and unzip based on zlib

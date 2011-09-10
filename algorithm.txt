@@ -59,10 +59,10 @@ but saves time since there are both fewer insertions and fewer searches.
 
 2.1 Introduction
 
-The real question is, given a Huffman tree, how to decode fast.  The most
-important realization is that shorter codes are much more common than
-longer codes, so pay attention to decoding the short codes fast, and let
-the long codes take longer to decode.
+The key question is how to represent a Huffman code (or any prefix code) so
+that you can decode fast.  The most important characteristic is that shorter
+codes are much more common than longer codes, so pay attention to decoding the
+short codes fast, and let the long codes take longer to decode.
 
 inflate() sets up a first level table that covers some number of bits of
 input less than the length of longest code.  It gets that many bits from the
@@ -77,20 +77,16 @@ table took no time (and if you had infinite memory), then there would only
 be a first level table to cover all the way to the longest code.  However,
 building the table ends up taking a lot longer for more bits since short
 codes are replicated many times in such a table.  What inflate() does is
-simply to make the number of bits in the first table a variable, and set it
-for the maximum speed.
+simply to make the number of bits in the first table a variable, and  then
+to set that variable for the maximum speed.
 
-inflate() sends new trees relatively often, so it is possibly set for a
-smaller first level table than an application that has only one tree for
-all the data.  For inflate, which has 286 possible codes for the
-literal/length tree, the size of the first table is nine bits.  Also the
-distance trees have 30 possible values, and the size of the first table is
-six bits.  Note that for each of those cases, the table ended up one bit
-longer than the ``average'' code length, i.e. the code length of an
-approximately flat code which would be a little more than eight bits for
-286 symbols and a little less than five bits for 30 symbols.  It would be
-interesting to see if optimizing the first level table for other
-applications gave values within a bit or two of the flat code size.
+For inflate, which has 286 possible codes for the literal/length tree, the size
+of the first table is nine bits.  Also the distance trees have 30 possible
+values, and the size of the first table is six bits.  Note that for each of
+those cases, the table ended up one bit longer than the ``average'' code
+length, i.e. the code length of an approximately flat code which would be a
+little more than eight bits for 286 symbols and a little less than five bits
+for 30 symbols.
 
 
 2.2 More details on the inflate table lookup
@@ -158,7 +154,7 @@ Let's make the first table three bits long (eight entries):
 110: -> table X (gobble 3 bits)
 111: -> table Y (gobble 3 bits)
 
-Each entry is what the bits decode to and how many bits that is, i.e. how  
+Each entry is what the bits decode as and how many bits that is, i.e. how  
 many bits to gobble.  Or the entry points to another table, with the number of
 bits to gobble implicit in the size of the table.
 

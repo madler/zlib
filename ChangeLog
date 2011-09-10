@@ -1,5 +1,57 @@
 
 		ChangeLog file for zlib
+Changes in 1.2.0 (9 March 2003)
+- New and improved inflate code
+    - About 20% faster
+    - Does not allocate 32K window unless and until needed
+    - Automatically detects and decompresses gzip streams
+    - Raw inflate no longer needs an extra dummy byte at end
+    - Added inflateBack functions using a callback interface--even faster
+      than inflate, useful for file utilities (gzip, zip)
+    - Added inflateCopy() function to record state for random access on
+      externally generated deflate streams (e.g. in gzip files)
+    - More readable code (I hope)
+- New and improved crc32()
+    - About 50% faster, thanks to suggestions from Rodney Brown
+- Add deflateBound() and compressBound() functions
+- Fix memory leak in deflateInit2()
+- Permit setting dictionary for raw deflate (for parallel deflate)
+- Fix const declaration for gzwrite()
+- Check for some malloc() failures in gzio.c
+- Fix bug in gzopen() on single-byte file 0x1f
+- Fix bug in gzread() on concatenated file with 0x1f at end of buffer
+  and next buffer doesn't start with 0x8b
+- Fix uncompress() to return Z_DATA_ERROR on truncated input
+- Free memory at end of example.c
+- Remove MAX #define in trees.c (conflicted with some libraries)
+- Fix static const's in deflate.c, gzio.c, and zutil.[ch]
+- Declare malloc() and free() in gzio.c if STDC not defined
+- Use malloc() instead of calloc() in zutil.c if int big enough
+- Define STDC for AIX
+- Add aix/ with approach for compiling shared library on AIX
+- Add HP-UX support for shared libraries in configure
+- Add OpenUNIX support for shared libraries in configure
+- Use $cc instead of gcc to build shared library
+- Make prefix directory if needed when installing
+- Correct Macintosh avoidance of typedef Byte in zconf.h
+- Correct Turbo C memory allocation when under Linux
+- Use libz.a instead of -lz in Makefile (assure use of compiled library)
+- Update configure to check for snprintf or vsnprintf functions and their
+  return value, warn during make if using an insecure function
+- Fix configure problem with compile-time knowledge of HAVE_UNISTD_H that
+  is lost when library is used--resolution is to build new zconf.h
+- Documentation improvements (in zlib.h):
+    - Document raw deflate and inflate
+    - Update RFCs URL
+    - Point out that zlib and gzip formats are different
+    - Note that Z_BUF_ERROR is not fatal
+    - Document string limit for gzprintf() and possible buffer overflow
+    - Note requirement on avail_out when flushing
+    - Note permitted values of flush parameter of inflate()
+- Add some FAQs (and even answers) to the FAQ
+- Add contrib/inflate86/ for x86 faster inflate
+- Add contrib/blast/ for PKWare Data Compression Library decompression
+- Add contrib/puff/ simple inflate for deflate format description
 
 Changes in 1.1.4 (11 March 2002)
 - ZFREE was repeated on same allocation on some error conditions.
@@ -10,7 +62,7 @@ Changes in 1.1.4 (11 March 2002)
   less than 32K.
 - force windowBits > 8 to avoid a bug in the encoder for a window size
   of 256 bytes. (A complete fix will be available in 1.1.5).
-	
+
 Changes in 1.1.3 (9 July 1998)
 - fix "an inflate input buffer bug that shows up on rare but persistent
   occasions" (Mark)

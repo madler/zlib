@@ -1,5 +1,5 @@
 /* adler32.c -- compute the Adler-32 checksum of a data stream
- * Copyright (C) 1995-2002 Mark Adler
+ * Copyright (C) 1995-2003 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -30,7 +30,7 @@ uLong ZEXPORT adler32(adler, buf, len)
     if (buf == Z_NULL) return 1L;
 
     while (len > 0) {
-        k = len < NMAX ? len : NMAX;
+        k = len < NMAX ? (int)len : NMAX;
         len -= k;
         while (k >= 16) {
             DO16(buf);

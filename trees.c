@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-2002 Jean-loup Gailly
+ * Copyright (C) 1995-2003 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -230,7 +230,6 @@ local void send_bits(s, value, length)
 #endif /* DEBUG */
 
 
-#define MAX(a,b) (a >= b ? a : b)
 /* the arguments must not have side effects */
 
 /* ===========================================================================
@@ -675,7 +674,8 @@ local void build_tree(s, desc)
 
         /* Create a new node father of n and m */
         tree[node].Freq = tree[n].Freq + tree[m].Freq;
-        s->depth[node] = (uch) (MAX(s->depth[n], s->depth[m]) + 1);
+        s->depth[node] = (uch)((s->depth[n] >= s->depth[m] ?
+                                s->depth[n] : s->depth[m]) + 1);
         tree[n].Dad = tree[m].Dad = (ush)node;
 #ifdef DUMP_BL_TREE
         if (tree == s->bl_tree) {
@@ -950,7 +950,7 @@ void _tr_flush_block(s, buf, stored_len, eof)
 	 */
 	max_blindex = build_bl_tree(s);
 
-	/* Determine the best encoding. Compute first the block length in bytes*/
+        /* Determine the best encoding. Compute the block lengths in bytes. */
 	opt_lenb = (s->opt_len+3+7)>>3;
 	static_lenb = (s->static_len+3+7)>>3;
 
