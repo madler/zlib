@@ -116,13 +116,13 @@ zlibrc.o: win32/zlib1.rc
 .PHONY: install uninstall clean
 
 install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
+	-@mkdir -p $(INCLUDE_PATH)
+	-@mkdir -p $(LIBRARY_PATH)
 	-if [ "$(SHARED_MODE)" = "1" ]; then \
 		mkdir -p $(BINARY_PATH); \
 		$(INSTALL) $(SHAREDLIB) $(BINARY_PATH); \
 		$(INSTALL) $(IMPLIB) $(LIBRARY_PATH); \
 	fi
-	-@mkdir -p $(INCLUDE_PATH)
-	-@mkdir -p $(LIBRARY_PATH)
 	-$(INSTALL) zlib.h $(INCLUDE_PATH)
 	-$(INSTALL) zconf.h $(INCLUDE_PATH)
 	-$(INSTALL) $(STATICLIB) $(LIBRARY_PATH)

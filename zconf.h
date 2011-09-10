@@ -315,10 +315,6 @@
 #  endif
 #endif
 
-#ifndef NO_VIZ
-#  define ZEXTERN __attribute__((visibility ("default"))) extern
-#endif
-
 #ifndef ZEXTERN
 #  define ZEXTERN extern
 #endif

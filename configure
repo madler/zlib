@@ -14,7 +14,7 @@
 # an error.
 
 if [ -n "${CHOST}" ]; then
-    uname="$(echo "${CHOST}" | sed -e 's/.*-.*-\(.*\)-.*$/\1/' -e 's/.*-\(.*\)-.*/\1/' -e 's/.*-\(.*\)$/\1/')"
+    uname="$(echo "${CHOST}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/')"
     CROSS_PREFIX="${CHOST}-"
 fi
 
@@ -49,6 +49,7 @@ LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
+sharedlibdir=${sharedlibdir-'${exec_prefix}/lib'}
 includedir=${includedir-'${prefix}/include'}
 mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
@@ -147,6 +148,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
 else
   # find system name and corresponding cc options
   CC=${CC-cc}
+  gcc=0
   if test -z "$uname"; then
     uname=`(uname -sr || echo unknown) 2>/dev/null`
   fi
@@ -504,21 +506,26 @@ EOF
   fi
 fi
 
-cat > $test.c <<EOF
-int foo __attribute__ ((visibility ("hidden")));
+if test "$gcc" -eq 1; then
+  cat > $test.c <<EOF
+#if ((__GNUC__-0) * 10 + __GNUC_MINOR__-0 >= 33)
+#  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
+#else
+#  define ZLIB_INTERNAL
+#endif
+int ZLIB_INTERNAL foo;
 int main()
 {
   return 0;
 }
 EOF
-if test "`($CC -c -fvisibility=hidden $CFLAGS $test.c) 2>&1`" = ""; then
-  CFLAGS="$CFLAGS -fvisibility=hidden"
-  SFLAGS="$SFLAGS -fvisibility=hidden"
-  echo "Checking for attribute(visibility) support... Yes."
-else
-  CFLAGS="$CFLAGS -DNO_VIZ"
-  SFLAGS="$SFLAGS -DNO_VIZ"
-  echo "Checking for attribute(visibility) support... No."
+  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    echo "Checking for attribute(visibility) support... Yes."
+  else
+    CFLAGS="$CFLAGS -DNO_VIZ"
+    SFLAGS="$SFLAGS -DNO_VIZ"
+    echo "Checking for attribute(visibility) support... No."
+  fi
 fi
 
 CPP=${CPP-"$CC -E"}
