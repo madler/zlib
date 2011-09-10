@@ -717,9 +717,9 @@ extern int ZEXPORT zipOpenNewFileInZip3 (file, filename, zipfi,
     if (comment==NULL)
         size_comment = 0;
     else
-        size_comment = strlen(comment);
+        size_comment = (uInt)strlen(comment);
 
-    size_filename = strlen(filename);
+    size_filename = (uInt)strlen(filename);
 
     if (zipfi == NULL)
         zi->ci.dosDate = 0;
@@ -1126,7 +1126,7 @@ extern int ZEXPORT zipClose (file, global_comment)
     if (global_comment==NULL)
         size_global_comment = 0;
     else
-        size_global_comment = strlen(global_comment);
+        size_global_comment = (uInt)strlen(global_comment);
 
 
     centraldir_pos_inzip = ZTELL(zi->z_filefunc,zi->filestream);

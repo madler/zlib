@@ -1,6 +1,15 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.2 (3 October 2004)
+- Update zlib.h comments on gzip in-memory processing
+- Set adler to 1 in inflateReset() to support Java test suite [Walles]
+- Add contrib/dotzlib [Ravn]
+- Update win32/DLL_FAQ.txt [Truta]
+- Update contrib/minizip [Vollant]
+- Move contrib/visual-basic.txt to old/ [Truta]
+- Fix assembler builds in projects/visualc6/ [Truta]
+
 Changes in 1.2.1.2 (9 September 2004)
 - Update INDEX file
 - Fix trees.c to update strm->data_type (no one ever noticed!)

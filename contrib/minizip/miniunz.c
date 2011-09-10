@@ -317,7 +317,7 @@ int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
 
                     printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
                     ret = scanf("%1s",answer);
-                    if (ret != 1) 
+                    if (ret != 1)
                     {
                        exit(EXIT_FAILURE);
                     }
@@ -567,7 +567,7 @@ int main(argc,argv)
         return do_list(uf);
     else if (opt_do_extract==1)
     {
-        if (opt_extractdir && chdir(dirname)) 
+        if (opt_extractdir && chdir(dirname))
         {
           printf("Error changing into %s, aborting\n", dirname);
           exit(-1);

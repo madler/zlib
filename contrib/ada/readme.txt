@@ -1,12 +1,12 @@
-			ZLib for Ada thick binding (ZLib.Ada)
-			Release 1.3
+                        ZLib for Ada thick binding (ZLib.Ada)
+                        Release 1.3
 
 ZLib.Ada is a thick binding interface to the popular ZLib data
 compression library, available at http://www.gzip.org/zlib/.
 It provides Ada-style access to the ZLib C library.
 
 
-	Here are the main changes since ZLib.Ada 1.2:
+        Here are the main changes since ZLib.Ada 1.2:
 
 - Attension: ZLib.Read generic routine have a initialization requirement
   for Read_Last parameter now. It is a bit incompartible with previous version,
@@ -28,7 +28,7 @@ It provides Ada-style access to the ZLib C library.
 - Add pragma Assertion that Ada.Streams.Stream_Element size is 8 bit.
 
 
-	How to build ZLib.Ada under GNAT
+        How to build ZLib.Ada under GNAT
 
 You should have the ZLib library already build on your computer, before
 building ZLib.Ada. Make the directory of ZLib.Ada sources current and
@@ -41,7 +41,7 @@ Or use the GNAT project file build for GNAT 3.15 or later:
   gnatmake -Pzlib.gpr -L<directory where libz.a is>
 
 
-	How to build ZLib.Ada under Aonix ObjectAda for Win32 7.2.2
+        How to build ZLib.Ada under Aonix ObjectAda for Win32 7.2.2
 
 1. Make a project with all *.ads and *.adb files from the distribution.
 2. Build the libz.a library from the ZLib C sources.
@@ -51,7 +51,7 @@ Or use the GNAT project file build for GNAT 3.15 or later:
 6. Build the executable using test.adb as a main procedure.
 
 
-	How to use ZLib.Ada
+        How to use ZLib.Ada
 
 The source files test.adb and read.adb are small demo programs that show
 the main functionality of ZLib.Ada.

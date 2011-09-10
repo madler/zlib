@@ -1,5 +1,5 @@
 /* unzip.c -- IO for uncompress .zip files using zlib
-   Version 1.01c, August 23th, 2004
+   Version 1.01d, September 22th, 2004
 
    Copyright (C) 1998-2004 Gilles Vollant
 
@@ -1250,10 +1250,12 @@ extern int ZEXPORT unzReadCurrentFile  (file, buf, len)
         pfile_in_zip_read_info->stream.avail_out =
             (uInt)pfile_in_zip_read_info->rest_read_uncompressed;
 
-    if ((len>pfile_in_zip_read_info->rest_read_compressed) &&
-        (pfile_in_zip_read_info->raw))
+    if ((len>pfile_in_zip_read_info->rest_read_compressed+
+           pfile_in_zip_read_info->stream.avail_in) &&
+         (pfile_in_zip_read_info->raw))
         pfile_in_zip_read_info->stream.avail_out =
-            (uInt)pfile_in_zip_read_info->rest_read_compressed; 
+            (uInt)pfile_in_zip_read_info->rest_read_compressed+
+            pfile_in_zip_read_info->stream.avail_in;
 
     while (pfile_in_zip_read_info->stream.avail_out>0)
     {

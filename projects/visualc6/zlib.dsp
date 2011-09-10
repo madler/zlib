@@ -418,7 +418,73 @@ SOURCE=..\..\win32\zlib1.rc
 # Begin Source File
 
 SOURCE=..\..\contrib\masmx86\gvmat32.asm
+
+!IF  "$(CFG)" == "zlib - Win32 DLL Release"
+
 # PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 DLL Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Release"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_DLL_ASM_Release
+InputPath=..\..\contrib\masmx86\gvmat32.asm
+InputName=gvmat32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Debug"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_DLL_ASM_Debug
+InputPath=..\..\contrib\masmx86\gvmat32.asm
+InputName=gvmat32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 LIB Release"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 LIB Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Release"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_LIB_ASM_Release
+InputPath=..\..\contrib\masmx86\gvmat32.asm
+InputName=gvmat32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Debug"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_LIB_ASM_Debug
+InputPath=..\..\contrib\masmx86\gvmat32.asm
+InputName=gvmat32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -466,11 +532,6 @@ SOURCE=..\..\contrib\masmx86\gvmat32c.c
 # Begin Source File
 
 SOURCE=..\..\contrib\masmx86\inffas32.asm
-# PROP Exclude_From_Build 1
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\contrib\masmx86\gvmat32.obj
 
 !IF  "$(CFG)" == "zlib - Win32 DLL Release"
 
@@ -482,7 +543,27 @@ SOURCE=..\..\contrib\masmx86\gvmat32.obj
 
 !ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Release"
 
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_DLL_ASM_Release
+InputPath=..\..\contrib\masmx86\inffas32.asm
+InputName=inffas32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
+
 !ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Debug"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_DLL_ASM_Debug
+InputPath=..\..\contrib\masmx86\inffas32.asm
+InputName=inffas32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "zlib - Win32 LIB Release"
 
@@ -494,38 +575,27 @@ SOURCE=..\..\contrib\masmx86\gvmat32.obj
 
 !ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Release"
 
-!ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Debug"
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_LIB_ASM_Release
+InputPath=..\..\contrib\masmx86\inffas32.asm
+InputName=inffas32
 
-!ENDIF 
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
 
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\contrib\masmx86\inffas32.obj
-
-!IF  "$(CFG)" == "zlib - Win32 DLL Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 DLL Debug"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Release"
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 DLL ASM Debug"
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 LIB Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 LIB Debug"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Release"
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "zlib - Win32 LIB ASM Debug"
+
+# Begin Custom Build - Assembling...
+IntDir=.\Win32_LIB_ASM_Debug
+InputPath=..\..\contrib\masmx86\inffas32.asm
+InputName=inffas32
+
+"$(IntDir)\$(InputName).obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	ml /nologo /c /Cx /coff /Zi /Fo"$(IntDir)\$(InputName).obj" "$(InputPath)"
+
+# End Custom Build
 
 !ENDIF 
 

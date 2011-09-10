@@ -175,7 +175,7 @@ in the zlib distribution, or at the following location:
     zlib in other programming languages.  Some of them, like Ada
     (GNAT) and Fortran (GNU G77), have C bindings implemented
     initially on Unix, and relying on the C calling convention.
-    On the other hand, the pre- .NET versions of Microsoft Visual
+    On the other hand, the pre- .Net versions of Microsoft Visual
     Basic require STDCALL, while Borland Delphi prefers, although
     it does not require, FASTCALL.
 
@@ -203,13 +203,11 @@ in the zlib distribution, or at the following location:
     zlib distribution.
 
 
- 8. I need a DLL for my Microsoft .NET project.  What can I do?
+ 8. I need to use zlib in my Microsoft .Net project.  What can I
+    do?
 
-  - We did not implement a COM wrapper around zlib, so you will
-    have to develop it yourself, or to get it from somewhere else.
-
-    If you would be so generous as to contribute such a wrapper,
-    we would like to include it in a future zlib version.
+  - Henrik Ravn has contributed a .Net wrapper around zlib.  Look
+    into contrib/dotzlib/, inside the zlib distribution.
 
 
  9. If my application uses ZLIB1.DLL, should I link it to

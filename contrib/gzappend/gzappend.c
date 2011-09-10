@@ -48,10 +48,10 @@
    unfriendly behavior that if gzappend fails, the gzip file is corrupted.
 
    This program was written to illustrate the use of the new Z_BLOCK option of
-   zlib 1.2.1's inflate() function.  This option returns from inflate() at each
+   zlib 1.2.x's inflate() function.  This option returns from inflate() at each
    block boundary to facilitate locating and modifying the last block bit at
    the start of the final deflate block.  Also whether using Z_BLOCK or not,
-   another required feature of zlib 1.2.1 is that inflate() now provides the
+   another required feature of zlib 1.2.x is that inflate() now provides the
    number of unusued bits in the last input byte used.  gzappend will not work
    with versions of zlib earlier than 1.2.1.
 

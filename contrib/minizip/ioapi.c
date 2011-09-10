@@ -94,7 +94,7 @@ uLong ZCALLBACK fread_file_func (opaque, stream, buf, size)
    uLong size;
 {
     uLong ret;
-    ret = fread(buf, 1, (size_t)size, (FILE *)stream);
+    ret = (uLong)fread(buf, 1, (size_t)size, (FILE *)stream);
     return ret;
 }
 
@@ -106,7 +106,7 @@ uLong ZCALLBACK fwrite_file_func (opaque, stream, buf, size)
    uLong size;
 {
     uLong ret;
-    ret = fwrite(buf, 1, (size_t)size, (FILE *)stream);
+    ret = (uLong)fwrite(buf, 1, (size_t)size, (FILE *)stream);
     return ret;
 }
 

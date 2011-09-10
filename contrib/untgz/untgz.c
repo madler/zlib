@@ -97,7 +97,7 @@ struct attr_item
   struct attr_item  *next;
   char              *fname;
   int                mode;
-  time_t             time; 
+  time_t             time;
 };
 
 enum { TGZ_EXTRACT, TGZ_LIST, TGZ_INVALID };
