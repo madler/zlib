@@ -1,7 +1,7 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+
 #include "zlib.h"
 
 
@@ -17,23 +17,25 @@ void MyDoMinus64(LARGE_INTEGER *R,LARGE_INTEGER A,LARGE_INTEGER B)
     }
 }
 
-#ifdef _AMD64_
-unsigned _int64 myrdtsc();
+#ifdef _M_X64
+// see http://msdn2.microsoft.com/library/twchhe95(en-us,vs.80).aspx for __rdtsc
+unsigned __int64 __rdtsc(void);
 void BeginCountRdtsc(LARGE_INTEGER * pbeginTime64)
 {
- //   printf("rdtsc = %I64x\n",myrdtsc());
-   pbeginTime64->QuadPart=myrdtsc();
+ //   printf("rdtsc = %I64x\n",__rdtsc());
+   pbeginTime64->QuadPart=__rdtsc();
 }
 
 LARGE_INTEGER GetResRdtsc(LARGE_INTEGER beginTime64,BOOL fComputeTimeQueryPerf)
 {
     LARGE_INTEGER LIres;
-    unsigned _int64 res=myrdtsc()-((unsigned _int64)(beginTime64.QuadPart));
+    unsigned _int64 res=__rdtsc()-((unsigned _int64)(beginTime64.QuadPart));
     LIres.QuadPart=res;
-   // printf("rdtsc = %I64x\n",myrdtsc());
+   // printf("rdtsc = %I64x\n",__rdtsc());
     return LIres;
 }
 #else
+#ifdef _M_IX86
 void myGetRDTSC32(LARGE_INTEGER * pbeginTime64)
 {
     DWORD dwEdx,dwEax;
@@ -61,8 +63,23 @@ LARGE_INTEGER GetResRdtsc(LARGE_INTEGER beginTime64,BOOL fComputeTimeQueryPerf)
     MyDoMinus64(&LIres,endTime64,beginTime64);
     return LIres;
 }
-#endif
+#else
+void myGetRDTSC32(LARGE_INTEGER * pbeginTime64)
+{
+}
 
+void BeginCountRdtsc(LARGE_INTEGER * pbeginTime64)
+{
+}
+
+LARGE_INTEGER GetResRdtsc(LARGE_INTEGER beginTime64,BOOL fComputeTimeQueryPerf)
+{
+    LARGE_INTEGER lr;
+    lr.QuadPart=0;
+    return lr;
+}
+#endif
+#endif
 
 void BeginCountPerfCounter(LARGE_INTEGER * pbeginTime64,BOOL fComputeTimeQueryPerf)
 {

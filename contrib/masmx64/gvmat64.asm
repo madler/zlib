@@ -4,24 +4,33 @@
 
 ; gvmat64.asm -- Asm portion of the optimized longest_match for 32 bits x86
 ; Copyright (C) 1995-2005 Jean-loup Gailly, Brian Raiter and Gilles Vollant.
-; File written by Gilles Vollant, by modifiying the longest_match
-;  from Jean-loup Gailly in deflate.c
-;  and modifying asm686 with masm, optimised assembly code from Brian Raiter,
-;      written 1998
+;
+; File written by Gilles Vollant, by converting to assembly the longest_match
+;  from Jean-loup Gailly in deflate.c of zLib and infoZip zip.
+;
+;  and by taking inspiration on asm686 with masm, optimised assembly code
+;        from Brian Raiter, written 1998
+;
 ;         http://www.zlib.net
 ;         http://www.winimage.com/zLibDll
 ;         http://www.muppetlabs.com/~breadbox/software/assembly.html
 ;
-; to compile this file, I use option
-;   ml64.exe /Flgvmat64 /c /Zi gvmat64.asm
-;   with Microsoft Macro Assembler (x64) for AMD64
+; to compile this file for infozip Zip, I use option:
+;   ml64.exe /Flgvmat64 /c /Zi /DINFOZIP gvmat64.asm
 ;
-;   ml64.exe is given with Visual Studio 2005, Windows 2003 server DDK
+; to compile this file for zLib, I use option:
+;   ml64.exe /Flgvmat64 /c /Zi gvmat64.asm
+; Be carrefull to adapt zlib1222add below to your version of zLib
+;   (if you use a version of zLib before 1.0.4 or after 1.2.2.2, change
+;    value of zlib1222add later)
+;
+; This file compile with Microsoft Macro Assembler (x64) for AMD64
+;
+;   ml64.exe is given with Visual Studio 2005 and Windows 2003 server DDK
 ;
 ;   (you can get Windows 2003 server DDK with ml64 and cl for AMD64 from
 ;      http://www.microsoft.com/whdc/devtools/ddk/default.mspx for low price)
 ;
-; Be carrefull to adapt zlib1222add below to your version of zLib
 
 
 ;uInt longest_match(s, cur_match)
@@ -47,7 +56,10 @@ longest_match PROC
 ;scanalign       equ  rsp + xx - LocalVarsSize   ; dword-misalignment of string r13
 ;bestlen         equ  rsp + xx - LocalVarsSize   ; size of best match so far -> r11d
 ;scan            equ  rsp + xx - LocalVarsSize   ; ptr to string wanting match -> r9
- nicematch       equ  rsp + 16 - LocalVarsSize   ; a good enough match size -> r14
+IFDEF INFOZIP
+ELSE
+ nicematch       equ  (rsp + 16 - LocalVarsSize) ; a good enough match size
+ENDIF
 
 save_rdi        equ  rsp + 24 - LocalVarsSize
 save_rsi        equ  rsp + 32 - LocalVarsSize
@@ -84,8 +96,34 @@ save_r13        equ  rsp + 64 - LocalVarsSize
 ;  (if you compile with zlib between 1.0.5 and 1.2.2.1, use "zlib1222add equ 0").
 ;  if you compile with zlib 1.2.2.2 or later , use "zlib1222add equ 8").
 
-zlib1222add     equ 8
 
+IFDEF INFOZIP
+
+_DATA   SEGMENT
+COMM    window_size:DWORD
+; WMask ; 7fff
+COMM    window:BYTE:010040H
+COMM    prev:WORD:08000H
+; MatchLen : unused
+; PrevMatch : unused
+COMM    strstart:DWORD
+COMM    match_start:DWORD
+; Lookahead : ignore
+COMM    prev_length:DWORD ; PrevLen
+COMM    max_chain_length:DWORD
+COMM    good_match:DWORD
+COMM    nice_match:DWORD
+prev_ad equ OFFSET prev
+window_ad equ OFFSET window
+nicematch equ nice_match
+_DATA ENDS
+WMask equ 07fffh
+
+ELSE
+
+  IFNDEF zlib1222add
+    zlib1222add equ 8
+  ENDIF
 dsWSize         equ 56+zlib1222add+(zlib1222add/2)
 dsWMask         equ 64+zlib1222add+(zlib1222add/2)
 dsWindow        equ 72+zlib1222add
@@ -100,6 +138,18 @@ dsMaxChainLen   equ 156+zlib1222add
 dsGoodMatch     equ 172+zlib1222add
 dsNiceMatch     equ 176+zlib1222add
 
+window_size     equ [ rcx + dsWSize]
+WMask           equ [ rcx + dsWMask]
+window_ad       equ [ rcx + dsWindow]
+prev_ad         equ [ rcx + dsPrev]
+strstart        equ [ rcx + dsStrStart]
+match_start     equ [ rcx + dsMatchStart]
+Lookahead       equ [ rcx + dsLookahead] ; 0ffffffffh on infozip
+prev_length     equ [ rcx + dsPrevLen]
+max_chain_length equ [ rcx + dsMaxChainLen]
+good_match      equ [ rcx + dsGoodMatch]
+nice_match      equ [ rcx + dsNiceMatch]
+ENDIF
 
 ; parameter 1 in r8(deflate state s), param 2 in rdx (cur match)
 
@@ -107,7 +157,7 @@ dsNiceMatch     equ 176+zlib1222add
 ; http://msdn.microsoft.com/library/en-us/kmarch/hh/kmarch/64bitAMD_8e951dd2-ee77-4728-8702-55ce4b5dd24a.xml.asp
 ;
 ; All registers must be preserved across the call, except for
-;   rax, rcx, rdx, r8, r-9, r10, and r11, which are scratch.
+;   rax, rcx, rdx, r8, r9, r10, and r11, which are scratch.
 
 
 
@@ -124,12 +174,15 @@ dsNiceMatch     equ 176+zlib1222add
 
 ; this clear high 32 bits of r8, which can be garbage in both r8 and rdx
 
-
         mov [save_rdi],rdi
         mov [save_rsi],rsi
         mov [save_rbx],rbx
         mov [save_rbp],rbp
+IFDEF INFOZIP
+        mov r8d,ecx
+ELSE
         mov r8d,edx
+ENDIF
         mov [save_r12],r12
         mov [save_r13],r13
 ;        mov [save_r14],r14
@@ -142,10 +195,10 @@ dsNiceMatch     equ 176+zlib1222add
 ;;;     chain_length >>= 2;
 ;;; }
 
-        mov edi, [rcx + dsPrevLen]
-        mov esi, [rcx + dsGoodMatch]
-        mov eax, [rcx + dsWMask]
-        mov ebx, [rcx + dsMaxChainLen]
+        mov edi, prev_length
+        mov esi, good_match
+        mov eax, WMask
+        mov ebx, max_chain_length
         cmp edi, esi
         jl  LastMatchGood
         shr ebx, 2
@@ -159,21 +212,25 @@ LastMatchGood:
         dec ebx
         shl ebx, 16
         or  ebx, eax
-        mov [chainlenwmask], ebx
 
+;;; on zlib only
 ;;; if ((uInt)nice_match > s->lookahead) nice_match = s->lookahead;
 
-        mov eax, [rcx + dsNiceMatch]
-        mov r10d, [rcx + dsLookahead]
+IFDEF INFOZIP
+        mov [chainlenwmask], ebx
+; on infozip nice_match = [nice_match]
+ELSE
+        mov eax, nice_match
+        mov [chainlenwmask], ebx
+        mov r10d, Lookahead
         cmp r10d, eax
         cmovnl r10d, eax
         mov [nicematch],r10d
-LookaheadLess:
+ENDIF
 
 ;;; register Bytef *scan = s->window + s->strstart;
-
-        mov r10, [rcx + dsWindow]
-        mov ebp, [rcx + dsStrStart]
+        mov r10, window_ad
+        mov ebp, strstart
         lea r13, [r10 + rbp]
 
 ;;; Determine how many bytes the scan ptr is off from being
@@ -185,13 +242,16 @@ LookaheadLess:
 
 ;;; IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
 ;;;     s->strstart - (IPos)MAX_DIST(s) : NIL;
-
-        mov eax, [rcx + dsWSize]
+IFDEF INFOZIP
+        mov eax,07efah ; MAX_DIST = (WSIZE-MIN_LOOKAHEAD) (0x8000-(3+8+1))
+ELSE
+        mov eax, window_size
         sub eax, MIN_LOOKAHEAD
+ENDIF
         xor edi,edi
         sub ebp, eax
 
-        mov r11d, [rcx + dsPrevLen]
+        mov r11d, prev_length
 
         cmovng ebp,edi
 
@@ -207,8 +267,9 @@ LookaheadLess:
 ;;; Posf *prev = s->prev;
 
         movzx r12d,word ptr [r9]
-        movzx   ebx, word ptr [r9 + r11 - 1]
-        mov rdi, [rcx + dsPrev]
+        movzx ebx, word ptr [r9 + r11 - 1]
+
+        mov rdi, prev_ad
 
 ;;; Jump into the main loop.
 
@@ -312,37 +373,21 @@ LookupLoopIsZero:
 
         prefetcht1 [rsi+rdx]
         prefetcht1 [rdi+rdx]
+
+
 ;;; Test the strings for equality, 8 bytes at a time. At the end,
-;;; adjust edx so that it is offset to the exact byte that mismatched.
+;;; adjust rdx so that it is offset to the exact byte that mismatched.
 ;;;
 ;;; We already know at this point that the first three bytes of the
 ;;; strings match each other, and they can be safely passed over before
 ;;; starting the compare loop. So what this code does is skip over 0-3
 ;;; bytes, as much as necessary in order to dword-align the edi
-;;; pointer. (esi will still be misaligned three times out of four.)
+;;; pointer. (rsi will still be misaligned three times out of four.)
 ;;;
 ;;; It should be confessed that this loop usually does not represent
 ;;; much of the total running time. Replacing it with a more
 ;;; straightforward "rep cmpsb" would not drastically degrade
 ;;; performance.
-
-;LoopCmps:
-;        mov eax, [rsi + rdx]
-;        xor eax, [rdi + rdx]
-;        jnz LeaveLoopCmps
-;        mov eax, [rsi + rdx + 4]
-;        xor eax, [rdi + rdx + 4]
-;        jnz LeaveLoopCmps4
-;        add rdx, 8
-;        jnz LoopCmps
-;        jmp LenMaximum
-;LeaveLoopCmps4: add rdx, 4
-;LeaveLoopCmps:  test    eax, 0000FFFFh
-;        jnz LenLower
-;        add rdx,  2
-;        shr eax, 16
-;LenLower:   sub al, 1
-;        adc rdx, 0
 
 
 LoopCmps:
@@ -400,7 +445,7 @@ LenLower:   sub al, 1
 
         lea rsi,[r10+r11]
 
-        mov rdi, [rcx + dsPrev]
+        mov rdi, prev_ad
         mov edx, [chainlenwmask]
         jmp LookupLoop
 
@@ -411,14 +456,14 @@ LenLower:   sub al, 1
 
 LongerMatch:
         mov r11d, eax
-        mov [rcx + dsMatchStart], r8d
+        mov match_start, r8d
         cmp eax, [nicematch]
         jge LeaveNow
 
         lea rsi,[r10+rax]
 
         movzx   ebx, word ptr [r9 + rax - 1]
-        mov rdi, [rcx + dsPrev]
+        mov rdi, prev_ad
         mov edx, [chainlenwmask]
         jmp LookupLoop
 
@@ -426,16 +471,19 @@ LongerMatch:
 
 LenMaximum:
         mov r11d,MAX_MATCH
-        mov [rcx + dsMatchStart], r8d
+        mov match_start, r8d
 
 ;;; if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
 ;;; return s->lookahead;
 
 LeaveNow:
-        mov eax, [rcx + dsLookahead]
+IFDEF INFOZIP
+        mov eax,r11d
+ELSE
+        mov eax, Lookahead
         cmp r11d, eax
         cmovng eax, r11d
-
+ENDIF
 
 ;;; Restore the stack and return from whence we came.
 
@@ -452,7 +500,8 @@ LeaveNow:
 
         ret 0
 ; please don't remove this string !
-; Your can freely use gvmat32 in any free or commercial app if you don't remove the string in the binary!
+; Your can freely use gvmat64 in any free or commercial app
+; but it is far better don't remove the string in the binary!
     db     0dh,0ah,"asm686 with masm, optimised assembly code from Brian Raiter, written 1998, converted to amd 64 by Gilles Vollant 2005",0dh,0ah,0
 longest_match   ENDP
 

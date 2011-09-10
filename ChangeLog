@@ -1,6 +1,11 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3 (18 July 2005)
+- Apply security vulnerability fixes to contrib/infback9 as well
+- Clean up some text files (carriage returns, trailing space)
+- Update testzlib, vstudio, masmx64, and masmx86 in contrib [Vollant]
+
 Changes in 1.2.2.4 (11 July 2005)
 - Add inflatePrime() function for starting inflation at bit boundary
 - Avoid some Visual C warnings in deflate.c

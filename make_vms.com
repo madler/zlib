@@ -1,5 +1,5 @@
-$! make libz under VMS written by 
-$! Martin P.J. Zinser 
+$! make libz under VMS written by
+$! Martin P.J. Zinser
 $! <zinser@zinser.no-ip.info or zinser@sysdev.deutsche-boerse.com>
 $!
 $ on error then goto err_exit
@@ -46,8 +46,8 @@ $ then
 $   ccopt = "/prefix=all" + ccopt
 $   if f$trnlnm("SYS") .eqs. ""
 $   then
-$     if axp 
-$     then 
+$     if axp
+$     then
 $       define sys sys$library:
 $     else
 $       ccopt = "/decc" + ccopt
@@ -58,7 +58,7 @@ $ endif
 $ if its_vaxc .or. its_gnuc
 $ then
 $    if f$trnlnm("SYS").eqs."" then define sys sys$library:
-$ endif  
+$ endif
 $!
 $! Build the thing plain or with mms
 $!
@@ -101,8 +101,8 @@ $   then
 $     write sys$output "Building minigzip..."
 $     CALL MAKE minigzip.OBJ "CC ''CCOPT' minigzip" -
                 minigzip.c zlib.h zconf.h
-$     call make minigzip.exe - 
-                "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" - 
+$     call make minigzip.exe -
+                "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" -
                 minigzip.obj libz.olb
 $   endif
 $  else
@@ -118,7 +118,7 @@ $ Then
 $   gosub crea_olist
 $   write sys$output "Creating libzshr.exe"
 $   call anal_obj_axp modules.opt _link.opt
-$   if s_case 
+$   if s_case
 $   then
 $      open/append optf modules.opt
 $      write optf "case_sensitive=YES"
@@ -200,41 +200,41 @@ $     if f$locate("AS_IS",f$edit(ccopt,"UPCASE")) .lt. f$length(ccopt) -
          then s_case = true
 $   endif
 $   if cparm .eqs. "LINK" then linkonly = true
-$   if f$locate("LOPTS=",cparm) .lt. f$length(cparm) 
+$   if f$locate("LOPTS=",cparm) .lt. f$length(cparm)
 $   then
 $     start = f$locate("=",cparm) + 1
 $     len   = f$length(cparm) - start
 $     lopts = lopts + f$extract(start,len,cparm)
 $   endif
-$   if f$locate("CC=",cparm) .lt. f$length(cparm) 
+$   if f$locate("CC=",cparm) .lt. f$length(cparm)
 $   then
 $     start  = f$locate("=",cparm) + 1
 $     len    = f$length(cparm) - start
 $     cc_com = f$extract(start,len,cparm)
-      if (cc_com .nes. "DECC") .and. - 
-         (cc_com .nes. "VAXC") .and. - 
+      if (cc_com .nes. "DECC") .and. -
+         (cc_com .nes. "VAXC") .and. -
 	 (cc_com .nes. "GNUC")
 $     then
 $       write sys$output "Unsupported compiler choice ''cc_com' ignored"
 $       write sys$output "Use DECC, VAXC, or GNUC instead"
-$     else 
-$     	if cc_com .eqs. "DECC" then its_decc = true   
-$     	if cc_com .eqs. "VAXC" then its_vaxc = true   
-$     	if cc_com .eqs. "GNUC" then its_gnuc = true   
-$     endif 
+$     else
+$     	if cc_com .eqs. "DECC" then its_decc = true
+$     	if cc_com .eqs. "VAXC" then its_vaxc = true
+$     	if cc_com .eqs. "GNUC" then its_gnuc = true
+$     endif
 $   endif
-$   if f$locate("MAKE=",cparm) .lt. f$length(cparm) 
+$   if f$locate("MAKE=",cparm) .lt. f$length(cparm)
 $   then
 $     start  = f$locate("=",cparm) + 1
 $     len    = f$length(cparm) - start
 $     mmks = f$extract(start,len,cparm)
-$     if (mmks .eqs. "MMK") .or. (mmks .eqs. "MMS") 
+$     if (mmks .eqs. "MMK") .or. (mmks .eqs. "MMS")
 $     then
 $       make = mmks
-$     else 
+$     else
 $       write sys$output "Unsupported make choice ''mmks' ignored"
 $       write sys$output "Use MMK or MMS instead"
-$     endif 
+$     endif
 $   endif
 $   i = i + 1
 $   goto opt_loop
@@ -242,7 +242,7 @@ $ endif
 $ return
 $!------------------------------------------------------------------------------
 $!
-$! Look for the compiler used 
+$! Look for the compiler used
 $!
 $CHECK_COMPILER:
 $ if (.not. (its_decc .or. its_vaxc .or. its_gnuc))
@@ -254,7 +254,7 @@ $ endif
 $!
 $! Exit if no compiler available
 $!
-$ if (.not. (its_decc .or. its_vaxc .or. its_gnuc)) 
+$ if (.not. (its_decc .or. its_vaxc .or. its_gnuc))
 $ then goto CC_ERR
 $ else
 $   if its_decc then write sys$output "CC compiler check ... Compaq C"
@@ -273,7 +273,7 @@ $ open/append out descrip.mms
 $ copy sys$input: out
 $ deck
 # descrip.mms: MMS description file for building zlib on VMS
-# written by Martin P.J. Zinser 
+# written by Martin P.J. Zinser
 # <zinser@zinser.no-ip.info or zinser@sysdev.deutsche-boerse.com>
 
 OBJS = adler32.obj, compress.obj, crc32.obj, gzio.obj, uncompr.obj, infback.obj\
@@ -281,7 +281,7 @@ OBJS = adler32.obj, compress.obj, crc32.obj, gzio.obj, uncompr.obj, infback.obj\
        inftrees.obj, inffast.obj
 
 $ eod
-$ write out "CFLAGS=", ccopt 
+$ write out "CFLAGS=", ccopt
 $ write out "LOPTS=", lopts
 $ copy sys$input: out
 $ deck
@@ -298,7 +298,7 @@ example.exe : example.obj libz.olb
 minigzip.exe : minigzip.obj libz.olb
               link $(LOPTS) minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib
 
-clean : 
+clean :
 	delete *.obj;*,libz.olb;*,*.opt;*,*.exe;*
 
 
@@ -310,7 +310,7 @@ deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h
 example.obj  : example.c zlib.h zconf.h
 gzio.obj     : gzio.c zutil.h zlib.h zconf.h
 inffast.obj  : inffast.c zutil.h zlib.h zconf.h inftrees.h inffast.h
-inflate.obj  : inflate.c zutil.h zlib.h zconf.h 
+inflate.obj  : inflate.c zutil.h zlib.h zconf.h
 inftrees.obj : inftrees.c zutil.h zlib.h zconf.h inftrees.h
 minigzip.obj : minigzip.c zlib.h zconf.h
 trees.obj    : trees.c deflate.h zutil.h zlib.h zconf.h
@@ -332,12 +332,12 @@ $ src_check = "OBJS ="
 $MRLOOP:
 $ read/end=mrdone min rec
 $ if (f$extract(0,6,rec) .nes. src_check) then goto mrloop
-$ rec = rec - src_check 
+$ rec = rec - src_check
 $ gosub extra_filnam
 $ if (f$element(1,"\",rec) .eqs. "\") then goto mrdone
 $MRSLOOP:
 $ read/end=mrdone min rec
-$ gosub extra_filnam 
+$ gosub extra_filnam
 $ if (f$element(1,"\",rec) .nes. "\") then goto mrsloop
 $MRDONE:
 $ close min
@@ -356,7 +356,7 @@ $ if (srcfil .nes. " ")
 $ then
 $   write mod f$parse(srcfil,,,"NAME"), ".obj"
 $   i = i + 1
-$   goto feloop  
+$   goto feloop
 $ endif
 $ return
 $!------------------------------------------------------------------------------
@@ -382,17 +382,17 @@ $ close h_in
 $ return
 $!------------------------------------------------------------------------------
 $!
-$! Analyze Object files for OpenVMS AXP to extract Procedure and Data 
+$! Analyze Object files for OpenVMS AXP to extract Procedure and Data
 $! information to build a symbol vector for a shareable image
 $! All the "brains" of this logic was suggested by Hartmut Becker
 $! (Hartmut.Becker@compaq.com). All the bugs were introduced by me
 $! (zinser@decus.de), so if you do have problem reports please do not
 $! bother Hartmut/HP, but get in touch with me
 $!
-$ ANAL_OBJ_AXP: Subroutine   
+$ ANAL_OBJ_AXP: Subroutine
 $ V = 'F$Verify(0)
 $ SAY := "WRITE_ SYS$OUTPUT"
-$ 
+$
 $ IF F$SEARCH("''P1'") .EQS. ""
 $ THEN
 $    SAY "ANAL_OBJ_AXP-E-NOSUCHFILE:  Error, inputfile ''p1' not available"
@@ -457,5 +457,5 @@ $ if f$search("x.tmp") .nes. "" -
 $!
 $ EXIT_AA:
 $ if V then set verify
-$ endsubroutine 
+$ endsubroutine
 $!------------------------------------------------------------------------------
