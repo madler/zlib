@@ -7,7 +7,7 @@ README          guess what
 configure       configure script for Unix
 make_vms.com    makefile for VMS
 treebuild.xml   XML description of source file dependencies
-zconf.in.h      zconf.h template for configure
+zconf.h.in      zconf.h template for configure
 zlib.3          Man page for zlib
 zlib.map        Linux symbol information
 zlib.pc.in      Template for pkg-config descriptor
@@ -28,7 +28,7 @@ watcom/         makefiles for OpenWatcom
 win32/          makefiles for Windows
 
                 zlib public header files (required for library use):
-zconf.h
+zconf.h         (made by configure)
 zlib.h
 
                 private source files used to build the zlib library:
@@ -40,7 +40,6 @@ deflate.c
 deflate.h
 gzclose.c
 gzguts.h
-gzio.c
 gzlib.c
 gzread.c
 gzwrite.c

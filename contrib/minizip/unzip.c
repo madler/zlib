@@ -1,16 +1,16 @@
 /* unzip.c -- IO for uncompress .zip files using zlib
-   Version 1.1, January 7th, 2010
+   Version 1.1, February 14h, 2010
    part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications of Unzip for Zip64
-	 Copyright (C) 2007-2008 Even Rouault
+         Modifications of Unzip for Zip64
+         Copyright (C) 2007-2008 Even Rouault
 
-	 Modifications for Zip64 support on both zip and unzip
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support on both zip and unzip
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
-	 For more info read MiniZip_info.txt
+         For more info read MiniZip_info.txt
 
 
   ------------------------------------------------------------------------------------
@@ -25,39 +25,41 @@
   If, for some reason, all these files are missing, the Info-ZIP license
   also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
 
-	crypt.c (full version) by Info-ZIP.      Last revised:  [see crypt.h]
+        crypt.c (full version) by Info-ZIP.      Last revised:  [see crypt.h]
 
   The encryption/decryption parts of this source code (as opposed to the
   non-echoing password parts) were originally written in Europe.  The
   whole source package can be freely distributed, including from the USA.
   (Prior to January 2000, re-export from the US was a violation of US law.)
 
-	This encryption code is a direct transcription of the algorithm from
+        This encryption code is a direct transcription of the algorithm from
   Roger Schlafly, described by Phil Katz in the file appnote.txt.  This
   file (appnote.txt) is distributed with the PKZIP program (even in the
   version without encryption capabilities).
 
-	------------------------------------------------------------------------------------
+        ------------------------------------------------------------------------------------
 
-	Changes in unzip64.c
+        Changes in unzip.c
 
-	2007-2008 - Even Rouault - Addition of cpl_unzGetCurrentFileZStreamPos
+        2007-2008 - Even Rouault - Addition of cpl_unzGetCurrentFileZStreamPos
   2007-2008 - Even Rouault - Decoration of symbol names unz* -> cpl_unz*
   2007-2008 - Even Rouault - Remove old C style function prototypes
   2007-2008 - Even Rouault - Add unzip support for ZIP64
 
-	Copyright (C) 2007-2008 Even Rouault
+        Copyright (C) 2007-2008 Even Rouault
 
 
-	Okt-2009 - Mathias Svensson - Removed cpl_* from symbol names (Even Rouault added them but since this is now moved to a new project (minizip64) I renamed them again).
-  Okt-2009 - Mathias Svensson - Fixed problem if uncompressed size was > 4G and compressed size was <4G
+        Oct-2009 - Mathias Svensson - Removed cpl_* from symbol names (Even Rouault added them but since this is now moved to a new project (minizip64) I renamed them again).
+  Oct-2009 - Mathias Svensson - Fixed problem if uncompressed size was > 4G and compressed size was <4G
                                 should only read the compressed/uncompressed size from the Zip64 format if
                                 the size from normal header was 0xFFFFFFFF
-  Okt-2009 - Mathias Svensson - Applied some bug fixes from paches recived from Gilles Vollant
-	Okt-2009 - Mathias Svensson - Applied support to unzip files with compression mathod BZIP2 (bzip2 lib is required)
+  Oct-2009 - Mathias Svensson - Applied some bug fixes from paches recived from Gilles Vollant
+        Oct-2009 - Mathias Svensson - Applied support to unzip files with compression mathod BZIP2 (bzip2 lib is required)
                                 Patch created by Daniel Borca
 
-  Copyright (C) 2009 Mathias Svensson
+  Jan-2010 - back to unzip and minizip 1.0 name scheme, with compatibility layer
+
+  Copyright (C) 1998 - 2010 Gilles Vollant, Even Rouault, Mathias Svensson
 
 */
 
@@ -67,7 +69,7 @@
 #include <string.h>
 
 #ifndef NOUNCRYPT
-	#define NOUNCRYPT
+        #define NOUNCRYPT
 #endif
 
 #include "zlib.h"
@@ -482,7 +484,7 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
     ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
     ZPOS64_T uPosFound=0;
     uLong uL;
-		ZPOS64_T relativeOffset;
+                ZPOS64_T relativeOffset;
 
     if (ZSEEK64(*pzlib_filefunc_def,filestream,0,ZLIB_FILEFUNC_SEEK_END) != 0)
         return 0;
@@ -957,7 +959,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
     if (unz64local_getLong(&s->z_filefunc, s->filestream,&file_info.external_fa) != UNZ_OK)
         err=UNZ_ERRNO;
 
-		// relative offset of local header
+                // relative offset of local header
     if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
         err=UNZ_ERRNO;
     file_info_internal.offset_curfile = uL;
@@ -1009,7 +1011,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
 
     if ((err==UNZ_OK) && (file_info.size_file_extra != 0))
     {
-				uLong acc = 0;
+                                uLong acc = 0;
 
         // since lSeek now points to after the extra field we need to move back
         lSeek -= file_info.size_file_extra;
@@ -1025,7 +1027,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
         while(acc < file_info.size_file_extra)
         {
             uLong headerId;
-						uLong dataSize;
+                                                uLong dataSize;
 
             if (unz64local_getShort(&s->z_filefunc, s->filestream,&headerId) != UNZ_OK)
                 err=UNZ_ERRNO;
@@ -1036,33 +1038,33 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
             /* ZIP64 extra fields */
             if (headerId == 0x0001)
             {
-							uLong uL;
+                                                        uLong uL;
 
-								if(file_info.uncompressed_size == (ZPOS64_T)(unsigned long)-1)
-								{
-									if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
-											err=UNZ_ERRNO;
-								}
+                                                                if(file_info.uncompressed_size == (ZPOS64_T)(unsigned long)-1)
+                                                                {
+                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
+                                                                                        err=UNZ_ERRNO;
+                                                                }
 
-								if(file_info.compressed_size == (ZPOS64_T)(unsigned long)-1)
-								{
-									if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
-										  err=UNZ_ERRNO;
-								}
+                                                                if(file_info.compressed_size == (ZPOS64_T)(unsigned long)-1)
+                                                                {
+                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
+                                                                                  err=UNZ_ERRNO;
+                                                                }
 
-								if(file_info_internal.offset_curfile == (ZPOS64_T)(unsigned long)-1)
-								{
-									/* Relative Header offset */
-									if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
-										err=UNZ_ERRNO;
-								}
+                                                                if(file_info_internal.offset_curfile == (ZPOS64_T)(unsigned long)-1)
+                                                                {
+                                                                        /* Relative Header offset */
+                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
+                                                                                err=UNZ_ERRNO;
+                                                                }
 
-								if(file_info.disk_num_start == (unsigned long)-1)
-								{
-									/* Disk Start Number */
-									if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
-										err=UNZ_ERRNO;
-								}
+                                                                if(file_info.disk_num_start == (unsigned long)-1)
+                                                                {
+                                                                        /* Disk Start Number */
+                                                                        if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
+                                                                                err=UNZ_ERRNO;
+                                                                }
 
             }
             else
@@ -1608,7 +1610,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
     pfile_in_zip_read_info->stream.avail_in = (uInt)0;
 
     s->pfile_in_zip_read = pfile_in_zip_read_info;
-		s->encrypted = 0;
+                s->encrypted = 0;
 
 #    ifndef NOUNCRYPT
     if (password != NULL)
@@ -2051,7 +2053,7 @@ extern int ZEXPORT unzGetGlobalComment (unzFile file, char * szComment, uLong uS
     unz64_s* s;
     uLong uReadThis ;
     if (file==NULL)
-        return (uLong)UNZ_PARAMERROR;
+        return (int)UNZ_PARAMERROR;
     s=(unz64_s*)file;
 
     uReadThis = uSizeBuf;

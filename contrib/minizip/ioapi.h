@@ -1,52 +1,57 @@
 /* ioapi.h -- IO base function header for compress/uncompress .zip
    part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications for Zip64 support
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
-	 For more info read MiniZip_info.txt
+         For more info read MiniZip_info.txt
 
-	 Changes
+         Changes
 
     Oct-2009 - Defined ZPOS64_T to fpos_t on windows and u_int64_t on linux. (might need to find a better why for this)
     Oct-2009 - Change to fseeko64, ftello64 and fopen64 so large files would work on linux.
                More if/def section may be needed to support other platforms
     Oct-2009 - Defined fxxxx64 calls to normal fopen/ftell/fseek so they would compile on windows.
-		          (but you should use iowin32.c for windows instead)
+                          (but you should use iowin32.c for windows instead)
 
 */
 
 #ifndef _ZLIBIOAPI64_H
 #define _ZLIBIOAPI64_H
 
-#ifndef _WIN32
+#if (!defined(_WIN32)) && (!defined(WIN32))
 
   // Linux needs this to support file operation on files larger then 4+GB
   // But might need better if/def to select just the platforms that needs them.
 
-	#ifndef __USE_FILE_OFFSET64
-		#define __USE_FILE_OFFSET64
-	#endif
-	#ifndef __USE_LARGEFILE64
-		#define __USE_LARGEFILE64
-	#endif
-	#ifndef _LARGEFILE64_SOURCE
-		#define _LARGEFILE64_SOURCE
-	#endif
-	#ifndef _FILE_OFFSET_BIT
-		#define _FILE_OFFSET_BIT 64
-	#endif
+        #ifndef __USE_FILE_OFFSET64
+                #define __USE_FILE_OFFSET64
+        #endif
+        #ifndef __USE_LARGEFILE64
+                #define __USE_LARGEFILE64
+        #endif
+        #ifndef _LARGEFILE64_SOURCE
+                #define _LARGEFILE64_SOURCE
+        #endif
+        #ifndef _FILE_OFFSET_BIT
+                #define _FILE_OFFSET_BIT 64
+        #endif
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "zlib.h"
 
+#if defined(USE_FILE32API)
+#define fopen64 fopen
+#define ftello64 ftell
+#define fseeko64 fseek
+#else
 #ifdef _MSC_VER
  #define fopen64 fopen
- #if _MSC_VER >= 1400
+ #if (_MSC_VER >= 1400) && (!(defined(NO_MSCVER_FILE64_FUNC)))
   #define ftello64 _ftelli64
   #define fseeko64 _fseeki64
  #else // old MSC
@@ -54,11 +59,12 @@
   #define fseeko64 fseek
  #endif
 #endif
+#endif
 
 /*
 #ifndef ZPOS64_T
   #ifdef _WIN32
-		#define ZPOS64_T fpos_t
+                #define ZPOS64_T fpos_t
   #else
     #include <stdint.h>
     #define ZPOS64_T uint64_t

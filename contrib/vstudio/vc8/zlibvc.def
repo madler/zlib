@@ -90,3 +90,25 @@ EXPORTS
         unzGoToFilePos                           @101
 
         fill_win32_filefunc                      @110
+        fill_win32_filefunc64                    @111
+        fill_win32_filefunc64A                   @112
+        fill_win32_filefunc64W                   @113
+
+; quick hack by hkuno@microhouse.co.jp
+        unzOpen64                         @120
+        unzOpen2_64                       @121
+        unzGetGlobalInfo64                @122
+        unzGetCurrentFileInfo64           @124
+        unzGetCurrentFileZStreamPos64     @125
+        unztell64                         @126
+        unzGetFilePos64                   @127
+        unzGoToFilePos64                  @128
+
+        zipOpen64                         @130
+        zipOpen2_64                       @131
+        zipOpenNewFileInZip64             @132
+        zipOpenNewFileInZip2_64           @133
+        zipOpenNewFileInZip3_64           @134
+        zipOpenNewFileInZip4_64           @135
+        zipCloseFileInZipRaw64            @136
+; end hack

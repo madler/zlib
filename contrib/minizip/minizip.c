@@ -1,31 +1,31 @@
 /*
    minizip.c
-   Version 1.1, January 7th, 2010
+   Version 1.1, February 14h, 2010
    sample part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications of Unzip for Zip64
-	 Copyright (C) 2007-2008 Even Rouault
+         Modifications of Unzip for Zip64
+         Copyright (C) 2007-2008 Even Rouault
 
-	 Modifications for Zip64 support on both zip and unzip
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support on both zip and unzip
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 */
 
 
 #ifndef _WIN32
-	#ifndef __USE_FILE_OFFSET64
-		#define __USE_FILE_OFFSET64
-	#endif
-	#ifndef __USE_LARGEFILE64
-		#define __USE_LARGEFILE64
-	#endif
-	#ifndef _LARGEFILE64_SOURCE
-		#define _LARGEFILE64_SOURCE
-	#endif
-	#ifndef _FILE_OFFSET_BIT
-		#define _FILE_OFFSET_BIT 64
-	#endif
+        #ifndef __USE_FILE_OFFSET64
+                #define __USE_FILE_OFFSET64
+        #endif
+        #ifndef __USE_LARGEFILE64
+                #define __USE_LARGEFILE64
+        #endif
+        #ifndef _LARGEFILE64_SOURCE
+                #define _LARGEFILE64_SOURCE
+        #endif
+        #ifndef _FILE_OFFSET_BIT
+                #define _FILE_OFFSET_BIT 64
+        #endif
 #endif
 
 #include <stdio.h>
@@ -48,8 +48,8 @@
 #include "zip.h"
 
 #ifdef _WIN32
-	#define USEWIN32IOAPI
-	#include "iowin32.h"
+        #define USEWIN32IOAPI
+        #include "iowin32.h"
 #endif
 
 
@@ -152,9 +152,8 @@ int check_exist_file(filename)
 
 void do_banner()
 {
-    printf("MiniZip64 1.0, demo of zLib + MiniZip64 package, written by Gilles Vollant\n");
+    printf("MiniZip 1.1, demo of zLib + MiniZip64 package, written by Gilles Vollant\n");
     printf("more info on MiniZip at http://www.winimage.com/zLibDll/minizip.html\n\n");
-    printf("more info on MiniZip64 at http://result42.com/projects/MiniZip64\n\n");
 }
 
 void do_help()
@@ -220,12 +219,12 @@ int isLargeFile(const char* filename)
 
     pos = ftello64(pFile);
 
-		printf("File : %s is %lld bytes\n", filename, pos);
+                printf("File : %s is %lld bytes\n", filename, pos);
 
     if(pos >= 0xffffffff)
      largeFile = 1;
 
-		fclose(pFile);
+                fclose(pFile);
   }
 
  return largeFile;
@@ -409,7 +408,7 @@ int main(argc,argv)
 
                 zip64 = isLargeFile(filenameinzip);
 
-							 /* The path name saved, should not include a leading slash. */
+                                                         /* The path name saved, should not include a leading slash. */
                /*if it did, windows/xp and dynazip couldn't read the zip file. */
                  savefilenameinzip = filenameinzip;
                  while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )

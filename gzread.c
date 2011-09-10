@@ -3,8 +3,6 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-#ifndef OLD_GZIO
-
 #include "gzguts.h"
 
 /* Local functions */
@@ -547,8 +545,8 @@ char * ZEXPORT gzgets(file, buf, len)
     unsigned char *eol;
     gz_statep state;
 
-    /* get internal structure */
-    if (file == NULL)
+    /* check parameters and get internal structure */
+    if (file == NULL || buf == NULL || len < 1)
         return NULL;
     state = (gz_statep)file;
 
@@ -563,16 +561,12 @@ char * ZEXPORT gzgets(file, buf, len)
             return NULL;
     }
 
-    /* check for a dumb length */
-    if (len < 2)
-        return NULL;
-
     /* copy output bytes up to new line or len - 1, whichever comes first --
        append a terminating zero to the string (we don't check for a zero in
        the contents, let the user worry about that) */
     str = buf;
     left = (unsigned)len - 1;
-    do {
+    if (left) do {
         /* assure that something is in the output buffer */
         if (state->have == 0) {
             if (gz_make(state) == -1)
@@ -588,7 +582,7 @@ char * ZEXPORT gzgets(file, buf, len)
         n = state->have > left ? left : state->have;
         eol = memchr(state->next, '\n', n);
         if (eol != NULL)
-            n = (eol - state->next) + 1;
+            n = (unsigned)(eol - state->next) + 1;
 
         /* copy through end-of-line, or remainder if not found */
         memcpy(buf, state->next, n);
@@ -655,5 +649,3 @@ int ZEXPORT gzclose_r(file)
     free(state);
     return ret ? Z_ERRNO : Z_OK;
 }
-
-#endif /* !OLD_GZIO */

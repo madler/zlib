@@ -17,9 +17,9 @@ $ cc/include=[--]/prefix=all minizip.c
 $ cc/include=[--]/prefix=all zip.c
 $ link miniunz,unzip,ioapi,[--]libz.olb/lib
 $ link minizip,zip,ioapi,[--]libz.olb/lib
-$ mcr []minizip test minizip64_info.txt
+$ mcr []minizip test minizip_info.txt
 $ mcr []miniunz -l test.zip
-$ rename minizip64_info.txt; minizip64_info.txt_old
+$ rename minizip_info.txt; minizip_info.txt_old
 $ mcr []miniunz test.zip
 $ delete test.zip;*
 $exit

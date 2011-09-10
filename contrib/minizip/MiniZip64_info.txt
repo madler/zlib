@@ -1,29 +1,24 @@
-MiniZip64 - Copyright (c) 2009-2010 - Mathias Svensson - Built from MiniZip by Gilles Vollant
+MiniZip - Copyright (c) 1998-2010 - by Gilles Vollant - version 1.1 64 bits from Mathias Svensson
 
 Introduction
 ---------------------
-MiniZip64 is built from MiniZip by Gilles Vollant ( http://www.winimage.com/zLibDll/minizip.html )
+MiniZip 1.1 is built from MiniZip 1.0 by Gilles Vollant ( http://www.winimage.com/zLibDll/minizip.html )
 
-When adding ZIP64 support into minizip it would result into breaking compatibility with current minizip.
-And since breaking compatibility in minizip is not wanted. I decided to create a fork of minizip
-and create minizip64.
-
-Even though MiniZip64 is build from MiniZip, all functions and struct's have changed name so that it
-would not collide with each other.
+When adding ZIP64 support into minizip it would result into risk of breaking compatibility with minizip 1.0.
+All possible work was done for compatibility.
 
 
 Background
 ---------------------
-When adding ZIP64 support I found that Even Rouault have added ZIP64 support for unzip.c into minizip
-for a open source project called gdal ( http://www.gdal.org/ )
+When adding ZIP64 support Mathias Svensson found that Even Rouault have added ZIP64 
+support for unzip.c into minizip for a open source project called gdal ( http://www.gdal.org/ )
 
 That was used as a starting point. And after that ZIP64 support was added to zip.c
 some refactoring and code cleanup was also done.
 
 
-Changed from MiniZip to MiniZip64
--------------------------------------
-* Filenames has got a '64' at the end of them . eg unzip.c is now called unzip64.c
+Changed from MiniZip 1.0 to MiniZip 1.1
+---------------------------------------
 * Added ZIP64 support for unzip ( by Even Rouault )
 * Added ZIP64 support for zip ( by Mathias Svensson )
 * Reverted some changed that Even Rouault did.

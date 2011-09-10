@@ -302,10 +302,6 @@ SOURCE=..\..\gzclose.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\gzio.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\gzlib.c
 # End Source File
 # Begin Source File

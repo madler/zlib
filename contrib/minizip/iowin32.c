@@ -1,11 +1,11 @@
 /* iowin32.c -- IO base function header for compress/uncompress .zip
-     Version 1.1, January 7th, 2010
+     Version 1.1, February 14h, 2010
      part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications for Zip64 support
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
      For more info read MiniZip_info.txt
 

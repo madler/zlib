@@ -1,30 +1,30 @@
 /*
    miniunz.c
-   Version 1.1, January 7th, 2010
+   Version 1.1, February 14h, 2010
    sample part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications of Unzip for Zip64
-	 Copyright (C) 2007-2008 Even Rouault
+         Modifications of Unzip for Zip64
+         Copyright (C) 2007-2008 Even Rouault
 
-	 Modifications for Zip64 support on both zip and unzip
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support on both zip and unzip
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 */
 
 #ifndef _WIN32
-	#ifndef __USE_FILE_OFFSET64
-		#define __USE_FILE_OFFSET64
-	#endif
-	#ifndef __USE_LARGEFILE64
-		#define __USE_LARGEFILE64
-	#endif
-	#ifndef _LARGEFILE64_SOURCE
-		#define _LARGEFILE64_SOURCE
-	#endif
-	#ifndef _FILE_OFFSET_BIT
-		#define _FILE_OFFSET_BIT 64
-	#endif
+        #ifndef __USE_FILE_OFFSET64
+                #define __USE_FILE_OFFSET64
+        #endif
+        #ifndef __USE_LARGEFILE64
+                #define __USE_LARGEFILE64
+        #endif
+        #ifndef _LARGEFILE64_SOURCE
+                #define _LARGEFILE64_SOURCE
+        #endif
+        #ifndef _FILE_OFFSET_BIT
+                #define _FILE_OFFSET_BIT 64
+        #endif
 #endif
 
 #include <stdio.h>
@@ -133,11 +133,11 @@ int makedir (newdir)
     return 0;
 
   buffer = (char*)malloc(len+1);
-	if (buffer==NULL)
-	{
-		printf("Error allocating memory\n");
-		return UNZ_INTERNALERROR;
-	}
+        if (buffer==NULL)
+        {
+                printf("Error allocating memory\n");
+                return UNZ_INTERNALERROR;
+        }
   strcpy(buffer,newdir);
 
   if (buffer[len-1] == '/') {

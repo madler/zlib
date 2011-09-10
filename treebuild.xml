@@ -28,11 +28,6 @@
 	    <depend name="zconf.h" />
 	    <depend name="gzguts.h" />
 	</source>
-	<source name="gzio.c">
-	    <depend name="zlib.h" />
-	    <depend name="zconf.h" />
-	    <depend name="zutil.h" />
-	</source>
 	<source name="gzlib.c">
 	    <depend name="zlib.h" />
 	    <depend name="zconf.h" />

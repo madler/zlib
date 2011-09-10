@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3.8, Feb 13th, 2010
+  version 1.2.3.9, Feb 21st, 2010
 
   Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.3.8"
-#define ZLIB_VERNUM 0x1238
+#define ZLIB_VERSION "1.2.3.9"
+#define ZLIB_VERNUM 0x1239
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 3
@@ -1280,12 +1280,15 @@ ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));
 
 ZEXTERN char * ZEXPORT gzgets OF((gzFile file, char *buf, int len));
 /*
-     Reads bytes from the compressed file until len-1 characters are read, or
-   a newline character is read and transferred to buf, or an end-of-file
-   condition is encountered.  The string is then terminated with a null
-   character.
+     Reads bytes from the compressed file until len-1 characters are read, or a
+   newline character is read and transferred to buf, or an end-of-file
+   condition is encountered.  If any characters are read or if len == 1, the
+   string is terminated with a null character.  If no characters are read due
+   to an end-of-file or len < 1, then the buffer is left untouched.
 
-     gzgets returns buf, or NULL in case of error.
+     gzgets returns buf which is a null-terminated string, or it returns NULL
+   for end-of-file or in case of error.  If there was an error, the contents at
+   buf are indeterminate.
 */
 
 ZEXTERN int ZEXPORT gzputc OF((gzFile file, int c));
@@ -1441,6 +1444,9 @@ ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
    this function may invalidate the previously returned string.  If file is
    closed, then the string previously returned by gzerror will no longer be
    available.
+
+     gzerror() should be used to distinguish errors from end-of-file for those
+   functions above that do not distinguish those cases in their return values.
 */
 
 ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));

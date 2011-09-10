@@ -1,6 +1,25 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.9 (21 Feb 2010)
+- Expunge gzio.c
+- Move as400 build information to old
+- Fix updates in contrib/minizip and contrib/vstudio
+- Add const to vsnprintf test in configure to avoid warnings [Weigelt]
+- Delete zconf.h (made by configure) [Weigelt]
+- Change zconf.in.h to zconf.h.in per convention [Weigelt]
+- Check for NULL buf in gzgets()
+- Return empty string for gzgets() with len == 1 (like fgets())
+- Fix description of gzgets() in zlib.h for end-of-file, NULL return
+- Update minizip to 1.1 [Vollant]
+- Avoid MSVC loss of data warnings in gzread.c, gzwrite.c
+- Note in zlib.h that gzerror() should be used to distinguish from EOF
+- Remove use of snprintf() from gzlib.c
+- Fix bug in gzseek()
+- Update contrib/vstudio, adding vc9 and vc10 [Kuno, Vollant]
+- Fix zconf.h generation in CMakeLists.txt [Lowman]
+- Improve comments in zconf.h where modified by configure
+
 Changes in 1.2.3.8 (13 Feb 2010)
 - Clean up text files (tabs, trailing whitespace, etc.) [Oberhumer]
 - Use z_off64_t in gz_zero() and gz_skip() to match state->skip

@@ -146,8 +146,6 @@ $   CALL MAKE deflate.OBJ "CC ''CCOPT' deflate" -
                 deflate.c deflate.h zutil.h zlib.h zconf.h
 $   CALL MAKE gzclose.OBJ "CC ''CCOPT' gzclose" -
                 gzclose.c zutil.h zlib.h zconf.h
-$   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio" -
-                gzio.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzlib.OBJ "CC ''CCOPT' gzlib" -
                 gzlib.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzread.OBJ "CC ''CCOPT' gzread" -
@@ -396,7 +394,7 @@ $ deck
 # written by Martin P.J. Zinser
 # <zinser@zinser.no-ip.info or zinser@sysdev.deutsche-boerse.com>
 
-OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzio.obj, gzlib.obj\
+OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzlib.obj\
        gzread.obj, gzwrite.obj, uncompr.obj, infback.obj\
        deflate.obj, trees.obj, zutil.obj, inflate.obj, \
        inftrees.obj, inffast.obj
@@ -430,7 +428,6 @@ crc32.obj    : crc32.c zutil.h zlib.h zconf.h
 deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h
 example.obj  : example.c zlib.h zconf.h
 gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h
-gzio.obj     : gzio.c zutil.h zlib.h zconf.h
 gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h
 gzread.obj   : gzread.c zutil.h zlib.h zconf.h
 gzwrite.obj  : gzwrite.c zutil.h zlib.h zconf.h

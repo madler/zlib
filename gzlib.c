@@ -3,8 +3,6 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-#ifndef OLD_GZIO
-
 #include "gzguts.h"
 
 #ifdef _LARGEFILE64_SOURCE
@@ -214,16 +212,15 @@ gzFile ZEXPORT gzdopen(fd, mode)
     int fd;
     const char *mode;
 {
-    char path[46];      /* identifier for error messages */
+    char *path;         /* identifier for error messages */
+    gzFile gz;
 
-    if (fd == -1)
+    if (fd == -1 || (path = malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
-#ifdef NO_snprintf
-    sprintf(path, "<fd:%d>", fd);   /* big enough for 128-bit integers */
-#else
-    snprintf(path, sizeof(path), "<fd:%d>", fd);
-#endif
-    return gz_open(path, fd, mode);
+    sprintf(path, "<fd:%d>", fd);
+    gz = gz_open(path, fd, mode);
+    free(path);
+    return gz;
 }
 
 /* -- see zlib.h -- */
@@ -301,6 +298,9 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
     /* normalize offset to a SEEK_CUR specification */
     if (whence == SEEK_SET)
         offset -= state->pos;
+    else if (state->seek)
+        offset += state->skip;
+    state->seek = 0;
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY &&
@@ -532,5 +532,3 @@ unsigned ZEXPORT gz_intmax()
     return q >> 1;
 }
 #endif
-
-#endif /* !OLD_GZIO */

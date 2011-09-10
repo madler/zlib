@@ -28,7 +28,7 @@ LDFLAGS = -nologo -debug -release
 ARFLAGS = -nologo
 RCFLAGS = /dWIN32 /r
 
-OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzio.obj gzlib.obj gzread.obj \
+OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzlib.obj gzread.obj \
        gzwrite.obj infback.obj inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
 OBJA =
 
@@ -83,8 +83,6 @@ crc32.obj: crc32.c zlib.h zconf.h crc32.h
 deflate.obj: deflate.c deflate.h zutil.h zlib.h zconf.h
 
 gzclose.obj: gzclose.c zlib.h zconf.h gzguts.h
-
-gzio.obj: gzio.c zutil.h zlib.h zconf.h
 
 gzlib.obj: gzlib.c zlib.h zconf.h gzguts.h
 

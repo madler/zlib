@@ -16,7 +16,6 @@ ZLIB_1.2.0 {
     z_errmsg;
     gz_error;
     gz_intmax;
-    gzio_old;
     _*;
 };
 

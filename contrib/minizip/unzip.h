@@ -1,20 +1,20 @@
 /* unzip.h -- IO for uncompress .zip files using zlib
-   Version 1.1, January 7th, 2010
+   Version 1.1, February 14h, 2010
    part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications of Unzip for Zip64
-	 Copyright (C) 2007-2008 Even Rouault
+         Modifications of Unzip for Zip64
+         Copyright (C) 2007-2008 Even Rouault
 
-	 Modifications for Zip64 support on both zip and unzip
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support on both zip and unzip
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
-	 For more info read MiniZip_info.txt
+         For more info read MiniZip_info.txt
 
-	 ---------------------------------------------------------------------------------
+         ---------------------------------------------------------------------------------
 
-	Condition of use and distribution are the same than zlib :
+        Condition of use and distribution are the same than zlib :
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,9 +34,9 @@
 
   ---------------------------------------------------------------------------------
 
-	Changes
+        Changes
 
-	See header of unzip64.c
+        See header of unzip64.c
 
 */
 

@@ -1,22 +1,23 @@
 /* zip.c -- IO on .zip files using zlib
-   Version 1.1, January 7th, 2010
+   Version 1.1, February 14h, 2010
    part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications for Zip64 support
-	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Modifications for Zip64 support
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
-	 For more info read MiniZip_info.txt
+         For more info read MiniZip_info.txt
 
-	 Changes
-   Okt-2009 - Mathias Svensson - Remove old C style function prototypes
-   Okt-2009 - Mathias Svensson - Added Zip64 Support when creating new file archives
-   Okt-2009 - Mathias Svensson - Did some code cleanup and refactoring to get better overview of some functions.
-   Okt-2009 - Mathias Svensson - Added zipRemoveExtraInfoBlock to strip extra field data from its ZIP64 data
+         Changes
+   Oct-2009 - Mathias Svensson - Remove old C style function prototypes
+   Oct-2009 - Mathias Svensson - Added Zip64 Support when creating new file archives
+   Oct-2009 - Mathias Svensson - Did some code cleanup and refactoring to get better overview of some functions.
+   Oct-2009 - Mathias Svensson - Added zipRemoveExtraInfoBlock to strip extra field data from its ZIP64 data
                                  It is used when recreting zip archive with RAW when deleting items from a zip.
                                  ZIP64 data is automaticly added to items that needs it, and existing ZIP64 data need to be removed.
-   Okt-2009 - Mathias Svensson - Added support for BZIP2 as compression mode (bzip2 lib is required)
+   Oct-2009 - Mathias Svensson - Added support for BZIP2 as compression mode (bzip2 lib is required)
+   Jan-2010 - back to unzip and minizip 1.0 name scheme, with compatibility layer
 
 */
 
@@ -1526,22 +1527,22 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
     zi->ci.stream.avail_in = 0;
 
     if ((zi->ci.method == Z_DEFLATED) && (!zi->ci.raw))
-		{
-			while (err==ZIP_OK)
-			{
-				uLong uTotalOutBefore;
-				if (zi->ci.stream.avail_out == 0)
-				{
-					if (zip64FlushWriteBuffer(zi) == ZIP_ERRNO)
-						err = ZIP_ERRNO;
-					zi->ci.stream.avail_out = (uInt)Z_BUFSIZE;
-					zi->ci.stream.next_out = zi->ci.buffered_data;
-				}
-				uTotalOutBefore = zi->ci.stream.total_out;
-				err=deflate(&zi->ci.stream,  Z_FINISH);
-				zi->ci.pos_in_buffered_data += (uInt)(zi->ci.stream.total_out - uTotalOutBefore) ;
-			}
-		}
+                {
+                        while (err==ZIP_OK)
+                        {
+                                uLong uTotalOutBefore;
+                                if (zi->ci.stream.avail_out == 0)
+                                {
+                                        if (zip64FlushWriteBuffer(zi) == ZIP_ERRNO)
+                                                err = ZIP_ERRNO;
+                                        zi->ci.stream.avail_out = (uInt)Z_BUFSIZE;
+                                        zi->ci.stream.next_out = zi->ci.buffered_data;
+                                }
+                                uTotalOutBefore = zi->ci.stream.total_out;
+                                err=deflate(&zi->ci.stream,  Z_FINISH);
+                                zi->ci.pos_in_buffered_data += (uInt)(zi->ci.stream.total_out - uTotalOutBefore) ;
+                        }
+                }
     else if ((zi->ci.method == Z_BZIP2ED) && (!zi->ci.raw))
     {
 #ifdef HAVE_BZIP2
@@ -1573,10 +1574,10 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
         err=ZIP_OK; /* this is normal */
 
     if ((zi->ci.pos_in_buffered_data>0) && (err==ZIP_OK))
-		{
+                {
         if (zip64FlushWriteBuffer(zi)==ZIP_ERRNO)
             err = ZIP_ERRNO;
-		}
+                }
 
     if ((zi->ci.method == Z_DEFLATED) && (!zi->ci.raw))
     {
@@ -1589,9 +1590,9 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
     else if((zi->ci.method == Z_BZIP2ED) && (!zi->ci.raw))
     {
       int tmperr = BZ2_bzCompressEnd(&zi->ci.bstream);
-			if (err==ZIP_OK)
-				err = tmperr;
-			zi->ci.stream_initialised = 0;
+                        if (err==ZIP_OK)
+                                err = tmperr;
+                        zi->ci.stream_initialised = 0;
     }
 #endif
 
@@ -1851,7 +1852,7 @@ int Write_EndOfCentralDirectoryRecord(zip64_internal* zi, uLong size_centraldir,
       err = zip64local_putValue(&zi->z_filefunc,zi->filestream, (uLong)0xffffffff,4);
     }
     else
-		  err = zip64local_putValue(&zi->z_filefunc,zi->filestream, (uLong)(centraldir_pos_inzip - zi->add_position_when_writting_offset),4);
+                  err = zip64local_putValue(&zi->z_filefunc,zi->filestream, (uLong)(centraldir_pos_inzip - zi->add_position_when_writting_offset),4);
   }
 
    return err;

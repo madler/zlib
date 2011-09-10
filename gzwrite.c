@@ -3,8 +3,6 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-#ifndef OLD_GZIO
-
 #include "gzguts.h"
 
 /* Local functions */
@@ -77,7 +75,7 @@ local int gz_comp(state, flush)
            doing Z_FINISH then don't write until we get to Z_STREAM_END */
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
-            have = strm->next_out - state->next;
+            have = (unsigned)(strm->next_out - state->next);
             if (have && ((got = write(state->fd, state->next, have)) < 0 ||
                          (unsigned)got != have)) {
                 gz_error(state, Z_ERRNO, zstrerror());
@@ -271,7 +269,7 @@ int ZEXPORT gzputs(file, str)
     unsigned len;
 
     /* write string */
-    len = strlen(str);
+    len = (unsigned)strlen(str);
     ret = gzwrite(file, str, len);
     return ret == 0 && len != 0 ? -1 : ret;
 }
@@ -530,5 +528,3 @@ int ZEXPORT gzclose_w(file)
     free(state);
     return ret ? Z_ERRNO : Z_OK;
 }
-
-#endif /* !OLD_GZIO */

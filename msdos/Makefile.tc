@@ -26,9 +26,9 @@ LDFLAGS=-m$(MODEL) -f-
 # variables
 ZLIB_LIB = zlib_$(MODEL).lib
 
-OBJ1 = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzio.obj gzlib.obj gzread.obj
+OBJ1 = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzlib.obj gzread.obj
 OBJ2 = gzwrite.obj infback.obj inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
-OBJP1 = +adler32.obj+compress.obj+crc32.obj+deflate.obj+gzclose.obj+gzio.obj+gzlib.obj+gzread.obj
+OBJP1 = +adler32.obj+compress.obj+crc32.obj+deflate.obj+gzclose.obj+gzlib.obj+gzread.obj
 OBJP2 = +gzwrite.obj+infback.obj+inffast.obj+inflate.obj+inftrees.obj+trees.obj+uncompr.obj+zutil.obj
 
 
@@ -47,8 +47,6 @@ crc32.obj: crc32.c zlib.h zconf.h crc32.h
 deflate.obj: deflate.c deflate.h zutil.h zlib.h zconf.h
 
 gzclose.obj: gzclose.c zlib.h zconf.h gzguts.h
-
-gzio.obj: gzio.c zutil.h zlib.h zconf.h
 
 gzlib.obj: gzlib.c zlib.h zconf.h gzguts.h
 

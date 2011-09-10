@@ -53,7 +53,7 @@ RM = rm -f
 prefix = /usr/local
 exec_prefix = $(prefix)
 
-OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
+OBJS = adler32.o compress.o crc32.o deflate.o infback.o \
        inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 OBJA =
 
@@ -130,7 +130,6 @@ compress.o: zlib.h zconf.h
 crc32.o: crc32.h zlib.h zconf.h
 deflate.o: deflate.h zutil.h zlib.h zconf.h
 example.o: zlib.h zconf.h
-gzio.o: zutil.h zlib.h zconf.h
 inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h

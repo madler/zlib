@@ -250,14 +250,14 @@ EOF
   fi
 fi
 
-cp -p zconf.in.h zconf.h
+sed "/^#cmakedefine/D" < zconf.h.in > zconf.h
 
 cat > $test.c <<EOF
 #include <unistd.h>
 int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  sed < zconf.h "/#ifdef HAVE_UNISTD_H/s/def HAVE_UNISTD_H/ 1/" > zconf.temp.h
+  sed < zconf.h "/^#ifdef HAVE_UNISTD_H.* may be/s/def HAVE_UNISTD_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for unistd.h... Yes."
 else
@@ -265,7 +265,7 @@ else
 fi
 
 if test $zprefix -eq 1; then
-  sed < zconf.h "/#ifdef Z_PREFIX/s/def Z_PREFIX/ 1/" > zconf.temp.h
+  sed < zconf.h "/#ifdef Z_PREFIX.* may be/s/def Z_PREFIX\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Using z_ prefix on all symbols."
 fi
@@ -316,7 +316,7 @@ EOF
 #include <stdio.h>
 #include <stdarg.h>
 
-int mytest(char *fmt, ...)
+int mytest(const char *fmt, ...)
 {
   int n;
   char buf[20];
