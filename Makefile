@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-1996 Jean-loup Gailly.
+# Copyright (C) 1995-1998 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h 
 
 # To compile and test, type:
@@ -22,7 +22,7 @@ CFLAGS=-O
 LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 
-VER=1.0.4
+VER=1.0.5
 LIBS=libz.a
 
 AR=ar rc

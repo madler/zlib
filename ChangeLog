@@ -1,6 +1,13 @@
 
 		ChangeLog file for zlib
 
+Changes in 1.0.5 (3 Jan 98)
+- Fix inflate to terminate gracefully when fed corrupted or invalid data
+- Use const for rommable constants in inflate
+- Eliminate memory leaks on error conditions in inflate
+- Removed some vestigial code in inflate
+- Update web address in README
+
 Changes in 1.0.4 (24 Jul 96)
 - In very rare conditions, deflate(s, Z_FINISH) could fail to produce an EOF
   bit, so the decompressor could decompress all the correct data but went

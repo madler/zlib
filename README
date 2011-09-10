@@ -1,4 +1,4 @@
-zlib 1.0.4 is a general purpose data compression library.  All the code
+zlib 1.0.5 is a general purpose data compression library.  All the code
 is reentrant (thread safe).  The data format used by the zlib library
 is described by RFCs (Request for Comments) 1950 to 1952 in the files 
 ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
@@ -18,16 +18,13 @@ makefiles such as Makefile.msc; for VMS, use Make_vms.com or descrip.mms.
 
 Questions about zlib should be sent to <zlib@quest.jpl.nasa.gov> or,
 if this fails, to the addresses given below in the Copyright section.
-The zlib home page is http://quest.jpl.nasa.gov/zlib/
+The zlib home page is http://www.cdrom.com/pub/infozip/zlib/
 
-The changes made in version 1.0.4 are documented in the file ChangeLog.
-The main changes since 1.0.3 are:
+The changes made in version 1.0.5 are documented in the file ChangeLog.
+The main changes since 1.0.4 are:
 
-- In very rare conditions, deflate(s, Z_FINISH) could fail to produce an EOF
-  bit, so the decompressor could decompress all the correct data but went
-  on to attempt decompressing extra garbage data. This affected minigzip too.
-- zlibVersion and gzerror return const char* (needed for DLL)
-- port to RISCOS (no fdopen, no multiple dots, no unlink, no fileno)
+- Fix inflate to terminate gracefully when fed corrupted or invalid data
+- Use const for rommable constants in inflate
 
 
 A Perl interface to zlib written by Paul Marquess <pmarquess@bfsec.bt.co.uk>
@@ -68,7 +65,7 @@ Acknowledgments:
 
 Copyright notice:
 
- (C) 1995-1996 Jean-loup Gailly and Mark Adler
+ (C) 1995-1998 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
