@@ -62,7 +62,7 @@
    compressed data, and contains both the crc and length of just the compressed
    data and of the complete set of data including the contents of the foo.add
    file.
-   
+
    Again, the foo.add file is maintained during the compress operation in case
    of an interruption.  If in the unlikely event the foo.add file with the data
    to be compressed is missing due to some external force, a gzip file with

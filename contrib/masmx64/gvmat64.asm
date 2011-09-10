@@ -406,7 +406,8 @@ LoopCmps:
 
         add rdx,8+8+8
 
-        jmp short LoopCmps
+        jnz short LoopCmps
+        jmp short LenMaximum
 LeaveLoopCmps16: add rdx,8
 LeaveLoopCmps8: add rdx,8
 LeaveLoopCmps:

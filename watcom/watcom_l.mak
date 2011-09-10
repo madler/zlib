@@ -19,7 +19,7 @@ LINKER   = wcl
 CFLAGS   = -zq -ml -s -bt=dos -oilrtfm -fr=nul -wx
 ZLIB_LIB = zlib_l.lib
 
-.C.OBJ:	
+.C.OBJ:
         $(CC) $(CFLAGS) $[@
 
 all: $(ZLIB_LIB) example.exe minigzip.exe

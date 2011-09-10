@@ -12,7 +12,7 @@ $ close zdef
 $ copy vmsdefs.h,ioapi.h_orig ioapi.h
 $ cc/include=[--]/prefix=all ioapi.c
 $ cc/include=[--]/prefix=all miniunz.c
-$ cc/include=[--]/prefix=all unzip.c 
+$ cc/include=[--]/prefix=all unzip.c
 $ cc/include=[--]/prefix=all minizip.c
 $ cc/include=[--]/prefix=all zip.c
 $ link miniunz,unzip,ioapi,[--]libz.olb/lib

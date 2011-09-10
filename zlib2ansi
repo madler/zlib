@@ -25,7 +25,7 @@ my $decl  = qr{ $sp (?: \w+ $sp )+ $d1 }xo ;
 my $dList = qr{ $sp $decl (?: $sp , $d1 )* $sp ; $sp }xo ;
 
 
-while (s/^ 
+while (s/^
             (                  # Start $1
                 (              #   Start $2
                     .*?        #     Minimal eat content
@@ -57,7 +57,7 @@ while (s/^
     my $i = 0 ;
     my %pList = map { $_ => $i++ }
                 split /\s*,\s*/, $param_list;
-    my $pMatch = '(\b' . join('|', keys %pList) . '\b)\W*$' ;            
+    my $pMatch = '(\b' . join('|', keys %pList) . '\b)\W*$' ;
 
     my @params = split /\s*;\s*/, $params;
     my @outParams = ();
@@ -80,16 +80,16 @@ while (s/^
         }
     }
 
-    
-    my %tmp = map { /$pMatch/;  $_ => $pList{$1}  } 
+
+    my %tmp = map { /$pMatch/;  $_ => $pList{$1}  }
               @outParams ;
 
-    @outParams = map  { "    $_" }  
-                 sort { $tmp{$a} <=> $tmp{$b} } 
+    @outParams = map  { "    $_" }
+                 sort { $tmp{$a} <=> $tmp{$b} }
                  @outParams ;
 
     print $prefix ;
-    print "(\n" . join(",\n", @outParams) . ")\n";             
+    print "(\n" . join(",\n", @outParams) . ")\n";
     print "{" ;
 
 }
@@ -116,13 +116,13 @@ sub StripComments
        )*          ##  0-or-more things which don't start with /
                    ##    but do end with '*'
        /           ##  End of /* ... */ comment
- 
+
      |         ##     OR  C++ Comment
-       //          ## Start of C++ comment // 
+       //          ## Start of C++ comment //
        [^\n]*      ## followed by 0-or-more non end of line characters
 
      |         ##     OR  various things which aren't comments:
- 
+
        (
          "           ##  Start of " ... " string
          (
@@ -131,9 +131,9 @@ sub StripComments
            [^"\\]        ##  Non "\
          )*
          "           ##  End of " ... " string
- 
+
        |         ##     OR
- 
+
          '           ##  Start of ' ... ' string
          (
            \\.           ##  Escaped char
@@ -141,9 +141,9 @@ sub StripComments
            [^'\\]        ##  Non '\
          )*
          '           ##  End of ' ... ' string
- 
+
        |         ##     OR
- 
+
          .           ##  Anything other char
          [^/"'\\]*   ##  Chars which doesn't start a comment, string or escape
        )

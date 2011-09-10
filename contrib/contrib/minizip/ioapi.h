@@ -3,7 +3,7 @@
 
 	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications for Zip64 support
+	 Modifications for Zip64 support 
 	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
 	 For more info read MiniZip_info.txt
@@ -13,7 +13,7 @@
     Oct-2009 - Defined ZPOS64_T to fpos_t on windows and u_int64_t on linux. (might need to find a better why for this)
     Oct-2009 - Change to fseeko64, ftello64 and fopen64 so large files would work on linux.
                More if/def section may be needed to support other platforms
-    Oct-2009 - Defined fxxxx64 calls to normal fopen/ftell/fseek so they would compile on windows.
+    Oct-2009 - Defined fxxxx64 calls to normal fopen/ftell/fseek so they would compile on windows. 
 		          (but you should use iowin32.c for windows instead)
 
 */
@@ -21,7 +21,9 @@
 #ifndef _ZLIBIOAPI64_H
 #define _ZLIBIOAPI64_H
 
-#ifndef _WIN32
+#include "zlib.h"
+
+#ifndef _WIN32 
 
   // Linux needs this to support file operation on files larger then 4+GB
   // But might need better if/def to select just the platforms that needs them.
@@ -42,7 +44,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "zlib.h"
+
 
 #ifdef _MSC_VER
  #define fopen64 fopen
@@ -60,7 +62,7 @@
   #ifdef _WIN32
 		#define ZPOS64_T fpos_t
   #else
-    #include <stdint.h>
+    #include <stdint.h>       	
     #define ZPOS64_T uint64_t
   #endif
 #endif

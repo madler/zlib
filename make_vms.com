@@ -42,7 +42,7 @@ $ aconf_in_file = "config.hin"
 $ conf_check_string = ""
 $ linkonly = false
 $ optfile  = name + ".opt"
-$ libdefs  = "" 
+$ libdefs  = ""
 $ axp      = f$getsyi("HW_MODEL").ge.1024 .and. f$getsyi("HW_MODEL").lt.4096
 $!
 $ whoami = f$parse(f$enviornment("Procedure"),,,,"NO_CONCEAL")
@@ -87,7 +87,7 @@ $ then
 $    if f$trnlnm("SYS").eqs."" then define sys sys$library:
 $ endif
 $!
-$! Build a fake configure input header 
+$! Build a fake configure input header
 $!
 $ open/write conf_hin config.hin
 $ write conf_hin "#undef _LARGEFILE64_SOURCE"
@@ -99,7 +99,7 @@ $FIND_ACONF:
 $ fname = f$element(i,"#",aconf_in_file)
 $ if fname .eqs. "#" then goto AMISS_ERR
 $ if f$search(fname) .eqs. ""
-$ then 
+$ then
 $   i = i + 1
 $   goto find_aconf
 $ endif
@@ -396,7 +396,7 @@ $ deck
 # written by Martin P.J. Zinser
 # <zinser@zinser.no-ip.info or zinser@sysdev.deutsche-boerse.com>
 
-OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzio.obj, gzlib.obj\ 
+OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzio.obj, gzlib.obj\
        gzread.obj, gzwrite.obj, uncompr.obj, infback.obj\
        deflate.obj, trees.obj, zutil.obj, inflate.obj, \
        inftrees.obj, inffast.obj
@@ -521,7 +521,7 @@ $ else
 $   if (f$type('cdef') .eqs. "INTEGER")
 $   then
 $     write aconf "#define ''cdef' ", 'cdef'
-$   else 
+$   else
 $     if (f$type('cdef') .eqs. "STRING")
 $     then
 $       write aconf "#define ''cdef' ", """", '''cdef'', """"
@@ -587,7 +587,7 @@ $ set message/fac/ident/sever/text
 $ on error then goto err_exit
 $ delete/nolog 'tmpnam'.*;*/exclude='th'
 $ if (cc_prop .and. .not. is_need) .or. -
-     (.not. cc_prop .and. is_need) 
+     (.not. cc_prop .and. is_need)
 $ then
 $   write sys$output "Checking for ''cdef'... yes"
 $   if f$type('cdef_val'_yes) .nes. ""
@@ -599,10 +599,10 @@ $     if f$type('cdef_val'_yes) .eqs. "STRING" -
 $   else
 $     call write_config f$fao("#define !AS 1",cdef)
 $   endif
-$   if (cdef .eqs. "HAVE_FSEEKO") .or. (cdef .eqs. "_LARGE_FILES") .or. - 
-       (cdef .eqs. "_LARGEFILE64_SOURCE") then - 
+$   if (cdef .eqs. "HAVE_FSEEKO") .or. (cdef .eqs. "_LARGE_FILES") .or. -
+       (cdef .eqs. "_LARGEFILE64_SOURCE") then -
       call write_config f$string("#define _LARGEFILE 1")
-$ else 
+$ else
 $   write sys$output "Checking for ''cdef'... no"
 $   if (comm_h)
 $   then
@@ -645,7 +645,7 @@ $   if .not. ($status)  then cc_prop = false
 $   set message/fac/ident/sever/text
 $   on error then goto err_exit
 $   delete/nolog 'tmpnam'_'i'.*;*
-$   if (cc_prop) 
+$   if (cc_prop)
 $   then
 $     write sys$output "Checking for ''cdef'... ", mdef_'i'
 $     if f$type(mdef_'i') .eqs. "INTEGER" -
@@ -670,7 +670,7 @@ $ endif
 $ return
 $!------------------------------------------------------------------------------
 $!
-$! Analyze Object files for OpenVMS AXP to extract Procedure and Data 
+$! Analyze Object files for OpenVMS AXP to extract Procedure and Data
 $! information to build a symbol vector for a shareable image
 $! All the "brains" of this logic was suggested by Hartmut Becker
 $! (Hartmut.Becker@compaq.com). All the bugs were introduced by me
@@ -683,10 +683,10 @@ $! 0.02 20041109 Fix option file for shareable images with case_sensitive=YES
 $! 0.03 20050107 Skip over Identification labels in option file
 $! 0.04 20060117 Add uppercase alias to code compiled with /name=as_is
 $!
-$ ANAL_OBJ_AXP: Subroutine   
+$ ANAL_OBJ_AXP: Subroutine
 $ V = 'F$Verify(0)
 $ SAY := "WRITE_ SYS$OUTPUT"
-$ 
+$
 $ IF F$SEARCH("''P1'") .EQS. ""
 $ THEN
 $    SAY "ANAL_OBJ_AXP-E-NOSUCHFILE:  Error, inputfile ''p1' not available"
@@ -765,15 +765,15 @@ $ if f$locate("=PROCEDURE)",raw_element) .lt. f$length(raw_element)
 $ then
 $     name = f$element(1,"=",raw_element) - "("
 $     if f$edit(name,"UPCASE") .nes. name then -
-          write case_vector f$fao(" symbol_vector=(!AS/!AS=PROCEDURE)", - 
-	                          f$edit(name,"UPCASE"), name) 
+          write case_vector f$fao(" symbol_vector=(!AS/!AS=PROCEDURE)", -
+	                          f$edit(name,"UPCASE"), name)
 $ endif
 $ if f$locate("=DATA)",raw_element) .lt. f$length(raw_element)
 $ then
 $     name = f$element(1,"=",raw_element) - "("
 $     if f$edit(name,"UPCASE") .nes. name then -
-          write case_vector f$fao(" symbol_vector=(!AS/!AS=DATA)", - 
-	                          f$edit(name,"UPCASE"), name) 
+          write case_vector f$fao(" symbol_vector=(!AS/!AS=DATA)", -
+	                          f$edit(name,"UPCASE"), name)
 $ endif
 $ goto rawloop
 $ END_RAWLOOP:
@@ -785,7 +785,7 @@ $ if f$search("x.tmp") .nes. "" -
 $!
 $ EXIT_AA:
 $ if V then set verify
-$ endsubroutine 
+$ endsubroutine
 $!------------------------------------------------------------------------------
 $!
 $! Write configuration to both permanent and temporary config file

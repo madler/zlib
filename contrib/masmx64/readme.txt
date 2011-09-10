@@ -24,5 +24,5 @@ run bld_64.bat with Microsoft Macro Assembler (x64) for AMD64 (ml64.exe)
 
 ml64.exe is given with Visual Studio 2005, Windows 2003 server DDK
 
-You can get Windows 2003 server DDK with ml64 and cl for AMD64 from 
+You can get Windows 2003 server DDK with ml64 and cl for AMD64 from
   http://www.microsoft.com/whdc/devtools/ddk/default.mspx for low price)

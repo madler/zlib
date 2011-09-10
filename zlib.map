@@ -15,6 +15,7 @@ ZLIB_1.2.0 {
     zcfree;
     z_errmsg;
     gz_error;
+    gz_intmax;
     gzio_old;
     _*;
 };
@@ -46,6 +47,11 @@ ZLIB_1.2.2.4 {
 } ZLIB_1.2.2.3;
 
 ZLIB_1.2.3.3 {
+    adler32_combine64;
+    crc32_combine64;
+    gzopen64;
+    gzseek64;
+    gztell64;
     inflateUndermine;
 } ZLIB_1.2.2.4;
 

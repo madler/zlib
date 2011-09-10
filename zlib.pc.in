@@ -7,6 +7,6 @@ Name: zlib
 Description: zlib compression library
 Version: @VERSION@
 
-Requires: 
+Requires:
 Libs: -L${libdir} -lz
 Cflags: -I${includedir}

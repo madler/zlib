@@ -8,16 +8,16 @@
 CFG=zlib - Win32 LIB Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "zlib.mak".
-!MESSAGE 
+!MESSAGE
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "zlib.mak" CFG="zlib - Win32 LIB Debug"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "zlib - Win32 DLL ASM Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "zlib - Win32 DLL ASM Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "zlib - Win32 DLL Release" (based on "Win32 (x86) Dynamic-Link Library")
@@ -26,7 +26,7 @@ CFG=zlib - Win32 LIB Debug
 !MESSAGE "zlib - Win32 LIB ASM Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "zlib - Win32 LIB Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "zlib - Win32 LIB Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE 
+!MESSAGE
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -265,7 +265,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo /out:"Win32_LIB_Debug\zlibd.lib"
 
-!ENDIF 
+!ENDIF
 
 # Begin Target
 
@@ -368,7 +368,7 @@ SOURCE=..\..\win32\zlib.def
 
 # PROP Exclude_From_Build 1
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # Begin Source File
@@ -499,7 +499,7 @@ InputName=gvmat32
 
 # PROP Exclude_From_Build 1
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # Begin Source File
@@ -542,7 +542,7 @@ SOURCE=..\..\contrib\masmx86\gvmat32c.c
 # PROP Exclude_From_Build 1
 # ADD CPP /I "..\.."
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # Begin Source File
@@ -613,7 +613,7 @@ InputName=inffas32
 
 # PROP Exclude_From_Build 1
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # End Group

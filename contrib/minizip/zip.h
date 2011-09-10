@@ -31,7 +31,7 @@
 
 	---------------------------------------------------------------------------
 
-	Changes 
+	Changes
 
 	See header of zip.h
 
@@ -338,13 +338,13 @@ extern int ZEXPORT zipClose OF((zipFile file,
 
 
 extern int ZEXPORT zipRemoveExtraInfoBlock OF((char* pData, int* dataLen, short sHeader));
-/* 
-  zipRemoveExtraInfoBlock -  Added by Mathias Svensson 
-  
+/*
+  zipRemoveExtraInfoBlock -  Added by Mathias Svensson
+
   Remove extra information block from a extra information data for the local file header or central directory header
 
   It is needed to remove ZIP64 extra information blocks when before data is written if using RAW mode.
-  
+
   0x0001 is the signature header for the ZIP64 extra information blocks
 
   usage.

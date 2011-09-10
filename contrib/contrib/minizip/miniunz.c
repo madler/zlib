@@ -12,7 +12,9 @@
 	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 */
 
-#ifndef _WIN32
+#include "unzip.h"
+
+#ifndef _WIN32 
 	#ifndef __USE_FILE_OFFSET64
 		#define __USE_FILE_OFFSET64
 	#endif
@@ -42,7 +44,6 @@
 # include <io.h>
 #endif
 
-#include "unzip.h"
 
 #define CASESENSITIVITY (0)
 #define WRITEBUFFERSIZE (8192)
@@ -375,7 +376,7 @@ int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
 
                     printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
                     ret = scanf("%1s",answer);
-                    if (ret != 1)
+                    if (ret != 1) 
                     {
                        exit(EXIT_FAILURE);
                     }
@@ -627,9 +628,9 @@ int main(argc,argv)
     else if (opt_do_extract==1)
     {
 #ifdef _WIN32
-        if (opt_extractdir && _chdir(dirname))
+        if (opt_extractdir && _chdir(dirname)) 
 #else
-        if (opt_extractdir && chdir(dirname))
+        if (opt_extractdir && chdir(dirname)) 
 #endif
         {
           printf("Error changing into %s, aborting\n", dirname);

@@ -16,7 +16,7 @@
 ; * enabled.  I will attempt to merge the MMX code into this version.  Newer
 ; * versions of this and inffast.S can be found at
 ; * http://www.eetbeetee.com/zlib/ and http://www.charm.net/~christop/zlib/
-; * 
+; *
 ; * 2005 : modification by Gilles Vollant
 ; */
 ; For Visual C++ 4.x and higher and ML 6.x and higher
@@ -33,7 +33,7 @@
 
 
 ; zlib122sup is 0 fort zlib 1.2.2.1 and lower
-; zlib122sup is 8 fort zlib 1.2.2.2 and more (with addition of dmax and head 
+; zlib122sup is 8 fort zlib 1.2.2.2 and more (with addition of dmax and head
 ;        in inflate_state in inflate.h)
 zlib1222sup      equ    8
 

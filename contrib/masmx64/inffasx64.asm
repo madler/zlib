@@ -11,7 +11,7 @@
 ;
 ;   ml64.exe is given with Visual Studio 2005, Windows 2003 server DDK
 ;
-;   (you can get Windows 2003 server DDK with ml64 and cl.exe for AMD64 from 
+;   (you can get Windows 2003 server DDK with ml64 and cl.exe for AMD64 from
 ;      http://www.microsoft.com/whdc/devtools/ddk/default.mspx for low price)
 ;
 
@@ -379,7 +379,7 @@ L_break_loop_with_status:
 	mov r14,[rsp-40]
 	mov r15,[rsp-48]
 	mov rbx,[rsp-56]
-	
+
     ret 0
 ;          :
 ;          : "m" (ar)

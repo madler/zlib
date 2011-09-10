@@ -36,13 +36,13 @@ char ZEXPORT *gz_strwinerror (error)
     wchar_t *msgbuf;
     DWORD lasterr = GetLastError();
     DWORD chars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
-	| FORMAT_MESSAGE_ALLOCATE_BUFFER,
-	NULL,
-	error,
-	0, /* Default language */
-	(LPVOID)&msgbuf,
-	0,
-	NULL);
+        | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+        NULL,
+        error,
+        0, /* Default language */
+        (LPVOID)&msgbuf,
+        0,
+        NULL);
     if (chars != 0) {
         /* If there is an \r\n appended, zap it.  */
         if (chars >= 2
@@ -330,7 +330,8 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
 
     /* if reading, skip what's in output buffer (one less gzgetc() check) */
     if (state->mode == GZ_READ) {
-        n = state->have > offset ? (unsigned)offset : state->have;
+        n = GT_OFF(state->have) || (z_off64_t)state->have > offset ?
+            (unsigned)offset : state->have;
         state->have -= n;
         state->next += n;
         state->pos += n;
@@ -512,5 +513,24 @@ void ZEXPORT gz_error(state, err, msg)
     strcat(state->msg, msg);
     return;
 }
+
+#ifndef INT_MAX
+/* portably return maximum value for an int (when limits.h presumed not
+   available) -- we need to do this to cover cases where 2's complement not
+   used, since C standard permits 1's complement and sign-bit representations,
+   otherwise we could just use ((unsigned)-1) >> 1 */
+unsigned ZEXPORT gz_intmax()
+{
+    unsigned p, q;
+
+    p = 1;
+    do {
+        q = p;
+        p <<= 1;
+        p++;
+    } while (p > q);
+    return q >> 1;
+}
+#endif
 
 #endif /* !OLD_GZIO */

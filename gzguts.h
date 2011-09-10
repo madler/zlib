@@ -19,6 +19,7 @@
 #ifdef STDC
 #  include <string.h>
 #  include <stdlib.h>
+#  include <limits.h>
 #endif
 #include <fcntl.h>
 
@@ -118,4 +119,14 @@ typedef gz_state FAR *gz_statep;
 ZEXTERN void ZEXPORT gz_error OF((gz_statep, int, const char *));
 #if defined UNDER_CE && defined NO_ERRNO_H
 ZEXTERN char ZEXPORT *gz_strwinerror OF((DWORD error));
+#endif
+
+/* GT_OFF(x), where x is an unsigned value, is true if x > maximum z_off64_t
+   value -- needed when comparing unsigned to z_off64_t, which is signed
+   (possible z_off64_t types off_t, off64_t, and long are all signed) */
+#ifdef INT_MAX
+#  define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > INT_MAX)
+#else
+ZEXTERN unsigned ZEXPORT gz_intmax OF((void));
+#  define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > gz_intmax())
 #endif

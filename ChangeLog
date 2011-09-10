@@ -1,6 +1,21 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.8 (13 Feb 2010)
+- Clean up text files (tabs, trailing whitespace, etc.) [Oberhumer]
+- Use z_off64_t in gz_zero() and gz_skip() to match state->skip
+- Avoid comparison problem when sizeof(int) == sizeof(z_off64_t)
+- Revert to Makefile.in from 1.2.3.6 (live with the clutter)
+- Fix missing error return in gzflush(), add zlib.h note
+- Add *64 functions to zlib.map [Levin]
+- Fix signed/unsigned comparison in gz_comp()
+- Use SFLAGS when testing shared linking in configure
+- Add --64 option to ./configure to use -m64 with gcc
+- Fix ./configure --help to correctly name options
+- Have make fail if a test fails [Levin]
+- Avoid buffer overrun in contrib/masmx64/gvmat64.asm [Simpson]
+- Remove assembler object files from contrib
+
 Changes in 1.2.3.7 (24 Jan 2010)
 - Always gzopen() with O_LARGEFILE if available
 - Fix gzdirect() to work immediately after gzopen() or gzdopen()
@@ -191,7 +206,7 @@ Changes in 1.2.3.1 (16 August 2006)
 - Synchronize FAQ with website
 - Fix compressBound(), was low for some pathological cases [Fearnley]
 - Take into account wrapper variations in deflateBound()
-- Set examples/zpipe.c input and output to binary mode for Windows 
+- Set examples/zpipe.c input and output to binary mode for Windows
 - Update examples/zlib_how.html with new zpipe.c (also web site)
 - Fix some warnings in examples/gzlog.c and examples/zran.c (it seems
   that gcc became pickier in 4.0)

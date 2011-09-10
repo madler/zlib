@@ -48,6 +48,7 @@
 #  define deflate_copyright     z_deflate_copyright
 #  define get_crc_table         z_get_crc_table
 #  define gz_error              z_gz_error
+#  define gz_intmax             z_gz_intmax
 #  define gz_strwinerror        z_gz_strwinerror
 #  define gzbuffer              z_gzbuffer
 #  define gzclearerr            z_gzclearerr

@@ -111,11 +111,11 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     type_ar ar;
     void inffas8664fnc(struct inffast_ar * par);
 
-    
+
 
 #if (defined( __GNUC__ ) && defined( __amd64__ ) && ! defined( __i386 )) || (defined(_MSC_VER) && defined(_M_AMD64))
 #define PAD_AVAIL_IN 6
-#define PAD_AVAIL_OUT 258    
+#define PAD_AVAIL_OUT 258
 #else
 #define PAD_AVAIL_IN 5
 #define PAD_AVAIL_OUT 257

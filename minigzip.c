@@ -76,13 +76,13 @@ static char *strwinerror (error)
     wchar_t *msgbuf;
     DWORD lasterr = GetLastError();
     DWORD chars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
-	| FORMAT_MESSAGE_ALLOCATE_BUFFER,
-	NULL,
-	error,
-	0, /* Default language */
-	(LPVOID)&msgbuf,
-	0,
-	NULL);
+        | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+        NULL,
+        error,
+        0, /* Default language */
+        (LPVOID)&msgbuf,
+        0,
+        NULL);
     if (chars != 0) {
         /* If there is an \r\n appended, zap it.  */
         if (chars >= 2

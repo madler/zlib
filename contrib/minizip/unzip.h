@@ -13,7 +13,7 @@
 	 For more info read MiniZip_info.txt
 
 	 ---------------------------------------------------------------------------------
- 
+
 	Condition of use and distribution are the same than zlib :
 
   This software is provided 'as-is', without any express or implied
@@ -36,7 +36,7 @@
 
 	Changes
 
-	See header of unzip64.c 
+	See header of unzip64.c
 
 */
 

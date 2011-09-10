@@ -14,7 +14,7 @@
 ;
 ; this file contain two implementation of longest_match
 ;
-;  longest_match_7fff : written 1996 by Gilles Vollant optimized for 
+;  longest_match_7fff : written 1996 by Gilles Vollant optimized for
 ;            first Pentium. Assume s->w_mask == 0x7fff
 ;  longest_match_686 : written by Brian raiter (1998), optimized for Pentium Pro
 ;
@@ -39,7 +39,7 @@
 ;
 ;    compile the asm file running
 ;           ml /coff /Zi /c /Flgvmat32.lst /DNOOLDPENTIUMCODE gvmat32.asm
-;    and do not include gvmat32c.c in your project (ou define also 
+;    and do not include gvmat32c.c in your project (ou define also
 ;              NOOLDPENTIUMCODE)
 ;
 ; note : as I known, longest_match_686 is very faster than longest_match_7fff
@@ -113,7 +113,7 @@ IFDEF NOUNDERLINE
    IFDEF NOOLDPENTIUMCODE
             public  longest_match
             public  match_init
-   ELSE            
+   ELSE
             public  longest_match_7fff
             public  cpudetect32
             public  longest_match_686
@@ -959,7 +959,7 @@ IFDEF NOOLDPENTIUMCODE
     _match_init     proc near
                     ret
     _match_init     endp
-    ENDIF    
+    ENDIF
 ELSE
     IFDEF NOUNDERLINE
     longest_match_686   endp

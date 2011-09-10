@@ -5,26 +5,26 @@ INDEX           this file
 Makefile.in     template for Unix Makefile
 README          guess what
 configure       configure script for Unix
-make_vms.com	makefile for VMS
-treebuild.xml	XML description of source file dependencies
-zconf.in.h	zconf.h template for configure
-zlib.3		Man page for zlib
-zlib.map	Linux symbol information
-zlib.pc.in	Template for pkg-config descriptor
-zlib2ansi	perl script to convert source files for C++ compilation
+make_vms.com    makefile for VMS
+treebuild.xml   XML description of source file dependencies
+zconf.in.h      zconf.h template for configure
+zlib.3          Man page for zlib
+zlib.map        Linux symbol information
+zlib.pc.in      Template for pkg-config descriptor
+zlib2ansi       perl script to convert source files for C++ compilation
 
 amiga/          makefiles for Amiga SAS C
 as400/          makefiles for IBM AS/400
-doc/		documentation for formats and algorithms
+doc/            documentation for formats and algorithms
 msdos/          makefiles for MSDOS
-nintendods/	makefile for Nintendo DS
-objs/		destination for object files
+nintendods/     makefile for Nintendo DS
+objs/           destination for object files
 old/            makefiles for various architectures and zlib documentation
                 files that have not yet been updated for zlib 1.2.x
-pics/		destination for position-independent-code object files
+pics/           destination for position-independent-code object files
 projects/       projects for various Integrated Development Environments
 qnx/            makefiles for QNX
-watcom/		makefiles for OpenWatcom
+watcom/         makefiles for OpenWatcom
 win32/          makefiles for Windows
 
                 zlib public header files (required for library use):

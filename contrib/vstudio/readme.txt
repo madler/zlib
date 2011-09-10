@@ -30,9 +30,9 @@ Build instructions for Visual Studio 2005 (32 bits or 64 bits)
 
 Build instructions for Visual Studio 2005 64 bits, PSDK compiler
 ----------------------------------------------------------------
-at the time of writing this text file, Visual Studio 2005 (and 
+at the time of writing this text file, Visual Studio 2005 (and
   Microsoft Visual C++ 8.0) is on the beta 2 stage.
-Using you can get the free 64 bits compiler from Platform SDK, 
+Using you can get the free 64 bits compiler from Platform SDK,
   which is NOT a beta, and compile using the Visual studio 2005 IDE
 see http://www.winimage.com/misc/sdk64onvs2005/ for instruction
 

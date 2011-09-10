@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3.7, Jan 24th, 2010
+  version 1.2.3.8, Feb 13th, 2010
 
   Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.3.7"
-#define ZLIB_VERNUM 0x1237
+#define ZLIB_VERSION "1.2.3.8"
+#define ZLIB_VERNUM 0x1238
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 3
@@ -1316,7 +1316,7 @@ ZEXTERN int ZEXPORT gzflush OF((gzFile file, int flush));
 /*
      Flushes all pending output into the compressed file.  The parameter flush
    is as in the deflate() function.  The return value is the zlib error number
-   (see function gzerror below).
+   (see function gzerror below).  gzflush is only permitted when writing.
 
      If the flush parameter is Z_FINISH, the remaining data is written and the
    gzip stream is completed in the output.  If gzwrite() is called again, a new

@@ -15,7 +15,7 @@
 
   ------------------------------------------------------------------------------------
   Decryption code comes from crypt.c by Info-ZIP but has been greatly reduced in terms of
-  compatibility with older software. The following is from the original crypt.c. 
+  compatibility with older software. The following is from the original crypt.c.
   Code woven in by Terry Thorsen 1/2003.
 
   Copyright (c) 1990-2000 Info-ZIP.  All rights reserved.
@@ -45,13 +45,13 @@
   2007-2008 - Even Rouault - Decoration of symbol names unz* -> cpl_unz*
   2007-2008 - Even Rouault - Remove old C style function prototypes
   2007-2008 - Even Rouault - Add unzip support for ZIP64
-	
+
 	Copyright (C) 2007-2008 Even Rouault
 
 
 	Okt-2009 - Mathias Svensson - Removed cpl_* from symbol names (Even Rouault added them but since this is now moved to a new project (minizip64) I renamed them again).
   Okt-2009 - Mathias Svensson - Fixed problem if uncompressed size was > 4G and compressed size was <4G
-                                should only read the compressed/uncompressed size from the Zip64 format if 
+                                should only read the compressed/uncompressed size from the Zip64 format if
                                 the size from normal header was 0xFFFFFFFF
   Okt-2009 - Mathias Svensson - Applied some bug fixes from paches recived from Gilles Vollant
 	Okt-2009 - Mathias Svensson - Applied support to unzip files with compression mathod BZIP2 (bzip2 lib is required)
@@ -1010,7 +1010,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
     if ((err==UNZ_OK) && (file_info.size_file_extra != 0))
     {
 				uLong acc = 0;
-        
+
         // since lSeek now points to after the extra field we need to move back
         lSeek -= file_info.size_file_extra;
 
@@ -1826,7 +1826,7 @@ extern int ZEXPORT unzReadCurrentFile  (unzFile file, voidp buf, unsigned len)
             pfile_in_zip_read_info->stream.next_out  = (Bytef*)pfile_in_zip_read_info->bstream.next_out;
             pfile_in_zip_read_info->stream.avail_out = pfile_in_zip_read_info->bstream.avail_out;
             pfile_in_zip_read_info->stream.total_out = pfile_in_zip_read_info->bstream.total_out_lo32;
-            
+
             if (err==BZ_STREAM_END)
               return (iRead==0) ? UNZ_EOF : iRead;
             if (err!=BZ_OK)

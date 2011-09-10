@@ -12,8 +12,9 @@
 	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 */
 
+#include "zip.h"
 
-#ifndef _WIN32
+#ifndef _WIN32 
 	#ifndef __USE_FILE_OFFSET64
 		#define __USE_FILE_OFFSET64
 	#endif
@@ -45,7 +46,6 @@
 # include <io.h>
 #endif
 
-#include "zip.h"
 
 #ifdef _WIN32
 	#define USEWIN32IOAPI
@@ -219,15 +219,15 @@ int isLargeFile(const char* filename)
     int n = fseeko64(pFile, 0, SEEK_END);
 
     pos = ftello64(pFile);
-
+    
 		printf("File : %s is %lld bytes\n", filename, pos);
-
+    
     if(pos >= 0xffffffff)
      largeFile = 1;
 
 		fclose(pFile);
   }
-
+  
  return largeFile;
 }
 
@@ -406,7 +406,7 @@ int main(argc,argv)
 */
                 if ((password != NULL) && (err==ZIP_OK))
                     err = getFileCrc(filenameinzip,buf,size_buf,&crcFile);
-
+ 
                 zip64 = isLargeFile(filenameinzip);
 
 							 /* The path name saved, should not include a leading slash. */

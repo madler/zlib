@@ -5,16 +5,16 @@ Introduction
 MiniZip64 is built from MiniZip by Gilles Vollant ( http://www.winimage.com/zLibDll/minizip.html )
 
 When adding ZIP64 support into minizip it would result into breaking compatibility with current minizip.
-And since breaking compatibility in minizip is not wanted. I decided to create a fork of minizip 
+And since breaking compatibility in minizip is not wanted. I decided to create a fork of minizip
 and create minizip64.
 
-Even though MiniZip64 is build from MiniZip, all functions and struct's have changed name so that it 
+Even though MiniZip64 is build from MiniZip, all functions and struct's have changed name so that it
 would not collide with each other.
 
 
 Background
 ---------------------
-When adding ZIP64 support I found that Even Rouault have added ZIP64 support for unzip.c into minizip 
+When adding ZIP64 support I found that Even Rouault have added ZIP64 support for unzip.c into minizip
 for a open source project called gdal ( http://www.gdal.org/ )
 
 That was used as a starting point. And after that ZIP64 support was added to zip.c
@@ -33,24 +33,24 @@ Changed from MiniZip to MiniZip64
 * Did some refactoring and code cleanup
 
 
-Credits 
+Credits
 
  Gilles Vollant    - Original MiniZip author
  Even Rouault      - ZIP64 unzip Support
  Daniel Borca      - BZip Compression method support in unzip
  Mathias Svensson  - ZIP64 zip support
  Mathias Svensson  - BZip Compression method support in zip
- 
- Resources 
- 
+
+ Resources
+
  ZipLayout   http://result42.com/projects/ZipFileLayout
              Command line tool for Windows that shows the layout and information of the headers in a zip archive.
              Used when debugging and validating the creation of zip files using MiniZip64
-			 
-			 
+
+
  ZIP App Note  http://www.pkware.com/documents/casestudies/APPNOTE.TXT
                Zip File specification
-        
+
 
 Notes.
  * To be able to use BZip compression method in zip64.c or unzip64.c the BZIP2 lib is needed and HAVE_BZIP2 need to be defined.

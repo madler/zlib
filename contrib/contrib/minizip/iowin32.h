@@ -4,7 +4,7 @@
 
 	 Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-	 Modifications for Zip64 support
+	 Modifications for Zip64 support 
 	 Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 
 	 For more info read MiniZip_info.txt
@@ -18,10 +18,10 @@
 extern "C" {
 #endif
 
-void fill_win32_filefunc OF((zlib_filefunc_def* pzlib_filefunc_def));
-void fill_win32_filefunc64 OF((zlib_filefunc64_def* pzlib_filefunc_def));
-void fill_win32_filefunc64A OF((zlib_filefunc64_def* pzlib_filefunc_def));
-void fill_win32_filefunc64W OF((zlib_filefunc64_def* pzlib_filefunc_def));
+extern void ZEXPORT fill_win32_filefunc OF((zlib_filefunc_def* pzlib_filefunc_def));
+extern void ZEXPORT fill_win32_filefunc64 OF((zlib_filefunc64_def* pzlib_filefunc_def));
+extern void ZEXPORT fill_win32_filefunc64A OF((zlib_filefunc64_def* pzlib_filefunc_def));
+extern void ZEXPORT fill_win32_filefunc64W OF((zlib_filefunc64_def* pzlib_filefunc_def));
 
 #ifdef __cplusplus
 }

@@ -91,7 +91,7 @@ static int crypthead(const char* passwd,      /* password string */
                      unsigned char* buf,      /* where to write header */
                      int bufSize,
                      unsigned long* pkeys,
-                     const unsigned long* pcrc_32_tab, 
+                     const unsigned long* pcrc_32_tab,
                      unsigned long crcForCrypting)
 {
     int n;                       /* index in random header */

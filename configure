@@ -30,6 +30,7 @@ mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
 shared=1
 zprefix=0
+build64=0
 gcc=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
@@ -39,8 +40,8 @@ do
 case "$1" in
     -h* | --help)
       echo 'usage:'
-      echo '  configure [--shared] [--prefix=PREFIX]  [--exec_prefix=EXPREFIX]'
-      echo '     [--libdir=LIBDIR] [--includedir=INCLUDEDIR] [--zprefix]'
+      echo '  configure [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]'
+      echo '    [--static] [--64] [--libdir=LIBDIR] [--includedir=INCLUDEDIR]'
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[-a-z_]*=//'`; shift ;;
@@ -54,6 +55,7 @@ case "$1" in
     -s* | --shared | --enable-shared) shared=1; shift ;;
     -t | --static) shared=0; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
+    -6* | --64) build64=1; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir"; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir"; shift ;;
     *) echo "unknown option: $1"; echo "$0 --help for help"; exit 1 ;;
@@ -78,6 +80,10 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
   SFLAGS="${CFLAGS-"-O3"} -fPIC"
   CFLAGS="${CFLAGS-"-O3"}"
+  if test $build64 -eq 1; then
+    CFLAGS="${CFLAGS} -m64"
+    SFLAGS="${SFLAGS} -m64"
+  fi
   if test "${ZLIBGCCWARN}" = "YES"; then
     CFLAGS="${CFLAGS} -Wall -Wextra -pedantic"
   fi
@@ -191,7 +197,7 @@ if test $shared -eq 1; then
   echo Checking for shared library support...
   # we must test in two steps (cc then ld), required at least on SunOS 4.x
   if test "`($CC -w -c $SFLAGS $test.c) 2>&1`" = "" &&
-     test "`($LDSHARED -o $test$shared_ext $test.o) 2>&1`" = ""; then
+     test "`($LDSHARED $SFLAGS -o $test$shared_ext $test.o) 2>&1`" = ""; then
     echo Building shared library $SHAREDLIBV with $CC.
   elif test -z "$old_cc" -a -z "$old_cflags"; then
     echo No shared library support.
@@ -199,8 +205,8 @@ if test $shared -eq 1; then
   else
     echo Tested $CC -w -c $SFLAGS $test.c
     $CC -w -c $SFLAGS $test.c
-    echo Tested $LDSHARED -o $test$shared_ext $test.o
-    $LDSHARED -o $test$shared_ext $test.o
+    echo Tested $LDSHARED $SFLAGS -o $test$shared_ext $test.o
+    $LDSHARED $SFLAGS -o $test$shared_ext $test.o
     echo 'No shared library support; try without defining CC and CFLAGS'
     shared=0;
   fi

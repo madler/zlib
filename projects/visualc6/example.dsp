@@ -7,16 +7,16 @@
 CFG=example - Win32 LIB Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "example.mak".
-!MESSAGE 
+!MESSAGE
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "example.mak" CFG="example - Win32 LIB Debug"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "example - Win32 DLL ASM Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "example - Win32 DLL ASM Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE "example - Win32 DLL Release" (based on "Win32 (x86) Console Application")
@@ -25,7 +25,7 @@ CFG=example - Win32 LIB Debug
 !MESSAGE "example - Win32 LIB ASM Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE "example - Win32 LIB Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "example - Win32 LIB Debug" (based on "Win32 (x86) Console Application")
-!MESSAGE 
+!MESSAGE
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -242,7 +242,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
-!ENDIF 
+!ENDIF
 
 # Begin Target
 

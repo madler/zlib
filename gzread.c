@@ -14,7 +14,7 @@ local int gz_next4 OF((gz_statep, unsigned long *));
 local int gz_head OF((gz_statep));
 local int gz_decomp OF((gz_statep));
 local int gz_make OF((gz_statep));
-local int gz_skip OF((gz_statep, z_off_t));
+local int gz_skip OF((gz_statep, z_off64_t));
 
 /* Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
    state->fd, and update state->eof, state->err, and state->msg as appropriate.
@@ -330,7 +330,7 @@ local int gz_make(state)
 /* Skip len uncompressed bytes of output.  Return -1 on error, 0 on success. */
 local int gz_skip(state, len)
     gz_statep state;
-    z_off_t len;
+    z_off64_t len;
 {
     unsigned n;
 
@@ -338,7 +338,8 @@ local int gz_skip(state, len)
     while (len)
         /* skip over whatever is in output buffer */
         if (state->have) {
-            n = state->have > len ? (unsigned)len : state->have;
+            n = GT_OFF(state->have) || (z_off64_t)state->have > len ?
+                (unsigned)len : state->have;
             state->have -= n;
             state->next += n;
             state->pos += n;

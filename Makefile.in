@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.3.7
+SHAREDLIBV=libz.so.1.2.3.8
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIB) $(SHAREDLIBV)
 
@@ -53,15 +53,16 @@ pkgconfigdir = ${libdir}/pkgconfig
 OBJC = adler32.o compress.o crc32.o deflate.o gzclose.o gzio.o gzlib.o gzread.o \
 	gzwrite.o infback.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 
-# to use the asm code: make OBJA=match.o
+PIC_OBJC = adler32.lo compress.lo crc32.lo deflate.lo gzclose.lo gzio.lo gzlib.lo gzread.lo \
+	gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo uncompr.lo zutil.lo
+
+# to use the asm code: make OBJA=match.o, PIC_OBJA=match.lo
 OBJA =
+PIC_OBJA =
 
-objdir = objs/
-picdir = pics/
+OBJS = $(OBJC) $(OBJA)
 
-OBJS = $(addprefix $(objdir), $(OBJC) $(OBJA))
-
-PIC_OBJS = $(addprefix $(picdir), $(OBJC) $(OBJA))
+PIC_OBJS = $(PIC_OBJC) $(PIC_OBJA)
 
 all: static shared
 
@@ -76,12 +77,10 @@ check: test
 test: all teststatic testshared
 
 teststatic: static
-	@echo hello world | ./minigzip | ./minigzip -d || \
-	  echo '		*** minigzip test FAILED ***' ; \
-	if ./example; then \
+	@if echo hello world | ./minigzip | ./minigzip -d && ./example; then \
 	  echo '		*** zlib test OK ***'; \
 	else \
-	  echo '		*** zlib test FAILED ***'; \
+	  echo '		*** zlib test FAILED ***'; false; \
 	fi
 	-@rm -f foo.gz
 
@@ -90,22 +89,18 @@ testshared: shared
 	LD_LIBRARYN32_PATH=`pwd`:$(LD_LIBRARYN32_PATH) ; export LD_LIBRARYN32_PATH; \
 	DYLD_LIBRARY_PATH=`pwd`:$(DYLD_LIBRARY_PATH) ; export DYLD_LIBRARY_PATH; \
 	SHLIB_PATH=`pwd`:$(SHLIB_PATH) ; export SHLIB_PATH; \
-	echo hello world | ./minigzipsh | ./minigzipsh -d || \
-	  echo '		*** minigzip shared test FAILED ***' ; \
-	if ./examplesh; then \
+	if echo hello world | ./minigzipsh | ./minigzipsh -d && ./examplesh; then \
 	  echo '		*** zlib shared test OK ***'; \
 	else \
-	  echo '		*** zlib shared test FAILED ***'; \
+	  echo '		*** zlib shared test FAILED ***'; false; \
 	fi
 	-@rm -f foo.gz
 
 test64: all64
-	@echo hello world | ./minigzip64 | ./minigzip64 -d || \
-	  echo '		*** minigzip 64-bit test FAILED ***' ; \
-	if ./example64; then \
+	@if echo hello world | ./minigzip64 | ./minigzip64 -d && ./example64; then \
 	  echo '		*** zlib 64-bit test OK ***'; \
 	else \
-	  echo '		*** zlib 64-bit test FAILED ***'; \
+	  echo '		*** zlib 64-bit test FAILED ***'; false; \
 	fi
 	-@rm -f foo.gz
 
@@ -113,51 +108,55 @@ libz.a: $(OBJS)
 	$(AR) $@ $(OBJS)
 	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
 
-objs/match.o: match.S
+match.o: match.S
 	$(CPP) match.S > _match.s
-	$(CC) -c -o $@ _match.s
+	$(CC) -c _match.s
+	mv _match.o match.o
 	rm -f _match.s
 
-pics/match.o: match.S
+match.lo: match.S
 	$(CPP) match.S > _match.s
-	$(CC) -c -o $@ -fPIC _match.s
+	$(CC) -c -fPIC _match.s
+	mv _match.o match.lo
 	rm -f _match.s
 
-objs/example64.o: example.c zlib.h zconf.h
+example64.o: example.c zlib.h zconf.h
 	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ example.c
 
-objs/minigzip64.o: minigzip.c zlib.h zconf.h
+minigzip64.o: minigzip.c zlib.h zconf.h
 	$(CC) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ minigzip.c
 
-$(objdir)%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+.SUFFIXES: .lo
 
-$(picdir)%.o: %.c
-	$(CC) $(SFLAGS) -DPIC -c -o $@ $<
+.c.lo:
+	-@if [ ! -d objs ]; then mkdir objs; fi
+	$(CC) $(SFLAGS) -DPIC -c -o objs/$*.o $<
+	-@mv objs/$*.o $@
 
 $(SHAREDLIBV): $(PIC_OBJS)
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) -lc
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
+	-@rmdir objs
 
-example$(EXE): objs/example.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ objs/example.o $(LDFLAGS)
+example$(EXE): example.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
 
-minigzip$(EXE): objs/minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ objs/minigzip.o $(LDFLAGS)
+minigzip$(EXE): minigzip.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
 
-examplesh$(EXE): objs/example.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ objs/example.o -L. $(SHAREDLIBV)
+examplesh$(EXE): example.o $(SHAREDLIBV)
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV)
 
-minigzipsh$(EXE): objs/minigzip.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ objs/minigzip.o -L. $(SHAREDLIBV)
+minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV)
 
-example64$(EXE): objs/example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ objs/example64.o $(LDFLAGS)
+example64$(EXE): example64.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ example64.o $(LDFLAGS)
 
-minigzip64$(EXE): objs/minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ objs/minigzip64.o $(LDFLAGS)
+minigzip64$(EXE): minigzip64.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(LDFLAGS)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
@@ -196,18 +195,19 @@ uninstall:
 
 mostlyclean: clean
 clean:
-	rm -f $(objdir)* $(picdir)* *~ \
+	rm -f *.o *.lo *~ \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) \
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
+	rm -rf objs
 
 maintainer-clean: distclean
 distclean: clean
 	cp -p zconf.in.h zconf.h
 	rm -f zlib.pc .DS_Store
 	-@printf 'all:\n\t-@echo "Use ./configure first.  Thank you."\n' > Makefile
-	-@ touch -r Makefile.in Makefile objs pics
+	-@touch -r Makefile.in Makefile
 
 tags:
 	etags *.[ch]
@@ -226,3 +226,13 @@ infback.o inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffi
 inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h
 trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
+
+adler32.lo gzio.lo zutil.lo: zutil.h zlib.h zconf.h
+gzclose.lo gzlib.lo gzread.lo gzwrite.lo: zlib.h zconf.h gzguts.h
+compress.lo example.lo minigzip.lo uncompr.lo: zlib.h zconf.h
+crc32.lo: zutil.h zlib.h zconf.h crc32.h
+deflate.lo: deflate.h zutil.h zlib.h zconf.h
+infback.lo inflate.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h
+inffast.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inftrees.lo: zutil.h zlib.h zconf.h inftrees.h
+trees.lo: deflate.h zutil.h zlib.h zconf.h trees.h

@@ -10,7 +10,7 @@
 /* Local functions */
 local int gz_init OF((gz_statep));
 local int gz_comp OF((gz_statep, int));
-local int gz_zero OF((gz_statep, z_off_t));
+local int gz_zero OF((gz_statep, z_off64_t));
 
 /* Initialize state for writing a gzip file.  Mark initialization by setting
    state->size to non-zero.  Return -1 on failure or 0 on success. */
@@ -62,7 +62,7 @@ local int gz_comp(state, flush)
     gz_statep state;
     int flush;
 {
-    int ret;
+    int ret, got;
     unsigned have;
     z_streamp strm = &(state->strm);
 
@@ -78,7 +78,8 @@ local int gz_comp(state, flush)
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
             have = strm->next_out - state->next;
-            if (have && write(state->fd, state->next, have) != have) {
+            if (have && ((got = write(state->fd, state->next, have)) < 0 ||
+                         (unsigned)got != have)) {
                 gz_error(state, Z_ERRNO, zstrerror());
                 return -1;
             }
@@ -111,7 +112,7 @@ local int gz_comp(state, flush)
 /* Compress len zeros to output.  Return -1 on error, 0 on success. */
 local int gz_zero(state, len)
     gz_statep state;
-    z_off_t len;
+    z_off64_t len;
 {
     int first;
     unsigned n;
@@ -121,10 +122,11 @@ local int gz_zero(state, len)
     if (strm->avail_in && gz_comp(state, Z_NO_FLUSH) == -1)
         return -1;
 
-    /* compress len zeros */
+    /* compress len zeros (len guaranteed > 0) */
     first = 1;
     while (len) {
-        n = len < state->size ? (unsigned)len : state->size;
+        n = GT_OFF(state->size) || (z_off64_t)state->size > len ?
+            (unsigned)len : state->size;
         if (first) {
             memset(state->in, 0, n);
             first = 0;
@@ -435,7 +437,8 @@ int ZEXPORT gzflush(file, flush)
     state = (gz_statep)file;
 
     /* check that we're writing and that there's no error */
-    if (state->mode != GZ_WRITE|| state->err != Z_OK)
+    if (state->mode != GZ_WRITE || state->err != Z_OK)
+        return Z_STREAM_ERROR;
 
     /* check flush parameter */
     if (flush < 0 || flush > Z_FINISH)
