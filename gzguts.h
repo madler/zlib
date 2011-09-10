@@ -76,6 +76,11 @@
 #define GZ_WRITE 31153
 #define GZ_APPEND 1     /* mode set to GZ_WRITE after the file is opened */
 
+/* values for gz_state how */
+#define LOOK 0      /* look for a gzip header */
+#define COPY 1      /* copy input directly */
+#define GZIP 2      /* decompress a gzip stream */
+
 /* internal gzip file state data structure */
 typedef struct {
         /* used for both reading and writing */
@@ -89,17 +94,18 @@ typedef struct {
     unsigned char *out;     /* output buffer (double-sized when reading) */
     unsigned char *next;    /* next output data to deliver or write */
         /* just for reading */
-    int how;                /* 0: get header, 1: copy, 2: decompress */
-    unsigned have;          /* amount of output data unused */
+    unsigned have;          /* amount of output data unused at next */
+    int eof;                /* true if end of input file reached */
     z_off64_t start;        /* where the gzip data started, for rewinding */
     z_off64_t raw;          /* where the raw data started, for seeking */
-    int eof;                /* true if end of input file reached */
+    int how;                /* 0: get header, 1: copy, 2: decompress */
+    int direct;             /* true if last read direct, false if gzip */
         /* just for writing */
     int level;              /* compression level */
     int strategy;           /* compression strategy */
         /* seek request */
-    int seek;               /* true if seek request pending */
     z_off64_t skip;         /* amount to skip (already rewound if backwards) */
+    int seek;               /* true if seek request pending */
         /* error information */
     int err;                /* error code */
     char *msg;              /* error message */

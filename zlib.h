@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3.6, Jan 17th, 2010
+  version 1.2.3.7, Jan 24th, 2010
 
   Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.3.6"
-#define ZLIB_VERNUM 0x1236
+#define ZLIB_VERSION "1.2.3.7"
+#define ZLIB_VERNUM 0x1237
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 3
@@ -209,6 +209,7 @@ typedef gz_header FAR *gz_headerp;
 #define zlib_version zlibVersion()
 /* for compatibility with versions < 1.0.2 */
 
+
                         /* basic functions */
 
 ZEXTERN const char * ZEXPORT zlibVersion OF((void));
@@ -232,8 +233,8 @@ ZEXTERN int ZEXPORT deflateInit OF((z_streamp strm, int level));
    requests a default compromise between speed and compression (currently
    equivalent to level 6).
 
-     deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_STREAM_ERROR if level is not a valid compression level,
+     deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+   memory, Z_STREAM_ERROR if level is not a valid compression level, or
    Z_VERSION_ERROR if the zlib library version (zlib_version) is incompatible
    with the version assumed by the caller (ZLIB_VERSION).  msg is set to null
    if there is no error message.  deflateInit does not perform any compression:
@@ -505,6 +506,7 @@ ZEXTERN int ZEXPORT inflateEnd OF((z_streamp strm));
    static string (which must not be deallocated).
 */
 
+
                         /* Advanced functions */
 
 /*
@@ -565,9 +567,11 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    decoder for special applications.
 
      deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
-   memory, Z_STREAM_ERROR if a parameter is invalid (such as an invalid
-   method).  msg is set to null if there is no error message.  deflateInit2
-   does not perform any compression: this will be done by deflate().
+   memory, Z_STREAM_ERROR if any parameter is invalid (such as an invalid
+   method), or Z_VERSION_ERROR if the zlib library version (zlib_version) is
+   incompatible with the version assumed by the caller (ZLIB_VERSION).  msg is
+   set to null if there is no error message.  deflateInit2 does not perform any
+   compression: this will be done by deflate().
 */
 
 ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
@@ -1087,11 +1091,11 @@ ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
                         /* utility functions */
 
 /*
-     The following utility functions are implemented on top of the
-   basic stream-oriented functions.  To simplify the interface, some default
-   options are assumed (compression level and memory usage, standard memory
-   allocation functions).  The source code of these utility functions can
-   easily be modified if you need special options.
+     The following utility functions are implemented on top of the basic
+   stream-oriented functions.  To simplify the interface, some default options
+   are assumed (compression level and memory usage, standard memory allocation
+   functions).  The source code of these utility functions can be modified if
+   you need special options.
 */
 
 ZEXTERN int ZEXPORT compress OF((Bytef *dest,   uLongf *destLen,
@@ -1147,14 +1151,17 @@ ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
    buffer, or Z_DATA_ERROR if the input data was corrupted or incomplete.
 */
 
+
+                        /* gzip file access functions */
+
 /*
-     This library supports reading and writing files in gzip (.gz) format
-   with an interface similar to that of stdio using the functions that start
-   with "gz".  The gzip format is different from the zlib format.  gzip is a
-   gzip wrapper, documented in RFC 1952, wrapped around a deflate stream.
+     This library supports reading and writing files in gzip (.gz) format with
+   an interface similar to that of stdio, using the functions that start with
+   "gz".  The gzip format is different from the zlib format.  gzip is a gzip
+   wrapper, documented in RFC 1952, wrapped around a deflate stream.
 */
 
-typedef voidp gzFile;
+typedef voidp gzFile;       /* opaque gzip file descriptor */
 
 /*
 ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
@@ -1172,25 +1179,30 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
      gzopen can be used to read a file which is not in gzip format; in this
    case gzread will directly read from the file without decompression.
 
-     gzopen returns NULL if the file could not be opened or if there was
-   insufficient memory to allocate the (de)compression state; errno can be
-   checked to distinguish the two cases (if errno is zero, the zlib error is
-   Z_MEM_ERROR).
+     gzopen returns NULL if the file could not be opened, if there was
+   insufficient memory to allocate the gzFile state, or if an invalid mode was
+   specified (an 'r', 'w', or 'a' was not provided, or '+' was provided).
+   errno can be checked to determine if the reason gzopen failed was that the
+   file could not be opened.
 */
 
 ZEXTERN gzFile ZEXPORT gzdopen OF((int fd, const char *mode));
 /*
-     gzdopen() associates a gzFile with the file descriptor fd.  File
-   descriptors are obtained from calls like open, dup, creat, pipe or fileno
-   (in the file has been previously opened with fopen).  The mode parameter is
-   as in gzopen.
+     gzdopen associates a gzFile with the file descriptor fd.  File descriptors
+   are obtained from calls like open, dup, creat, pipe or fileno (if the file
+   has been previously opened with fopen).  The mode parameter is as in gzopen.
 
      The next call of gzclose on the returned gzFile will also close the file
-   descriptor fd, just like fclose(fdopen(fd), mode) closes the file descriptor
-   fd.  If you want to keep fd open, use gzdopen(dup(fd), mode).
+   descriptor fd, just like fclose(fdopen(fd, mode)) closes the file descriptor
+   fd.  If you want to keep fd open, use fd = dup(fd_keep); gz = gzdopen(fd,
+   mode);.  The duplicated descriptor should be saved to avoid a leak, since
+   gzdopen does not close fd if it fails.
 
      gzdopen returns NULL if there was insufficient memory to allocate the
-   (de)compression state.
+   gzFile state, if an invalid mode was specified (an 'r', 'w', or 'a' was not
+   provided, or '+' was provided), or if fd is -1.  The file descriptor is not
+   used until the next gz* read, write, seek, or close operation, so gzdopen
+   will not detect if fd is invalid (unless fd is -1).
 */
 
 ZEXTERN int ZEXPORT gzbuffer OF((gzFile file, unsigned size));
@@ -1231,16 +1243,16 @@ ZEXTERN int ZEXPORT gzread OF((gzFile file, voidp buf, unsigned len));
    will be read if gzread is called until it returns less than the requested
    len.
 
-     gzread returns the number of uncompressed bytes actually read (less than
-   len for end of file, -1 for error).
+     gzread returns the number of uncompressed bytes actually read, less than
+   len for end of file, or -1 for error.
 */
 
 ZEXTERN int ZEXPORT gzwrite OF((gzFile file,
                                 voidpc buf, unsigned len));
 /*
      Writes the given number of uncompressed bytes into the compressed file.
-   gzwrite returns the number of uncompressed bytes actually written (0 in case
-   of error).
+   gzwrite returns the number of uncompressed bytes written or 0 in case of
+   error.
 */
 
 ZEXTERN int ZEXPORTVA gzprintf OF((gzFile file, const char *format, ...));
@@ -1254,7 +1266,7 @@ ZEXTERN int ZEXPORTVA gzprintf OF((gzFile file, const char *format, ...));
    nothing written.  In this case, there may also be a buffer overflow with
    unpredictable consequences, which is possible only if zlib was compiled with
    the insecure functions sprintf() or vsprintf() because the secure snprintf()
-   or vsnprintf() functions were not available.  This can be checked for using
+   or vsnprintf() functions were not available.  This can be determined using
    zlibCompileFlags().
 */
 
@@ -1273,7 +1285,7 @@ ZEXTERN char * ZEXPORT gzgets OF((gzFile file, char *buf, int len));
    condition is encountered.  The string is then terminated with a null
    character.
 
-     gzgets returns buf, or Z_NULL in case of error.
+     gzgets returns buf, or NULL in case of error.
 */
 
 ZEXTERN int ZEXPORT gzputc OF((gzFile file, int c));
@@ -1290,11 +1302,14 @@ ZEXTERN int ZEXPORT gzgetc OF((gzFile file));
 
 ZEXTERN int ZEXPORT gzungetc OF((int c, gzFile file));
 /*
-     Push one character back onto the stream to be read again later.  At least
-   one character of push-back is allowed.  gzungetc() returns the character
-   pushed, or -1 on failure.  gzungetc() will fail if c is -1, and may fail if
-   a character has been pushed but not read yet.  The pushed character will be
-   discarded if the stream is repositioned with gzseek() or gzrewind().
+     Push one character back onto the stream to be read as the first character
+   on the next read.  At least one character of push-back is allowed.
+   gzungetc() returns the character pushed, or -1 on failure.  gzungetc() will
+   fail if c is -1, and may fail if a character has been pushed but not read
+   yet.  If gzungetc is used immediately after gzopen or gzdopen, at least the
+   output buffer size of pushed characters is allowed.  (See gzbuffer above.)
+   The pushed character will be discarded if the stream is repositioned with
+   gzseek() or gzrewind().
 */
 
 ZEXTERN int ZEXPORT gzflush OF((gzFile file, int flush));
@@ -1356,43 +1371,63 @@ ZEXTERN z_off_t ZEXPORT gzoffset OF((gzFile file));
      Returns the current offset in the file being read or written.  This offset
    includes the count of bytes that precede the gzip stream, for example when
    appending or when using gzdopen() for reading.  When reading, the offset
-   includes data that has been used to generate what has been provided as
-   uncompressed data so far, but does not include as yet unused buffered input.
-   On error, gzoffset() returns -1.
+   does not include as yet unused buffered input.  This information can be used
+   for a progress indicator.  On error, gzoffset() returns -1.
 */
 
 ZEXTERN int ZEXPORT gzeof OF((gzFile file));
 /*
-     Returns 1 when EOF has previously been detected reading the given input
-   stream, otherwise zero.
+     Returns true (1) if the end-of-file indicator has been set while reading,
+   false (0) otherwise.  Note that the end-of-file indicator is set only if the
+   read tried to go past the end of the input, but came up short.  Therefore,
+   just like feof(), gzeof() may return false even if there is no more data to
+   read, in the event that the last read request was for the exact number of
+   bytes remaining in the input file.  This will happen if the input file size
+   is an exact multiple of the buffer size.
+
+     If gzeof() returns true, then the read functions will return no more data,
+   unless the end-of-file indicator is reset by gzclearerr() and the input file
+   has grown since the previous end of file was detected.
 */
 
 ZEXTERN int ZEXPORT gzdirect OF((gzFile file));
 /*
-     Returns 1 if file is being read directly without decompression, otherwise
-   zero.  gzdirect() called immediately after gzopen() will always return zero,
-   since nothing has been read yet.  Whether to read the file with
-   decompression or not is not determined until after the first read operation
-   (e.g.  gzread(), gzgetc(), etc.).
+     Returns true (1) if file is being copied directly while reading, or false
+   (0) if file is a gzip stream being decompressed.  This state can change from
+   false to true while reading the input file if the end of a gzip stream is
+   reached, but is followed by data that is not another gzip stream.
+
+     If the input file is empty, gzdirect() will return true, since the input
+   does not contain a gzip stream.
+
+     If gzdirect() is used immediately after gzopen() or gzdopen() it will
+   cause buffers to be allocated to allow reading the file to determine if it
+   is a gzip file.  Therefore if gzbuffer() is used, it should be called before
+   gzdirect().
 */
 
 ZEXTERN int ZEXPORT    gzclose OF((gzFile file));
 /*
      Flushes all pending output if necessary, closes the compressed file and
-   deallocates all the (de)compression state.  The return value is the zlib
-   error number.  Note that once file is closed, you cannot call gzerror with
-   file, since its structures have been deallocated.
+   deallocates the (de)compression state.  Note that once file is closed, you
+   cannot call gzerror with file, since its structures have been deallocated.
+   gzclose must not be called more than once on the same file, just as free
+   must not be called more than once on the same allocation.
+
+     gzclose will return Z_STREAM_ERROR if file is not valid, Z_ERRNO on a
+   file operation error, or Z_OK on success.
 */
 
 ZEXTERN int ZEXPORT gzclose_r OF((gzFile file));
 ZEXTERN int ZEXPORT gzclose_w OF((gzFile file));
 /*
      Same as gzclose(), but gzclose_r() is only for use when reading, and
-   gzclose_w() is only for use when writing.  The advantage to using these
-   instead of gzclose() is that they avoid linking in zlib compression or
-   decompression code that is not used when only reading or only writing
-   respectively.  If gzclose() is used, then both compression and decompression
-   code will be included the application when linking to a static zlib library.
+   gzclose_w() is only for use when writing or appending.  The advantage to
+   using these instead of gzclose() is that they avoid linking in zlib
+   compression or decompression code that is not used when only reading or only
+   writing respectively.  If gzclose() is used, then both compression and
+   decompression code will be included the application when linking to a static
+   zlib library.
 */
 
 ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
@@ -1414,6 +1449,7 @@ ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
    clearerr() function in stdio.  This is useful for continuing to read a gzip
    file that is being written concurrently.
 */
+
 
                         /* checksum functions */
 

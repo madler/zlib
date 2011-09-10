@@ -137,48 +137,48 @@ $ if make.eqs.""
 $  then
 $   dele example.obj;*,minigzip.obj;*
 $   CALL MAKE adler32.OBJ "CC ''CCOPT' adler32" -
-                adler32.c zlib.h zconf.h zlibdefs.h
+                adler32.c zlib.h zconf.h
 $   CALL MAKE compress.OBJ "CC ''CCOPT' compress" -
-                compress.c zlib.h zconf.h zlibdefs.h
+                compress.c zlib.h zconf.h
 $   CALL MAKE crc32.OBJ "CC ''CCOPT' crc32" -
-                crc32.c zlib.h zconf.h zlibdefs.h
+                crc32.c zlib.h zconf.h
 $   CALL MAKE deflate.OBJ "CC ''CCOPT' deflate" -
-                deflate.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
+                deflate.c deflate.h zutil.h zlib.h zconf.h
 $   CALL MAKE gzclose.OBJ "CC ''CCOPT' gzclose" -
-                gzclose.c zutil.h zlib.h zconf.h zlibdefs.h
+                gzclose.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzio.OBJ "CC ''CCOPT' gzio" -
-                gzio.c zutil.h zlib.h zconf.h zlibdefs.h
+                gzio.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzlib.OBJ "CC ''CCOPT' gzlib" -
-                gzlib.c zutil.h zlib.h zconf.h zlibdefs.h
+                gzlib.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzread.OBJ "CC ''CCOPT' gzread" -
-                gzread.c zutil.h zlib.h zconf.h zlibdefs.h
+                gzread.c zutil.h zlib.h zconf.h
 $   CALL MAKE gzwrite.OBJ "CC ''CCOPT' gzwrite" -
-                gzwrite.c zutil.h zlib.h zconf.h zlibdefs.h
+                gzwrite.c zutil.h zlib.h zconf.h
 $   CALL MAKE infback.OBJ "CC ''CCOPT' infback" -
                 infback.c zutil.h inftrees.h inflate.h inffast.h inffixed.h
 $   CALL MAKE inffast.OBJ "CC ''CCOPT' inffast" -
-                inffast.c zutil.h zlib.h zconf.h zlibdefs.h inffast.h
+                inffast.c zutil.h zlib.h zconf.h inffast.h
 $   CALL MAKE inflate.OBJ "CC ''CCOPT' inflate" -
-                inflate.c zutil.h zlib.h zconf.h zlibdefs.h infblock.h
+                inflate.c zutil.h zlib.h zconf.h infblock.h
 $   CALL MAKE inftrees.OBJ "CC ''CCOPT' inftrees" -
-                inftrees.c zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
+                inftrees.c zutil.h zlib.h zconf.h inftrees.h
 $   CALL MAKE trees.OBJ "CC ''CCOPT' trees" -
-                trees.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
+                trees.c deflate.h zutil.h zlib.h zconf.h
 $   CALL MAKE uncompr.OBJ "CC ''CCOPT' uncompr" -
-                uncompr.c zlib.h zconf.h zlibdefs.h
+                uncompr.c zlib.h zconf.h
 $   CALL MAKE zutil.OBJ "CC ''CCOPT' zutil" -
-                zutil.c zutil.h zlib.h zconf.h zlibdefs.h
+                zutil.c zutil.h zlib.h zconf.h
 $   write sys$output "Building Zlib ..."
 $   CALL MAKE libz.OLB "lib/crea libz.olb *.obj" *.OBJ
 $   write sys$output "Building example..."
 $   CALL MAKE example.OBJ "CC ''CCOPT' example" -
-                example.c zlib.h zconf.h zlibdefs.h
+                example.c zlib.h zconf.h
 $   call make example.exe "LINK example,libz.olb/lib" example.obj libz.olb
 $   if f$search("x11vms:xvmsutils.olb") .nes. ""
 $   then
 $     write sys$output "Building minigzip..."
 $     CALL MAKE minigzip.OBJ "CC ''CCOPT' minigzip" -
-                minigzip.c zlib.h zconf.h zlibdefs.h
+                minigzip.c zlib.h zconf.h
 $     call make minigzip.exe -
                 "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" -
                 minigzip.obj libz.olb
@@ -424,23 +424,23 @@ clean :
 
 
 # Other dependencies.
-adler32.obj  : adler32.c zutil.h zlib.h zconf.h zlibdefs.h
-compress.obj : compress.c zlib.h zconf.h zlibdefs.h
-crc32.obj    : crc32.c zutil.h zlib.h zconf.h zlibdefs.h
-deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
-example.obj  : example.c zlib.h zconf.h zlibdefs.h
-gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h zlibdefs.h
-gzio.obj     : gzio.c zutil.h zlib.h zconf.h zlibdefs.h
-gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h zlibdefs.h
-gzread.obj   : gzread.c zutil.h zlib.h zconf.h zlibdefs.h
-gzwrite.obj  : gzwrite.c zutil.h zlib.h zconf.h zlibdefs.h
-inffast.obj  : inffast.c zutil.h zlib.h zconf.h zlibdefs.h inftrees.h inffast.h
-inflate.obj  : inflate.c zutil.h zlib.h zconf.h zlibdefs.h
-inftrees.obj : inftrees.c zutil.h zlib.h zconf.h zlibdefs.h inftrees.h
-minigzip.obj : minigzip.c zlib.h zconf.h zlibdefs.h
-trees.obj    : trees.c deflate.h zutil.h zlib.h zconf.h zlibdefs.h
-uncompr.obj  : uncompr.c zlib.h zconf.h zlibdefs.h
-zutil.obj    : zutil.c zutil.h zlib.h zconf.h zlibdefs.h
+adler32.obj  : adler32.c zutil.h zlib.h zconf.h
+compress.obj : compress.c zlib.h zconf.h
+crc32.obj    : crc32.c zutil.h zlib.h zconf.h
+deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h
+example.obj  : example.c zlib.h zconf.h
+gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h
+gzio.obj     : gzio.c zutil.h zlib.h zconf.h
+gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h
+gzread.obj   : gzread.c zutil.h zlib.h zconf.h
+gzwrite.obj  : gzwrite.c zutil.h zlib.h zconf.h
+inffast.obj  : inffast.c zutil.h zlib.h zconf.h inftrees.h inffast.h
+inflate.obj  : inflate.c zutil.h zlib.h zconf.h
+inftrees.obj : inftrees.c zutil.h zlib.h zconf.h inftrees.h
+minigzip.obj : minigzip.c zlib.h zconf.h
+trees.obj    : trees.c deflate.h zutil.h zlib.h zconf.h
+uncompr.obj  : uncompr.c zlib.h zconf.h
+zutil.obj    : zutil.c zutil.h zlib.h zconf.h
 infback.obj  : infback.c zutil.h inftrees.h inflate.h inffast.h inffixed.h
 $ eod
 $ close out

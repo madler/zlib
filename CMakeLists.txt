@@ -59,14 +59,6 @@ if(NOT HAVE_ERRNO_H)
    add_definitions(-DNO_ERRNO_H)
 endif()
 
-#
-# Create the zlibdefs.h file.
-# Note: we create it in CMAKE_CURRENT_SOURCE_DIR instead 
-#       of CMAKE_CURRENT_BINARY_DIR because an empty zlibdefs.h
-#       is shipped with zlib in the source tree.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zlibdefs.h.cmakein
-               ${CMAKE_CURRENT_SOURCE_DIR}/zlibdefs.h)
-
 if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
@@ -80,7 +72,6 @@ endif()
 set(ZLIB_PUBLIC_HDRS
     zconf.h
     zlib.h
-    zlibdefs.h
 )
 set(ZLIB_PRIVATE_HDRS
     crc32.h

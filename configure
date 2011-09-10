@@ -85,7 +85,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
     uname=`(uname -s || echo unknown) 2>/dev/null`
   fi
   case "$uname" in
-  Linux | linux | GNU | GNU/*) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+  Linux | linux | GNU | GNU/* | *BSD | DragonFly) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2* )
              EXE='.exe' ;;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
@@ -215,14 +215,6 @@ else
   TEST="all teststatic testshared"
 fi
 
-cat > zlibdefs.h << EOF
-/* zlibdefs.h -- compile-time definitions for the zlib compression library
- * Copyright (C) 1995-2006 Jean-loup Gailly.
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
-
-EOF
-
 cat > $test.c <<EOF
 #include <sys/types.h>
 off64_t dummy = 0;
@@ -252,21 +244,15 @@ EOF
   fi
 fi
 
+cp -p zconf.in.h zconf.h
+
 cat > $test.c <<EOF
 #include <unistd.h>
 int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  cat >> zlibdefs.h <<EOF
-#include <sys/types.h>	/* for off_t */
-#include <unistd.h>	/* for SEEK_* and off_t */
-#ifdef VMS
-#  include <unixio.h>	/* for off_t */
-#endif
-#ifndef z_off_t
-#  define z_off_t off_t
-#endif
-EOF
+  sed < zconf.h "/#ifdef HAVE_UNISTD_H/s/def HAVE_UNISTD_H/ 1/" > zconf.temp.h
+  mv zconf.temp.h zconf.h
   echo "Checking for unistd.h... Yes."
 else
   echo "Checking for unistd.h... No."
@@ -300,7 +286,7 @@ if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
 #include <stdio.h>
 #include <stdarg.h>
 
-int mytest(char *fmt, ...)
+int mytest(const char *fmt, ...)
 {
   char buf[20];
   va_list ap;
@@ -364,7 +350,7 @@ EOF
 #include <stdio.h>
 #include <stdarg.h>
 
-int mytest(char *fmt, ...)
+int mytest(const char *fmt, ...)
 {
   int n;
   char buf[20];

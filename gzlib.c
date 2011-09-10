@@ -15,7 +15,7 @@
 
 /* Local functions */
 local void gz_reset OF((gz_statep));
-local gzFile gz_open OF((const char *, int, const char *, int));
+local gzFile gz_open OF((const char *, int, const char *));
 
 #if defined UNDER_CE && defined NO_ERRNO_H
 
@@ -73,10 +73,11 @@ char ZEXPORT *gz_strwinerror (error)
 local void gz_reset(state)
     gz_statep state;
 {
-    state->how = 0;             /* look for gzip header */
     if (state->mode == GZ_READ) {   /* for reading ... */
         state->have = 0;            /* no output data available */
         state->eof = 0;             /* not at end of file */
+        state->how = LOOK;          /* look for gzip header */
+        state->direct = 1;          /* default for empty file */
     }
     state->seek = 0;                /* no seek request pending */
     gz_error(state, Z_OK, NULL);    /* clear error */
@@ -85,11 +86,10 @@ local void gz_reset(state)
 }
 
 /* Open a gzip file either by name or file descriptor. */
-local gzFile gz_open(path, fd, mode, large)
+local gzFile gz_open(path, fd, mode)
     const char *path;
     int fd;
     const char *mode;
-    int large;
 {
     gz_statep state;
 
@@ -152,13 +152,9 @@ local gzFile gz_open(path, fd, mode, large)
     /* open the file with the appropriate mode (or just use fd) */
     state->fd = fd != -1 ? fd :
         open(path,
-            (large ?
 #ifdef O_LARGEFILE
-            O_LARGEFILE
-#else
-            0
+            O_LARGEFILE |
 #endif
-            : 0) |
 #ifdef O_BINARY
             O_BINARY |
 #endif
@@ -178,6 +174,10 @@ local gzFile gz_open(path, fd, mode, large)
 
     /* save the path name for error messages */
     state->path = malloc(strlen(path) + 1);
+    if (state->path == NULL) {
+        free(state);
+        return NULL;
+    }
     strcpy(state->path, path);
 
     /* save the current position for rewinding (only if reading) */
@@ -198,7 +198,7 @@ gzFile ZEXPORT gzopen(path, mode)
     const char *path;
     const char *mode;
 {
-    return gz_open(path, -1, mode, 0);
+    return gz_open(path, -1, mode);
 }
 
 /* -- see zlib.h -- */
@@ -206,7 +206,7 @@ gzFile ZEXPORT gzopen64(path, mode)
     const char *path;
     const char *mode;
 {
-    return gz_open(path, -1, mode, 1);
+    return gz_open(path, -1, mode);
 }
 
 /* -- see zlib.h -- */
@@ -216,14 +216,14 @@ gzFile ZEXPORT gzdopen(fd, mode)
 {
     char path[46];      /* identifier for error messages */
 
-    if (fd < 0)
+    if (fd == -1)
         return NULL;
 #ifdef NO_snprintf
     sprintf(path, "<fd:%d>", fd);   /* big enough for 128-bit integers */
 #else
     snprintf(path, sizeof(path), "<fd:%d>", fd);
 #endif
-    return gz_open(path, fd, mode, 0);
+    return gz_open(path, fd, mode);
 }
 
 /* -- see zlib.h -- */
@@ -303,7 +303,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
         offset -= state->pos;
 
     /* if within raw area while reading, just go there */
-    if (state->mode == GZ_READ && state->how == 1 &&
+    if (state->mode == GZ_READ && state->how == COPY &&
         state->pos + offset >= state->raw) {
         ret = LSEEK(state->fd, offset, SEEK_CUR);
         if (ret == -1)

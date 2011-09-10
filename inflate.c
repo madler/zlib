@@ -1,5 +1,5 @@
 /* inflate.c -- zlib decompression
- * Copyright (C) 1995-2009 Mark Adler
+ * Copyright (C) 1995-2010 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -154,7 +154,7 @@ int windowBits;
     /* set number of window bits, free window if different */
     if (windowBits && (windowBits < 8 || windowBits > 15))
         return Z_STREAM_ERROR;
-    if (state->wbits != (unsigned)windowBits && state->window != Z_NULL) {
+    if (state->window != Z_NULL && state->wbits != (unsigned)windowBits) {
         ZFREE(strm, state->window);
         state->window = Z_NULL;
     }

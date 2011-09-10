@@ -9,70 +9,58 @@
 
 	<include-file name="zlib.h" scope="public" mode="644" />
 	<include-file name="zconf.h" scope="public" mode="644" />
-	<include-file name="zlibdefs.h" scope="public" mode="644" />
 
 	<source name="adler32.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	</source>
 	<source name="compress.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	</source>
 	<source name="crc32.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="crc32.h" />
 	</source>
 	<source name="gzclose.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="gzguts.h" /> 
 	</source>
 	<source name="gzio.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	</source>
 	<source name="gzlib.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="gzguts.h" /> 
 	</source>
 	<source name="gzread.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="gzguts.h" /> 
 	</source>
 	<source name="gzwrite.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="gzguts.h" /> 
 	</source>
 	<source name="uncompr.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	</source>
 	<source name="deflate.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="deflate.h" /> 
 	</source>
 	<source name="trees.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="deflate.h" /> 
 	    <depend name="trees.h" /> 
@@ -80,13 +68,11 @@
 	<source name="zutil.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	</source>
 	<source name="inflate.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="inftrees.h" /> 
 	    <depend name="inflate.h" />
@@ -95,7 +81,6 @@
 	<source name="infback.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="inftrees.h" /> 
 	    <depend name="inflate.h" />
@@ -104,14 +89,12 @@
 	<source name="inftrees.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="inftrees.h" /> 
 	</source>
 	<source name="inffast.c">
 	    <depend name="zlib.h" /> 
 	    <depend name="zconf.h" /> 
-	    <depend name="zlibdefs.h" /> 
 	    <depend name="zutil.h" /> 
 	    <depend name="inftrees.h" /> 
 	    <depend name="inflate.h" />

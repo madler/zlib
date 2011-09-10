@@ -152,19 +152,19 @@ int ZEXPORT gzwrite(file, buf, len)
 
     /* get internal structure */
     if (file == NULL)
-        return -1;
+        return 0;
     state = (gz_statep)file;
     strm = &(state->strm);
 
     /* check that we're writing and that there's no error */
     if (state->mode != GZ_WRITE || state->err != Z_OK)
-        return -1;
+        return 0;
 
     /* since an int is returned, make sure len fits in one, otherwise return
        with an error (this avoids the flaw in the interface) */
     if ((int)len < 0) {
         gz_error(state, Z_BUF_ERROR, "requested length does not fit in int");
-        return -1;
+        return 0;
     }
 
     /* if len is zero, avoid unnecessary operations */
@@ -173,13 +173,13 @@ int ZEXPORT gzwrite(file, buf, len)
 
     /* allocate memory if this is the first time through */
     if (state->size == 0 && gz_init(state) == -1)
-        return -1;
+        return 0;
 
     /* check for seek request */
     if (state->seek) {
         state->seek = 0;
         if (gz_zero(state, state->skip) == -1)
-            return -1;
+            return 0;
     }
 
     /* for small len, copy to input buffer, otherwise compress directly */
@@ -197,20 +197,20 @@ int ZEXPORT gzwrite(file, buf, len)
             buf = (char *)buf + n;
             len -= n;
             if (len && gz_comp(state, Z_NO_FLUSH) == -1)
-                return -1;
+                return 0;
         } while (len);
     }
     else {
         /* consume whatever's left in the input buffer */
         if (strm->avail_in && gz_comp(state, Z_NO_FLUSH) == -1)
-            return -1;
+            return 0;
 
         /* directly compress user buffer to file */
         strm->avail_in = len;
         strm->next_in = (voidp)buf;
         state->pos += len;
         if (gz_comp(state, Z_NO_FLUSH) == -1)
-            return -1;
+            return 0;
     }
 
     /* input was all buffered or compressed (put will fit in int) */
@@ -265,8 +265,13 @@ int ZEXPORT gzputs(file, str)
     gzFile file;
     const char *str;
 {
+    int ret;
+    unsigned len;
+
     /* write string */
-    return gzwrite(file, str, strlen(str));
+    len = strlen(str);
+    ret = gzwrite(file, str, len);
+    return ret == 0 && len != 0 ? -1 : ret;
 }
 
 #ifdef STDC
@@ -494,7 +499,7 @@ int ZEXPORT gzsetparams(file, level, strategy)
 int ZEXPORT gzclose_w(file)
     gzFile file;
 {
-    int ret;
+    int ret = 0;
     gz_statep state;
 
     /* get internal structure */
@@ -509,13 +514,12 @@ int ZEXPORT gzclose_w(file)
     /* check for seek request */
     if (state->seek) {
         state->seek = 0;
-        if (gz_zero(state, state->skip) == -1)
-            return -1;
+        ret += gz_zero(state, state->skip);
     }
 
     /* flush, free memory, and close file */
-    ret = gz_comp(state, Z_FINISH);
-    deflateEnd(&(state->strm));
+    ret += gz_comp(state, Z_FINISH);
+    (void)deflateEnd(&(state->strm));
     free(state->out);
     free(state->in);
     ret += close(state->fd);

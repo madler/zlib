@@ -92,15 +92,16 @@ local int gz_next4(state, ret)
 
 /* Look for gzip header, set up for inflate or copy.  state->have must be zero.
    If this is the first time in, allocate required memory.  state->how will be
-   left unchanged if there is no more input data available, will be set to 1 if
-   there is no gzip header and direct copying will be performed, or it will be
-   set to 2 for decompression, and the gzip header will be skipped so that the
-   next available input data is the raw deflate stream.  If direct copying,
-   then leftover input data from the input buffer will be copied to the output
-   buffer.  In that case, all further file reads will be directly to either the
-   output buffer or a user buffer.  If decompressing, the inflate state and the
-   check value will be initialized.  gz_head() will return 0 on success or -1
-   on failure.  Failures may include read errors or gzip header errors. */
+   left unchanged if there is no more input data available, will be set to COPY
+   if there is no gzip header and direct copying will be performed, or it will
+   be set to GZIP for decompression, and the gzip header will be skipped so
+   that the next available input data is the raw deflate stream.  If direct
+   copying, then leftover input data from the input buffer will be copied to
+   the output buffer.  In that case, all further file reads will be directly to
+   either the output buffer or a user buffer.  If decompressing, the inflate
+   state and the check value will be initialized.  gz_head() will return 0 on
+   success or -1 on failure.  Failures may include read errors or gzip header
+   errors.  */
 local int gz_head(state)
     gz_statep state;
 {
@@ -196,7 +197,8 @@ local int gz_head(state)
             /* set up for decompression */
             inflateReset(strm);
             strm->adler = crc32(0L, Z_NULL, 0);
-            state->how = 2;
+            state->how = GZIP;
+            state->direct = 0;
             return 0;
         }
         else {
@@ -216,7 +218,8 @@ local int gz_head(state)
         state->have += strm->avail_in;
         strm->avail_in = 0;
     }
-    state->how = 1;
+    state->how = COPY;
+    state->direct = 1;
     return 0;
 }
 
@@ -224,7 +227,7 @@ local int gz_head(state)
    If the end of the compressed data is reached, then verify the gzip trailer
    check value and length (modulo 2^32).  state->have and state->next are set
    to point to the just decompressed data, and the crc is updated.  If the
-   trailer is verified, state->how is reset to zero to look for the next gzip
+   trailer is verified, state->how is reset to LOOK to look for the next gzip
    stream or raw data, once state->have is depleted.  Returns 0 on success, -1
    on failure.  Failures may include invalid compressed data or a failed gzip
    trailer verification. */
@@ -284,7 +287,8 @@ local int gz_decomp(state)
             gz_error(state, Z_DATA_ERROR, "incorrect length check");
             return -1;
         }
-        state->how = 0;         /* ready for next stream, once have is 0 */
+        state->how = LOOK;      /* ready for next stream, once have is 0 (leave
+                                   state->direct unchanged to remember how) */
     }
 
     /* good decompression */
@@ -293,28 +297,28 @@ local int gz_decomp(state)
 
 /* Make data and put in the output buffer.  Assumes that state->have == 0.
    Data is either copied from the input file or decompressed from the input
-   file depending on state->how.  If state->how is zero, then a gzip header is
+   file depending on state->how.  If state->how is LOOK, then a gzip header is
    looked for (and skipped if found) to determine wither to copy or decompress.
-   Returns -1 on error, otherwise 0.  gz_make() will leave state->have non-zero
-   unless the end of the input file has been reached and all data has been
-   processed. */
+   Returns -1 on error, otherwise 0.  gz_make() will leave state->have as COPY
+   or GZIP unless the end of the input file has been reached and all data has
+   been processed.  */
 local int gz_make(state)
     gz_statep state;
 {
     z_streamp strm = &(state->strm);
 
-    if (state->how == 0) {              /* look for gzip header */
+    if (state->how == LOOK) {           /* look for gzip header */
         if (gz_head(state) == -1)
             return -1;
         if (state->have)                /* got some data from gz_head() */
             return 0;
     }
-    if (state->how == 1) {              /* straight copy */
+    if (state->how == COPY) {           /* straight copy */
         if (gz_load(state, state->out, state->size << 1, &(state->have)) == -1)
             return -1;
         state->next = state->out;
     }
-    else if (state->how == 2) {         /* decompress */
+    else if (state->how == GZIP) {      /* decompress */
         strm->avail_out = state->size << 1;
         strm->next_out = state->out;
         if (gz_decomp(state) == -1)
@@ -409,7 +413,7 @@ int ZEXPORT gzread(file, buf, len)
 
         /* need output data -- for small len or new stream load up our output
            buffer */
-        else if (state->how == 0 || len < (state->size << 1)) {
+        else if (state->how == LOOK || len < (state->size << 1)) {
             /* get more output, looking for header if required */
             if (gz_make(state) == -1)
                 return -1;
@@ -419,13 +423,13 @@ int ZEXPORT gzread(file, buf, len)
         }
 
         /* large len -- read directly into user buffer */
-        else if (state->how == 1) {          /* read directly */
+        else if (state->how == COPY) {      /* read directly */
             if (gz_load(state, buf, len, &n) == -1)
                 return -1;
         }
 
         /* large len -- decompress directly into user buffer */
-        else {  /* state->how == 2 */
+        else {  /* state->how == GZIP */
             strm->avail_out = len;
             strm->next_out = buf;
             if (gz_decomp(state) == -1)
@@ -614,14 +618,20 @@ int ZEXPORT gzdirect(file)
     if (state->mode != GZ_READ)
         return 0;
 
-    /* return true if reading without decompression */
-    return state->how == 1;
+    /* if the state is not known, but we can find out, then do so (this is
+       mainly for right after a gzopen() or gzdopen()) */
+    if (state->how == LOOK && state->have == 0)
+        (void)gz_head(state);
+
+    /* return 1 if reading direct, 0 if decompressing a gzip stream */
+    return state->direct;
 }
 
 /* -- see zlib.h -- */
 int ZEXPORT gzclose_r(file)
     gzFile file;
 {
+    int ret;
     gz_statep state;
 
     /* get internal structure */
@@ -640,9 +650,9 @@ int ZEXPORT gzclose_r(file)
         free(state->in);
     }
     gz_error(state, Z_OK, NULL);
-    close(state->fd);
+    ret = close(state->fd);
     free(state);
-    return Z_OK;
+    return ret ? Z_ERRNO : Z_OK;
 }
 
 #endif /* !OLD_GZIO */

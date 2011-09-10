@@ -1,6 +1,28 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.3.7 (24 Jan 2010)
+- Always gzopen() with O_LARGEFILE if available
+- Fix gzdirect() to work immediately after gzopen() or gzdopen()
+- Make gzdirect() more precise when the state changes while reading
+- Improve zlib.h documentation in many places
+- Catch memory allocation failure in gz_open()
+- Complete close operation if seek forward in gzclose_w() fails
+- Return Z_ERRNO from gzclose_r() if close() fails
+- Return Z_STREAM_ERROR instead of EOF for gzclose() being passed NULL
+- Return zero for gzwrite() errors to match zlib.h description
+- Return -1 on gzputs() error to match zlib.h description
+- Add zconf.in.h to allow recovery from configure modification [Weigelt]
+- Fix static library permissions in Makefile.in [Weigelt]
+- Avoid warnings in configure tests that hide functionality [Weigelt]
+- Add *BSD and DragonFly to Linux case in configure [gentoo 123571]
+- Change libzdll.a to libz.dll.a in win32/Makefile.gcc [gentoo 288212]
+- Avoid access of uninitialized data for first inflateReset2 call [Gomes]
+- Keep object files in subdirectories to reduce the clutter somewhat
+- Remove default Makefile and zlibdefs.h, add dummy Makefile
+- Add new external functions to Z_PREFIX, remove duplicates, z_z_ -> z_
+- Remove zlibdefs.h completely -- modify zconf.h instead
+
 Changes in 1.2.3.6 (17 Jan 2010)
 - Avoid void * arithmetic in gzread.c and gzwrite.c
 - Make compilers happier with const char * for gz_error message

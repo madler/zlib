@@ -25,7 +25,7 @@
 
 STATICLIB = libz.a
 SHAREDLIB = zlib1.dll
-IMPLIB    = libzdll.a
+IMPLIB    = libz.dll.a
 
 #LOC = -DASMV
 #LOC = -DDEBUG -g
