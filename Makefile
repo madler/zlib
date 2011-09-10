@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-1998 Jean-loup Gailly.
+# Copyright (C) 1995-2002 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h 
 
 # To compile and test, type:
@@ -24,7 +24,7 @@ LDFLAGS=-L. -lz
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
-VER=1.1.3
+VER=1.1.4
 LIBS=libz.a
 SHAREDLIB=libz.so
 
@@ -47,7 +47,8 @@ OBJA =
 TEST_OBJS = example.o minigzip.o
 
 DISTFILES = README FAQ INDEX ChangeLog configure Make*[a-z0-9] *.[ch] *.mms \
-  algorithm.txt zlib.3 msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
+  algorithm.txt zlib.3 zlib.html \
+  msdos/Make*[a-z0-9] msdos/zlib.def msdos/zlib.rc \
   nt/Make*[a-z0-9] nt/zlib.dnt amiga/Make*.??? os2/M*.os2 os2/zlib.def \
   contrib/RE*.contrib contrib/*.txt contrib/asm386/*.asm contrib/asm386/*.c \
   contrib/asm386/*.bat contrib/asm386/zlibvc.d?? contrib/asm[56]86/*.?86 \
