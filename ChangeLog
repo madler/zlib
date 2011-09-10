@@ -1,7 +1,15 @@
 
 		ChangeLog file for zlib
 
-Changes in 1.1 (24 Feb 98)
+Changes in 1.1.1 (27 Feb 98)
+- fix macros _tr_tally_* in deflate.h for debug mode  (Glenn Randers-Pehrson)
+- remove block truncation heuristic which had very marginal effect for zlib
+  (smaller lit_bufsize than in gzip 1.2.4) and degraded a little the
+  compression ratio on some files. This also allows inlining _tr_tally for
+  matches in deflate_slow.
+- added msdos/Makefile.w32 for WIN32 Microsoft Visual C++ (Bob Frazier)
+
+Changes in 1.1.0 (24 Feb 98)
 - do not return STREAM_END prematurely in inflate (John Bowler)
 - revert to the zlib 1.0.8 inflate to avoid the gcc 2.8.0 bug (Jeremy Buhler)
 - compile with -DFASTEST to get compression code optimized for speed only

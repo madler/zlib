@@ -1,4 +1,4 @@
-zlib 1.1.0 is a general purpose data compression library.  All the code
+zlib 1.1.1 is a general purpose data compression library.  All the code
 is thread safe.  The data format used by the zlib library
 is described by RFCs (Request for Comments) 1950 to 1952 in the files 
 ftp://ds.internic.net/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
@@ -25,15 +25,14 @@ Mark Nelson wrote an article about zlib for the Jan. 1997 issue of
 Dr. Dobb's Journal; a copy of the article is available in
 http://web2.airmail.net/markn/articles/zlibtool/zlibtool.htm
 
-The changes made in version 1.1.0 are documented in the file ChangeLog.
-The main changes since 1.0.9 are:
+The changes made in version 1.1.1 are documented in the file ChangeLog.
+The main changes since 1.1.0 are:
 
-- do not return STREAM_END prematurely in inflate (John Bowler)
-- revert to the zlib 1.0.8 inflate to avoid the gcc 2.8.0 bug (Jeremy Buhler)
-- compile with -DFASTEST to get compression code optimized for speed only
-- in minigzip, try mmap'ing the input file first (Miguel Albrecht)
-- increase size of I/O buffers in minigzip.c and gzio.c (not a big gain
-  on Sun but significant on HP)
+- fix macros _tr_tally_* in deflate.h for debug mode  (Glenn Randers-Pehrson)
+- remove block truncation heuristic which had very marginal effect for zlib
+  (smaller lit_bufsize than in gzip 1.2.4) and degraded a little the
+  compression ratio on some files. This also allows inlining _tr_tally for
+  matches in deflate_slow.
 
 
 Unsupported third party contributions are provided in directory "contrib".

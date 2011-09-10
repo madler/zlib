@@ -13,6 +13,7 @@ descrip.mms		makefile for Vax/VMS
 zlib.3			mini man page for zlib (volunteers to write full
 			man pages from zlib.h welcome. write to jloup@gzip.org)
 
+msdos/Makefile.w32      makefile for Microsoft Visual C++ 32-bit
 msdos/Makefile.b32	makefile for Borland C++   32-bit
 msdos/Makefile.bor	makefile for Borland C/C++ 16-bit
 msdos/Makefile.dj2	makefile for DJGPP 2.x

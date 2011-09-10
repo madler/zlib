@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.1.0 Copyright 1995-1998 Jean-loup Gailly ";
+   " deflate 1.1.1 Copyright 1995-1998 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -1294,8 +1294,8 @@ local block_state deflate_slow(s, flush)
 
             check_match(s, s->strstart-1, s->prev_match, s->prev_length);
 
-            bflush = _tr_tally(s, s->strstart -1 - s->prev_match,
-			       s->prev_length - MIN_MATCH);
+            _tr_tally_dist(s, s->strstart -1 - s->prev_match,
+			   s->prev_length - MIN_MATCH, bflush);
 
             /* Insert in hash table all strings up to the end of the match.
              * strstart-1 and strstart are already inserted. If there is not
@@ -1322,7 +1322,7 @@ local block_state deflate_slow(s, flush)
              */
             Tracevv((stderr,"%c", s->window[s->strstart-1]));
 	    _tr_tally_lit(s, s->window[s->strstart-1], bflush);
-            if (bflush) {
+	    if (bflush) {
                 FLUSH_BLOCK_ONLY(s, 0);
             }
             s->strstart++;

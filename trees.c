@@ -1042,8 +1042,9 @@ int _tr_tally (s, dist, lc)
         s->dyn_dtree[d_code(dist)].Freq++;
     }
 
+#ifdef TRUNCATE_BLOCK
     /* Try to guess if it is profitable to stop the current block here */
-    if (s->level > 2 && (s->last_lit & 0xfff) == 0) {
+    if ((s->last_lit & 0x1fff) == 0 && s->level > 2) {
         /* Compute an upper bound for the compressed length */
         ulg out_length = (ulg)s->last_lit*8L;
         ulg in_length = (ulg)((long)s->strstart - s->block_start);
@@ -1058,6 +1059,7 @@ int _tr_tally (s, dist, lc)
                100L - out_length*100L/in_length));
         if (s->matches < s->last_lit/2 && out_length < in_length/2) return 1;
     }
+#endif
     return (s->last_lit == s->lit_bufsize-1);
     /* We avoid equality with lit_bufsize because of wraparound at 64K
      * on 16 bit machines and because stored blocks are restricted to

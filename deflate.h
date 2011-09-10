@@ -310,9 +310,9 @@ void _tr_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
     flush = (s->last_lit == s->lit_bufsize-1); \
   }
 #else
-# define _tr_tally_lit(s, c, flush) _tr_tally(s, 0, c, flush)
+# define _tr_tally_lit(s, c, flush) flush = _tr_tally(s, 0, c)
 # define _tr_tally_dist(s, distance, length, flush) \
-              _tr_tally(s, distance, length, flush) 
+              flush = _tr_tally(s, distance, length) 
 #endif
 
 #endif
