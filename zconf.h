@@ -23,6 +23,7 @@
 #  define deflateSetDictionary z_deflateSetDictionary
 #  define deflateCopy   z_deflateCopy
 #  define deflateReset  z_deflateReset
+#  define deflatePrime  z_deflatePrime
 #  define deflateParams z_deflateParams
 #  define deflateBound  z_deflateBound
 #  define inflateInit2_ z_inflateInit2_
@@ -102,6 +103,10 @@
 #  define STDC
 #endif
 #if !defined(STDC) && (defined(OS2) || defined(__HOS_AIX__))
+#  define STDC
+#endif
+
+#if defined(__OS400__) && !defined(STDC)    /* iSeries (formerly AS/400). */
 #  define STDC
 #endif
 
@@ -287,11 +292,15 @@ typedef uLong FAR uLongf;
 #  define  z_off_t long
 #endif
 
-#if defined(__MVS__)
+#if defined(__OS400__)
 #define NO_vsnprintf
-#ifdef FAR
-#undef FAR
 #endif
+
+#if defined(__MVS__)
+#  define NO_vsnprintf
+#  ifdef FAR
+#    undef FAR
+#  endif
 #endif
 
 /* MVS linker does not support external names larger than 8 bytes */

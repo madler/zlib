@@ -30,13 +30,14 @@ CPP=$(CC) -E
 
 LIBS=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.0.7
+SHAREDLIBV=libz.so.1.2.0.8
 SHAREDLIBM=libz.so.1
 
 AR=ar rc
 RANLIB=ranlib
 TAR=tar
 SHELL=/bin/sh
+EXE=
 
 prefix = /usr/local
 exec_prefix = ${prefix}
@@ -53,7 +54,7 @@ OBJA =
 
 TEST_OBJS = example.o minigzip.o
 
-all: example minigzip
+all: example$(EXE) minigzip$(EXE)
 
 check: test
 test: all
@@ -82,17 +83,17 @@ $(SHAREDLIBV): $(OBJS)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
 
-example: example.o $(LIBS)
+example$(EXE): example.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ example.o $(LDFLAGS)
 
-minigzip: minigzip.o $(LIBS)
+minigzip$(EXE): minigzip.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS)
 
 install: $(LIBS)
-	-@if [ ! -d $(exec_prefix) ]; then mkdir $(exec_prefix); fi
-	-@if [ ! -d $(includedir)  ]; then mkdir $(includedir); fi
-	-@if [ ! -d $(libdir)      ]; then mkdir $(libdir); fi
-	-@if [ ! -d $(man3dir)     ]; then mkdir $(man3dir); fi
+	-@if [ ! -d $(exec_prefix) ]; then mkdir -p $(exec_prefix); fi
+	-@if [ ! -d $(includedir)  ]; then mkdir -p $(includedir); fi
+	-@if [ ! -d $(libdir)      ]; then mkdir -p $(libdir); fi
+	-@if [ ! -d $(man3dir)     ]; then mkdir -p $(man3dir); fi
 	cp zlib.h zconf.h $(includedir)
 	chmod 644 $(includedir)/zlib.h $(includedir)/zconf.h
 	cp $(LIBS) $(libdir)
@@ -119,7 +120,8 @@ uninstall:
 
 mostlyclean: clean
 clean:
-	rm -f *.o *~ example minigzip libz.* foo.gz so_locations \
+	rm -f *.o *~ example$(EXE) minigzip$(EXE) \
+	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 
 maintainer-clean: distclean

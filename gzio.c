@@ -889,7 +889,13 @@ int ZEXPORT gzeof (file)
 {
     gz_stream *s = (gz_stream*)file;
 
-    return (s == NULL || s->mode != 'r') ? 0 : s->z_eof;
+    /* With concatenated compressed files that can have embedded
+     * crc trailers, z_eof is no longer the only/best indicator of EOF
+     * on a gz_stream. Handle end-of-stream error explicitly here.
+     */
+    if (s == NULL || s->mode != 'r') return 0;
+    if (s->z_eof) return 1;
+    return s->z_err == Z_STREAM_END;
 }
 
 /* ===========================================================================

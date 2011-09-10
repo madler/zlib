@@ -334,9 +334,9 @@ in the zlib distribution, or at the following location:
     link them in ZLIB1.DLL, and export them?
 
   - No.  A legitimate build of ZLIB1.DLL must not include code
-    that does not originate from the official zlib sources.  But
-    you can make your own private build, and give it a different
-    name, as suggested in the previous answer.
+    that does not originate from the official zlib source code.
+    But you can make your own private DLL build, under a different
+    file name, as suggested in the previous answer.
 
     For example, in Borland Delphi and C++ Builder, zlib is a part
     of the standard VCL library.  If an application links to VCL
@@ -345,7 +345,16 @@ in the zlib distribution, or at the following location:
     incompatible ZLIB1.DLL.
 
 
-14. I made my own ZLIB1.DLL build.  Can I test it for compliance?
+14. May I remove some functionality out of ZLIB1.DLL, by enabling
+    macros like NO_GZCOMPRESS or NO_GZIP at compile time?
+
+  - No.  A legitimate build of ZLIB1.DLL must provide the complete
+    zlib functionality, as implemented in the official zlib source
+    code.  But you can make your own private DLL build, under a
+    different file name, as suggested in the previous answer.
+
+
+15. I made my own ZLIB1.DLL build.  Can I test it for compliance?
 
   - We prefer that you download the official DLL from the zlib
     web site.  If you need something peculiar from this DLL, you
@@ -356,3 +365,7 @@ in the zlib distribution, or at the following location:
     Running these test programs is not a guarantee of compliance,
     but a failure can imply a detected problem.
 
+**
+
+This document is written and maintained by
+Cosmin Truta <cosmint@cs.ubbcluj.ro>

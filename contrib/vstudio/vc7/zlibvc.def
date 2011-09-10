@@ -54,6 +54,7 @@ EXPORTS
         gzclearerr                               @48
         gzungetc                                 @49
         zlibCompileFlags                         @50
+        deflatePrime                             @51
 
         unzOpen                                  @61
         unzClose                                 @62

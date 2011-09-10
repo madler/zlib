@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.0.7 Copyright 1995-2003 Jean-loup Gailly ";
+   " deflate 1.2.0.8 Copyright 1995-2003 Jean-loup Gailly ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -387,6 +387,18 @@ int ZEXPORT deflateReset (strm)
     _tr_init(s);
     lm_init(s);
 
+    return Z_OK;
+}
+
+/* ========================================================================= */
+int ZEXPORT deflatePrime (strm, bits, value)
+    z_streamp strm;
+    int bits;
+    int value;
+{
+    if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
+    strm->state->bi_valid = bits;
+    strm->state->bi_buf = (ush)(value & ((1 << bits) - 1));
     return Z_OK;
 }
 

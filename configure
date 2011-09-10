@@ -53,6 +53,7 @@ case "$1" in
     -l* | --l*) libdir="$2"; shift; shift;;
     -i* | --i*) includedir="$2"; shift; shift;;
     -s* | --s*) shared=1; shift;;
+    *) echo "unknown option: $1"; echo "$0 --help for help"; exit 1;;
     esac
 done
 
@@ -76,6 +77,8 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CFLAGS="$cflags"
   case `(uname -s || echo unknown) 2>/dev/null` in
   Linux | linux) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1"};;
+  CYGWIN* | Cygwin* | cygwin* )
+             EXE='.exe';;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
                  LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"};;
@@ -188,11 +191,8 @@ fi
 
 cat > $test.c <<EOF
 #include <stdio.h>
-#include <stdlib.h>
-
-#if (defined(__MSDOS__) || defined(_WINDOWS) || defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__STDC__) || defined(__cplusplus) || defined(__OS2__)) && !defined(STDC)
-#  define STDC
-#endif
+#include <stdarg.h>
+#include "zconf.h"
 
 int main()
 {
@@ -205,7 +205,7 @@ int main()
 EOF
 
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  echo "Checking whether to use vsnprintf() or snprintf()... using vsnprintf()"
+  echo "Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf()"
 
   cat > $test.c <<EOF
 #include <stdio.h>
@@ -228,7 +228,7 @@ int main()
 }
 EOF
 
-  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
     echo "Checking for vsnprintf() in stdio.h... Yes."
 
     cat >$test.c <<EOF
@@ -237,14 +237,14 @@ EOF
 
 int mytest(char *fmt, ...)
 {
-  int i;
+  int n;
   char buf[20];
   va_list ap;
 
   va_start(ap, fmt);
-  i = vsnprintf(buf, sizeof(buf), fmt, ap);
+  n = vsnprintf(buf, sizeof(buf), fmt, ap);
   va_end(ap);
-  return 0;
+  return n;
 }
 
 int main()
@@ -275,14 +275,14 @@ EOF
 
 int mytest(char *fmt, ...)
 {
-  int i;
+  int n;
   char buf[20];
   va_list ap;
 
   va_start(ap, fmt);
-  i = vsprintf(buf, fmt, ap);
+  n = vsprintf(buf, fmt, ap);
   va_end(ap);
-  return 0;
+  return n;
 }
 
 int main()
@@ -302,11 +302,10 @@ EOF
     fi
   fi
 else
-  echo "Checking whether to use vsnprintf() or snprintf()... using snprintf()"
+  echo "Checking whether to use vs[n]printf() or s[n]printf()... using s[n]printf()"
 
   cat >$test.c <<EOF
 #include <stdio.h>
-#include <stdarg.h>
 
 int mytest()
 {
@@ -322,20 +321,17 @@ int main()
 }
 EOF
 
-  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
     echo "Checking for snprintf() in stdio.h... Yes."
 
     cat >$test.c <<EOF
 #include <stdio.h>
-#include <stdarg.h>
 
-int mytest(char *fmt, ...)
+int mytest()
 {
-  int i;
   char buf[20];
 
-  i = snprintf(buf, sizeof(buf), "%s", "foo");
-  return 0;
+  return snprintf(buf, sizeof(buf), "%s", "foo");
 }
 
 int main()
@@ -362,15 +358,12 @@ EOF
 
     cat >$test.c <<EOF
 #include <stdio.h>
-#include <stdarg.h>
 
-int mytest(char *fmt, ...)
+int mytest()
 {
-  int i;
   char buf[20];
 
-  i = sprintf(buf, "%s", "foo");
-  return 0;
+  return sprintf(buf, "%s", "foo");
 }
 
 int main()
@@ -428,7 +421,7 @@ case $CFLAGS in
     fi;;
 esac
 
-rm -f $test.[co] $test$shared_ext
+rm -f $test.[co] $test $test$shared_ext
 
 # udpate Makefile
 sed < Makefile.in "
@@ -442,6 +435,7 @@ sed < Makefile.in "
 /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
 /^AR *=/s#=.*#=$AR#
 /^RANLIB *=/s#=.*#=$RANLIB#
+/^EXE *=/s#=.*#=$EXE#
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
 /^libdir *=/s#=.*#=$libdir#

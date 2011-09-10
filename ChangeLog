@@ -1,6 +1,25 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.0.8 (4 November 2003)
+- Update version in contrib/delphi/ZLib.pas and contrib/pascal/zlibpas.pas
+- Add experimental NO_DIVIDE #define in adler32.c
+    - Possibly faster on some processors (let me know if it is)
+- Correct Z_BLOCK to not return on first inflate call if no wrap
+- Fix strm->data_type on inflate() return to correctly indicate EOB
+- Add deflatePrime() function for appending in the middle of a byte
+- Add contrib/gzappend for an example of appending to a stream
+- Update win32/DLL_FAQ.txt [Truta]
+- Delete Turbo C comment in README [Truta]
+- Improve some indentation in zconf.h [Truta]
+- Fix infinite loop on bad input in configure script [Church]
+- Fix gzeof() for concatenated gzip files [Johnson]
+- Add example to contrib/visual-basic.txt [Michael B.]
+- Add -p to mkdir's in Makefile.in [vda]
+- Fix configure to properly detect presence or lack of printf functions
+- Add AS400 support [Monnerat]
+- Added a little Cygwin support [Wilson]
+
 Changes in 1.2.0.7 (21 September 2003)
 - Correct some debug formats in contrib/infback9
 - Cast a type in a debug statement in trees.c
@@ -10,7 +29,7 @@ Changes in 1.2.0.7 (21 September 2003)
 - Remove some directories in old that have been updated to 1.2
 - Add dylib building for Mac OS X in configure and Makefile.in
 - Remove old distribution stuff from Makefile
-- Update README to point for DLL_FAQ.txt, and add comment on Mac OS X
+- Update README to point to DLL_FAQ.txt, and add comment on Mac OS X
 - Update links in README
 
 Changes in 1.2.0.6 (13 September 2003)

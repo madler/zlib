@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.0.7, September 21st, 2003
+  version 1.2.0.8, November 4th, 2003
 
   Copyright (C) 1995-2003 Jean-loup Gailly and Mark Adler
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.0.7"
-#define ZLIB_VERNUM 0x1207
+#define ZLIB_VERSION "1.2.0.8"
+#define ZLIB_VERNUM 0x1208
 
 /*
      The 'zlib' compression library provides in-memory compression and
@@ -174,7 +174,7 @@ typedef z_stream FAR *z_streamp;
 #define Z_BINARY   0
 #define Z_ASCII    1
 #define Z_UNKNOWN  2
-/* Possible values of the data_type field */
+/* Possible values of the data_type field (though see inflate()) */
 
 #define Z_DEFLATED   8
 /* The deflate compression method (the only one supported in this version) */
@@ -373,12 +373,15 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
 
     The Z_BLOCK option assists in appending to or combining deflate streams.
   Also to assist in this, on return inflate() will set strm->data_type to the
-  number of unused bits in the last byte taken from strm->next_in, plus eight
+  number of unused bits in the last byte taken from strm->next_in, plus 64
   if inflate() is currently decoding the last block in the deflate stream,
-  plus 16 if inflate() returned immediately after decoding an end-of-block
-  code or decoding the complete header up just before the first byte of the
+  plus 128 if inflate() returned immediately after decoding an end-of-block
+  code or decoding the complete header up to just before the first byte of the
   deflate stream. The end-of-block will not be indicated until all of the
-  uncompressed data from that block has been written to strm->next_out.
+  uncompressed data from that block has been written to strm->next_out.  The
+  number of unused bits may in general be greater than seven, except when
+  bit 7 of data_type is set, in which case the number of unused bits will be
+  less than eight.
 
     inflate() should normally be called until it returns Z_STREAM_END or an
   error. However if all decompression is to be performed in a single step
@@ -596,6 +599,22 @@ ZEXTERN uLong ZEXPORT deflateBound OF((z_streamp strm,
    deflation of sourceLen bytes.  It must be called after deflateInit()
    or deflateInit2().  This would be used to allocate an output buffer
    for deflation in a single pass, and so would be called before deflate().
+*/
+
+ZEXTERN int ZEXPORT deflatePrime OF((z_streamp strm,
+                                     int bits,
+                                     int value));
+/*
+     deflatePrime() inserts bits in the deflate output stream.  The intent
+  is that this function is used to start off the deflate output with the
+  bits leftover from a previous deflate stream when appending to it.  As such,
+  this function can only be used for raw deflate, and must be used before the
+  first deflate() call after a deflateInit2() or deflateReset().  bits must be
+  less than or equal to 16, and that many of the least significant bits of
+  value will be inserted in the output.
+
+      deflatePrime returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
 */
 
 /*
