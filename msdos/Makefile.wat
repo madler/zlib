@@ -30,13 +30,13 @@ OBJP3=infutil$(O)+inffast$(O)
 
 all: test
 
-adler32.obj: adler32.c zutil.h zlib.h zconf.h
+adler32.obj: adler32.c zlib.h zconf.h
 	$(CC) $(CFLAGS) $*.c
 
 compress.obj: compress.c zlib.h zconf.h
 	$(CC) $(CFLAGS) $*.c
 
-crc32.obj: crc32.c zutil.h zlib.h zconf.h
+crc32.obj: crc32.c zlib.h zconf.h
 	$(CC) $(CFLAGS) $*.c
 
 deflate.obj: deflate.c deflate.h zutil.h zlib.h zconf.h

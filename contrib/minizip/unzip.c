@@ -315,7 +315,7 @@ local uLong unzlocal_SearchCentralDir(fin)
 		if (fread(buf,(uInt)uReadSize,1,fin)!=1)
 			break;
 
-		for (i=0;i<(int)uReadSize-3;i++)
+                for (i=(int)uReadSize-3; (i--)>0;)
 			if (((*(buf+i))==0x50) && ((*(buf+i+1))==0x4b) && 
 				((*(buf+i+2))==0x05) && ((*(buf+i+3))==0x06))
 			{

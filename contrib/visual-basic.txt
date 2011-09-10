@@ -1,5 +1,17 @@
+See below some functions declarations for Visual Basic.
+
+Frequently Asked Question:
+
+Q: Each time I use the compress function I get the -5 error (not enough
+   room in the output buffer).
+
+A: Make sure that the length of the compressed buffer is passed by
+   reference ("as any"), not by value ("as long"). Also check that
+   before the call of compress this length is equal to the total size of
+   the compressed buffer and not zero.
+
+
 From: "Jon Caruana" <jon-net@usa.net>
-To: "Jean-loup Gailly" <gzip@prep.ai.mit.edu>
 Subject: Re: How to port zlib declares to vb?
 Date: Mon, 28 Oct 1996 18:33:03 -0600
 

@@ -11,7 +11,7 @@
 #endif
 
 const char inflate_copyright[] =
-   " inflate 1.1.2 Copyright 1995-1998 Mark Adler ";
+   " inflate 1.1.3 Copyright 1995-1998 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot

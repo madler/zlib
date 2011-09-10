@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <utime.h>
 #include <errno.h>
 #include <fcntl.h>
 #ifdef unix
@@ -20,6 +19,23 @@
 #endif
 
 #include "zlib.h"
+
+#ifdef WIN32
+#  ifndef F_OK
+#    define F_OK (0)
+#  endif
+#  ifdef _MSC_VER
+#    define mkdir(dirname,mode) _mkdir(dirname)
+#    define strdup(str)         _strdup(str)
+#    define unlink(fn)          _unlink(fn)
+#    define access(path,mode)   _access(path,mode)
+#  else
+#    define mkdir(dirname,mode) _mkdir(dirname)
+#  endif
+#else
+#  include <utime.h>
+#endif
+
 
 /* Values used in typeflag field.  */
 
@@ -83,7 +99,7 @@ char *prog;
 
 /* This will give a benign warning */
 
-static char *TGZprefix[] = { "\0", ".tgz", ".tar.gz", NULL };
+static char *TGZprefix[] = { "\0", ".tgz", ".tar.gz", ".tar", NULL };
 
 /* Return the real name of the TGZ archive */
 /* or NULL if it does not exist. */
@@ -272,14 +288,6 @@ int tar (gzFile in,int action,int arg,int argc,char **argv)
       if (len < 0)
 	error (gzerror(in, &err));
       /*
-       * if we met the end of the tar
-       * or the end-of-tar block,
-       * we are done
-       */
-      if ((len == 0)  || (buffer.header.name[0]== 0))
-	break;
-      
-      /*
        * Always expect complete blocks to process
        * the tar information.
        */
@@ -291,6 +299,13 @@ int tar (gzFile in,int action,int arg,int argc,char **argv)
        */
       if (getheader == 1)
 	{
+	  /*
+	   * if we met the end of the tar
+	   * or the end-of-tar block,
+	   * we are done
+	   */
+	  if ((len == 0)  || (buffer.header.name[0]== 0)) break;
+
 	  tartime = (time_t)getoct(buffer.header.mtime,12);
 	  strcpy(fname,buffer.header.name);
 	  
@@ -360,6 +375,34 @@ int tar (gzFile in,int action,int arg,int argc,char **argv)
 	      getheader = 1;
 	      if ((action == TGZ_EXTRACT) && (outfile != NULL))
 		{
+#ifdef WIN32
+		  HANDLE hFile;
+		  FILETIME ftm,ftLocal;
+		  SYSTEMTIME st;
+		  struct tm localt;
+ 
+		  fclose(outfile);
+
+		  localt = *localtime(&tartime);
+
+		  hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE,
+				     0, NULL, OPEN_EXISTING, 0, NULL);
+		  
+		  st.wYear = (WORD)localt.tm_year+1900;
+		  st.wMonth = (WORD)localt.tm_mon;
+		  st.wDayOfWeek = (WORD)localt.tm_wday;
+		  st.wDay = (WORD)localt.tm_mday;
+		  st.wHour = (WORD)localt.tm_hour;
+		  st.wMinute = (WORD)localt.tm_min;
+		  st.wSecond = (WORD)localt.tm_sec;
+		  st.wMilliseconds = 0;
+		  SystemTimeToFileTime(&st,&ftLocal);
+		  LocalFileTimeToFileTime(&ftLocal,&ftm);
+		  SetFileTime(hFile,&ftm,NULL,&ftm);
+		  CloseHandle(hFile);
+
+		  outfile = NULL;
+#else
 		  struct utimbuf settime;
 
 		  settime.actime = settime.modtime = tartime;
@@ -367,6 +410,7 @@ int tar (gzFile in,int action,int arg,int argc,char **argv)
 		  fclose(outfile);
 		  outfile = NULL;
 		  utime(fname,&settime);
+#endif
 		}
 	    }
 	}

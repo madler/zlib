@@ -345,13 +345,6 @@ int r;
         s->mode = TYPE;
         break;
       }
-      if (k > 7)              /* return unused byte, if any */
-      {
-        Assert(k < 16, "inflate_codes grabbed too many bytes")
-        k -= 8;
-        n++;
-        p--;                    /* can always return one */
-      }
       s->mode = DRY;
     case DRY:
       FLUSH
