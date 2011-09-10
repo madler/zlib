@@ -117,7 +117,7 @@ local void fill_window   __P((deflate_state *s));
 local int  deflate_fast  __P((deflate_state *s, int flush));
 local int  deflate_slow  __P((deflate_state *s, int flush));
 local void lm_init       __P((deflate_state *s));
-local int  longest_match __P((deflate_state *s, IPos cur_match));
+local inline int longest_match __P((deflate_state *s, IPos cur_match));
 local void putShortMSB   __P((deflate_state *s, uInt b));
 local void flush_pending __P((z_stream *strm));
 local int read_buf       __P((z_stream *strm, char *buf, unsigned size));
@@ -354,13 +354,17 @@ int deflate (strm, flush)
         } else {
             quit = deflate_slow(strm->state, flush);
         }
-        if (flush == Z_FULL_FLUSH) {
+        if (flush == Z_FULL_FLUSH || flush == Z_SYNC_FLUSH) {
             ct_stored_block(strm->state, (char*)0, 0L, 0); /* special marker */
             flush_pending(strm);
-            CLEAR_HASH(strm->state);             /* forget history */
-            if (strm->avail_out == 0) return Z_OK;
+	    if (flush == Z_FULL_FLUSH) {
+		CLEAR_HASH(strm->state);             /* forget history */
+	    }
+        } else if (flush == Z_PARTIAL_FLUSH) {
+            ct_align(strm->state);
+            flush_pending(strm);
         }
-        if (quit) return Z_OK;
+        if (quit || strm->avail_out == 0) return Z_OK;
     }
     Assert(strm->avail_out > 0, "bug2");
 
@@ -447,8 +451,6 @@ local int read_buf(strm, buf, size)
 local void lm_init (s)
     deflate_state *s;
 {
-    register unsigned j;
-
     s->window_size = (ulg)2L*s->w_size;
 
     CLEAR_HASH(s);
@@ -465,15 +467,10 @@ local void lm_init (s)
     s->lookahead = 0;
     s->match_length = MIN_MATCH-1;
     s->match_available = 0;
+    s->ins_h = 0;
 #ifdef ASMV
     match_init(); /* initialize the asm code */
 #endif
-
-    s->ins_h = 0;
-    for (j=0; j<MIN_MATCH-1; j++) UPDATE_HASH(s, s->ins_h, s->window[j]);
-    /* If lookahead < MIN_MATCH, ins_h is garbage, but this is
-     * not important since only literal bytes will be emitted.
-     */
 }
 
 /* ===========================================================================
@@ -488,7 +485,7 @@ local void lm_init (s)
 /* For 80x86 and 680x0, an optimized version will be provided in match.asm or
  * match.S. The code will be functionally equivalent.
  */
-local INLINE int longest_match(s, cur_match)
+local inline int longest_match(s, cur_match)
     deflate_state *s;
     IPos cur_match;                             /* current match */
 {
@@ -729,6 +726,16 @@ local void fill_window(s)
         n = read_buf(s->strm, (char*)s->window + s->strstart + s->lookahead,
                      more);
         s->lookahead += n;
+
+        /* Initialize the hash value now that we have some input: */
+        if (s->strstart == 0 && s->lookahead >= MIN_MATCH-1) {
+            for (n=0; n<MIN_MATCH-1; n++) {
+                UPDATE_HASH(s, s->ins_h, s->window[n]);
+            }
+        }
+        /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
+         * but this is not important since only literal bytes will be emitted.
+         */
 
     } while (s->lookahead < MIN_LOOKAHEAD && s->strm->avail_in != 0);
 }

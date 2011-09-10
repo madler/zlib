@@ -7,57 +7,35 @@
 
 #include "zlib.h"
 
-extern uLong crc_table[];   /* crc table, defined below */
+#define local static
 
-#define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-#define DO2(buf)  DO1(buf); DO1(buf);
-#define DO4(buf)  DO2(buf); DO2(buf);
-#define DO8(buf)  DO4(buf); DO4(buf);
-
-/* ========================================================================= */
-uLong crc32(crc, buf, len)
-    uLong crc;
-    Byte *buf;
-    uInt len;
-{
-    if (buf == Z_NULL) return 0L;
-    crc = crc ^ 0xffffffffL;
-    while (len >= 8)
-    {
-      DO8(buf);
-      len -= 8;
-    }
-    if (len) do {
-      DO1(buf);
-    } while (--len);
-    return crc ^ 0xffffffffL;
-}
-
+#ifdef DYNAMIC_CRC_TABLE
 /* =========================================================================
  * Make the crc table. This function is needed only if you want to compute
  * the table dynamically.
  */
-#ifdef DYNAMIC_CRC_TABLE
+local int crc_table_empty = 1;
+local uLong crc_table[256];
 
 local void make_crc_table()
 {
   uLong c;
   int n, k;
  
-  for (n = 0; n &lt; 256; n++)
+  for (n = 0; n < 256; n++)
   {
     c = (uLong)n;
-    for (k = 0; k &lt; 8; k++)
+    for (k = 0; k < 8; k++)
       c = c & 1 ? 0xedb88320L ^ (c >> 1) : c >> 1;
     crc_table[n] = c;
   }
+  crc_table_empty = 0;
 }
-#endif
-
+#else
 /* ========================================================================
  * Table of CRC-32's of all single-byte values (made by make_crc_table)
  */
-uLong crc_table[] = {
+local uLong crc_table[] = {
   0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
   0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
   0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
@@ -111,3 +89,32 @@ uLong crc_table[] = {
   0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL,
   0x2d02ef8dL
 };
+#endif
+
+#define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+#define DO2(buf)  DO1(buf); DO1(buf);
+#define DO4(buf)  DO2(buf); DO2(buf);
+#define DO8(buf)  DO4(buf); DO4(buf);
+
+/* ========================================================================= */
+uLong crc32(crc, buf, len)
+    uLong crc;
+    Byte *buf;
+    uInt len;
+{
+    if (buf == Z_NULL) return 0L;
+#ifdef DYNAMIC_CRC_TABLE
+    if (crc_table_empty)
+      make_crc_table();
+#endif
+    crc = crc ^ 0xffffffffL;
+    while (len >= 8)
+    {
+      DO8(buf);
+      len -= 8;
+    }
+    if (len) do {
+      DO1(buf);
+    } while (--len);
+    return crc ^ 0xffffffffL;
+}

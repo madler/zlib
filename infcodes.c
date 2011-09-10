@@ -83,7 +83,7 @@ int r;
 {
   uInt j;               /* temporary storage */
   inflate_huft *t;      /* temporary pointer */
-  int e;                /* extra bits or operation */
+  uInt e;               /* extra bits or operation */
   uLong b;              /* bit buffer */
   uInt k;               /* bits in bit buffer */
   Byte *p;              /* input data pointer */
@@ -91,7 +91,7 @@ int r;
   Byte *q;              /* output window write pointer */
   uInt m;               /* bytes to end of window or read pointer */
   Byte *f;              /* pointer to copy strings from */
-  struct inflate_codes_state *c = s->sub.codes; /* codes state */
+  struct inflate_codes_state *c = s->sub.decode.codes;  /* codes state */
 
   /* copy input/output information to locals (UPDATE macro restores) */
   LOAD
@@ -121,27 +121,8 @@ int r;
       NEEDBITS(j)
       t = c->sub.code.tree + ((uInt)b & inflate_mask[j]);
       DUMPBITS(t->bits)
-      if ((e = (int)(t->exop)) < 0)
-      {
-        if (e == -128)          /* invalid code */
-        {
-          c->mode = BADCODE;
-          z->msg = "invalid literal/length code";
-          r = Z_DATA_ERROR;
-          LEAVE
-        }
-        e = -e;
-        if (e & 64)             /* end of block */
-        {
-          Tracevv((stderr, "inflate:         end of block\n"));
-          c->mode = WASH;
-          break;
-        }
-        c->sub.code.need = e;
-        c->sub.code.tree = t->next;
-        break;
-      }
-      if (e & 16)               /* literal */
+      e = (uInt)(t->exop);
+      if (e == 0)               /* literal */
       {
         c->sub.lit = t->base;
         Tracevv((stderr, t->base >= 0x20 && t->base < 0x7f ?
@@ -150,9 +131,29 @@ int r;
         c->mode = LIT;
         break;
       }
-      c->sub.copy.get = e;
-      c->len = t->base;
-      c->mode = LENEXT;
+      if (e & 16)               /* length */
+      {
+        c->sub.copy.get = e & 15;
+        c->len = t->base;
+        c->mode = LENEXT;
+        break;
+      }
+      if ((e & 64) == 0)        /* next table */
+      {
+        c->sub.code.need = e;
+        c->sub.code.tree = t->next;
+        break;
+      }
+      if (e & 32)               /* end of block */
+      {
+        Tracevv((stderr, "inflate:         end of block\n"));
+        c->mode = WASH;
+        break;
+      }
+      c->mode = BADCODE;        /* invalid code */
+      z->msg = "invalid literal/length code";
+      r = Z_DATA_ERROR;
+      LEAVE
     case LENEXT:        /* i: getting length extra (have base) */
       j = c->sub.copy.get;
       NEEDBITS(j)
@@ -167,22 +168,24 @@ int r;
       NEEDBITS(j)
       t = c->sub.code.tree + ((uInt)b & inflate_mask[j]);
       DUMPBITS(t->bits)
-      if ((e = (int)(t->exop)) < 0)
+      e = (uInt)(t->exop);
+      if (e & 16)               /* distance */
       {
-        if (e == -128)
-        {
-          c->mode = BADCODE;
-          z->msg = "invalid distance code";
-          r = Z_DATA_ERROR;
-          LEAVE
-        }
-        c->sub.code.need = -e;
+        c->sub.copy.get = e & 15;
+        c->sub.copy.dist = t->base;
+        c->mode = DISTEXT;
+        break;
+      }
+      if ((e & 64) == 0)        /* next table */
+      {
+        c->sub.code.need = e;
         c->sub.code.tree = t->next;
         break;
       }
-      c->sub.copy.dist = t->base;
-      c->sub.copy.get = e;
-      c->mode = DISTEXT;
+      c->mode = BADCODE;        /* invalid code */
+      z->msg = "invalid distance code";
+      r = Z_DATA_ERROR;
+      LEAVE
     case DISTEXT:       /* i: getting distance extra */
       j = c->sub.copy.get;
       NEEDBITS(j)
@@ -231,8 +234,6 @@ void inflate_codes_free(c, z)
 struct inflate_codes_state *c;
 z_stream *z;
 {
-  inflate_trees_free(c->dtree, z);
-  inflate_trees_free(c->ltree, z);
   ZFREE(z, c);
   Tracev((stderr, "inflate:       codes free\n"));
 }

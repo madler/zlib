@@ -35,8 +35,11 @@ struct inflate_blocks_state {
       uInt bb;                  /* bit length tree depth */
       inflate_huft *tb;         /* bit length decoding tree */
     } trees;            /* if DTREE, decoding info for trees */
-    struct inflate_codes_state
-      *codes;           /* if CODES, current state */
+    struct {
+      inflate_huft *tl, *td;    /* trees to free */
+      struct inflate_codes_state
+        *codes;
+    } decode;           /* if CODES, current state */
   } sub;                /* submode */
   uInt last;            /* true if this block is the last block */
 

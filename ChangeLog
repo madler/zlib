@@ -1,5 +1,13 @@
 		ChangeLog file for zlib
 
+Changes in 0.93 (25 June 95)
+- temporarily disable inline functions
+- make deflate deterministic
+- give enough lookahead for PARTIAL_FLUSH
+- Set binary mode for stdin/stdout in minigzip.c for OS/2
+- don't even use signed char in inflate (not portable enough)
+- fix inflate memory leak for segmented architectures
+
 Changes in 0.92 (3 May 95)
 - don't assume that char is signed (problem on SGI)
 - Clear bit buffer when starting a stored block

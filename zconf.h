@@ -28,8 +28,14 @@
 #if defined(MSDOS) && !defined(__32BIT__)
 #  define MAXSEG_64K
 #endif
-#if !defined(STDC) && (defined(MSDOS) || defined(__STDC__))
-#  define STDC
+#ifndef STDC
+#  if defined(MSDOS) || defined(__STDC__) || defined(__cplusplus)
+#    define STDC
+#  endif
+#endif
+
+#if !defined(STDC) && !defined(const)
+#  define const
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */

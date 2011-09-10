@@ -739,6 +739,17 @@ void ct_stored_block(s, buf, stored_len, eof)
 }
 
 /* ===========================================================================
+ * Send one empty static block to give enough lookahead for inflate
+ */
+void ct_align(s)
+    deflate_state *s;
+{
+    send_bits(s, STATIC_TREES<<1, 3);
+    send_code(s, END_BLOCK, static_ltree);
+    s->compressed_len += 10L; /* 3 for block type, 7 for EOB */
+}
+
+/* ===========================================================================
  * Determine the best encoding for the current block: dynamic trees, static
  * trees or store, and output the encoded block to the zip file. This function
  * returns the total compressed length for the file so far.

@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 0.92 May 3rd, 1995.
+  version 0.93 June 25th, 1995.
 
   Copyright (C) 1995 Jean-loup Gailly and Mark Adler
 
@@ -20,7 +20,7 @@
   3. This notice may not be removed or altered from any source distribution.
 
   Jean-loup Gailly        Mark Adler
-  gzip@prep.ai.mit.edu    madler@cco.caltech.edu
+  gzip@prep.ai.mit.edu    madler@alumni.caltech.edu
  */
 
 #ifndef _ZLIB_H
@@ -28,7 +28,7 @@
 
 #include "zconf.h"
 
-#define ZLIB_VERSION "0.92"
+#define ZLIB_VERSION "0.93"
 
 /* 
      The 'zlib' compression library provides in-memory compression and
@@ -108,6 +108,7 @@ typedef struct z_stream_s {
 #define Z_NO_FLUSH      0
 #define Z_PARTIAL_FLUSH 1
 #define Z_FULL_FLUSH    2
+#define Z_SYNC_FLUSH    3 /* experimental: partial_flush + byte align */
 #define Z_FINISH        4
 /* See deflate() below for the usage of these constants */
 

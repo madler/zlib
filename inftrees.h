@@ -9,24 +9,13 @@
  */
 
 /* Huffman code lookup table entry--this entry is four bytes for machines
-   that have 16-bit pointers (e.g. PC's in the small or medium model).
-   Valid extra bits (exop) are 0..13.  exop == -64 is EOB (end of block),
-   exop == 16 means that v is a literal, exop < 0 means that v is a pointer
-   to the next table, which codes -exop bits, and lastly exop == -128
-   indicates an unused code.  If a code with exop == -128 is looked up,
-   this implies an error in the data. */
-
-#if defined(STDC) || defined(sgi)
-typedef signed char Char;
-#else
-typedef char Char; /* just hope that char is signed */
-#endif
+   that have 16-bit pointers (e.g. PC's in the small or medium model). */
 
 typedef struct inflate_huft_s inflate_huft;
 struct inflate_huft_s {
   union {
     struct {
-      Char Exop;        /* number of extra bits or operation */
+      Byte Exop;        /* number of extra bits or operation */
       Byte Bits;        /* number of bits in this code or subcode */
     } what;
     Byte *pad;          /* pad structure to a power of 2 (4 bytes for */

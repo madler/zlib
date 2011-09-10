@@ -27,7 +27,7 @@ extern int unlink __P((const char *));
 #  include <string.h>
 #endif
 
-#ifdef MSDOS
+#if defined(MSDOS) || defined(OS2) || defined(WIN32)
 #  include <fcntl.h>
 #  include <io.h>
 #  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)

@@ -71,7 +71,11 @@ uLong *c;
   if (s->mode == BTREE || s->mode == DTREE)
     ZFREE(z, s->sub.trees.blens);
   if (s->mode == CODES)
-    inflate_codes_free(s->sub.codes, z);
+  {
+    inflate_codes_free(s->sub.decode.codes, z);
+    inflate_trees_free(s->sub.decode.td, z);
+    inflate_trees_free(s->sub.decode.tl, z);
+  }
   s->mode = TYPE;
   s->bitk = 0;
   s->bitb = 0;
@@ -147,12 +151,14 @@ int r;
             inflate_huft *tl, *td;
 
             inflate_trees_fixed(&bl, &bd, &tl, &td);
-            s->sub.codes = inflate_codes_new(bl, bd, tl, td, z);
-            if (s->sub.codes == Z_NULL)
+            s->sub.decode.codes = inflate_codes_new(bl, bd, tl, td, z);
+            if (s->sub.decode.codes == Z_NULL)
             {
               r = Z_MEM_ERROR;
               LEAVE
             }
+            s->sub.decode.tl = Z_NULL;  /* don't try to free these */
+            s->sub.decode.td = Z_NULL;
           }
           DUMPBITS(3)
           s->mode = CODES;
@@ -181,7 +187,7 @@ int r;
         LEAVE
       }
       s->sub.left = (uInt)b & 0xffff;
-      k = b = 0;                      /* dump bits */
+      b = k = 0;                      /* dump bits */
       Tracev((stderr, "inflate:       stored length %u\n", s->sub.left));
       s->mode = s->sub.left ? STORED : TYPE;
       break;
@@ -318,7 +324,9 @@ int r;
           LEAVE
         }
         ZFREE(z, s->sub.trees.blens);
-        s->sub.codes = c;
+        s->sub.decode.codes = c;
+        s->sub.decode.tl = tl;
+        s->sub.decode.td = td;
       }
       s->mode = CODES;
     case CODES:
@@ -326,7 +334,9 @@ int r;
       if ((r = inflate_codes(s, z, r)) != Z_STREAM_END)
         return inflate_flush(s, z, r);
       r = Z_OK;
-      inflate_codes_free(s->sub.codes, z);
+      inflate_codes_free(s->sub.decode.codes, z);
+      inflate_trees_free(s->sub.decode.td, z);
+      inflate_trees_free(s->sub.decode.tl, z);
       LOAD
       Tracev((stderr, "inflate:       codes end, %lu total out\n",
               z->total_out + (q >= s->read ? q - s->read :

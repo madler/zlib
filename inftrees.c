@@ -41,7 +41,7 @@ local uInt cplens[] = { /* Copy lengths for literal codes 257..285 */
         /* actually lengths - 2; also see note #13 above about 258 */
 local uInt cplext[] = { /* Extra bits for literal codes 257..285 */
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-        3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 128, 128}; /* 128==invalid */
+        3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 192, 192}; /* 192==invalid */
 local uInt cpdist[] = { /* Copy offsets for distance codes 0..29 */
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
@@ -246,7 +246,7 @@ z_stream *zs;           /* for zalloc function */
         {
           x[h] = i;             /* save pattern for backing up */
           r.bits = (Byte)l;     /* bits to dump before this table */
-          r.exop = -(Char)j;    /* bits in this table */
+          r.exop = j;           /* bits in this table */
           r.next = q;           /* pointer to this table */
           j = i >> (w - l);     /* (get around Turbo C bug) */
           u[h-1][j] = r;        /* connect to last table */
@@ -256,15 +256,15 @@ z_stream *zs;           /* for zalloc function */
       /* set up table entry in r */
       r.bits = (Byte)(k - w);
       if (p >= v + n)
-        r.exop = (Char)(-128);        /* out of values--invalid code */
+        r.exop = 128 + 64;      /* out of values--invalid code */
       else if (*p < s)
       {
-        r.exop = (Char)(*p < 256 ? 16 : -64);   /* 256 is end-of-block code */
+        r.exop = (*p < 256 ? 0 : 32 + 64);      /* 256 is end-of-block */
         r.base = *p++;          /* simple code is just the value */
       }
       else
       {
-        r.exop = (Char)e[*p - s];       /* non-simple--look up in lists */
+        r.exop = e[*p - s] + 16 + 64;   /* non-simple--look up in lists */
         r.base = d[*p++ - s];
       }
 
@@ -456,10 +456,6 @@ z_stream *z;            /* for zfree function */
    each table. */
 {
   register inflate_huft *p, *q;
-
-  /* Don't free fixed trees */
-  if (t >= fixed_mem && t <= fixed_mem + FIXEDH)
-    return Z_OK;
 
   /* Go through linked list, freeing from the malloced (t[-1]) address. */
   p = t;

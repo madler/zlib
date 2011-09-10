@@ -15,11 +15,9 @@
 
 #include "zlib.h"
 
-#ifdef __GNUC__
-#  define INLINE inline
-#else
-#  define INLINE
-#endif
+/* #ifndef __GNUC__   disable inline for now */
+#  define inline
+/* #endif */
 
 #ifdef MSDOS
 #   include <stddef.h>

@@ -268,5 +268,6 @@ typedef struct internal_state {
 void ct_init       __P((deflate_state *s));
 int  ct_tally      __P((deflate_state *s, int dist, int lc));
 ulg ct_flush_block __P((deflate_state *s, char *buf, ulg stored_len, int eof));
+void ct_align      __P((deflate_state *s));
 void ct_stored_block __P((deflate_state *s, char *buf, ulg stored_len,
                           int eof));
