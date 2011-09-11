@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
+ * Copyright (C) 1995-2011 Jean-loup Gailly and Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -37,7 +37,7 @@
  *  REFERENCES
  *
  *      Deutsch, L.P.,"DEFLATE Compressed Data Format Specification".
- *      Available in http://www.ietf.org/rfc/rfc1951.txt
+ *      Available in http://tools.ietf.org/html/rfc1951
  *
  *      A description of the Rabin and Karp algorithm is given in the book
  *         "Algorithms" by R. Sedgewick, Addison-Wesley, p252.
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.5 Copyright 1995-2010 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.2.5.1 Copyright 1995-2010 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -393,6 +393,18 @@ int ZEXPORT deflateSetHeader (strm, head)
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
     if (strm->state->wrap != 2) return Z_STREAM_ERROR;
     strm->state->gzhead = head;
+    return Z_OK;
+}
+
+/* ========================================================================= */
+int ZEXPORT deflatePending (strm, pending, bits)
+    unsigned *pending;
+    int *bits;
+    z_streamp strm;
+{
+    if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
+    *pending = strm->state->pending;
+    *bits = strm->state->bi_valid;
     return Z_OK;
 }
 
@@ -1001,15 +1013,15 @@ local int read_buf(strm, buf, size)
 
     strm->avail_in  -= len;
 
+    zmemcpy(buf, strm->next_in, len);
     if (strm->state->wrap == 1) {
-        strm->adler = adler32(strm->adler, strm->next_in, len);
+        strm->adler = adler32(strm->adler, buf, len);
     }
 #ifdef GZIP
     else if (strm->state->wrap == 2) {
-        strm->adler = crc32(strm->adler, strm->next_in, len);
+        strm->adler = crc32(strm->adler, buf, len);
     }
 #endif
-    zmemcpy(buf, strm->next_in, len);
     strm->next_in  += len;
     strm->total_in += len;
 

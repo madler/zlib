@@ -10,7 +10,7 @@ unit zlibpas;
 interface
 
 const
-  ZLIB_VERSION = '1.2.5';
+  ZLIB_VERSION = '1.2.5.1';
 
 type
   alloc_func = function(opaque: Pointer; items, size: Integer): Pointer;
@@ -97,6 +97,7 @@ function deflateCopy(var dest, source: z_stream): Integer;
 function deflateReset(var strm: z_stream): Integer;
 function deflateParams(var strm: z_stream; level, strategy: Integer): Integer;
 function deflateBound(var strm: z_stream; sourceLen: LongInt): LongInt;
+function deflatePending(var strm: z_stream; var pending: Integer; var bits: Integer): Integer;
 function deflatePrime(var strm: z_stream; bits, value: Integer): Integer;
 function inflateInit2(var strm: z_stream; windowBits: Integer): Integer;
 function inflateSetDictionary(var strm: z_stream; const dictionary: PChar;
@@ -166,6 +167,7 @@ function deflateEnd; external;
 function deflateInit_; external;
 function deflateInit2_; external;
 function deflateParams; external;
+function deflatePending; external;
 function deflatePrime; external;
 function deflateReset; external;
 function deflateSetDictionary; external;

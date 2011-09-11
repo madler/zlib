@@ -1,5 +1,5 @@
 /* example.c -- usage example of the zlib compression library
- * Copyright (C) 1995-2006 Jean-loup Gailly.
+ * Copyright (C) 1995-2006, 2011 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -438,7 +438,7 @@ void test_dict_deflate(compr, comprLen)
     CHECK_ERR(err, "deflateInit");
 
     err = deflateSetDictionary(&c_stream,
-                               (const Bytef*)dictionary, sizeof(dictionary));
+                (const Bytef*)dictionary, (int)sizeof(dictionary));
     CHECK_ERR(err, "deflateSetDictionary");
 
     dictId = c_stream.adler;
@@ -491,7 +491,7 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
                 exit(1);
             }
             err = inflateSetDictionary(&d_stream, (const Bytef*)dictionary,
-                                       sizeof(dictionary));
+                                       (int)sizeof(dictionary));
         }
         CHECK_ERR(err, "inflate with dict");
     }

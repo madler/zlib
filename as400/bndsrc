@@ -34,6 +34,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("deflateCopy")
   EXPORT SYMBOL("deflateReset")
   EXPORT SYMBOL("deflateParams")
+  EXPORT SYMBOL("deflatePending")
   EXPORT SYMBOL("deflatePrime")
   EXPORT SYMBOL("deflateInit_")
   EXPORT SYMBOL("deflateInit2_")
@@ -128,5 +129,55 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /********************************************************************/
 
   EXPORT SYMBOL("zlibCompileFlags")
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+/*   Version 1.2.5 additional entry points.                         */
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+/********************************************************************/
+/*   *MODULE      ADLER32      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("adler32_combine")
+  EXPORT SYMBOL("adler32_combine64")
+
+/********************************************************************/
+/*   *MODULE      CRC32        ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("crc32_combine")
+  EXPORT SYMBOL("crc32_combine64")
+
+/********************************************************************/
+/*   *MODULE      GZLIB        ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("gzbuffer")
+  EXPORT SYMBOL("gzoffset")
+  EXPORT SYMBOL("gzoffset64")
+  EXPORT SYMBOL("gzopen64")
+  EXPORT SYMBOL("gzseek64")
+  EXPORT SYMBOL("gztell64")
+
+/********************************************************************/
+/*   *MODULE      GZREAD       ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("gzclose_r")
+
+/********************************************************************/
+/*   *MODULE      GZWRITE      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("gzclose_w")
+
+/********************************************************************/
+/*   *MODULE      INFLATE      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("inflateMark")
+  EXPORT SYMBOL("inflatePrime")
+  EXPORT SYMBOL("inflateReset2")
+  EXPORT SYMBOL("inflateUndermine")
 
 ENDPGMEXP

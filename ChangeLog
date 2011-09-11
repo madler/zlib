@@ -1,12 +1,57 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.5.1 (10 Sep 2011)
+- Update FAQ entry on shared builds (#13)
+- Avoid symbolic argument to chmod in Makefile.in
+- Fix bug and add consts in contrib/puff [Oberhumer]
+- Update contrib/puff/zeros.raw test file to have all block types
+- Add full coverage test for puff in contrib/puff/Makefile
+- Fix static-only-build install in Makefile.in
+- Fix bug in unzGetCurrentFileInfo() in contrib/minizip [Kuno]
+- Add libz.a dependency to shared in Makefile.in for parallel builds
+- Spell out "number" (instead of "nb") in zlib.h for total_in, total_out
+- Replace $(...) with `...` in configure for non-bash sh [Bowler]
+- Add darwin* to Darwin* and solaris* to SunOS\ 5* in configure [Groffen]
+- Add solaris* to Linux* in configure to allow gcc use [Groffen]
+- Add *bsd* to Linux* case in configure [Bar-Lev]
+- Add inffast.obj to dependencies in win32/Makefile.msc
+- Correct spelling error in deflate.h [Kohler]
+- Change libzdll.a again to libz.dll.a (!) in win32/Makefile.gcc
+- Add test to configure for GNU C looking for gcc in output of $cc -v
+- Add zlib.pc generation to win32/Makefile.gcc [Weigelt]
+- Fix bug in zlib.h for _FILE_OFFSET_BITS set and _LARGEFILE64_SOURCE not
+- Add comment in zlib.h that adler32_combine with len2 < 0 makes no sense
+- Make NO_DIVIDE option in adler32.c much faster (thanks to John Reiser)
+- Make stronger test in zconf.h to include unistd.h for LFS
+- Apply Darwin patches for 64-bit file offsets to contrib/minizip [Slack]
+- Fix zlib.h LFS support when Z_PREFIX used
+- Add updated as400 support (removed from old) [Monnerat]
+- Avoid deflate sensitivity to volatile input data
+- Avoid division in adler32_combine for NO_DIVIDE
+- Clarify the use of Z_FINISH with deflateBound() amount of space
+- Set binary for output file in puff.c
+- Use u4 type for crc_table to avoid conversion warnings
+- Apply casts in zlib.h to avoid conversion warnings
+- Add OF to prototypes for adler32_combine_ and crc32_combine_ [Miller]
+- Improve inflateSync() documentation to note indeterminancy
+- Add deflatePending() function to return the amount of pending output
+- Correct the spelling of "specification" in FAQ [Randers-Pehrson]
+- Add a check in configure for stdarg.h, use for gzprintf()
+- Check that pointers fit in ints when gzprint() compiled old style
+- Add dummy name before $(SHAREDLIBV) in Makefile [Bar-Lev, Bowler]
+- Delete line in configure that adds -L. libz.a to LDFLAGS [Weigelt]
+- Add debug records in assmebler code [Londer]
+- Update RFC references to use http://tools.ietf.org/html/... [Li]
+- Add --archs option, use of libtool to configure for Mac OS X [Borstel]
+
 Changes in 1.2.5 (19 Apr 2010)
 - Disable visibility attribute in win32/Makefile.gcc [Bar-Lev]
 - Default to libdir as sharedlibdir in configure [Nieder]
 - Update copyright dates on modified source files
 - Update trees.c to be able to generate modified trees.h
 - Exit configure for MinGW, suggesting win32/Makefile.gcc
+- Check for NULL path in gz_open [Homurlu]
 
 Changes in 1.2.4.5 (18 Apr 2010)
 - Set sharedlibdir in configure [Torok]
@@ -261,7 +306,7 @@ Changes in 1.2.3.4 (21 Dec 2009)
 - Clear bytes after deflate lookahead to avoid use of uninitialized data
 - Change a limit in inftrees.c to be more transparent to Coverity Prevent
 - Update win32/zlib.def with exported symbols from zlib.h
-- Correct spelling error in zlib.h [Willem]
+- Correct spelling errors in zlib.h [Willem, Sobrado]
 - Allow Z_BLOCK for deflate() to force a new block
 - Allow negative bits in inflatePrime() to delete existing bit buffer
 - Add Z_TREES flush option to inflate() to return at end of trees

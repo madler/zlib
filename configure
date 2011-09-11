@@ -14,12 +14,11 @@
 # an error.
 
 if [ -n "${CHOST}" ]; then
-    uname="$(echo "${CHOST}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/')"
+    uname="`echo "${CHOST}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/'`"
     CROSS_PREFIX="${CHOST}-"
 fi
 
 STATICLIB=libz.a
-LDFLAGS="${LDFLAGS} -L. ${STATICLIB}"
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
 VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < zlib.h`
 VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
@@ -46,6 +45,7 @@ else
 fi
 LDCONFIG=${LDCONFIG-"ldconfig"}
 LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
+ARCHS=
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
@@ -67,7 +67,7 @@ case "$1" in
       echo 'usage:'
       echo '  configure [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]'
       echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]'
-      echo '    [--includedir=INCLUDEDIR]'
+      echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]'
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -83,6 +83,7 @@ case "$1" in
     -t | --static) shared=0; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
+    -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir"; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir"; shift ;;
     *) echo "unknown option: $1"; echo "$0 --help for help"; exit 1 ;;
@@ -102,11 +103,15 @@ cflags=${CFLAGS-"-O3"}
 case "$cc" in
   *gcc*) gcc=1 ;;
 esac
+case `$cc -v 2>&1` in
+  *gcc*) gcc=1 ;;
+esac
 
 if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   CC="$cc"
+  CFLAGS="${CFLAGS--O3} ${ARCHS}"
   SFLAGS="${CFLAGS--O3} -fPIC"
-  CFLAGS="${CFLAGS--O3}"
+  LDFLAGS="${LDFLAGS} ${ARCHS}"
   if test $build64 -eq 1; then
     CFLAGS="${CFLAGS} -m64"
     SFLAGS="${SFLAGS} -m64"
@@ -118,10 +123,11 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
     uname=`(uname -s || echo unknown) 2>/dev/null`
   fi
   case "$uname" in
-  Linux* | linux* | GNU | GNU/* | *BSD | DragonFly) LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+  Linux* | linux* | GNU | GNU/* | *BSD | *bsd* | DragonFly | solaris*)
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
-  MINGW*|mingw*)
+  MINGW* | mingw*)
 # temporary bypass
         rm -f $test.[co] $test $test$shared_ext
         echo "Please use win32/Makefile.gcc instead."
@@ -142,11 +148,14 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl' ;;
          esac ;;
-  Darwin*)   shared_ext='.dylib'
+  Darwin* | darwin*)
+             shared_ext='.dylib'
              SHAREDLIB=libz$shared_ext
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"} ;;
+             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
+             AR="libtool"
+             AR_RC="${AR} -o" ;;
   *)             LDSHARED=${LDSHARED-"$cc -shared"} ;;
   esac
 else
@@ -187,7 +196,8 @@ else
   SCO_SV\ 3.2*) SFLAGS=${CFLAGS-"-O3 -dy -KPIC "}
              CFLAGS=${CFLAGS-"-O3"}
              LDSHARED=${LDSHARED-"cc -dy -KPIC -G"} ;;
-  SunOS\ 5*) LDSHARED=${LDSHARED-"cc -G"}
+  SunOS\ 5* | solaris*)
+         LDSHARED=${LDSHARED-"cc -G"}
          case `(uname -m || echo unknown) 2>/dev/null` in
          i86*)
              SFLAGS=${CFLAGS-"-xpentium -fast -KPIC -R."}
@@ -303,6 +313,18 @@ else
   echo "Checking for unistd.h... No."
 fi
 
+cat > $test.c <<EOF
+#include <stdarg.h>
+int main() { return 0; }
+EOF
+if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  sed < zconf.h "/^#ifdef HAVE_STDARG_H.* may be/s/def HAVE_STDARG_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
+  mv zconf.temp.h zconf.h
+  echo "Checking for stdarg.h... Yes."
+else
+  echo "Checking for stdarg.h... No."
+fi
+
 if test $zprefix -eq 1; then
   sed < zconf.h "/#ifdef Z_PREFIX.* may be/s/def Z_PREFIX\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
@@ -347,7 +369,6 @@ int main()
   return (mytest("Hello%d\n", 1));
 }
 EOF
-
   if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
     echo "Checking for vsnprintf() in stdio.h... Yes."
 

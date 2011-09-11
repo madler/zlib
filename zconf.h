@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2010 Jean-loup Gailly.
+ * Copyright (C) 1995-2011 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -15,6 +15,7 @@
  * this permanently in zconf.h using "./configure --zprefix".
  */
 #ifdef Z_PREFIX     /* may be set to #if 1 by ./configure */
+#  define Z_PREFIX_SET
 
 /* all linked symbols */
 #  define _dist_code            z__dist_code
@@ -40,6 +41,7 @@
 #  define deflateInit2_         z_deflateInit2_
 #  define deflateInit_          z_deflateInit_
 #  define deflateParams         z_deflateParams
+#  define deflatePending        z_deflatePending
 #  define deflatePrime          z_deflatePrime
 #  define deflateReset          z_deflateReset
 #  define deflateSetDictionary  z_deflateSetDictionary
@@ -243,6 +245,14 @@
 #  endif
 #endif
 
+#ifndef ON /* function prototypes for stdarg */
+#  if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#    define ON(args)  args
+#  else
+#    define ON(args)  ()
+#  endif
+#endif
+
 /* The following definitions for FAR are needed only for MSDOS mixed
  * model programming (small or medium model with some far allocations).
  * This was tested only with MSC; for other MSDOS compilers you may have
@@ -360,6 +370,10 @@ typedef uLong FAR uLongf;
 #  define Z_HAVE_UNISTD_H
 #endif
 
+#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_STDARG_H
+#endif
+
 #ifdef STDC
 #  include <sys/types.h>    /* for off_t */
 #endif
@@ -374,7 +388,11 @@ typedef uLong FAR uLongf;
 #  undef _LARGEFILE64_SOURCE
 #endif
 
-#if defined(Z_HAVE_UNISTD_H) || defined(_LARGEFILE64_SOURCE)
+#if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
+#  define Z_LARGE
+#endif
+
+#if defined(Z_HAVE_UNISTD_H) || defined(Z_LARGE)
 #  include <unistd.h>       /* for SEEK_* and off_t */
 #  ifdef VMS
 #    include <unixio.h>     /* for off_t */

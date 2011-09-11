@@ -1,5 +1,5 @@
 /* gzwrite.c -- zlib functions for writing gzip files
- * Copyright (C) 2004, 2005, 2010 Mark Adler
+ * Copyright (C) 2004, 2005, 2010, 2011 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -274,7 +274,7 @@ int ZEXPORT gzputs(file, str)
     return ret == 0 && len != 0 ? -1 : ret;
 }
 
-#ifdef STDC
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
 #include <stdarg.h>
 
 /* -- see zlib.h -- */
@@ -346,7 +346,7 @@ int ZEXPORTVA gzprintf (gzFile file, const char *format, ...)
     return len;
 }
 
-#else /* !STDC */
+#else /* !STDC && !Z_HAVE_STDARG_H */
 
 /* -- see zlib.h -- */
 int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
@@ -365,6 +365,10 @@ int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
         return -1;
     state = (gz_statep)file;
     strm = &(state->strm);
+
+    /* check that can really pass pointer in ints */
+    if (sizeof(int) != sizeof(void *))
+        return 0;
 
     /* check that we're writing and that there's no error */
     if (state->mode != GZ_WRITE || state->err != Z_OK)

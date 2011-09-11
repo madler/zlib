@@ -25,7 +25,7 @@
 
 STATICLIB = libz.a
 SHAREDLIB = zlib1.dll
-IMPLIB    = libzdll.a
+IMPLIB    = libz.dll.a
 
 #
 # Set to 1 if shared object needs to be installed
@@ -59,7 +59,7 @@ CP = cp -fp
 INSTALL = $(CP)
 RM = rm -f
 
-prefix = /usr/local
+prefix ?= /usr/local
 exec_prefix = $(prefix)
 
 OBJS = adler32.o compress.o crc32.o deflate.o gzclose.o gzlib.o gzread.o \
@@ -118,7 +118,7 @@ zlibrc.o: win32/zlib1.rc
 
 install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
 	-@mkdir -p $(INCLUDE_PATH)
-	-@mkdir -p $(LIBRARY_PATH)
+	-@mkdir -p $(LIBRARY_PATH) $(LIBRARY_PATH)/pkgconfig
 	-if [ "$(SHARED_MODE)" = "1" ]; then \
 		mkdir -p $(BINARY_PATH); \
 		$(INSTALL) $(SHAREDLIB) $(BINARY_PATH); \
@@ -127,6 +127,14 @@ install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
 	-$(INSTALL) zlib.h $(INCLUDE_PATH)
 	-$(INSTALL) zconf.h $(INCLUDE_PATH)
 	-$(INSTALL) $(STATICLIB) $(LIBRARY_PATH)
+	sed \
+		-e 's|@prefix@|${prefix}|g' \
+		-e 's|@exec_prefix@|${exec_prefix}|g' \
+		-e 's|@libdir@|$(LIBRARY_PATH)|g' \
+		-e 's|@sharedlibdir@|$(LIBRARY_PATH)|g' \
+		-e 's|@includedir@|$(INCLUDE_PATH)|g' \
+		-e 's|@VERSION@|'`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`'|g' \
+		zlib.pc.in > $(LIBRARY_PATH)/pkgconfig/zlib.pc
 
 uninstall:
 	-if [ "$(SHARED_MODE)" = "1" ]; then \

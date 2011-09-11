@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-2010 Jean-loup Gailly.
+# Copyright (C) 1995-2011 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.5
+SHAREDLIBV=libz.so.1.2.5.1
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIBV)
 
@@ -136,7 +136,7 @@ minigzip64.o: minigzip.c zlib.h zconf.h
 	$(CC) $(SFLAGS) -DPIC -c -o objs/$*.o $<
 	-@mv objs/$*.o $@
 
-$(SHAREDLIBV): $(PIC_OBJS)
+placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
@@ -168,14 +168,16 @@ install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
 	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
 	cp $(STATICLIB) $(DESTDIR)$(libdir)
-	cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)
-	cd $(DESTDIR)$(libdir); chmod u=rw,go=r $(STATICLIB)
-	-@(cd $(DESTDIR)$(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
-	-@cd $(DESTDIR)$(sharedlibdir); if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
-	  chmod 755 $(SHAREDLIBV); \
-	  rm -f $(SHAREDLIB) $(SHAREDLIBM); \
-	  ln -s $(SHAREDLIBV) $(SHAREDLIB); \
-	  ln -s $(SHAREDLIBV) $(SHAREDLIBM); \
+	chmod 644 $(DESTDIR)$(libdir)/$(STATICLIB)
+	-@($(RANLIB) $(DESTDIR)$(libdir)/libz.a || true) >/dev/null 2>&1
+	-@if test -n "$(SHAREDLIBV)"; then \
+	  cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir); \
+	  echo "cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)"; \
+	  chmod 755 $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV); \
+	  echo "chmod 755 $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV)"; \
+	  rm -f $(DESTDIR)$(sharedlibdir)/$(SHAREDLIB) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
+	  ln -s $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIB); \
+	  ln -s $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
 	  ($(LDCONFIG) || true)  >/dev/null 2>&1; \
 	fi
 	cp zlib.3 $(DESTDIR)$(man3dir)
@@ -193,7 +195,7 @@ install: install-libs
 uninstall:
 	cd $(DESTDIR)$(includedir); rm -f zlib.h zconf.h
 	cd $(DESTDIR)$(libdir); rm -f libz.a; \
-	if test "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
+	if test -n "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
 	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
 	fi
 	cd $(DESTDIR)$(man3dir); rm -f zlib.3

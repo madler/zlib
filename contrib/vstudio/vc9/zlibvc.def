@@ -55,6 +55,7 @@ EXPORTS
         gzungetc                                 @49
         zlibCompileFlags                         @50
         deflatePrime                             @51
+        deflatePending                           @52
 
         unzOpen                                  @61
         unzClose                                 @62

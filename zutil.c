@@ -1,5 +1,5 @@
 /* zutil.c -- target dependent utility functions for the compression library
- * Copyright (C) 1995-2005, 2010 Jean-loup Gailly.
+ * Copyright (C) 1995-2005, 2010, 2011 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -85,7 +85,7 @@ uLong ZEXPORT zlibCompileFlags()
 #ifdef FASTEST
     flags += 1L << 21;
 #endif
-#ifdef STDC
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
 #  ifdef NO_vsnprintf
         flags += 1L << 25;
 #    ifdef HAS_vsprintf_void

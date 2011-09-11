@@ -91,6 +91,10 @@ local gzFile gz_open(path, fd, mode)
 {
     gz_statep state;
 
+    /* check input */
+    if (path == NULL)
+        return NULL;
+
     /* allocate gzFile structure to return */
     state = malloc(sizeof(gz_state));
     if (state == NULL)
