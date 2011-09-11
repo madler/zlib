@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.5.2 (xx Sep 2011)
+- 
+
 Changes in 1.2.5.1 (10 Sep 2011)
 - Update FAQ entry on shared builds (#13)
 - Avoid symbolic argument to chmod in Makefile.in
