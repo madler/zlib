@@ -176,8 +176,8 @@ install-libs: $(LIBS)
 	  chmod 755 $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV); \
 	  echo "chmod 755 $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV)"; \
 	  rm -f $(DESTDIR)$(sharedlibdir)/$(SHAREDLIB) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
-	  ln -s $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIB); \
-	  ln -s $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
+	  ln -s $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIB); \
+	  ln -s $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
 	  ($(LDCONFIG) || true)  >/dev/null 2>&1; \
 	fi
 	cp zlib.3 $(DESTDIR)$(man3dir)
