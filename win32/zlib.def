@@ -1,6 +1,4 @@
-LIBRARY
 ; zlib data compression library
-
 EXPORTS
 ; basic functions
     zlibVersion
@@ -58,6 +56,13 @@ EXPORTS
     gzclose_w
     gzerror
     gzclearerr
+; large file functions
+    gzopen64
+    gzseek64
+    gztell64
+    gzoffset64
+    adler32_combine64
+    crc32_combine64
 ; checksum functions
     adler32
     crc32

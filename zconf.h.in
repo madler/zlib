@@ -412,10 +412,14 @@ typedef uLong FAR uLongf;
 #  define z_off_t long
 #endif
 
-#if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
+#if !defined(_WIN32) && (defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0)
 #  define z_off64_t off64_t
 #else
+#  if defined(_WIN32)
+#    define z_off64_t __int64
+#  else
 #  define z_off64_t z_off_t
+#endif
 #endif
 
 #if defined(__OS400__)
