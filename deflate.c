@@ -1761,11 +1761,11 @@ local block_state deflate_rle(s, flush)
     for (;;) {
         /* Make sure that we always have enough lookahead, except
          * at the end of the input file. We need MAX_MATCH bytes
-         * for the longest encodable run.
+         * for the longest run, plus one for the unrolled loop.
          */
-        if (s->lookahead < MAX_MATCH) {
+        if (s->lookahead <= MAX_MATCH) {
             fill_window(s);
-            if (s->lookahead < MAX_MATCH && flush == Z_NO_FLUSH) {
+            if (s->lookahead <= MAX_MATCH && flush == Z_NO_FLUSH) {
                 return need_more;
             }
             if (s->lookahead == 0) break; /* flush the current block */
@@ -1788,6 +1788,7 @@ local block_state deflate_rle(s, flush)
                 if (s->match_length > s->lookahead)
                     s->match_length = s->lookahead;
             }
+            Assert(scan <= s->window+(uInt)(s->window_size-1), "wild scan");
         }
 
         /* Emit match if have run of MIN_MATCH or longer, else emit literal */
