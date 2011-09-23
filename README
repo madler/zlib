@@ -44,7 +44,7 @@ http://search.cpan.org/~pmqs/IO-Compress-Zlib/ .
 
 A Python interface to zlib written by A.M. Kuchling <amk@amk.ca> is
 available in Python 1.5 and later versions, see
-http://www.python.org/doc/lib/module-zlib.html .
+http://docs.python.org/library/zlib.html .
 
 zlib is built into tcl: http://wiki.tcl.tk/4610 .
 
