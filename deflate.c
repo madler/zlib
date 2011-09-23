@@ -1374,7 +1374,7 @@ local void fill_window(s)
 #endif
             more += wsize;
         }
-        if (s->strm->avail_in == 0) return;
+        if (s->strm->avail_in == 0) break;
 
         /* If there was no sliding:
          *    strstart <= WSIZE+MAX_DIST-1 && lookahead <= MIN_LOOKAHEAD - 1 &&
