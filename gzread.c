@@ -207,6 +207,15 @@ local int gz_head(state)
         }
     }
 
+    /* no gzip header -- if we were decoding gzip before, then this is trailing
+       garbage.  Ignore the trailing garbage and finish. */
+    if (state->direct == 0) {
+        strm->avail_in = 0;
+        state->eof = 1;
+        state->have = 0;
+        return 0;
+    }
+
     /* doing raw i/o, save start of raw data for seeking, copy any leftover
        input to output -- this assumes that the output buffer is larger than
        the input buffer, which also assures space for gzungetc() */

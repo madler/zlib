@@ -1259,14 +1259,14 @@ ZEXTERN int ZEXPORT gzsetparams OF((gzFile file, int level, int strategy));
 ZEXTERN int ZEXPORT gzread OF((gzFile file, voidp buf, unsigned len));
 /*
      Reads the given number of uncompressed bytes from the compressed file.  If
-   the input file was not in gzip format, gzread copies the given number of
-   bytes into the buffer.
+   the input file is not in gzip format, gzread copies the given number of
+   bytes into the buffer directly from the file.
 
      After reaching the end of a gzip stream in the input, gzread will continue
-   to read, looking for another gzip stream, or failing that, reading the rest
-   of the input file directly without decompression.  The entire input file
-   will be read if gzread is called until it returns less than the requested
-   len.
+   to read, looking for another gzip stream.  Any number of gzip streams may be
+   concatenated in the input file, and will all be decompressed by gzread().
+   If something other than a gzip stream is encountered after a gzip stream,
+   that remaining trailing garbage is ignored (and no error is returned).
 
      gzread returns the number of uncompressed bytes actually read, less than
    len for end of file, or -1 for error.
