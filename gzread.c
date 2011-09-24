@@ -569,14 +569,14 @@ char * ZEXPORT gzgets(file, buf, len)
     left = (unsigned)len - 1;
     if (left) do {
         /* assure that something is in the output buffer */
-        if (state->have == 0) {
+        while (state->have == 0 && (state->strm.avail_in || !state->eof)) {
             if (gz_make(state) == -1)
                 return NULL;            /* error */
-            if (state->have == 0) {     /* end of file */
-                if (buf == str)         /* got bupkus */
-                    return NULL;
-                break;                  /* got something -- return it */
-            }
+        }
+        if (state->have == 0) {         /* end of file */
+            if (buf == str)             /* got bupkus */
+                return NULL;
+            break;                      /* got something -- return it */
         }
 
         /* look for end-of-line in current output buffer */
