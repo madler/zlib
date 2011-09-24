@@ -297,7 +297,7 @@ local int gz_decomp(state)
 /* Make data and put in the output buffer.  Assumes that state->have == 0.
    Data is either copied from the input file or decompressed from the input
    file depending on state->how.  If state->how is LOOK, then a gzip header is
-   looked for (and skipped if found) to determine wither to copy or decompress.
+   looked for (and skipped if found) to discern whether to copy or decompress.
    Returns -1 on error, otherwise 0.  gz_make() will leave state->have as COPY
    or GZIP unless the end of the input file has been reached and all data has
    been processed.  */
