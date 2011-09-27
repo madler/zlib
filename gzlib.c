@@ -265,7 +265,8 @@ int ZEXPORT gzrewind(file)
     state = (gz_statep)file;
 
     /* check that we're reading and that there's no error */
-    if (state->mode != GZ_READ || state->err != Z_OK)
+    if (state->mode != GZ_READ ||
+            (state->err != Z_OK && state->err != Z_BUF_ERROR))
         return -1;
 
     /* back up and start over */
@@ -293,7 +294,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
         return -1;
 
     /* check that there's no error */
-    if (state->err != Z_OK)
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR)
         return -1;
 
     /* can only seek from start or relative to current position */
