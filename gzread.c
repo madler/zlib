@@ -144,10 +144,9 @@ local int gz_look(state)
         return 0;
     }
 
-    /* doing raw i/o, save start of raw data for seeking, copy any leftover
-       input to output -- this assumes that the output buffer is larger than
-       the input buffer, which also assures space for gzungetc() */
-    state->raw = state->pos;
+    /* doing raw i/o, copy any leftover input to output -- this assumes that
+       the output buffer is larger than the input buffer, which also assures
+       space for gzungetc() */
     state->next = state->out;
     if (strm->avail_in) {
         memcpy(state->next, strm->next_in, strm->avail_in);

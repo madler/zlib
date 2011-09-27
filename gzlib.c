@@ -310,7 +310,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY &&
-        state->pos + offset >= state->raw) {
+            state->pos + offset >= 0) {
         ret = LSEEK(state->fd, offset - state->have, SEEK_CUR);
         if (ret == -1)
             return -1;

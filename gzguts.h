@@ -98,7 +98,6 @@ typedef struct {
     unsigned have;          /* amount of output data unused at next */
     int eof;                /* true if end of input file reached */
     z_off64_t start;        /* where the gzip data started, for rewinding */
-    z_off64_t raw;          /* where the raw data started, for seeking */
     int how;                /* 0: get header, 1: copy, 2: decompress */
     int direct;             /* true if last read direct, false if gzip */
         /* just for writing */
