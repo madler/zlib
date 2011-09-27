@@ -48,7 +48,7 @@ local int gz_init(state)
     /* initialize write buffer */
     strm->avail_out = state->size;
     strm->next_out = state->out;
-    state->next = strm->next_out;
+    state->x.next = strm->next_out;
     return 0;
 }
 
@@ -75,8 +75,8 @@ local int gz_comp(state, flush)
            doing Z_FINISH then don't write until we get to Z_STREAM_END */
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
-            have = (unsigned)(strm->next_out - state->next);
-            if (have && ((got = write(state->fd, state->next, have)) < 0 ||
+            have = (unsigned)(strm->next_out - state->x.next);
+            if (have && ((got = write(state->fd, state->x.next, have)) < 0 ||
                          (unsigned)got != have)) {
                 gz_error(state, Z_ERRNO, zstrerror());
                 return -1;
@@ -85,7 +85,7 @@ local int gz_comp(state, flush)
                 strm->avail_out = state->size;
                 strm->next_out = state->out;
             }
-            state->next = strm->next_out;
+            state->x.next = strm->next_out;
         }
 
         /* compress */
@@ -131,7 +131,7 @@ local int gz_zero(state, len)
         }
         strm->avail_in = n;
         strm->next_in = state->in;
-        state->pos += n;
+        state->x.pos += n;
         if (gz_comp(state, Z_NO_FLUSH) == -1)
             return -1;
         len -= n;
@@ -193,7 +193,7 @@ int ZEXPORT gzwrite(file, buf, len)
                 n = len;
             memcpy(strm->next_in + strm->avail_in, buf, n);
             strm->avail_in += n;
-            state->pos += n;
+            state->x.pos += n;
             buf = (char *)buf + n;
             len -= n;
             if (len && gz_comp(state, Z_NO_FLUSH) == -1)
@@ -208,7 +208,7 @@ int ZEXPORT gzwrite(file, buf, len)
         /* directly compress user buffer to file */
         strm->avail_in = len;
         strm->next_in = (voidp)buf;
-        state->pos += len;
+        state->x.pos += len;
         if (gz_comp(state, Z_NO_FLUSH) == -1)
             return 0;
     }
@@ -249,7 +249,7 @@ int ZEXPORT gzputc(file, c)
         if (strm->avail_in == 0)
             strm->next_in = state->in;
         strm->next_in[strm->avail_in++] = c;
-        state->pos++;
+        state->x.pos++;
         return c;
     }
 
@@ -342,7 +342,7 @@ int ZEXPORTVA gzprintf (gzFile file, const char *format, ...)
     /* update buffer and position, defer compression until needed */
     strm->avail_in = (unsigned)len;
     strm->next_in = state->in;
-    state->pos += len;
+    state->x.pos += len;
     return len;
 }
 
@@ -420,7 +420,7 @@ int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
     /* update buffer and position, defer compression until needed */
     strm->avail_in = (unsigned)len;
     strm->next_in = state->in;
-    state->pos += len;
+    state->x.pos += len;
     return len;
 }
 

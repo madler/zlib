@@ -1186,7 +1186,7 @@ ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
    wrapper, documented in RFC 1952, wrapped around a deflate stream.
 */
 
-typedef voidp gzFile;       /* opaque gzip file descriptor */
+typedef struct gzFile_s *gzFile;    /* semi-opaque gzip file descriptor */
 
 /*
 ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
@@ -1322,10 +1322,13 @@ ZEXTERN int ZEXPORT gzputc OF((gzFile file, int c));
    returns the value that was written, or -1 in case of error.
 */
 
-ZEXTERN int ZEXPORT gzgetc OF((gzFile file));
 /*
+ZEXTERN int ZEXPORT gzgetc OF((gzFile file));
      Reads one byte from the compressed file.  gzgetc returns this byte or -1
-   in case of end of file or error.
+   in case of end of file or error.  This is implemented as a macro for speed.
+   As such, it does not do all of the checking the other functions do.  I.e.
+   it does not check to see if file is NULL, nor whether the structure file
+   points to has been clobbered or not.
 */
 
 ZEXTERN int ZEXPORT gzungetc OF((int c, gzFile file));
@@ -1582,6 +1585,22 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
 #define inflateBackInit(strm, windowBits, window) \
         inflateBackInit_((strm), (windowBits), (window), \
                       ZLIB_VERSION, (int)sizeof(z_stream))
+
+/* gzgetc() macro and its supporting function and exposed data structure.  Note
+ * that the real internal state is much larger than the exposed structure.
+ * This abbreviated structure exposes just enough for the gzgetc() macro.  The
+ * user should not mess with these exposed elements, since their names or
+ * behavior could change in the future, perhaps even capriciously.  They can
+ * only be used by the gzgetc() macro.  You have been warned.
+ */
+struct gzFile_s {
+    unsigned have;
+    unsigned char *next;
+    z_off64_t pos;
+};
+ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));
+#define gzgetc(g) \
+    ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : gzgetc_(g))
 
 /* provide 64-bit offset functions if _LARGEFILE64_SOURCE defined, and/or
  * change the regular functions to 64 bits if _FILE_OFFSET_BITS is 64 (if

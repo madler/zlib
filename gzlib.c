@@ -71,15 +71,15 @@ char ZLIB_INTERNAL *gz_strwinerror (error)
 local void gz_reset(state)
     gz_statep state;
 {
+    state->x.have = 0;              /* no output data available */
     if (state->mode == GZ_READ) {   /* for reading ... */
-        state->have = 0;            /* no output data available */
         state->eof = 0;             /* not at end of file */
         state->how = LOOK;          /* look for gzip header */
         state->direct = 1;          /* default for empty file */
     }
     state->seek = 0;                /* no seek request pending */
     gz_error(state, Z_OK, NULL);    /* clear error */
-    state->pos = 0;                 /* no uncompressed data yet */
+    state->x.pos = 0;               /* no uncompressed data yet */
     state->strm.avail_in = 0;       /* no input data yet */
 }
 
@@ -303,31 +303,31 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
 
     /* normalize offset to a SEEK_CUR specification */
     if (whence == SEEK_SET)
-        offset -= state->pos;
+        offset -= state->x.pos;
     else if (state->seek)
         offset += state->skip;
     state->seek = 0;
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY &&
-            state->pos + offset >= 0) {
-        ret = LSEEK(state->fd, offset - state->have, SEEK_CUR);
+            state->x.pos + offset >= 0) {
+        ret = LSEEK(state->fd, offset - state->x.have, SEEK_CUR);
         if (ret == -1)
             return -1;
-        state->have = 0;
+        state->x.have = 0;
         state->eof = 0;
         state->seek = 0;
         gz_error(state, Z_OK, NULL);
         state->strm.avail_in = 0;
-        state->pos += offset;
-        return state->pos;
+        state->x.pos += offset;
+        return state->x.pos;
     }
 
     /* calculate skip amount, rewinding if needed for back seek when reading */
     if (offset < 0) {
         if (state->mode != GZ_READ)         /* writing -- can't go backwards */
             return -1;
-        offset += state->pos;
+        offset += state->x.pos;
         if (offset < 0)                     /* before start of file! */
             return -1;
         if (gzrewind(file) == -1)           /* rewind, then skip to offset */
@@ -336,11 +336,11 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
 
     /* if reading, skip what's in output buffer (one less gzgetc() check) */
     if (state->mode == GZ_READ) {
-        n = GT_OFF(state->have) || (z_off64_t)state->have > offset ?
-            (unsigned)offset : state->have;
-        state->have -= n;
-        state->next += n;
-        state->pos += n;
+        n = GT_OFF(state->x.have) || (z_off64_t)state->x.have > offset ?
+            (unsigned)offset : state->x.have;
+        state->x.have -= n;
+        state->x.next += n;
+        state->x.pos += n;
         offset -= n;
     }
 
@@ -349,7 +349,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
         state->seek = 1;
         state->skip = offset;
     }
-    return state->pos + offset;
+    return state->x.pos + offset;
 }
 
 /* -- see zlib.h -- */
@@ -378,7 +378,7 @@ z_off64_t ZEXPORT gztell64(file)
         return -1;
 
     /* return position */
-    return state->pos + (state->seek ? state->skip : 0);
+    return state->x.pos + (state->seek ? state->skip : 0);
 }
 
 /* -- see zlib.h -- */
@@ -439,7 +439,7 @@ int ZEXPORT gzeof(file)
 
     /* return end-of-file state */
     return state->mode == GZ_READ ?
-        (state->eof && state->strm.avail_in == 0 && state->have == 0) : 0;
+        (state->eof && state->strm.avail_in == 0 && state->x.have == 0) : 0;
 }
 
 /* -- see zlib.h -- */
@@ -498,6 +498,10 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
             free(state->msg);
         state->msg = NULL;
     }
+
+    /* if fatal, set state->x.have to 0 so that the gzgetc() macro fails */
+    if (err != Z_OK && err != Z_BUF_ERROR)
+        state->x.have = 0;
 
     /* set error code, and if no message, then done */
     state->err = err;
