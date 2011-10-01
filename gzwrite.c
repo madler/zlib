@@ -504,7 +504,7 @@ int ZEXPORT gzsetparams(file, level, strategy)
 int ZEXPORT gzclose_w(file)
     gzFile file;
 {
-    int ret = 0;
+    int ret = Z_OK;
     gz_statep state;
 
     /* get internal structure */
@@ -519,17 +519,20 @@ int ZEXPORT gzclose_w(file)
     /* check for seek request */
     if (state->seek) {
         state->seek = 0;
-        ret += gz_zero(state, state->skip);
+        if (gz_zero(state, state->skip) == -1)
+            ret = state->err;
     }
 
     /* flush, free memory, and close file */
-    ret += gz_comp(state, Z_FINISH);
+    if (gz_comp(state, Z_FINISH) == -1)
+        ret = state->err;
     (void)deflateEnd(&(state->strm));
     free(state->out);
     free(state->in);
     gz_error(state, Z_OK, NULL);
     free(state->path);
-    ret += close(state->fd);
+    if (close(state->fd) == -1)
+        ret = Z_ERRNO;
     free(state);
-    return ret ? Z_ERRNO : Z_OK;
+    return ret;
 }

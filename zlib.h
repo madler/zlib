@@ -1446,7 +1446,7 @@ ZEXTERN int ZEXPORT    gzclose OF((gzFile file));
    must not be called more than once on the same allocation.
 
      gzclose will return Z_STREAM_ERROR if file is not valid, Z_ERRNO on a
-   file operation error, or Z_OK on success.
+   file operation error, Z_MEM_ERROR if out of memory, or Z_OK on success.
 */
 
 ZEXTERN int ZEXPORT gzclose_r OF((gzFile file));
