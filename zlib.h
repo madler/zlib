@@ -1431,9 +1431,7 @@ ZEXTERN int ZEXPORT gzeof OF((gzFile file));
 ZEXTERN int ZEXPORT gzdirect OF((gzFile file));
 /*
      Returns true (1) if file is being copied directly while reading, or false
-   (0) if file is a gzip stream being decompressed.  This state can change from
-   false to true while reading the input file if the end of a gzip stream is
-   reached, but is followed by data that is not another gzip stream.
+   (0) if file is a gzip stream being decompressed.
 
      If the input file is empty, gzdirect() will return true, since the input
    does not contain a gzip stream.
