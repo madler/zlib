@@ -70,3 +70,8 @@ ZLIB_1.2.3.5 {
 ZLIB_1.2.5.1 {
     deflatePending;
 } ZLIB_1.2.3.5;
+
+ZLIB_1.2.5.2 {
+    gzflags;
+    gzgetc_;
+} ZLIB_1.2.5.1;

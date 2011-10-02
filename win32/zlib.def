@@ -42,7 +42,6 @@ EXPORTS
     gzputs
     gzgets
     gzputc
-    gzgetc
     gzungetc
     gzflush
     gzseek
@@ -78,3 +77,5 @@ EXPORTS
     inflateSyncPoint
     get_crc_table
     inflateUndermine
+    gzgetc_
+    gzflags

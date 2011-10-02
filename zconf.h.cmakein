@@ -63,8 +63,10 @@
 #  define gzdopen               z_gzdopen
 #  define gzeof                 z_gzeof
 #  define gzerror               z_gzerror
+#  define gzflags               z_gzflags
 #  define gzflush               z_gzflush
 #  define gzgetc                z_gzgetc
+#  define gzgetc_               z_gzgetc_
 #  define gzgets                z_gzgets
 #  define gzoffset              z_gzoffset
 #  define gzoffset64            z_gzoffset64
@@ -422,14 +424,6 @@ typedef uLong FAR uLongf;
 #  else
 #  define z_off64_t z_off_t
 #endif
-#endif
-
-#if defined(__OS400__)
-#  define NO_vsnprintf
-#endif
-
-#if defined(__MVS__)
-#  define NO_vsnprintf
 #endif
 
 /* MVS linker does not support external names larger than 8 bytes */

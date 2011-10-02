@@ -33,7 +33,6 @@ EXPORTS
         zlibVersion                              @27
         gzprintf                                 @28
         gzputc                                   @29
-        gzgetc                                   @30
         gzseek                                   @31
         gzrewind                                 @32
         gztell                                   @33
@@ -129,3 +128,7 @@ EXPORTS
         inflatePrime                            @158
         inflateReset2                           @159
         inflateUndermine                        @160
+
+; zlib1 v1.2.6 added:
+        gzgetc_                                 @30
+        gzflags                                 @162

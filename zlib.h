@@ -1660,6 +1660,7 @@ ZEXTERN const char   * ZEXPORT zError           OF((int));
 ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp));
 ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
+ZEXTERN unsigned long  ZEXPORT gzflags          OF((void));
 
 #ifdef __cplusplus
 }

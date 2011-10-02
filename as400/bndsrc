@@ -52,7 +52,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("gzputs")
   EXPORT SYMBOL("gzgets")
   EXPORT SYMBOL("gzputc")
-  EXPORT SYMBOL("gzgetc")
   EXPORT SYMBOL("gzflush")
   EXPORT SYMBOL("gzseek")
   EXPORT SYMBOL("gzrewind")
@@ -170,6 +169,8 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /********************************************************************/
 
   EXPORT SYMBOL("gzclose_w")
+  EXPORT SYMBOL("gzgetc_")
+  EXPORT SYMBOL("gzflags")
 
 /********************************************************************/
 /*   *MODULE      INFLATE      ZLIB         01/02/01  00:15:09      */

@@ -182,6 +182,17 @@
      D  buf                       32767    options(*varsize)                    Read buffer
      D  len                          10i 0 value                                Buffer length
       *
+     D gzputc          PR            10i 0 extproc('gzputc')
+     D  file                               value like(gzFile)                   File pointer
+     D  c                            10I 0 value                                Character to write
+      *
+     D gzgetc_         PR            10i 0 extproc('gzgetc_')
+     D  file                               value like(gzFile)                   File pointer
+      *
+     D gzungetc        PR            10i 0 extproc('gzungetc')
+     D  c                            10I 0 value                                Character to push
+     D  file                               value like(gzFile)                   File pointer
+      *
      D gzflush         PR            10i 0 extproc('gzflush')
      D  file                               value like(gzFile)                   File pointer
      D  flush                        10I 0 value                                Type of flush
@@ -419,5 +430,7 @@
      D                 PR            10I 0 extproc('inflateUndermine')
      D  strm                               like(z_stream)                       Expansion stream
      D  arg                          10I 0 value                                Error code
+      *
+     D gzflags         PR            10U 0 extproc('gzflags')
       *
       /endif
