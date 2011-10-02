@@ -1201,6 +1201,13 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
    written be appended to the file.  "+" will result in an error, since reading
    and writing to the same gzip file is not supported.
 
+     These functions, as well as gzip, will read and decode a sequence of gzip
+   streams in a file.  The append function of gzopen() can be used to create
+   such a file.  (Also see gzflush() for another way to do this.)  When
+   appending, gzopen does not test whether the file begins with a gzip stream,
+   nor does it look for the end of the gzip streams to begin appending.  gzopen
+   will simply append a gzip stream to the existing file.
+
      gzopen can be used to read a file which is not in gzip format; in this
    case gzread will directly read from the file without decompression.
 
