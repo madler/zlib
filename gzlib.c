@@ -79,7 +79,6 @@ local void gz_reset(state)
     if (state->mode == GZ_READ) {   /* for reading ... */
         state->eof = 0;             /* not at end of file */
         state->how = LOOK;          /* look for gzip header */
-        state->direct = 1;          /* default for empty file */
     }
     state->seek = 0;                /* no seek request pending */
     gz_error(state, Z_OK, NULL);    /* clear error */
@@ -111,6 +110,7 @@ local gzFile gz_open(path, fd, mode)
     state->mode = GZ_NONE;
     state->level = Z_DEFAULT_COMPRESSION;
     state->strategy = Z_DEFAULT_STRATEGY;
+    state->direct = 0;
     while (*mode) {
         if (*mode >= '0' && *mode <= '9')
             state->level = *mode - '0';
@@ -143,6 +143,8 @@ local gzFile gz_open(path, fd, mode)
                 break;
             case 'F':
                 state->strategy = Z_FIXED;
+            case 'T':
+                state->direct = 1;
             default:        /* could consider as an error, but just ignore */
                 ;
             }
@@ -153,6 +155,15 @@ local gzFile gz_open(path, fd, mode)
     if (state->mode == GZ_NONE) {
         free(state);
         return NULL;
+    }
+
+    /* can't force transparent read */
+    if (state->mode == GZ_READ) {
+        if (state->direct) {
+            free(state);
+            return NULL;
+        }
+        state->direct = 1;      /* for empty file */
     }
 
     /* save the path name for error messages */

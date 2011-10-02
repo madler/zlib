@@ -18,44 +18,55 @@ local int gz_init(state)
     int ret;
     z_streamp strm = &(state->strm);
 
-    /* allocate input and output buffers */
+    /* allocate input buffer */
     state->in = malloc(state->want);
-    state->out = malloc(state->want);
-    if (state->in == NULL || state->out == NULL) {
-        if (state->out != NULL)
-            free(state->out);
-        if (state->in != NULL)
-            free(state->in);
+    if (state->in == NULL) {
         gz_error(state, Z_MEM_ERROR, "out of memory");
         return -1;
     }
 
-    /* allocate deflate memory, set up for gzip compression */
-    strm->zalloc = Z_NULL;
-    strm->zfree = Z_NULL;
-    strm->opaque = Z_NULL;
-    ret = deflateInit2(strm, state->level, Z_DEFLATED,
-                       15 + 16, 8, state->strategy);
-    if (ret != Z_OK) {
-        free(state->in);
-        gz_error(state, Z_MEM_ERROR, "out of memory");
-        return -1;
+    /* only need output buffer and deflate state if compressing */
+    if (!state->direct) {
+        /* allocate output buffer */
+        state->out = malloc(state->want);
+        if (state->out == NULL) {
+            free(state->in);
+            gz_error(state, Z_MEM_ERROR, "out of memory");
+            return -1;
+        }
+
+        /* allocate deflate memory, set up for gzip compression */
+        strm->zalloc = Z_NULL;
+        strm->zfree = Z_NULL;
+        strm->opaque = Z_NULL;
+        ret = deflateInit2(strm, state->level, Z_DEFLATED,
+                           15 + 16, 8, state->strategy);
+        if (ret != Z_OK) {
+            free(state->out);
+            free(state->in);
+            gz_error(state, Z_MEM_ERROR, "out of memory");
+            return -1;
+        }
     }
 
     /* mark state as initialized */
     state->size = state->want;
 
-    /* initialize write buffer */
-    strm->avail_out = state->size;
-    strm->next_out = state->out;
-    state->x.next = strm->next_out;
+    /* initialize write buffer if compressing */
+    if (!state->direct) {
+        strm->avail_out = state->size;
+        strm->next_out = state->out;
+        state->x.next = strm->next_out;
+    }
     return 0;
 }
 
 /* Compress whatever is at avail_in and next_in and write to the output file.
    Return -1 if there is an error writing to the output file, otherwise 0.
    flush is assumed to be a valid deflate() flush value.  If flush is Z_FINISH,
-   then the deflate() state is reset to start a new gzip stream. */
+   then the deflate() state is reset to start a new gzip stream.  If gz->direct
+   is true, then simply write to the output file without compressing, and
+   ignore flush. */
 local int gz_comp(state, flush)
     gz_statep state;
     int flush;
@@ -67,6 +78,17 @@ local int gz_comp(state, flush)
     /* allocate memory if this is the first time through */
     if (state->size == 0 && gz_init(state) == -1)
         return -1;
+
+    /* write directly if requested */
+    if (state->direct) {
+        got = write(state->fd, strm->next_in, strm->avail_in);
+        if (got < 0 || (unsigned)got != strm->avail_in) {
+            gz_error(state, Z_ERRNO, zstrerror());
+            return -1;
+        }
+        strm->avail_in = 0;
+        return 0;
+    }
 
     /* run deflate() on provided input until it produces no more output */
     ret = Z_OK;
@@ -526,8 +548,10 @@ int ZEXPORT gzclose_w(file)
     /* flush, free memory, and close file */
     if (gz_comp(state, Z_FINISH) == -1)
         ret = state->err;
-    (void)deflateEnd(&(state->strm));
-    free(state->out);
+    if (!state->direct) {
+        (void)deflateEnd(&(state->strm));
+        free(state->out);
+    }
     free(state->in);
     gz_error(state, Z_OK, NULL);
     free(state->path);

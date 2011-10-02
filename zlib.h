@@ -696,7 +696,7 @@ ZEXTERN uLong ZEXPORT deflateBound OF((z_streamp strm,
    be larger than the value returned by deflateBound() if flush options other
    than Z_FINISH or Z_NO_FLUSH are used.
 */
-    
+
 ZEXTERN int ZEXPORT deflatePending OF((z_streamp strm,
                                        unsigned *pending,
                                        int *bits));
@@ -706,7 +706,7 @@ ZEXTERN int ZEXPORT deflatePending OF((z_streamp strm,
    provided would be due to the available output space having being consumed.
    The number of bits of output not provided are between 0 and 7, where they
    await more bits to join them in order to fill out a full byte.
- 
+
      deflatePending returns Z_OK if success, or Z_STREAM_ERROR if the source
    stream state was inconsistent.
  */
@@ -1196,10 +1196,13 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
    a strategy: 'f' for filtered data as in "wb6f", 'h' for Huffman-only
    compression as in "wb1h", 'R' for run-length encoding as in "wb1R", or 'F'
    for fixed code compression as in "wb9F".  (See the description of
-   deflateInit2 for more information about the strategy parameter.) Also "a"
-   can be used instead of "w" to request that the gzip stream that will be
-   written be appended to the file.  "+" will result in an error, since reading
-   and writing to the same gzip file is not supported.
+   deflateInit2 for more information about the strategy parameter.)  'T' will
+   request transparent writing or appending with no compression and not using
+   the gzip format.
+
+     "a" can be used instead of "w" to request that the gzip stream that will
+   be written be appended to the file.  "+" will result in an error, since
+   reading and writing to the same gzip file is not supported.
 
      These functions, as well as gzip, will read and decode a sequence of gzip
    streams in a file.  The append function of gzopen() can be used to create
@@ -1209,7 +1212,9 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
    will simply append a gzip stream to the existing file.
 
      gzopen can be used to read a file which is not in gzip format; in this
-   case gzread will directly read from the file without decompression.
+   case gzread will directly read from the file without decompression.  When
+   reading, this will be detected automatically by looking for the magic two-
+   byte gzip header.
 
      gzopen returns NULL if the file could not be opened, if there was
    insufficient memory to allocate the gzFile state, or if an invalid mode was
@@ -1440,6 +1445,13 @@ ZEXTERN int ZEXPORT gzdirect OF((gzFile file));
    cause buffers to be allocated to allow reading the file to determine if it
    is a gzip file.  Therefore if gzbuffer() is used, it should be called before
    gzdirect().
+
+     When writing, gzdirect() returns true (1) if transparent writing was
+   requested ("wT" for the gzopen() mode), or false (0) otherwise.  (Note:
+   gzdirect() is not needed when writing.  Transparent writing must be
+   explicitly requested, so the application already knows the answer.  When
+   linking statically, using gzdirect() will include all of the zlib code for
+   gzip file reading and decompression, which may not be desired.)
 */
 
 ZEXTERN int ZEXPORT    gzclose OF((gzFile file));

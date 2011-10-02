@@ -535,16 +535,12 @@ int ZEXPORT gzdirect(file)
         return 0;
     state = (gz_statep)file;
 
-    /* check that we're reading */
-    if (state->mode != GZ_READ)
-        return 0;
-
     /* if the state is not known, but we can find out, then do so (this is
        mainly for right after a gzopen() or gzdopen()) */
-    if (state->how == LOOK && state->x.have == 0)
+    if (state->mode == GZ_READ && state->how == LOOK && state->x.have == 0)
         (void)gz_look(state);
 
-    /* return 1 if reading direct, 0 if decompressing a gzip stream */
+    /* return 1 if transparent, 0 if processing a gzip stream */
     return state->direct;
 }
 

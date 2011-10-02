@@ -136,11 +136,11 @@ typedef struct {
     unsigned want;          /* requested buffer size, default is GZBUFSIZE */
     unsigned char *in;      /* input buffer */
     unsigned char *out;     /* output buffer (double-sized when reading) */
+    int direct;             /* 0 if processing gzip, 1 if transparent */
         /* just for reading */
     int eof;                /* true if end of input file reached */
     z_off64_t start;        /* where the gzip data started, for rewinding */
     int how;                /* 0: get header, 1: copy, 2: decompress */
-    int direct;             /* true if last read direct, false if gzip */
         /* just for writing */
     int level;              /* compression level */
     int strategy;           /* compression strategy */
