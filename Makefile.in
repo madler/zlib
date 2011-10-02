@@ -52,6 +52,7 @@ includedir = ${prefix}/include
 mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
+tempfile := $(shell mktemp -u __XXXXXX)
 
 OBJC = adler32.o compress.o crc32.o deflate.o gzclose.o gzlib.o gzread.o \
 	gzwrite.o infback.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
@@ -206,9 +207,11 @@ docs: zlib.3.pdf
 zlib.3.pdf: zlib.3
 	groff -mandoc -f H -T ps zlib.3 | ps2pdf - zlib.3.pdf
 
-zconf.h.in: zconf.h.cmakein
-	sed "/^#cmakedefine/D" < zconf.h.cmakein > zconf.h.in
-	touch -r zconf.h.cmakein zconf.h.in
+zconf.h.cmakein: zconf.h.in
+	-@echo "/#define ZCONF_H/ a\\\\\n#cmakedefine Z_PREFIX\\\\\n#cmakedefine Z_HAVE_UNISTD_H\n" > $(tempfile)
+	-@sed -f $(tempfile) zconf.h.in > zconf.h.cmakein
+	-@touch -r zconf.h.in zconf.h.cmakein
+	-@rm $(tempfile)
 
 zconf: zconf.h.in
 	cp -p zconf.h.in zconf.h
@@ -223,7 +226,7 @@ clean:
 	rm -rf objs
 
 maintainer-clean: distclean
-distclean: clean zconf docs
+distclean: clean zconf zconf.h.cmakein docs
 	rm -f Makefile zlib.pc
 	-@rm -f .DS_Store
 	-@printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile
