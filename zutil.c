@@ -85,7 +85,11 @@ uLong ZEXPORT zlibCompileFlags()
 #ifdef FASTEST
     flags += 1L << 21;
 #endif
+#ifdef Z_SOLO
+    return flags;
+#else
     return flags + gzflags();
+#endif
 }
 
 #ifdef DEBUG
@@ -157,6 +161,7 @@ void ZLIB_INTERNAL zmemzero(dest, len)
 }
 #endif
 
+#ifndef Z_SOLO
 
 #ifdef SYS16BIT
 
@@ -292,3 +297,5 @@ void ZLIB_INTERNAL zcfree (opaque, ptr)
 }
 
 #endif /* MY_ZCALLOC */
+
+#endif /* !Z_SOLO */

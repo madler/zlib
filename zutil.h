@@ -21,12 +21,16 @@
 
 #include "zlib.h"
 
-#ifdef STDC
+#if defined(STDC) && !defined(Z_SOLO)
 #  if !(defined(_WIN32_WCE) && defined(_MSC_VER))
 #    include <stddef.h>
 #  endif
 #  include <string.h>
 #  include <stdlib.h>
+#endif
+
+#ifdef Z_SOLO
+   typedef long ptrdiff_t;  /* guess -- will be caught if guess is wrong */
 #endif
 
 #ifndef local
@@ -78,16 +82,18 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
 #if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
 #  define OS_CODE  0x00
-#  if defined(__TURBOC__) || defined(__BORLANDC__)
-#    if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
-       /* Allow compilation with ANSI keywords only enabled */
-       void _Cdecl farfree( void *block );
-       void *_Cdecl farmalloc( unsigned long nbytes );
-#    else
-#      include <alloc.h>
+#  ifndef Z_SOLO
+#    if defined(__TURBOC__) || defined(__BORLANDC__)
+#      if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
+         /* Allow compilation with ANSI keywords only enabled */
+         void _Cdecl farfree( void *block );
+         void *_Cdecl farmalloc( unsigned long nbytes );
+#      else
+#        include <alloc.h>
+#      endif
+#    else /* MSC or DJGPP */
+#      include <malloc.h>
 #    endif
-#  else /* MSC or DJGPP */
-#    include <malloc.h>
 #  endif
 #endif
 
@@ -107,18 +113,20 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
 #ifdef OS2
 #  define OS_CODE  0x06
-#  ifdef M_I86
+#  if defined(M_I86) && !defined(Z_SOLO)
 #    include <malloc.h>
 #  endif
 #endif
 
 #if defined(MACOS) || defined(TARGET_OS_MAC)
 #  define OS_CODE  0x07
-#  if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
-#    include <unix.h> /* for fdopen */
-#  else
-#    ifndef fdopen
-#      define fdopen(fd,mode) NULL /* No fdopen() */
+#  ifndef Z_SOLO
+#    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
+#      include <unix.h> /* for fdopen */
+#    else
+#      ifndef fdopen
+#        define fdopen(fd,mode) NULL /* No fdopen() */
+#      endif
 #    endif
 #  endif
 #endif
@@ -177,7 +185,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
          /* functions */
 
-#if defined(pyr)
+#if defined(pyr) || defined(Z_SOLO)
 #  define NO_MEMCPY
 #endif
 #if defined(SMALL_MEDIUM) && !defined(_MSC_VER) && !defined(__SC__)
@@ -226,10 +234,11 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define Tracecv(c,x)
 #endif
 
-
-voidpf ZLIB_INTERNAL zcalloc OF((voidpf opaque, unsigned items,
-                        unsigned size));
-void ZLIB_INTERNAL zcfree  OF((voidpf opaque, voidpf ptr));
+#ifndef Z_SOLO
+   voidpf ZLIB_INTERNAL zcalloc OF((voidpf opaque, unsigned items,
+                                    unsigned size));
+   void ZLIB_INTERNAL zcfree  OF((voidpf opaque, voidpf ptr));
+#endif
 
 #define ZALLOC(strm, items, size) \
            (*((strm)->zalloc))((strm)->opaque, (items), (size))

@@ -54,11 +54,13 @@ man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 tempfile := $(shell mktemp -u __XXXXXX)
 
-OBJC = adler32.o compress.o crc32.o deflate.o gzclose.o gzlib.o gzread.o \
-	gzwrite.o infback.o inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
+OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
+OBJC = $(OBJZ) $(OBJG)
 
-PIC_OBJC = adler32.lo compress.lo crc32.lo deflate.lo gzclose.lo gzlib.lo gzread.lo \
-	gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo uncompr.lo zutil.lo
+PIC_OBJZ = adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
+PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
+PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG)
 
 # to use the asm code: make OBJA=match.o, PIC_OBJA=match.lo
 OBJA =

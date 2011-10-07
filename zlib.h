@@ -1112,6 +1112,7 @@ ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
      27-31: 0 (reserved)
  */
 
+#ifndef Z_SOLO
 
                         /* utility functions */
 
@@ -1175,7 +1176,6 @@ ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
    enough memory, Z_BUF_ERROR if there was not enough room in the output
    buffer, or Z_DATA_ERROR if the input data was corrupted or incomplete.
 */
-
 
                         /* gzip file access functions */
 
@@ -1501,6 +1501,7 @@ ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
    file that is being written concurrently.
 */
 
+#endif /* !Z_SOLO */
 
                         /* checksum functions */
 
@@ -1603,6 +1604,8 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
         inflateBackInit_((strm), (windowBits), (window), \
                       ZLIB_VERSION, (int)sizeof(z_stream))
 
+#ifndef Z_SOLO
+
 /* gzgetc() macro and its supporting function and exposed data structure.  Note
  * that the real internal state is much larger than the exposed structure.
  * This abbreviated structure exposes just enough for the gzgetc() macro.  The
@@ -1667,6 +1670,13 @@ ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));
    ZEXTERN uLong ZEXPORT crc32_combine OF((uLong, uLong, z_off_t));
 #endif
 
+#else /* Z_SOLO */
+
+   ZEXTERN uLong ZEXPORT adler32_combine OF((uLong, uLong, z_off_t));
+   ZEXTERN uLong ZEXPORT crc32_combine OF((uLong, uLong, z_off_t));
+
+#endif /* !Z_SOLO */
+
 /* hack for buggy compilers */
 #if !defined(ZUTIL_H) && !defined(NO_DUMMY_DECL)
     struct internal_state {int dummy;};
@@ -1677,7 +1687,9 @@ ZEXTERN const char   * ZEXPORT zError           OF((int));
 ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp));
 ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
-ZEXTERN unsigned long  ZEXPORT gzflags          OF((void));
+#ifndef Z_SOLO
+  ZEXTERN unsigned long  ZEXPORT gzflags          OF((void));
+#endif
 
 #ifdef __cplusplus
 }

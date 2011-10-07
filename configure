@@ -54,11 +54,14 @@ includedir=${includedir-'${prefix}/include'}
 mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
 shared=1
+solo=0
 zprefix=0
 build64=0
 gcc=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
+OBJC='$(OBJZ) $(OBJG)'
+PIC_OBJC='$(PIC_OBJZ) $(PIC_OBJG)'
 
 while test $# -ge 1
 do
@@ -81,6 +84,7 @@ case "$1" in
     -i* | --includedir) includedir="$2"; shift; shift ;;
     -s* | --shared | --enable-shared) shared=1; shift ;;
     -t | --static) shared=0; shift ;;
+    --solo) solo=1; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -329,6 +333,16 @@ if test $zprefix -eq 1; then
   sed < zconf.h "/#ifdef Z_PREFIX.* may be/s/def Z_PREFIX\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Using z_ prefix on all symbols."
+fi
+
+if test $solo -eq 1; then
+  sed '/#define ZCONF_H/a\
+#define Z_SOLO
+
+' < zconf.h > zconf.temp.h
+  mv zconf.temp.h zconf.h
+OBJC='$(OBJZ)'
+PIC_OBJC='$(PIC_OBJZ)'
 fi
 
 cat > $test.c <<EOF
@@ -589,6 +603,8 @@ sed < Makefile.in "
 /^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
+/^OBJC *=/s#=.*#= $OBJC#
+/^PIC_OBJC *=/s#=.*#= $PIC_OBJC#
 /^all: */s#:.*#: $ALL#
 /^test: */s#:.*#: $TEST#
 " > Makefile
