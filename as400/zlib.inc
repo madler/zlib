@@ -431,6 +431,10 @@
      D  strm                               like(z_stream)                       Expansion stream
      D  arg                          10I 0 value                                Error code
       *
+     D inflateResetKeep...
+     D                 PR            10I 0 extproc('inflateResetKeep')          End and init. stream
+     D  strm                               like(z_stream)                       Expansion stream
+      *
      D gzflags         PR            10U 0 extproc('gzflags')
       *
       /endif

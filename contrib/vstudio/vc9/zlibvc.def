@@ -132,3 +132,4 @@ EXPORTS
 ; zlib1 v1.2.6 added:
         gzgetc_                                 @30
         gzflags                                 @162
+        inflateResetKeep                        @163

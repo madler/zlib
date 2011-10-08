@@ -77,5 +77,6 @@ EXPORTS
     inflateSyncPoint
     get_crc_table
     inflateUndermine
+    inflateResetKeep
     gzgetc_
     gzflags

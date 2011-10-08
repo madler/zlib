@@ -180,5 +180,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("inflatePrime")
   EXPORT SYMBOL("inflateReset2")
   EXPORT SYMBOL("inflateUndermine")
+  EXPORT SYMBOL("inflateResetKeep")
 
 ENDPGMEXP
