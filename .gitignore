@@ -9,6 +9,10 @@
 *.o
 *.dylib
 
+*.gcda
+*.gcno
+*.gcov
+
 /example
 /example64
 /examplesh

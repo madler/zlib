@@ -232,6 +232,7 @@ clean:
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 	rm -rf objs
+	rm -f *.gcda *.gcno *.gcov
 
 maintainer-clean: distclean
 distclean: clean zconf zconf.h.cmakein docs

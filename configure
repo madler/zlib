@@ -55,6 +55,7 @@ mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
 shared=1
 solo=0
+cover=0
 zprefix=0
 build64=0
 gcc=0
@@ -85,6 +86,7 @@ case "$1" in
     -s* | --shared | --enable-shared) shared=1; shift ;;
     -t | --static) shared=0; shift ;;
     --solo) solo=1; shift ;;
+    --cover) cover=1; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -345,6 +347,10 @@ OBJC='$(OBJZ)'
 PIC_OBJC='$(PIC_OBJZ)'
 fi
 
+if test $cover -eq 1; then
+  CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
+fi
+
 cat > $test.c <<EOF
 #include <stdio.h>
 #include <stdarg.h>
@@ -578,7 +584,7 @@ case $CFLAGS in
     fi ;;
 esac
 
-rm -f $test.[co] $test $test$shared_ext
+rm -f $test.[co] $test $test$shared_ext $test.gcno
 
 # udpate Makefile
 sed < Makefile.in "
