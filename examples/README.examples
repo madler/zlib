@@ -6,6 +6,10 @@ enough.c
     - calculates the maximum table space used in inflate tree
       construction over all possible Huffman codes
 
+example.c
+    usage examples of zlib
+    - used in zlib build Makefile for testing
+
 fitblk.c
     compress just enough input to nearly fill a requested output size
     - zlib isn't designed to do this, but fitblk does it anyway
@@ -33,6 +37,11 @@ gzlog.h
     - illustrates use of raw deflate, Z_PARTIAL_FLUSH, deflatePrime(),
       and deflateSetDictionary()
     - illustrates use of a gzip header extra field
+
+minigzip.c
+    minimal implementation of gzip-like functionality using zlib
+    - used in zlib build Makefile for testing
+    - is not meant for and should not be used as a gzip replacement
 
 zlib_how.html
     painfully comprehensive description of zpipe.c (see below)

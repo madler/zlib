@@ -57,10 +57,8 @@ uncompr.c
 zutil.c
 zutil.h
 
-                source files for sample programs:
-example.c
-minigzip.c
-See examples/README.examples for more
+                source files for sample programs
+See examples/README.examples
 
-                unsupported contribution by third parties
+                unsupported contributions by third parties
 See contrib/README.contrib
