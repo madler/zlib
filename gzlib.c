@@ -78,6 +78,7 @@ local void gz_reset(state)
     state->x.have = 0;              /* no output data available */
     if (state->mode == GZ_READ) {   /* for reading ... */
         state->eof = 0;             /* not at end of file */
+        state->past = 0;            /* have not read past end yet */
         state->how = LOOK;          /* look for gzip header */
     }
     state->seek = 0;                /* no seek request pending */
@@ -331,6 +332,7 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
             return -1;
         state->x.have = 0;
         state->eof = 0;
+        state->past = 0;
         state->seek = 0;
         gz_error(state, Z_OK, NULL);
         state->strm.avail_in = 0;
@@ -453,8 +455,7 @@ int ZEXPORT gzeof(file)
         return 0;
 
     /* return end-of-file state */
-    return state->mode == GZ_READ ?
-        (state->eof && state->strm.avail_in == 0 && state->x.have == 0) : 0;
+    return state->mode == GZ_READ ? state->past : 0;
 }
 
 /* -- see zlib.h -- */
@@ -491,8 +492,10 @@ void ZEXPORT gzclearerr(file)
         return;
 
     /* clear error and end-of-file */
-    if (state->mode == GZ_READ)
+    if (state->mode == GZ_READ) {
         state->eof = 0;
+        state->past = 0;
+    }
     gz_error(state, Z_OK, NULL);
 }
 

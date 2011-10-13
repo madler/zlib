@@ -155,9 +155,10 @@ typedef struct {
     unsigned char *out;     /* output buffer (double-sized when reading) */
     int direct;             /* 0 if processing gzip, 1 if transparent */
         /* just for reading */
-    int eof;                /* true if end of input file reached */
-    z_off64_t start;        /* where the gzip data started, for rewinding */
     int how;                /* 0: get header, 1: copy, 2: decompress */
+    z_off64_t start;        /* where the gzip data started, for rewinding */
+    int eof;                /* true if end of input file reached */
+    int past;               /* true if read requested past end */
         /* just for writing */
     int level;              /* compression level */
     int strategy;           /* compression strategy */

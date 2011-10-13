@@ -329,8 +329,10 @@ int ZEXPORT gzread(file, buf, len)
         }
 
         /* output buffer empty -- return if we're at the end of the input */
-        else if (state->eof && strm->avail_in == 0)
+        else if (state->eof && strm->avail_in == 0) {
+            state->past = 1;        /* tried to read past end */
             break;
+        }
 
         /* need output data -- for small len or new stream load up our output
            buffer */
@@ -437,6 +439,7 @@ int ZEXPORT gzungetc(c, file)
         state->x.next = state->out + (state->size << 1) - 1;
         state->x.next[0] = c;
         state->x.pos--;
+        state->past = 0;
         return c;
     }
 
@@ -458,6 +461,7 @@ int ZEXPORT gzungetc(c, file)
     state->x.next--;
     state->x.next[0] = c;
     state->x.pos--;
+    state->past = 0;
     return c;
 }
 
@@ -499,9 +503,8 @@ char * ZEXPORT gzgets(file, buf, len)
         if (state->x.have == 0 && gz_fetch(state) == -1)
             return NULL;                /* error */
         if (state->x.have == 0) {       /* end of file */
-            if (buf == str)             /* got bupkus */
-                return NULL;
-            break;                      /* got something -- return it */
+            state->past = 1;            /* read past end */
+            break;                      /* return what we have */
         }
 
         /* look for end-of-line in current output buffer */
@@ -519,7 +522,9 @@ char * ZEXPORT gzgets(file, buf, len)
         buf += n;
     } while (left && eol == NULL);
 
-    /* found end-of-line or out of space -- terminate string and return it */
+    /* return terminated string, or if nothing, end of file */
+    if (buf == str)
+        return NULL;
     buf[0] = 0;
     return str;
 }
