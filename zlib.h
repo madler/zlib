@@ -1233,7 +1233,11 @@ ZEXTERN gzFile ZEXPORT gzdopen OF((int fd, const char *mode));
    descriptor fd, just like fclose(fdopen(fd, mode)) closes the file descriptor
    fd.  If you want to keep fd open, use fd = dup(fd_keep); gz = gzdopen(fd,
    mode);.  The duplicated descriptor should be saved to avoid a leak, since
-   gzdopen does not close fd if it fails.
+   gzdopen does not close fd if it fails.  If you are using fileno() to get the
+   file descriptor from a FILE *, then you will have to use dup() to avoid
+   double-close()ing the file descriptor.  Both gzclose() and fclose() will
+   close the associated file descriptor, so they need to have different file
+   descriptors.
 
      gzdopen returns NULL if there was insufficient memory to allocate the
    gzFile state, if an invalid mode was specified (an 'r', 'w', or 'a' was not
