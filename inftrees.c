@@ -289,38 +289,14 @@ unsigned short FAR *work;
         }
     }
 
-    /*
-       Fill in rest of table for incomplete codes.  This loop is similar to the
-       loop above in incrementing huff for table indices.  It is assumed that
-       len is equal to curr + drop, so there is no loop needed to increment
-       through high index bits.  When the current sub-table is filled, the loop
-       drops back to the root table to fill in any remaining entries there.
-     */
-    here.op = (unsigned char)64;                /* invalid code marker */
-    here.bits = (unsigned char)(len - drop);
-    here.val = (unsigned short)0;
-    while (huff != 0) {
-        /* when done with sub-table, drop back to root table */
-        if (drop != 0 && (huff & mask) != low) {
-            drop = 0;
-            len = root;
-            next = *table;
-            here.bits = (unsigned char)len;
-        }
-
-        /* put invalid code marker in table */
-        next[huff >> drop] = here;
-
-        /* backwards increment the len-bit code huff */
-        incr = 1U << (len - 1);
-        while (huff & incr)
-            incr >>= 1;
-        if (incr != 0) {
-            huff &= incr - 1;
-            huff += incr;
-        }
-        else
-            huff = 0;
+    /* fill in remaining table entry if code is incomplete (guaranteed to have
+       at most one remaining entry, since if the code is incomplete, the
+       maximum code length that was allowed to get this far is one bit) */
+    if (huff != 0) {
+        here.op = (unsigned char)64;            /* invalid code marker */
+        here.bits = (unsigned char)(len - drop);
+        here.val = (unsigned short)0;
+        next[huff] = here;
     }
 
     /* set return parameters */
