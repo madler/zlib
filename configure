@@ -30,7 +30,7 @@ else
     AR=${AR-"ar"}
     test -n "${CROSS_PREFIX}" && echo Using ${AR}
 fi
-AR_RC="${AR} rc"
+ARFLAGS=${ARFLAGS-"rc"}
 if "${CROSS_PREFIX}ranlib" --version >/dev/null 2>/dev/null || test $? -lt 126; then
     RANLIB=${RANLIB-"${CROSS_PREFIX}ranlib"}
     test -n "${CROSS_PREFIX}" && echo Using ${RANLIB}
@@ -161,7 +161,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
              SHAREDLIBM=libz.$VER1$shared_ext
              LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
              AR="libtool"
-             AR_RC="${AR} -o" ;;
+             ARFLAGS="-o" ;;
   *)             LDSHARED=${LDSHARED-"$cc -shared"} ;;
   esac
 else
@@ -198,7 +198,8 @@ else
              CFLAGS=${CFLAGS-"-4 -O"}
              LDSHARED=${LDSHARED-"cc"}
              RANLIB=${RANLIB-"true"}
-             AR_RC="cc -A" ;;
+             AR="cc"
+             ARFLAGS="-A" ;;
   SCO_SV\ 3.2*) SFLAGS=${CFLAGS-"-O3 -dy -KPIC "}
              CFLAGS=${CFLAGS-"-O3"}
              LDSHARED=${LDSHARED-"cc -dy -KPIC -G"} ;;
@@ -598,7 +599,8 @@ sed < Makefile.in "
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
 /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
-/^AR *=/s#=.*#=$AR_RC#
+/^AR *=/s#=.*#=$AR#
+/^ARFLAGS *=/s#=.*#=$ARFLAGS#
 /^RANLIB *=/s#=.*#=$RANLIB#
 /^LDCONFIG *=/s#=.*#=$LDCONFIG#
 /^LDSHAREDLIBC *=/s#=.*#=$LDSHAREDLIBC#
@@ -624,7 +626,8 @@ sed < zlib.pc.in "
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
 /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
-/^AR *=/s#=.*#=$AR_RC#
+/^AR *=/s#=.*#=$AR#
+/^ARFLAGS *=/s#=.*#=$ARFLAGS#
 /^RANLIB *=/s#=.*#=$RANLIB#
 /^EXE *=/s#=.*#=$EXE#
 /^prefix *=/s#=.*#=$prefix#
