@@ -266,11 +266,11 @@
 #  endif
 #endif
 
-#ifndef ON /* function prototypes for stdarg */
+#ifndef Z_ARG /* function prototypes for stdarg */
 #  if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#    define ON(args)  args
+#    define Z_ARG(args)  args
 #  else
-#    define ON(args)  ()
+#    define Z_ARG(args)  ()
 #  endif
 #endif
 
