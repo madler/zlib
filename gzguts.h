@@ -43,6 +43,12 @@
 #  endif
 #endif
 
+#if defined(MSDOS) && defined(__BORLANDC__) && (BORLANDC > 0x410)
+#  ifndef HAVE_VSNPRINTF
+#    define HAVE_VSNPRINTF
+#  endif
+#endif
+
 #ifndef HAVE_VSNPRINTF
 #  ifdef MSDOS
 /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
