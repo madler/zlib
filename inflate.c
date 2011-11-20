@@ -944,7 +944,6 @@ int flush;
                     PULLBYTE();
                 }
                 if (here.val < 16) {
-                    NEEDBITS(here.bits);
                     DROPBITS(here.bits);
                     state->lens[state->have++] = here.val;
                 }
