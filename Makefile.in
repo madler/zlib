@@ -111,6 +111,17 @@ test64: all64
 	fi
 	-@rm -f foo.gz
 
+infcover.o: test/infcover.c zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -c -o $@ test/infcover.c
+
+infcover: infcover.o libz.a
+	$(CC) $(CFLAGS) -o $@ infcover.o libz.a
+
+cover: infcover
+	rm -f *.gcda
+	./infcover
+	gcov inf*.c
+
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
@@ -230,10 +241,12 @@ clean:
 	rm -f *.o *.lo *~ \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) \
+	   infcover \
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
 	rm -rf objs
 	rm -f *.gcda *.gcno *.gcov
+	rm -f contrib/infback9/*.gcda contrib/infback9/*.gcno contrib/infback9/*.gcov
 
 maintainer-clean: distclean
 distclean: clean zconf zconf.h.cmakein docs

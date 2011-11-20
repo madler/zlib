@@ -9,6 +9,7 @@ configure       configure script for Unix
 make_vms.com    makefile for VMS
 test/example.c  zlib usages examples for build testing
 test/minigzip.c minimal gzip-like functionality for build testing
+test/infcover.c inf*.c code coverage for build coverage testing
 treebuild.xml   XML description of source file dependencies
 zconf.h.cmakein zconf.h template for cmake
 zconf.h.in      zconf.h template for configure
