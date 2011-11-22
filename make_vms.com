@@ -175,13 +175,13 @@ $   write sys$output "Building Zlib ..."
 $   CALL MAKE libz.OLB "lib/crea libz.olb *.obj" *.OBJ
 $   write sys$output "Building example..."
 $   CALL MAKE example.OBJ "CC ''CCOPT' example" -
-                example.c zlib.h zconf.h
+                test/example.c zlib.h zconf.h
 $   call make example.exe "LINK example,libz.olb/lib" example.obj libz.olb
 $   if f$search("x11vms:xvmsutils.olb") .nes. ""
 $   then
 $     write sys$output "Building minigzip..."
 $     CALL MAKE minigzip.OBJ "CC ''CCOPT' minigzip" -
-                minigzip.c zlib.h zconf.h
+                test/minigzip.c zlib.h zconf.h
 $     call make minigzip.exe -
                 "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" -
                 minigzip.obj libz.olb
@@ -431,7 +431,7 @@ adler32.obj  : adler32.c zutil.h zlib.h zconf.h
 compress.obj : compress.c zlib.h zconf.h
 crc32.obj    : crc32.c zutil.h zlib.h zconf.h
 deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h
-example.obj  : example.c zlib.h zconf.h
+example.obj  : test/example.c zlib.h zconf.h
 gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h
 gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h
 gzread.obj   : gzread.c zutil.h zlib.h zconf.h
@@ -439,7 +439,7 @@ gzwrite.obj  : gzwrite.c zutil.h zlib.h zconf.h
 inffast.obj  : inffast.c zutil.h zlib.h zconf.h inftrees.h inffast.h
 inflate.obj  : inflate.c zutil.h zlib.h zconf.h
 inftrees.obj : inftrees.c zutil.h zlib.h zconf.h inftrees.h
-minigzip.obj : minigzip.c zlib.h zconf.h
+minigzip.obj : test/minigzip.c zlib.h zconf.h
 trees.obj    : trees.c deflate.h zutil.h zlib.h zconf.h
 uncompr.obj  : uncompr.c zlib.h zconf.h
 zutil.obj    : zutil.c zutil.h zlib.h zconf.h

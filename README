@@ -8,15 +8,15 @@ rfc1952 (gzip format).
 
 All functions of the compression library are documented in the file zlib.h
 (volunteer to write man pages welcome, contact zlib@gzip.org).  A usage example
-of the library is given in the file example.c which also tests that the library
-is working correctly.  Another example is given in the file minigzip.c.  The
-compression library itself is composed of all source files except example.c and
-minigzip.c.
+of the library is given in the file test/example.c which also tests that
+the library is working correctly.  Another example is given in the file
+test/minigzip.c.  The compression library itself is composed of all source
+files in the root directory.
 
 To compile all files and run the test program, follow the instructions given at
 the top of Makefile.in.  In short "./configure; make test", and if that goes
-well, "make install" should work for most flavors of Unix.  For Windows, use one
-of the special makefiles in win32/ or contrib/vstudio/ .  For VMS, use
+well, "make install" should work for most flavors of Unix.  For Windows, use
+one of the special makefiles in win32/ or contrib/vstudio/ .  For VMS, use
 make_vms.com.
 
 Questions about zlib should be sent to <zlib@gzip.org>, or to Gilles Vollant

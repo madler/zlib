@@ -127,17 +127,17 @@ match.lo: match.S
 	mv _match.o match.lo
 	rm -f _match.s
 
-example.o: examples/example.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -c -o $@ examples/example.c
+example.o: test/example.c zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -c -o $@ test/example.c
 
-minigzip.o: examples/minigzip.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -c -o $@ examples/minigzip.c
+minigzip.o: test/minigzip.c zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -c -o $@ test/minigzip.c
 
-example64.o: examples/example.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ examples/example.c
+example64.o: test/example.c zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ test/example.c
 
-minigzip64.o: examples/minigzip.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ examples/minigzip.c
+minigzip64.o: test/minigzip.c zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ test/minigzip.c
 
 .SUFFIXES: .lo
 

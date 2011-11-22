@@ -7,6 +7,8 @@ Makefile.in     template for Unix Makefile
 README          guess what
 configure       configure script for Unix
 make_vms.com    makefile for VMS
+test/example.c  zlib usages examples for build testing
+test/minigzip.c minimal gzip-like functionality for build testing
 treebuild.xml   XML description of source file dependencies
 zconf.h.cmakein zconf.h template for cmake
 zconf.h.in      zconf.h template for configure
@@ -17,7 +19,7 @@ zlib.pc.in      Template for pkg-config descriptor
 zlib2ansi       perl script to convert source files for C++ compilation
 
 amiga/          makefiles for Amiga SAS C
-as400/		makefiles for AS/400
+as400/          makefiles for AS/400
 doc/            documentation for formats and algorithms
 msdos/          makefiles for MSDOS
 nintendods/     makefile for Nintendo DS

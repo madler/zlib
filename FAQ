@@ -44,8 +44,8 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
  6. Where's the zlib documentation (man pages, etc.)?
 
-    It's in zlib.h .  Examples of zlib usage are in the files example.c and
-    minigzip.c, with more in examples/ .
+    It's in zlib.h .  Examples of zlib usage are in the files test/example.c
+    and test/minigzip.c, with more in examples/ .
 
  7. Why don't you use GNU autoconf or libtool or ...?
 

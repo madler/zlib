@@ -125,9 +125,9 @@ inffas32.obj: contrib\masmx86\inffas32.asm
 
 match686.obj: contrib\masmx86\match686.asm
 
-example.obj: example.c zlib.h zconf.h
+example.obj: test/example.c zlib.h zconf.h
 
-minigzip.obj: minigzip.c zlib.h zconf.h
+minigzip.obj: test/minigzip.c zlib.h zconf.h
 
 zlib1.res: win32/zlib1.rc
 	$(RC) $(RCFLAGS) /fo$@ win32/zlib1.rc

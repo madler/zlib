@@ -259,7 +259,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\example.c
+SOURCE=..\..\test\example.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
