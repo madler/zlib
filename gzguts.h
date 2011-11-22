@@ -27,6 +27,10 @@
 #endif
 #include <fcntl.h>
 
+#if defined(MSDOS) && defined(__TURBOC__)
+#  include <io.h>
+#endif
+
 #ifdef NO_DEFLATE       /* for compatibility with old definition */
 #  define NO_GZCOMPRESS
 #endif
