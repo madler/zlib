@@ -641,20 +641,18 @@ local void cover_trees(void)
 local void cover_fast(void)
 {
     inf("e5 e0 81 ad 6d cb b2 2c c9 01 1e 59 63 ae 7d ee fb 4d fd b5 35 41 68"
-        " ff 7f 0f 0 0 0 0 0 0",
-        "fast length extra bits", 0, -8, 258, Z_DATA_ERROR);
+        " ff 7f 0f 0 0 0", "fast length extra bits", 0, -8, 258, Z_DATA_ERROR);
     inf("25 fd 81 b5 6d 59 b6 6a 49 ea af 35 6 34 eb 8c b9 f6 b9 1e ef 67 49"
-        " 50 fe ff ff 3f 0 0 0 0 0 0",
-        "fast distance extra bits", 0, -8, 258, Z_DATA_ERROR);
-    inf("3 7e 0 0 0 0 0",
-        "fast invalid distance code", 0, -8, 258, Z_DATA_ERROR);
-    inf("1b 7 0 0 0 0 0",
-        "fast invalid literal/length code", 0, -8, 258, Z_DATA_ERROR);
-    inf("d c7 1 ae eb 38 c 4 41 a0 87 72 de df fb 1f b8 36 b1 38 5d ff ff "
-        "0 0 0 0",
+        " 50 fe ff ff 3f 0 0", "fast distance extra bits", 0, -8, 258,
+        Z_DATA_ERROR);
+    inf("3 7e 0 0 0 0 0", "fast invalid distance code", 0, -8, 258,
+        Z_DATA_ERROR);
+    inf("1b 7 0 0 0 0 0", "fast invalid literal/length code", 0, -8, 258,
+        Z_DATA_ERROR);
+    inf("d c7 1 ae eb 38 c 4 41 a0 87 72 de df fb 1f b8 36 b1 38 5d ff ff 0",
         "fast 2nd level codes and too far back", 0, -8, 258, Z_DATA_ERROR);
     inf("63 18 5 8c 10 8 0 0 0 0", "very common case", 0, -8, 259, Z_OK);
-    inf("63 60 60 18 c9 00 08 18 18 18 26 c0 28 00 29 00 0 0 0 0 0 0",
+    inf("63 60 60 18 c9 0 8 18 18 18 26 c0 28 0 29 0 0 0",
         "contiguous and wrap around window", 6, -8, 259, Z_OK);
     inf("63 0 3 0 0 0 0 0", "copy direct from output", 0, -8, 259,
         Z_STREAM_END);
