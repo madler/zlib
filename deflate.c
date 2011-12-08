@@ -323,43 +323,68 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     uInt  dictLength;
 {
     deflate_state *s;
-    uInt length = dictLength;
-    uInt n;
-    IPos hash_head = 0;
+    uInt str, n;
+    int wrap;
+    unsigned avail;
+    unsigned char *next;
 
-    if (strm == Z_NULL || strm->state == Z_NULL || dictionary == Z_NULL ||
-        strm->state->wrap == 2 ||
-        (strm->state->wrap == 1 && strm->state->status != INIT_STATE))
+    if (strm == Z_NULL || strm->state == Z_NULL || dictionary == Z_NULL)
+        return Z_STREAM_ERROR;
+    s = strm->state;
+    wrap = s->wrap;
+    if (wrap == 2 || (wrap == 1 && s->status != INIT_STATE) || s->lookahead)
         return Z_STREAM_ERROR;
 
-    s = strm->state;
-    if (s->wrap)
+    /* when using zlib wrappers, compute Adler-32 for provided dictionary */
+    if (wrap == 1)
         strm->adler = adler32(strm->adler, dictionary, dictLength);
+    s->wrap = 0;                    /* avoid computing Adler-32 in read_buf */
 
-    if (length < MIN_MATCH) return Z_OK;
-    if (length > s->w_size) {
-        length = s->w_size;
-        dictionary += dictLength - length; /* use the tail of the dictionary */
+    /* if dictionary would fill window, just replace the history */
+    if (dictLength >= s->w_size) {
+        if (wrap == 0) {            /* already empty otherwise */
+            CLEAR_HASH(s);
+            s->strstart = 0;
+            s->block_start = 0L;
+        }
+        dictionary += dictLength - s->w_size;  /* use the tail */
+        dictLength = s->w_size;
     }
-    zmemcpy(s->window, dictionary, length);
-    s->strstart = length;
-    s->block_start = (long)length;
 
-    /* Insert all strings in the hash table (except for the last two bytes).
-     * s->lookahead stays null, so s->ins_h will be recomputed at the next
-     * call of fill_window.
-     */
-    s->ins_h = s->window[0];
-    UPDATE_HASH(s, s->ins_h, s->window[1]);
-    for (n = 0; n <= length - MIN_MATCH; n++) {
-        INSERT_STRING(s, n, hash_head);
+    /* insert dictionary into window and hash */
+    avail = strm->avail_in;
+    next = strm->next_in;
+    strm->avail_in = dictLength;
+    strm->next_in = (Bytef *)dictionary;
+    fill_window(s);
+    while (s->lookahead >= MIN_MATCH) {
+        str = s->strstart;
+        n = s->lookahead - (MIN_MATCH-1);
+        do {
+            UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+#ifndef FASTEST
+            s->prev[str & s->w_mask] = s->head[s->ins_h];
+#endif
+            s->head[s->ins_h] = (Pos)str;
+            str++;
+        } while (--n);
+        s->strstart = str;
+        s->lookahead = MIN_MATCH-1;
+        fill_window(s);
     }
-    if (hash_head) hash_head = 0;  /* to make compiler happy */
+    s->strstart += s->lookahead;
+    s->block_start = (long)s->strstart;
+    s->lookahead = 0;
+    s->match_length = s->prev_length = MIN_MATCH-1;
+    s->match_available = 0;
+    strm->next_in = next;
+    strm->avail_in = avail;
+    s->wrap = wrap;
     return Z_OK;
 }
 
 /* ========================================================================= */
-int ZEXPORT deflateReset (strm)
+int ZEXPORT deflateResetKeep (strm)
     z_streamp strm;
 {
     deflate_state *s;
@@ -389,9 +414,20 @@ int ZEXPORT deflateReset (strm)
     s->last_flush = Z_NO_FLUSH;
 
     _tr_init(s);
-    lm_init(s);
 
     return Z_OK;
+}
+
+/* ========================================================================= */
+int ZEXPORT deflateReset (strm)
+    z_streamp strm;
+{
+    int ret;
+
+    ret = deflateResetKeep(strm);
+    if (ret == Z_OK)
+        lm_init(strm->state);
+    return ret;
 }
 
 /* ========================================================================= */

@@ -1232,7 +1232,7 @@ int flush;
      */
   inf_leave:
     RESTORE();
-    if (state->wsize || (state->mode < CHECK && out != strm->avail_out))
+    if (state->wsize || (state->mode < BAD && out != strm->avail_out))
         if (updatewindow(strm, out)) {
             state->mode = MEM;
             return Z_MEM_ERROR;
@@ -1274,6 +1274,9 @@ uInt dictLength;
 {
     struct inflate_state FAR *state;
     unsigned long id;
+    unsigned char *next;
+    unsigned avail;
+    int ret;
 
     /* check state */
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
@@ -1289,20 +1292,18 @@ uInt dictLength;
             return Z_DATA_ERROR;
     }
 
-    /* copy dictionary to window */
-    if (updatewindow(strm, strm->avail_out)) {
+    /* copy dictionary to window using updatewindow(), which will amend the
+       existing dictionary if appropriate */
+    next = strm->next_out;
+    avail = strm->avail_out;
+    strm->next_out = (Bytef *)dictionary + dictLength;
+    strm->avail_out = 0;
+    ret = updatewindow(strm, dictLength);
+    strm->avail_out = avail;
+    strm->next_out = next;
+    if (ret) {
         state->mode = MEM;
         return Z_MEM_ERROR;
-    }
-    if (dictLength > state->wsize) {
-        zmemcpy(state->window, dictionary + dictLength - state->wsize,
-                state->wsize);
-        state->whave = state->wsize;
-    }
-    else {
-        zmemcpy(state->window + state->wsize - dictLength, dictionary,
-                dictLength);
-        state->whave = dictLength;
     }
     state->havedict = 1;
     Tracev((stderr, "inflate:   dictionary set\n"));

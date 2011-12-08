@@ -78,5 +78,6 @@ EXPORTS
     get_crc_table
     inflateUndermine
     inflateResetKeep
+    deflateResetKeep
     gzgetc_
     gzflags

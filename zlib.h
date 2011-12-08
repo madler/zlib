@@ -581,10 +581,15 @@ ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
                                              uInt  dictLength));
 /*
      Initializes the compression dictionary from the given byte sequence
-   without producing any compressed output.  This function must be called
-   immediately after deflateInit, deflateInit2 or deflateReset, before any call
-   of deflate.  The compressor and decompressor must use exactly the same
-   dictionary (see inflateSetDictionary).
+   without producing any compressed output.  When using the zlib format, this
+   function must be called immediately after deflateInit, deflateInit2 or
+   deflateReset, and before any call of deflate.  When doing raw deflate, this
+   function must be called either before any call of deflate, or immediately
+   after the completion of a deflate block, i.e. after all input has been
+   consumed and all output has been delivered when using any of the flush
+   options Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, or Z_FULL_FLUSH.  The
+   compressor and decompressor must use exactly the same dictionary (see
+   inflateSetDictionary).
 
      The dictionary should consist of strings (byte sequences) that are likely
    to be encountered later in the data to be compressed, with the most commonly
@@ -611,8 +616,8 @@ ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
      deflateSetDictionary returns Z_OK if success, or Z_STREAM_ERROR if a
    parameter is invalid (e.g.  dictionary being Z_NULL) or the stream state is
    inconsistent (for example if deflate has already been called for this stream
-   or if the compression method is bsort).  deflateSetDictionary does not
-   perform any compression: this will be done by deflate().
+   or if not at a block boundary for raw deflate).  deflateSetDictionary does
+   not perform any compression: this will be done by deflate().
 */
 
 ZEXTERN int ZEXPORT deflateCopy OF((z_streamp dest,
@@ -810,10 +815,11 @@ ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
    if that call returned Z_NEED_DICT.  The dictionary chosen by the compressor
    can be determined from the adler32 value returned by that call of inflate.
    The compressor and decompressor must use exactly the same dictionary (see
-   deflateSetDictionary).  For raw inflate, this function can be called
-   immediately after inflateInit2() or inflateReset() and before any call of
-   inflate() to set the dictionary.  The application must insure that the
-   dictionary that was used for compression is provided.
+   deflateSetDictionary).  For raw inflate, this function can be called at any
+   time to set the dictionary.  If the provided dictionary is smaller than the
+   window and there is already data in the window, then the provided dictionary
+   will amend what's there.  The application must insure that the dictionary
+   that was used for compression is provided.
 
      inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
    parameter is invalid (e.g.  dictionary being Z_NULL) or the stream state is
@@ -1694,6 +1700,7 @@ ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp));
 ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
 ZEXTERN int            ZEXPORT inflateResetKeep OF((z_streamp));
+ZEXTERN int            ZEXPORT deflateResetKeep OF((z_streamp));
 #ifndef Z_SOLO
   ZEXTERN unsigned long  ZEXPORT gzflags          OF((void));
 #endif

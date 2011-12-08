@@ -76,3 +76,7 @@ ZLIB_1.2.5.2 {
     gzgetc_;
     inflateResetKeep;
 } ZLIB_1.2.5.1;
+
+ZLIB_1.2.5.3 {
+    deflateResetKeep;
+} ZLIB_1.2.5.2;

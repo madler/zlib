@@ -46,6 +46,7 @@
 #  define deflatePending        z_deflatePending
 #  define deflatePrime          z_deflatePrime
 #  define deflateReset          z_deflateReset
+#  define deflateResetKeep      z_deflateResetKeep
 #  define deflateSetDictionary  z_deflateSetDictionary
 #  define deflateSetHeader      z_deflateSetHeader
 #  define deflateTune           z_deflateTune

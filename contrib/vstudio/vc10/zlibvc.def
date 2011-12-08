@@ -133,3 +133,4 @@ EXPORTS
         gzgetc_                                 @30
         gzflags                                 @162
         inflateResetKeep                        @163
+	deflateResetKeep			@164
