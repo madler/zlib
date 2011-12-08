@@ -40,7 +40,7 @@ local int gz_init(state)
         strm->zfree = Z_NULL;
         strm->opaque = Z_NULL;
         ret = deflateInit2(strm, state->level, Z_DEFLATED,
-                           15 + 16, 8, state->strategy);
+                           MAX_WBITS + 16, DEF_MEM_LEVEL, state->strategy);
         if (ret != Z_OK) {
             free(state->out);
             free(state->in);

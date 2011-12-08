@@ -117,6 +117,13 @@
     ZEXTERN z_off64_t ZEXPORT gzoffset64 OF((gzFile));
 #endif
 
+/* default memLevel */
+#if MAX_MEM_LEVEL >= 8
+#  define DEF_MEM_LEVEL 8
+#else
+#  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
+#endif
+
 /* default i/o buffer size -- double this for output when reading */
 #define GZBUFSIZE 8192
 
