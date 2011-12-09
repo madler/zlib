@@ -1232,7 +1232,8 @@ int flush;
      */
   inf_leave:
     RESTORE();
-    if (state->wsize || (state->mode < BAD && out != strm->avail_out))
+    if (state->wsize || (out != strm->avail_out && state->mode < BAD &&
+            (state->mode < CHECK || flush != Z_FINISH)))
         if (updatewindow(strm, out)) {
             state->mode = MEM;
             return Z_MEM_ERROR;

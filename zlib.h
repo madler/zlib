@@ -455,20 +455,23 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   avail_out must be large enough to hold all the uncompressed data.  (The size
   of the uncompressed data may have been saved by the compressor for this
   purpose.) The next operation on this stream must be inflateEnd to deallocate
-  the decompression state.  The use of Z_FINISH is never required, but can be
-  used to inform inflate that a faster approach may be used for the single
-  inflate() call.
+  the decompression state.  The use of Z_FINISH is not required to perform an
+  inflation in one step.  However it may be used to inform inflate that a
+  faster approach can be used for the single inflate() call.  Z_FINISH also
+  informs inflate to not maintain a sliding window if the stream completes,
+  which reduces inflate's memory footprint.
 
      In this implementation, inflate() always flushes as much output as
   possible to the output buffer, and always uses the faster approach on the
-  first call.  So the only effect of the flush parameter in this implementation
-  is on the return value of inflate(), as noted below, or when it returns early
-  because Z_BLOCK or Z_TREES is used.
+  first call.  So the effects of the flush parameter in this implementation are
+  on the return value of inflate() as noted below, when inflate() returns early
+  when Z_BLOCK or Z_TREES is used, and when inflate() avoids the allocation of
+  memory for a sliding window when Z_FINISH is used.
 
      If a preset dictionary is needed after this call (see inflateSetDictionary
-  below), inflate sets strm->adler to the adler32 checksum of the dictionary
+  below), inflate sets strm->adler to the Adler-32 checksum of the dictionary
   chosen by the compressor and returns Z_NEED_DICT; otherwise it sets
-  strm->adler to the adler32 checksum of all output produced so far (that is,
+  strm->adler to the Adler-32 checksum of all output produced so far (that is,
   total_out bytes) and returns Z_OK, Z_STREAM_END or an error code as described
   below.  At the end of the stream, inflate() checks that its computed adler32
   checksum is equal to that saved by the compressor and returns Z_STREAM_END
@@ -479,7 +482,9 @@ ZEXTERN int ZEXPORT inflate OF((z_streamp strm, int flush));
   initializing with inflateInit2().  Any information contained in the gzip
   header is not retained, so applications that need that information should
   instead use raw inflate, see inflateInit2() below, or inflateBack() and
-  perform their own processing of the gzip header and trailer.
+  perform their own processing of the gzip header and trailer.  When processing
+  gzip-wrapped deflate data, strm->adler32 is set to the CRC-32 of the output
+  producted so far.  The CRC-32 is checked against the gzip trailer.
 
     inflate() returns Z_OK if some progress has been made (more input processed
   or more output produced), Z_STREAM_END if the end of the compressed data has
