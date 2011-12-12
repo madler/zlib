@@ -242,7 +242,7 @@ local int gz_fetch(state)
             if (gz_decomp(state) == -1)
                 return -1;
         }
-    } while (state->x.have == 0);
+    } while (state->x.have == 0 && (!state->eof || strm->avail_in));
     return 0;
 }
 
