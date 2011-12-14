@@ -302,7 +302,7 @@ int ZEXPORT gzread(file, buf, len)
     /* since an int is returned, make sure len fits in one, otherwise return
        with an error (this avoids the flaw in the interface) */
     if ((int)len < 0) {
-        gz_error(state, Z_BUF_ERROR, "requested length does not fit in int");
+        gz_error(state, Z_DATA_ERROR, "requested length does not fit in int");
         return -1;
     }
 
@@ -445,7 +445,7 @@ int ZEXPORT gzungetc(c, file)
 
     /* if no room, give up (must have already done a gzungetc()) */
     if (state->x.have == (state->size << 1)) {
-        gz_error(state, Z_BUF_ERROR, "out of room to push characters");
+        gz_error(state, Z_DATA_ERROR, "out of room to push characters");
         return -1;
     }
 

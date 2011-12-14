@@ -185,7 +185,7 @@ int ZEXPORT gzwrite(file, buf, len)
     /* since an int is returned, make sure len fits in one, otherwise return
        with an error (this avoids the flaw in the interface) */
     if ((int)len < 0) {
-        gz_error(state, Z_BUF_ERROR, "requested length does not fit in int");
+        gz_error(state, Z_DATA_ERROR, "requested length does not fit in int");
         return 0;
     }
 
