@@ -553,7 +553,7 @@ int ZEXPORT gzdirect(file)
 int ZEXPORT gzclose_r(file)
     gzFile file;
 {
-    int ret;
+    int ret, err;
     gz_statep state;
 
     /* get internal structure */
@@ -571,9 +571,10 @@ int ZEXPORT gzclose_r(file)
         free(state->out);
         free(state->in);
     }
+    err = state->err == Z_BUF_ERROR ? Z_BUF_ERROR : Z_OK;
     gz_error(state, Z_OK, NULL);
     free(state->path);
     ret = close(state->fd);
     free(state);
-    return ret ? Z_ERRNO : Z_OK;
+    return ret ? Z_ERRNO : err;
 }
