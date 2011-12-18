@@ -1363,8 +1363,8 @@ ZEXTERN int ZEXPORT gzputc OF((gzFile file, int c));
    returns the value that was written, or -1 in case of error.
 */
 
-/*
 ZEXTERN int ZEXPORT gzgetc OF((gzFile file));
+/*
      Reads one byte from the compressed file.  gzgetc returns this byte or -1
    in case of end of file or error.  This is implemented as a macro for speed.
    As such, it does not do all of the checking the other functions do.  I.e.

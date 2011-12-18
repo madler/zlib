@@ -42,6 +42,7 @@ EXPORTS
     gzputs
     gzgets
     gzputc
+    gzgetc
     gzungetc
     gzflush
     gzseek

@@ -186,6 +186,9 @@
      D  file                               value like(gzFile)                   File pointer
      D  c                            10I 0 value                                Character to write
       *
+     D gzgetc          PR            10i 0 extproc('gzgetc')
+     D  file                               value like(gzFile)                   File pointer
+      *
      D gzgetc_         PR            10i 0 extproc('gzgetc_')
      D  file                               value like(gzFile)                   File pointer
       *

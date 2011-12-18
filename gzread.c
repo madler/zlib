@@ -390,10 +390,7 @@ int ZEXPORT gzgetc_(file)
         (state->err != Z_OK && state->err != Z_BUF_ERROR))
         return -1;
 
-    /* try output buffer (no need to check for skip request) -- while
-       this check really isn't required since the gzgetc() macro has
-       already determined that x.have is zero, we leave it in for
-       completeness. */
+    /* try output buffer (no need to check for skip request) */
     if (state->x.have) {
         state->x.have--;
         state->x.pos++;
@@ -404,6 +401,13 @@ int ZEXPORT gzgetc_(file)
     ret = gzread(file, buf, 1);
     return ret < 1 ? -1 : buf[0];
 }
+
+#undef gzgetc
+int ZEXPORT gzgetc(file)
+gzFile file;
+{
+    return gzgetc_(file);
+}    
 
 /* -- see zlib.h -- */
 int ZEXPORT gzungetc(c, file)
