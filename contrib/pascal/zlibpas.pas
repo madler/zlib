@@ -10,7 +10,7 @@ unit zlibpas;
 interface
 
 const
-  ZLIB_VERSION = '1.2.5.2';
+  ZLIB_VERSION = '1.2.5.3';
 
 type
   alloc_func = function(opaque: Pointer; items, size: Integer): Pointer;

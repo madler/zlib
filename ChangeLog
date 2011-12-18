@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.5.3 (xx Dec 2011)
+- 
+
 Changes in 1.2.5.2 (17 Dec 2011)
 - fix ld error: unable to find version dependency 'ZLIB_1.2.5'
 - use relative symlinks for shared libs
