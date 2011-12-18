@@ -1,8 +1,57 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.5.2 (xx Sep 2011)
-- 
+Changes in 1.2.5.2 (17 Dec 2011)
+- fix ld error: unable to find version dependency 'ZLIB_1.2.5'
+- use relative symlinks for shared libs
+- Avoid searching past window for Z_RLE strategy
+- Assure that high-water mark initialization is always applied in deflate
+- Add assertions to fill_window() in deflate.c to match comments
+- Update python link in README
+- Correct spelling error in gzread.c
+- Fix bug in gzgets() for a concatenated empty gzip stream
+- Correct error in comment for gz_make()
+- Change gzread() and related to ignore junk after gzip streams
+- Allow gzread() and related to continue after gzclearerr()
+- Allow gzrewind() and gzseek() after a premature end-of-file
+- Simplify gzseek() now that raw after gzip is ignored
+- Change gzgetc() to a macro for speed (~40% speedup in testing)
+- Fix gzclose() to return the actual error last encountered
+- Always add large file support for windows
+- Include zconf.h for windows large file support
+- Include zconf.h.cmakein for windows large file support
+- Update zconf.h.cmakein on make distclean
+- Merge vestigial vsnprintf determination from zutil.h to gzguts.h
+- Clarify how gzopen() appends in zlib.h comments
+- Correct documentation of gzdirect() since junk at end now ignored
+- Add a transparent write mode to gzopen() when 'T' is in the mode
+- Update python link in zlib man page
+- Get inffixed.h and MAKEFIXED result to match
+- Add a ./config --solo option to make zlib subset with no libary use
+- Add undocumented inflateResetKeep() function for CAB file decoding
+- Add --cover option to ./configure for gcc coverage testing
+- Add #define ZLIB_CONST option to use const in the z_stream interface
+- Add comment to gzdopen() in zlib.h to use dup() when using fileno()
+- Note behavior of uncompress() to provide as much data as it can
+- Add files in contrib/minizip to aid in building libminizip
+- Split off AR options in Makefile.in and configure
+- Change ON macro to Z_ARG to avoid application conflicts
+- Facilitate compilation with Borland C++ for pragmas and vsnprintf
+- Include io.h for Turbo C / Borland C++
+- Move example.c and minigzip.c to test/
+- Simplify incomplete code table filling in inflate_table()
+- Remove code from inflate.c and infback.c that is impossible to execute
+- Test the inflate code with full coverage
+- Allow deflateSetDictionary, inflateSetDictionary at any time (in raw)
+- Add deflateResetKeep and fix inflateResetKeep to retain dictionary
+- Fix gzwrite.c to accommodate reduced memory zlib compilation
+- Have inflate() with Z_FINISH avoid the allocation of a window
+- Do not set strm->adler when doing raw inflate
+- Fix gzeof() to behave just like feof() when read is not past end of file
+- Fix bug in gzread.c when end-of-file is reached
+- Avoid use of Z_BUF_ERROR in gz* functions except for premature EOF
+- Document gzread() capability to read concurrently written files
+- Remove hard-coding of resource compiler in CMakeLists.txt [Blammo]
 
 Changes in 1.2.5.1 (10 Sep 2011)
 - Update FAQ entry on shared builds (#13)
