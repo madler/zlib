@@ -72,6 +72,9 @@ minigzip_d.exe: minigzip.obj $(IMPLIB)
 .c.obj:
 	$(CC) -c $(WFLAGS) $(CFLAGS) $<
 
+{test}.c.obj:
+	$(CC) -c -I. $(WFLAGS) $(CFLAGS) $<
+
 {contrib/masmx64}.c.obj:
 	$(CC) -c $(WFLAGS) $(CFLAGS) $<
 
