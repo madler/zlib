@@ -33,9 +33,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("deflateSetDictionary")
   EXPORT SYMBOL("deflateCopy")
   EXPORT SYMBOL("deflateReset")
-  EXPORT SYMBOL("deflateResetKeep")
   EXPORT SYMBOL("deflateParams")
-  EXPORT SYMBOL("deflatePending")
   EXPORT SYMBOL("deflatePrime")
   EXPORT SYMBOL("deflateInit_")
   EXPORT SYMBOL("deflateInit2_")
@@ -171,8 +169,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /********************************************************************/
 
   EXPORT SYMBOL("gzclose_w")
-  EXPORT SYMBOL("gzgetc_")
-  EXPORT SYMBOL("gzflags")
 
 /********************************************************************/
 /*   *MODULE      INFLATE      ZLIB         01/02/01  00:15:09      */
@@ -182,6 +178,29 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("inflatePrime")
   EXPORT SYMBOL("inflateReset2")
   EXPORT SYMBOL("inflateUndermine")
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+/*   Version 1.2.6 additional entry points.                         */
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+/********************************************************************/
+/*   *MODULE      DEFLATE      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("deflateResetKeep")
+  EXPORT SYMBOL("deflatePending")
+
+/********************************************************************/
+/*   *MODULE      GZWRITE      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
+  EXPORT SYMBOL("gzgetc_")
+  EXPORT SYMBOL("gzflags")
+
+/********************************************************************/
+/*   *MODULE      INFLATE      ZLIB         01/02/01  00:15:09      */
+/********************************************************************/
+
   EXPORT SYMBOL("inflateResetKeep")
 
 ENDPGMEXP
