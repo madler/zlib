@@ -155,6 +155,9 @@ local const config configuration_table[10] = {
 struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 #endif
 
+/* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
+#define RANK(f) (((f) << 1) - ((f) > 4 ? 9 : 0))
+
 /* ===========================================================================
  * Update a hash value with the given input byte
  * IN  assertion: all calls to to UPDATE_HASH are made with consecutive
@@ -858,7 +861,7 @@ int ZEXPORT deflate (strm, flush)
      * flushes. For repeated and useless calls with Z_FINISH, we keep
      * returning Z_STREAM_END instead of Z_BUF_ERROR.
      */
-    } else if (strm->avail_in == 0 && flush <= old_flush &&
+    } else if (strm->avail_in == 0 && RANK(flush) <= RANK(old_flush) &&
                flush != Z_FINISH) {
         ERR_RETURN(strm, Z_BUF_ERROR);
     }
