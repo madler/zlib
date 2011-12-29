@@ -715,7 +715,8 @@ ZEXTERN int ZEXPORT deflatePending OF((z_streamp strm,
    been generated, but not yet provided in the available output.  The bytes not
    provided would be due to the available output space having being consumed.
    The number of bits of output not provided are between 0 and 7, where they
-   await more bits to join them in order to fill out a full byte.
+   await more bits to join them in order to fill out a full byte.  If pending
+   or bits are Z_NULL, then those values are not set.
 
      deflatePending returns Z_OK if success, or Z_STREAM_ERROR if the source
    stream state was inconsistent.

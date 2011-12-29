@@ -451,8 +451,10 @@ int ZEXPORT deflatePending (strm, pending, bits)
     z_streamp strm;
 {
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
-    *pending = strm->state->pending;
-    *bits = strm->state->bi_valid;
+    if (pending != Z_NULL)
+        *pending = strm->state->pending;
+    if (bits != Z_NULL)
+        *bits = strm->state->bi_valid;
     return Z_OK;
 }
 
