@@ -638,19 +638,22 @@ local void putShortMSB (s, b)
 local void flush_pending(strm)
     z_streamp strm;
 {
-    unsigned len = strm->state->pending;
+    unsigned len;
+    deflate_state *s = strm->state;
 
+    _tr_flush_bits(s);
+    len = s->pending;
     if (len > strm->avail_out) len = strm->avail_out;
     if (len == 0) return;
 
-    zmemcpy(strm->next_out, strm->state->pending_out, len);
+    zmemcpy(strm->next_out, s->pending_out, len);
     strm->next_out  += len;
-    strm->state->pending_out  += len;
+    s->pending_out  += len;
     strm->total_out += len;
     strm->avail_out  -= len;
-    strm->state->pending -= len;
-    if (strm->state->pending == 0) {
-        strm->state->pending_out = strm->state->pending_buf;
+    s->pending -= len;
+    if (s->pending == 0) {
+        s->pending_out = s->pending_buf;
     }
 }
 
