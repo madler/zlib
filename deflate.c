@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2011 Jean-loup Gailly and Mark Adler
+ * Copyright (C) 1995-2012 Jean-loup Gailly and Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.5.3 Copyright 1995-2011 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.2.5.3 Copyright 1995-2012 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -464,9 +464,23 @@ int ZEXPORT deflatePrime (strm, bits, value)
     int bits;
     int value;
 {
+    deflate_state *s;
+    int put;
+
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
-    strm->state->bi_valid = bits;
-    strm->state->bi_buf = (ush)(value & ((1 << bits) - 1));
+    s = strm->state;
+    if ((Bytef *)(s->d_buf) < s->pending_out + ((Buf_size + 7) >> 3))
+        return Z_BUF_ERROR;
+    do {
+        put = Buf_size - s->bi_valid;
+        if (put > bits)
+            put = bits;
+        s->bi_buf |= (ush)((value & ((1 << put) - 1)) << s->bi_valid);
+        s->bi_valid += put;
+        _tr_flush_bits(s);
+        value >>= put;
+        bits -= put;
+    } while (bits);
     return Z_OK;
 }
 

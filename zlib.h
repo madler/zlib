@@ -734,8 +734,9 @@ ZEXTERN int ZEXPORT deflatePrime OF((z_streamp strm,
    than or equal to 16, and that many of the least significant bits of value
    will be inserted in the output.
 
-     deflatePrime returns Z_OK if success, or Z_STREAM_ERROR if the source
-   stream state was inconsistent.
+     deflatePrime returns Z_OK if success, Z_BUF_ERROR if there was not enough
+   room in the internal buffer to insert the bits, or Z_STREAM_ERROR if the
+   source stream state was inconsistent.
 */
 
 ZEXTERN int ZEXPORT deflateSetHeader OF((z_streamp strm,

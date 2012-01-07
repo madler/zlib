@@ -1,5 +1,5 @@
 /* deflate.h -- internal compression state
- * Copyright (C) 1995-2010 Jean-loup Gailly
+ * Copyright (C) 1995-2012 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -47,6 +47,9 @@
 
 #define MAX_BITS 15
 /* All codes must not exceed MAX_BITS bits */
+
+#define Buf_size 16
+/* size of bit buffer in bi_buf */
 
 #define INIT_STATE    42
 #define EXTRA_STATE   69
