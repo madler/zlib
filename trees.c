@@ -394,7 +394,6 @@ void ZLIB_INTERNAL _tr_init(s)
 
     s->bi_buf = 0;
     s->bi_valid = 0;
-    s->last_eob_len = 8; /* enough lookahead for inflate */
 #ifdef DEBUG
     s->compressed_len = 0L;
     s->bits_sent = 0L;
@@ -880,13 +879,6 @@ void ZLIB_INTERNAL _tr_stored_block(s, buf, stored_len, last)
 /* ===========================================================================
  * Send one empty static block to give enough lookahead for inflate.
  * This takes 10 bits, of which 7 may remain in the bit buffer.
- * The current inflate code requires 9 bits of lookahead. If the
- * last two codes for the previous block (real code plus EOB) were coded
- * on 5 bits or less, inflate may have only 5+3 bits of lookahead to decode
- * the last real code. In this case we send two empty static blocks instead
- * of one. (There are no problems if the previous block is stored or fixed.)
- * To simplify the code, we assume the worst case of last real code encoded
- * on one bit only.
  */
 void ZLIB_INTERNAL _tr_align(s)
     deflate_state *s;
@@ -897,20 +889,6 @@ void ZLIB_INTERNAL _tr_align(s)
     s->compressed_len += 10L; /* 3 for block type, 7 for EOB */
 #endif
     bi_flush(s);
-    /* Of the 10 bits for the empty block, we have already sent
-     * (10 - bi_valid) bits. The lookahead for the last real code (before
-     * the EOB of the previous block) was thus at least one plus the length
-     * of the EOB plus what we have just sent of the empty static block.
-     */
-    if (1 + s->last_eob_len + 10 - s->bi_valid < 9) {
-        send_bits(s, STATIC_TREES<<1, 3);
-        send_code(s, END_BLOCK, static_ltree);
-#ifdef DEBUG
-        s->compressed_len += 10L;
-#endif
-        bi_flush(s);
-    }
-    s->last_eob_len = 7;
 }
 
 /* ===========================================================================
@@ -1113,7 +1091,6 @@ local void compress_block(s, ltree, dtree)
     } while (lx < s->last_lit);
 
     send_code(s, END_BLOCK, ltree);
-    s->last_eob_len = ltree[END_BLOCK].Len;
 }
 
 /* ===========================================================================
@@ -1221,7 +1198,6 @@ local void copy_block(s, buf, len, header)
     int      header;  /* true if block header must be written */
 {
     bi_windup(s);        /* align on byte boundary */
-    s->last_eob_len = 8; /* enough lookahead for inflate */
 
     if (header) {
         put_short(s, (ush)len);
