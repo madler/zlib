@@ -1606,6 +1606,7 @@ local block_state deflate_stored(s, flush)
             FLUSH_BLOCK(s, 0);
         }
     }
+    s->insert = 0;
     if (flush == Z_FINISH) {
         FLUSH_BLOCK(s, 1);
         return finish_done;
@@ -1914,6 +1915,7 @@ local block_state deflate_rle(s, flush)
         }
         if (bflush) FLUSH_BLOCK(s, 0);
     }
+    s->insert = 0;
     if (flush == Z_FINISH) {
         FLUSH_BLOCK(s, 1);
         return finish_done;
@@ -1952,6 +1954,7 @@ local block_state deflate_huff(s, flush)
         s->strstart++;
         if (bflush) FLUSH_BLOCK(s, 0);
     }
+    s->insert = 0;
     if (flush == Z_FINISH) {
         FLUSH_BLOCK(s, 1);
         return finish_done;
