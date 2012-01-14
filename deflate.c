@@ -349,6 +349,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
             CLEAR_HASH(s);
             s->strstart = 0;
             s->block_start = 0L;
+            s->insert = 0;
         }
         dictionary += dictLength - s->w_size;  /* use the tail */
         dictLength = s->w_size;
@@ -377,6 +378,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     }
     s->strstart += s->lookahead;
     s->block_start = (long)s->strstart;
+    s->insert = s->lookahead;
     s->lookahead = 0;
     s->match_length = s->prev_length = MIN_MATCH-1;
     s->match_available = 0;
@@ -929,6 +931,7 @@ int ZEXPORT deflate (strm, flush)
                     if (s->lookahead == 0) {
                         s->strstart = 0;
                         s->block_start = 0L;
+                        s->insert = 0;
                     }
                 }
             }
@@ -1115,6 +1118,7 @@ local void lm_init (s)
     s->strstart = 0;
     s->block_start = 0L;
     s->lookahead = 0;
+    s->insert = 0;
     s->match_length = s->prev_length = MIN_MATCH-1;
     s->match_available = 0;
     s->ins_h = 0;
@@ -1462,12 +1466,24 @@ local void fill_window(s)
         s->lookahead += n;
 
         /* Initialize the hash value now that we have some input: */
-        if (s->lookahead >= MIN_MATCH) {
-            s->ins_h = s->window[s->strstart];
-            UPDATE_HASH(s, s->ins_h, s->window[s->strstart+1]);
+        if (s->lookahead + s->insert >= MIN_MATCH) {
+            uInt str = s->strstart - s->insert;
+            s->ins_h = s->window[str];
+            UPDATE_HASH(s, s->ins_h, s->window[str + 1]);
 #if MIN_MATCH != 3
             Call UPDATE_HASH() MIN_MATCH-3 more times
 #endif
+            while (s->insert) {
+                UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+#ifndef FASTEST
+                s->prev[str & s->w_mask] = s->head[s->ins_h];
+#endif
+                s->head[s->ins_h] = (Pos)str;
+                str++;
+                s->insert--;
+                if (s->lookahead + s->insert < MIN_MATCH)
+                    break;
+            }
         }
         /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
          * but this is not important since only literal bytes will be emitted.
@@ -1692,6 +1708,7 @@ local block_state deflate_fast(s, flush)
         }
         if (bflush) FLUSH_BLOCK(s, 0);
     }
+    s->insert = s->strstart < MIN_MATCH-1 ? s->strstart : MIN_MATCH-1;
     if (flush == Z_FINISH) {
         FLUSH_BLOCK(s, 1);
         return finish_done;
@@ -1822,6 +1839,7 @@ local block_state deflate_slow(s, flush)
         _tr_tally_lit(s, s->window[s->strstart-1], bflush);
         s->match_available = 0;
     }
+    s->insert = s->strstart < MIN_MATCH-1 ? s->strstart : MIN_MATCH-1;
     if (flush == Z_FINISH) {
         FLUSH_BLOCK(s, 1);
         return finish_done;

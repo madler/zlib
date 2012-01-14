@@ -247,6 +247,7 @@ typedef struct internal_state {
     ulg opt_len;        /* bit length of current block with optimal trees */
     ulg static_len;     /* bit length of current block with static trees */
     uInt matches;       /* number of string matches in current block */
+    uInt insert;        /* bytes at end of window left to insert */
 
 #ifdef DEBUG
     ulg compressed_len; /* total bit length of compressed file mod 2^32 */
