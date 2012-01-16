@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([minizip], [@ZLIB_VER@], [bugzilla.redhat.com])
-AC_CONFIG_SRCDIR([minigzip.c])
+AC_CONFIG_SRCDIR([minizip.c])
 AM_INIT_AUTOMAKE([foreign])
 LT_INIT
 
