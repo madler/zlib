@@ -1040,26 +1040,26 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
             {
                                                         uLong uL;
 
-                                                                if(file_info.uncompressed_size == (ZPOS64_T)(unsigned long)-1)
+                                                                if(file_info.uncompressed_size == MAXU32)
                                                                 {
                                                                         if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
                                                                                         err=UNZ_ERRNO;
                                                                 }
 
-                                                                if(file_info.compressed_size == (ZPOS64_T)(unsigned long)-1)
+                                                                if(file_info.compressed_size == MAXU32)
                                                                 {
                                                                         if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
                                                                                   err=UNZ_ERRNO;
                                                                 }
 
-                                                                if(file_info_internal.offset_curfile == (ZPOS64_T)(unsigned long)-1)
+                                                                if(file_info_internal.offset_curfile == MAXU32)
                                                                 {
                                                                         /* Relative Header offset */
                                                                         if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
                                                                                 err=UNZ_ERRNO;
                                                                 }
 
-                                                                if(file_info.disk_num_start == (unsigned long)-1)
+                                                                if(file_info.disk_num_start == MAXU32)
                                                                 {
                                                                         /* Disk Start Number */
                                                                         if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)

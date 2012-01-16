@@ -59,7 +59,7 @@ ZPOS64_T call_ztell64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream
     else
     {
         uLong tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
-        if ((tell_uLong) == ((uLong)-1))
+        if ((tell_uLong) == MAXU32)
             return (ZPOS64_T)-1;
         else
             return tell_uLong;

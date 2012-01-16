@@ -86,6 +86,8 @@ typedef  64BIT_INT_CUSTOM_TYPE ZPOS64_T;
 typedef uint64_t ZPOS64_T;
 #else
 
+/* Maximum unsigned 32-bit value used as placeholder for zip64 */
+#define MAXU32 0xffffffff
 
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 typedef unsigned __int64 ZPOS64_T;
