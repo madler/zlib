@@ -97,6 +97,22 @@ case "$1" in
 done
 
 test=ztest$$
+
+cat > $test.c <<EOF
+#error error
+EOF
+if ($CC -c $CFLAGS $test.c) 2>/dev/null; then
+  try()
+  {
+    test "`( $* ) 2>&1`" = ""
+  }
+else
+  try()
+  {
+    ( $* ) 2>/dev/null
+  }
+fi
+
 cat > $test.c <<EOF
 extern int getchar();
 int hello() {return getchar();}
@@ -249,8 +265,8 @@ SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
 if test $shared -eq 1; then
   echo Checking for shared library support...
   # we must test in two steps (cc then ld), required at least on SunOS 4.x
-  if test "`($CC -w -c $SFLAGS $test.c) 2>&1`" = "" &&
-     test "`($LDSHARED $SFLAGS -o $test$shared_ext $test.o) 2>&1`" = ""; then
+  if try $CC -w -c $SFLAGS $test.c &&
+     try $LDSHARED $SFLAGS -o $test$shared_ext $test.o; then
     echo Building shared library $SHAREDLIBV with $CC.
   elif test -z "$old_cc" -a -z "$old_cflags"; then
     echo No shared library support.
@@ -281,7 +297,7 @@ cat > $test.c <<EOF
 #include <sys/types.h>
 off64_t dummy = 0;
 EOF
-if test "`($CC -c $CFLAGS -D_LARGEFILE64_SOURCE=1 $test.c) 2>&1`" = ""; then
+if try $CC -c $CFLAGS -D_LARGEFILE64_SOURCE=1 $test.c; then
   CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE=1"
   SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE=1"
   ALL="${ALL} all64"
@@ -297,7 +313,7 @@ int main(void) {
   return 0;
 }
 EOF
-  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
+  if try $CC $CFLAGS -o $test $test.c; then
     echo "Checking for fseeko... Yes."
   else
     CFLAGS="${CFLAGS} -DNO_FSEEKO"
@@ -312,7 +328,7 @@ cat > $test.c <<EOF
 #include <unistd.h>
 int main() { return 0; }
 EOF
-if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+if try $CC -c $CFLAGS $test.c; then
   sed < zconf.h "/^#ifdef HAVE_UNISTD_H.* may be/s/def HAVE_UNISTD_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for unistd.h... Yes."
@@ -324,7 +340,7 @@ cat > $test.c <<EOF
 #include <stdarg.h>
 int main() { return 0; }
 EOF
-if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+if try $CC -c $CFLAGS $test.c; then
   sed < zconf.h "/^#ifdef HAVE_STDARG_H.* may be/s/def HAVE_STDARG_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for stdarg.h... Yes."
@@ -367,7 +383,7 @@ int main()
 }
 EOF
 
-if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+if try $CC -c $CFLAGS $test.c; then
   echo "Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf()."
 
   cat > $test.c <<EOF
@@ -390,7 +406,7 @@ int main()
   return (mytest("Hello%d\n", 1));
 }
 EOF
-  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
+  if try $CC $CFLAGS -o $test $test.c; then
     echo "Checking for vsnprintf() in stdio.h... Yes."
 
     cat >$test.c <<EOF
@@ -415,7 +431,7 @@ int main()
 }
 EOF
 
-    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    if try $CC -c $CFLAGS $test.c; then
       echo "Checking for return value of vsnprintf()... Yes."
     else
       CFLAGS="$CFLAGS -DHAS_vsnprintf_void"
@@ -455,7 +471,7 @@ int main()
 }
 EOF
 
-    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    if try $CC -c $CFLAGS $test.c; then
       echo "Checking for return value of vsprintf()... Yes."
     else
       CFLAGS="$CFLAGS -DHAS_vsprintf_void"
@@ -486,7 +502,7 @@ int main()
 }
 EOF
 
-  if test "`($CC $CFLAGS -o $test $test.c) 2>&1`" = ""; then
+  if try $CC $CFLAGS -o $test $test.c; then
     echo "Checking for snprintf() in stdio.h... Yes."
 
     cat >$test.c <<EOF
@@ -505,7 +521,7 @@ int main()
 }
 EOF
 
-    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    if try $CC -c $CFLAGS $test.c; then
       echo "Checking for return value of snprintf()... Yes."
     else
       CFLAGS="$CFLAGS -DHAS_snprintf_void"
@@ -539,7 +555,7 @@ int main()
 }
 EOF
 
-    if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+    if try $CC -c $CFLAGS $test.c; then
       echo "Checking for return value of sprintf()... Yes."
     else
       CFLAGS="$CFLAGS -DHAS_sprintf_void"
@@ -565,7 +581,7 @@ int main()
   return 0;
 }
 EOF
-  if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
+  if try $CC -c $CFLAGS $test.c; then
     echo "Checking for attribute(visibility) support... Yes."
   else
     CFLAGS="$CFLAGS -DNO_VIZ"
