@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.6 (xx Jan 2012)
+- 
+
 Changes in 1.2.5.3 (15 Jan 2012)
 - Restore gzgetc function for binary compatibility
 - Do not use _lseeki64 under Borland C++ [Truta]
