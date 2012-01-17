@@ -110,8 +110,13 @@ set(ZLIB_SRCS
     trees.c
     uncompr.c
     zutil.c
-    win32/zlib1.rc
 )
+
+if(NOT MINGW)
+    set(ZLIB_SRCS ${ZLIB_SRCS}
+        win32/zlib1.rc # If present will override custom build rule below.
+    )
+endif()
 
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
@@ -120,6 +125,10 @@ string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([0-9A-Za-z.]+)\".*"
 
 if(MINGW)
     # This gets us DLL resource information when compiling on MinGW.
+    if(NOT CMAKE_RC_COMPILER)
+        SET(CMAKE_RC_COMPILER windres.exe)
+    endif()
+
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
                        COMMAND ${CMAKE_RC_COMPILER}
                             -D GCC_WINDRES
