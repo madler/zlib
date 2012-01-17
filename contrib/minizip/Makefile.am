@@ -6,7 +6,7 @@ libminizip_la_SOURCES = \
 	unzip.c \
 	zip.c
 
-libminizip_la_CFLAGS = -I../.. -L../..
+AM_CFLAGS = -I../.. -L../..
 libminizip_la_LDFLAGS = -version-info 1:0:0 -lz
 
 minizip_includedir = $(includedir)/minizip
