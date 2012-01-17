@@ -1,13 +1,18 @@
 lib_LTLIBRARIES = libminizip.la
 
+zlib_top_srcdir = $(top_srcdir)/../..
+zlib_top_builddir = $(top_builddir)/../..
+
+AM_CPPFLAGS = -I$(zlib_top_srcdir)
+AM_LDFLAGS = -L$(zlib_top_builddir)
+
 libminizip_la_SOURCES = \
 	ioapi.c \
 	mztools.c \
 	unzip.c \
 	zip.c
 
-AM_CFLAGS = -I../.. -L../..
-libminizip_la_LDFLAGS = -version-info 1:0:0 -lz
+libminizip_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 -lz
 
 minizip_includedir = $(includedir)/minizip
 minizip_include_HEADERS = \
