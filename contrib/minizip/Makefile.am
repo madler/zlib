@@ -26,3 +26,4 @@ miniunzip_SOURCES = miniunz.c
 miniunzip_LDADD = libminizip.la
 
 minizip_SOURCES = minizip.c
+minizip_LDADD = libminizip.la -lz
