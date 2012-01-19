@@ -27,7 +27,7 @@
 #endif
 #include <fcntl.h>
 
-#if defined(MSDOS) && defined(__TURBOC__)
+#ifdef __TURBOC__
 #  include <io.h>
 #endif
 
