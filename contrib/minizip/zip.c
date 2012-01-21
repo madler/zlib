@@ -1067,6 +1067,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
     int err = ZIP_OK;
 
 #    ifdef NOCRYPT
+    (crcForCrypting);
     if (password != NULL)
         return ZIP_PARAMERROR;
 #    endif
