@@ -1,5 +1,9 @@
 lib_LTLIBRARIES = libminizip.la
 
+if COND_DEMOS
+bin_PROGRAMS = miniunzip minizip
+endif
+
 zlib_top_srcdir = $(top_srcdir)/../..
 zlib_top_builddir = $(top_builddir)/../..
 
