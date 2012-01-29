@@ -123,6 +123,10 @@ zlibrc.o: win32/zlib1.rc
 .PHONY: install uninstall clean
 
 install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
+	@if test -z "$(INCLUDE_PATH)" -o -z "$(LIBRARY_PATH)" -o -z "$(BINARY_PATH)"; then \
+		echo INCLUDE_PATH, LIBRARY_PATH, and BINARY_PATH must be specified; \
+		exit 1; \
+	fi
 	-@mkdir -p $(INCLUDE_PATH)
 	-@mkdir -p $(LIBRARY_PATH) $(LIBRARY_PATH)/pkgconfig
 	-if [ "$(SHARED_MODE)" = "1" ]; then \
