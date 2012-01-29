@@ -272,14 +272,14 @@ int ZEXPORT gzputc(file, c)
             strm->next_in = state->in;
         strm->next_in[strm->avail_in++] = c;
         state->x.pos++;
-        return c;
+        return c & 0xff;
     }
 
     /* no room in buffer or not initialized, use gz_write() */
     buf[0] = c;
     if (gzwrite(file, buf, 1) != 1)
         return -1;
-    return c;
+    return c & 0xff;
 }
 
 /* -- see zlib.h -- */
