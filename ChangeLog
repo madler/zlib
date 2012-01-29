@@ -1,8 +1,32 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.6 (xx Jan 2012)
-- 
+Changes in 1.2.6 (29 Jan 2012)
+- Update the Pascal interface in contrib/pascal
+- Fix function numbers for gzgetc_ in zlibvc.def files
+- Fix configure.ac for contrib/minizip [Schiffer]
+- Fix large-entry detection in minizip on 64-bit systems [Schiffer]
+- Have ./configure use the compiler return code for error indication
+- Fix CMakeLists.txt for cross compilation [McClure]
+- Fix contrib/minizip/zip.c for 64-bit architectures [Dalsnes]
+- Fix compilation of contrib/minizip on FreeBSD [Marquez]
+- Correct suggested usages in win32/Makefile.msc [Shachar, Horvath]
+- Include io.h for Turbo C / Borland C on all platforms [Truta]
+- Make version explicit in contrib/minizip/configure.ac [Bosmans]
+- Avoid warning for no encryption in contrib/minizip/zip.c [Vollant]
+- Minor cleanup up contrib/minizip/unzip.c [Vollant]
+- Fix bug when compiling minizip with C++ [Vollant]
+- Protect for long name and extra fields in contrib/minizip [Vollant]
+- Avoid some warnings in contrib/minizip [Vollant]
+- Add -I../.. -L../.. to CFLAGS for minizip and miniunzip
+- Add missing libs to minizip linker command
+- Add support for VPATH builds in contrib/minizip
+- Add an --enable-demos option to contrib/minizip/configure
+- Add the generation of configure.log by ./configure
+- Exit when required parameters not provided to win32/Makefile.gcc
+- Have gzputc return the character written instead of the argument
+- Use the -m option on ldconfig for BSD systems [Tobias]
+- Correct in zlib.map when deflateResetKeep was added
 
 Changes in 1.2.5.3 (15 Jan 2012)
 - Restore gzgetc function for binary compatibility
