@@ -72,11 +72,8 @@ ZLIB_1.2.5.1 {
 } ZLIB_1.2.3.5;
 
 ZLIB_1.2.5.2 {
+    deflateResetKeep;
     gzflags;
     gzgetc_;
     inflateResetKeep;
 } ZLIB_1.2.5.1;
-
-ZLIB_1.2.5.3 {
-    deflateResetKeep;
-} ZLIB_1.2.5.2;
