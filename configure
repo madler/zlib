@@ -172,8 +172,11 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) >> configure.log 2>&1; then
     uname=`(uname -s || echo unknown) 2>/dev/null`
   fi
   case "$uname" in
-  Linux* | linux* | GNU | GNU/* | *BSD | *bsd* | DragonFly | solaris*)
+  Linux* | linux* | GNU | GNU/* | solaris*)
         LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+  *BSD | *bsd* | DragonFly)
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"}
+        LDCONFIG="ldconfig -m" ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
   MINGW* | mingw*)
