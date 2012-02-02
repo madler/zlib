@@ -127,9 +127,9 @@
 #  define free_func             z_free_func
 #  ifndef Z_SOLO
 #    define gzFile                z_gzFile
-#    define gz_header             z_gz_header
-#    define gz_headerp            z_gz_headerp
 #  endif
+#  define gz_header             z_gz_header
+#  define gz_headerp            z_gz_headerp
 #  define in_func               z_in_func
 #  define intf                  z_intf
 #  define out_func              z_out_func
@@ -142,9 +142,7 @@
 #  define voidpf                z_voidpf
 
 /* all zlib structs in zlib.h and zconf.h */
-#  ifndef Z_SOLO
-#    define gz_header_s           z_gz_header_s
-#  endif
+#  define gz_header_s           z_gz_header_s
 #  define internal_state        z_internal_state
 
 #endif
