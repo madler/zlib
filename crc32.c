@@ -33,6 +33,9 @@
 #define local static
 
 /* Find a four-byte integer type for crc32_little() and crc32_big(). */
+#ifdef Z_SOLO
+#  define NOBYFOUR
+#endif
 #ifndef NOBYFOUR
 #  ifdef STDC           /* need ANSI C limits.h to determine sizes */
 #    include <limits.h>
