@@ -65,7 +65,6 @@
 #    define gzdopen               z_gzdopen
 #    define gzeof                 z_gzeof
 #    define gzerror               z_gzerror
-#    define gzflags               z_gzflags
 #    define gzflush               z_gzflush
 #    define gzgetc                z_gzgetc
 #    define gzgetc_               z_gzgetc_

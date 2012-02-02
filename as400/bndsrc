@@ -195,7 +195,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /********************************************************************/
 
   EXPORT SYMBOL("gzgetc_")
-  EXPORT SYMBOL("gzflags")
 
 /********************************************************************/
 /*   *MODULE      INFLATE      ZLIB         01/02/01  00:15:09      */

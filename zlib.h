@@ -1727,9 +1727,6 @@ ZEXTERN const uLongf * ZEXPORT get_crc_table    OF((void));
 ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
 ZEXTERN int            ZEXPORT inflateResetKeep OF((z_streamp));
 ZEXTERN int            ZEXPORT deflateResetKeep OF((z_streamp));
-#ifndef Z_SOLO
-  ZEXTERN unsigned long  ZEXPORT gzflags          OF((void));
-#endif
 
 #ifdef __cplusplus
 }
