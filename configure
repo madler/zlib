@@ -416,6 +416,9 @@ fi
 
 if test $cover -eq 1; then
   CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
+  if test -n "$GCC_CLASSIC"; then
+    CC=$GCC_CLASSIC
+  fi
 fi
 
 echo >> configure.log
