@@ -373,7 +373,8 @@ int ZEXPORT gzread(file, buf, len)
 }
 
 /* -- see zlib.h -- */
-int ZEXPORT gzgetc_(file)
+#undef gzgetc
+int ZEXPORT gzgetc(file)
     gzFile file;
 {
     int ret;
@@ -401,13 +402,6 @@ int ZEXPORT gzgetc_(file)
     ret = gzread(file, buf, 1);
     return ret < 1 ? -1 : buf[0];
 }
-
-#undef gzgetc
-int ZEXPORT gzgetc(file)
-gzFile file;
-{
-    return gzgetc_(file);
-}    
 
 /* -- see zlib.h -- */
 int ZEXPORT gzungetc(c, file)
