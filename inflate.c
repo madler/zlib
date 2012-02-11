@@ -519,11 +519,6 @@ unsigned out;
         bits -= bits & 7; \
     } while (0)
 
-/* Reverse the bytes in a 32-bit value */
-#define REVERSE(q) \
-    ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
-     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
-
 /*
    inflate() uses a state machine to process as much input data and generate as
    much output data as possible before returning.  The state machine is
@@ -817,7 +812,7 @@ int flush;
 #endif
         case DICTID:
             NEEDBITS(32);
-            strm->adler = state->check = REVERSE(hold);
+            strm->adler = state->check = ZSWAP32(hold);
             INITBITS();
             state->mode = DICT;
         case DICT:
@@ -1189,7 +1184,7 @@ int flush;
 #ifdef GUNZIP
                      state->flags ? hold :
 #endif
-                     REVERSE(hold)) != state->check) {
+                     ZSWAP32(hold)) != state->check) {
                     strm->msg = (char *)"incorrect data check";
                     state->mode = BAD;
                     break;

@@ -59,8 +59,6 @@
 /* Definitions for doing the crc four data bytes at a time. */
 #ifdef BYFOUR
    typedef u4 crc_table_t;
-#  define REV(w) ((((w)>>24)&0xff)+(((w)>>8)&0xff00)+ \
-                (((w)&0xff00)<<8)+(((w)&0xff)<<24))
    local unsigned long crc32_little OF((unsigned long,
                         const unsigned char FAR *, unsigned));
    local unsigned long crc32_big OF((unsigned long,
@@ -145,11 +143,11 @@ local void make_crc_table()
            and then the byte reversal of those as well as the first table */
         for (n = 0; n < 256; n++) {
             c = crc_table[0][n];
-            crc_table[4][n] = REV(c);
+            crc_table[4][n] = ZSWAP32(c);
             for (k = 1; k < 4; k++) {
                 c = crc_table[0][c & 0xff] ^ (c >> 8);
                 crc_table[k][n] = c;
-                crc_table[k + 4][n] = REV(c);
+                crc_table[k + 4][n] = ZSWAP32(c);
             }
         }
 #endif /* BYFOUR */
@@ -317,7 +315,7 @@ local unsigned long crc32_big(crc, buf, len)
     register u4 c;
     register const u4 FAR *buf4;
 
-    c = REV((u4)crc);
+    c = ZSWAP32((u4)crc);
     c = ~c;
     while (len && ((ptrdiff_t)buf & 3)) {
         c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
@@ -341,7 +339,7 @@ local unsigned long crc32_big(crc, buf, len)
         c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
     } while (--len);
     c = ~c;
-    return (unsigned long)(REV(c));
+    return (unsigned long)(ZSWAP32(c));
 }
 
 #endif /* BYFOUR */
