@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2011 Jean-loup Gailly.
+ * Copyright (C) 1995-2012 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -255,7 +255,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define ZSWAP32(q) __builtin_bswap32(q)
 #else
 #  define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
-		              (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
+                      (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 #endif
 
 #endif /* ZUTIL_H */
