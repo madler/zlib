@@ -245,15 +245,18 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidpf)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
-/* Reverse the bytes in a 64-bit or 32-bit or 16-bit value */
-#if defined(_WIN32) && (_MSC_VER >= 1300) && (defined(_M_IX86) || defined(_M_X64))
-#  include <stdlib.h>
-#  pragma intrinsic(_byteswap_ulong)
-#  define ZSWAP32(q) _byteswap_ulong(q)
-#elif defined(__GNUC__) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
-#  include <byteswap.h>
-#  define ZSWAP32(q) __builtin_bswap32(q)
-#else
+/* Reverse the bytes in a 32-bit value */
+#ifndef Z_SOLO
+#  if defined(_WIN32) && (_MSC_VER >= 1300) && (defined(_M_IX86) || defined(_M_X64))
+#    include <stdlib.h>
+#    pragma intrinsic(_byteswap_ulong)
+#    define ZSWAP32(q) _byteswap_ulong(q)
+#  elif defined(__GNUC__) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
+#    include <byteswap.h>
+#    define ZSWAP32(q) __builtin_bswap32(q)
+#  endif
+#endif
+#ifndef ZSWAP32
 #  define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
                       (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 #endif
