@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.7 (xx Feb 2012)
+- 
+
 Changes in 1.2.6.1 (12 Feb 2012)
 - Avoid the use of the Objective-C reserved name "id"
 - Include io.h in gzguts.h for Microsoft compilers
