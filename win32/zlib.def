@@ -80,4 +80,3 @@ EXPORTS
     inflateUndermine
     inflateResetKeep
     deflateResetKeep
-    gzgetc_

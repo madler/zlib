@@ -131,6 +131,5 @@ EXPORTS
         inflateUndermine                        @160
 
 ; zlib1 v1.2.6 added:
-        gzgetc_                                 @161
         inflateResetKeep                        @163
 	deflateResetKeep			@164

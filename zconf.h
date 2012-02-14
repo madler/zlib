@@ -67,7 +67,6 @@
 #    define gzerror               z_gzerror
 #    define gzflush               z_gzflush
 #    define gzgetc                z_gzgetc
-#    define gzgetc_               z_gzgetc_
 #    define gzgets                z_gzgets
 #    define gzoffset              z_gzoffset
 #    define gzoffset64            z_gzoffset64
