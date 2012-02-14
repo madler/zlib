@@ -53,7 +53,6 @@ includedir = ${prefix}/include
 mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
-tempfile := $(shell mktemp -u __XXXXXX)
 
 OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
 OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
@@ -228,10 +227,11 @@ zlib.3.pdf: zlib.3
 	groff -mandoc -f H -T ps zlib.3 | ps2pdf - zlib.3.pdf
 
 zconf.h.cmakein: zconf.h.in
-	-@echo "/#define ZCONF_H/ a\\\\\n#cmakedefine Z_PREFIX\\\\\n#cmakedefine Z_HAVE_UNISTD_H\n" > $(tempfile)
-	-@sed -f $(tempfile) zconf.h.in > zconf.h.cmakein
-	-@touch -r zconf.h.in zconf.h.cmakein
-	-@rm $(tempfile)
+	-@ TEMPFILE=`mktemp -u __XXXXXX`; \
+	echo "/#define ZCONF_H/ a\\\\\n#cmakedefine Z_PREFIX\\\\\n#cmakedefine Z_HAVE_UNISTD_H\n" > $$TEMPFILE &&\
+	sed -f $$TEMPFILE zconf.h.in > zconf.h.cmakein &&\
+	touch -r zconf.h.in zconf.h.cmakein &&\
+	rm $$TEMPFILE
 
 zconf: zconf.h.in
 	cp -p zconf.h.in zconf.h
