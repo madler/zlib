@@ -413,6 +413,9 @@ typedef uLong FAR uLongf;
 #  define Z_LARGE
 #endif
 
+#if defined(__WATCOM__) && !defined(Z_HAVE_UNISTD_H)
+#  define Z_HAVE_UNISTD_H
+#endif
 #if (defined(Z_HAVE_UNISTD_H) || defined(Z_LARGE)) && !defined(Z_SOLO)
 #  include <unistd.h>       /* for SEEK_* and off_t */
 #  ifdef VMS
