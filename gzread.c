@@ -57,8 +57,13 @@ local int gz_avail(state)
     if (state->err != Z_OK && state->err != Z_BUF_ERROR)
         return -1;
     if (state->eof == 0) {
-        if (strm->avail_in)
-            memmove(state->in, strm->next_in, strm->avail_in);
+        if (strm->avail_in) {       /* copy what's there to the start */
+            unsigned char *p = state->in, *q = strm->next_in;
+            unsigned n = strm->avail_in;
+            do {
+                *p++ = *q++;
+            } while (--n);
+        }
         if (gz_load(state, state->in + strm->avail_in,
                     state->size - strm->avail_in, &got) == -1)
             return -1;
@@ -340,7 +345,7 @@ int ZEXPORT gzread(file, buf, len)
             /* get more output, looking for header if required */
             if (gz_fetch(state) == -1)
                 return -1;
-            continue;       /* no progress yet -- go back to memcpy() above */
+            continue;       /* no progress yet -- go back to copy above */
             /* the copy above assures that we will leave with space in the
                output buffer, allowing at least one gzungetc() to succeed */
         }
