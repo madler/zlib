@@ -408,6 +408,12 @@ int ZEXPORT gzgetc(file)
     return ret < 1 ? -1 : buf[0];
 }
 
+int ZEXPORT gzgetc_(file)
+gzFile file;
+{
+    return gzgetc(file);
+}
+
 /* -- see zlib.h -- */
 int ZEXPORT gzungetc(c, file)
     int c;

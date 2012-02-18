@@ -1649,6 +1649,7 @@ struct gzFile_s {
     unsigned char *next;
     z_off64_t pos;
 };
+ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));  /* backward compatibility */
 #ifdef Z_PREFIX_SET
 #  undef z_gzgetc
 #  define z_gzgetc(g) \
