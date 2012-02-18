@@ -367,6 +367,21 @@ EOF
   fi
 fi
 
+echo >> configure.log
+
+cat > $test.c <<EOF
+#include <string.h>
+#include <errno.h>
+int main() { return strlen(strerror(errno)); }
+EOF
+if try $CC $CFLAGS -o $test $test.c; then
+  echo "Checking for strerror... Yes." | tee -a configure.log
+else
+  CFLAGS="${CFLAGS} -DNO_STRERROR"
+  SFLAGS="${SFLAGS} -DNO_STRERROR"
+  echo "Checking for strerror... No." | tee -a configure.log
+fi
+
 cp -p zconf.h.in zconf.h
 
 echo >> configure.log
@@ -435,7 +450,6 @@ int main()
   return 0;
 }
 EOF
-
 if try $CC -c $CFLAGS $test.c; then
   echo "Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf()." | tee -a configure.log
 

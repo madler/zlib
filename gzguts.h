@@ -100,7 +100,7 @@
 #  include <windows.h>
 #  define zstrerror() gz_strwinerror((DWORD)GetLastError())
 #else
-#  ifdef STDC
+#  ifndef NO_STRERROR
 #    include <errno.h>
 #    define zstrerror() strerror(errno)
 #  else
