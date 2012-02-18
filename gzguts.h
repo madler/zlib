@@ -12,7 +12,8 @@
 #  endif
 #endif
 
-#if ((__GNUC__-0) * 10 + __GNUC_MINOR__-0 >= 33) && !defined(NO_VIZ)
+#define GCC_VER ((__GNUC__-0) * 100 + __GNUC_MINOR__-0)
+#if (GCC_VER >= 303 && !defined(__APPLE__)) || GCC_VER >= 400
 #  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
 #else
 #  define ZLIB_INTERNAL
