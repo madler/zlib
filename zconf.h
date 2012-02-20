@@ -439,11 +439,11 @@ typedef uLong FAR uLongf;
 #if !defined(_WIN32) && (defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0)
 #  define z_off64_t off64_t
 #else
-#  if defined(_WIN32)
+#  if defined(_WIN32) && !defined(__GNUC__) && !defined(Z_SOLO)
 #    define z_off64_t __int64
 #  else
-#  define z_off64_t z_off_t
-#endif
+#    define z_off64_t z_off_t
+#  endif
 #endif
 
 /* MVS linker does not support external names larger than 8 bytes */
