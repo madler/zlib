@@ -397,6 +397,8 @@
     <ClCompile Include="..\..\..\compress.c" />
     <ClCompile Include="..\..\..\crc32.c" />
     <ClCompile Include="..\..\..\deflate.c" />
+    <ClCompile Include="..\..\..\gzlib.c" />
+    <ClCompile Include="..\..\..\gzwrite.c" />
     <ClCompile Include="..\..\..\infback.c" />
     <ClCompile Include="..\..\masmx64\inffas8664.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Itanium'">true</ExcludedFromBuild>

@@ -27,6 +27,12 @@
     <ClCompile Include="..\..\..\deflate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\gzwrite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\gzlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\infback.c">
       <Filter>Source Files</Filter>
     </ClCompile>
