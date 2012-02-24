@@ -233,6 +233,10 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)zlibwapi.lib</ImportLibrary>
     </Link>
+    <PreBuildEvent>
+      <Command>cd ..\..\masmx86
+bld_ml32.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithoutAsm|Win32'">
     <Midl>
@@ -330,6 +334,10 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)zlibwapi.lib</ImportLibrary>
     </Link>
+    <PreBuildEvent>
+      <Command>cd ..\..\masmx86
+bld_ml32.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -374,6 +382,10 @@
       <ImportLibrary>$(OutDir)zlibwapi.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
+    <PreBuildEvent>
+      <Command>cd ..\..\contrib\masmx64
+bld_ml64.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Itanium'">
     <Midl>
@@ -553,6 +565,10 @@
       <ImportLibrary>$(OutDir)zlibwapi.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
+    <PreBuildEvent>
+      <Command>cd ..\..\masmx64
+bld_ml64.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Itanium'">
     <Midl>
