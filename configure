@@ -638,11 +638,7 @@ fi
 if test "$gcc" -eq 1; then
   echo >> configure.log
   cat > $test.c <<EOF
-#if ((__GNUC__-0) * 100 + __GNUC_MINOR__-0 >= 303)
-#  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
-#else
-#  define ZLIB_INTERNAL
-#endif
+#define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
 int ZLIB_INTERNAL foo;
 int main()
 {
@@ -650,10 +646,10 @@ int main()
 }
 EOF
   if tryboth $CC -c $CFLAGS $test.c; then
+    CFLAGS="$CFLAGS -DHAVE_HIDDEN"
+    SFLAGS="$SFLAGS -DHAVE_HIDDEN"
     echo "Checking for attribute(visibility) support... Yes." | tee -a configure.log
   else
-    CFLAGS="$CFLAGS -DNO_VIZ"
-    SFLAGS="$SFLAGS -DNO_VIZ"
     echo "Checking for attribute(visibility) support... No." | tee -a configure.log
   fi
 fi
