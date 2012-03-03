@@ -1217,7 +1217,10 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
 
      "a" can be used instead of "w" to request that the gzip stream that will
    be written be appended to the file.  "+" will result in an error, since
-   reading and writing to the same gzip file is not supported.
+   reading and writing to the same gzip file is not supported.  The addition of
+   "x" when writing will create the file exclusively, which fails if the file
+   already exists.  On systems that support it, the addition of "e" when
+   reading or writing will set the flag to close the file on an execve() call.
 
      These functions, as well as gzip, will read and decode a sequence of gzip
    streams in a file.  The append function of gzopen() can be used to create
