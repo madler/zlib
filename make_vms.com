@@ -14,13 +14,14 @@ $! 0.02 20061008 Adapt to new Makefile.in
 $! 0.03 20091224 Add support for large file check
 $! 0.04 20100110 Add new gzclose, gzlib, gzread, gzwrite
 $! 0.05 20100221 Exchange zlibdefs.h by zconf.h.in
-$! 0.06 20120111 Fix missing amiss_err, update zconf_h.in, fix new exmples 
+$! 0.06 20120111 Fix missing amiss_err, update zconf_h.in, fix new exmples
 $!               subdir path, update module search in makefile.in
 $! 0.07 20120115 Triggered by work done by Alexey Chupahin completly redesigned
 $!               shared image creation
+$! 0.08 20120219 Make it work on VAX again, pre-load missing symbols to shared
+$!               image
 $!
 $ on error then goto err_exit
-$ set proc/parse=ext
 $!
 $ true  = 1
 $ false = 0
@@ -54,6 +55,7 @@ $ vax      = f$getsyi("HW_MODEL").lt.1024
 $ axp      = f$getsyi("HW_MODEL").ge.1024 .and. f$getsyi("HW_MODEL").lt.4096
 $ ia64     = f$getsyi("HW_MODEL").ge.4096
 $!
+$ if axp .or. ia64 then  set proc/parse=extended
 $ whoami = f$parse(f$enviornment("Procedure"),,,,"NO_CONCEAL")
 $ mydef  = F$parse(whoami,,,"DEVICE")
 $ mydir  = f$parse(whoami,,,"DIRECTORY") - "]["
@@ -205,15 +207,12 @@ $   write sys$output "Make ''name' ''version' with ''Make' "
 $   'make'
 $  endif
 $!
-$! Alpha gets a shareable image
+$! Create shareable image
 $!
-$ If axp .or. ia64
-$ Then
-$   gosub crea_olist
-$   write sys$output "Creating libzshr.exe"
-$   call map_2_shopt 'mapfile' 'optfile'
-$   LINK_'lopts'/SHARE=libzshr.exe modules.opt/opt,'optfile'/opt
-$ endif
+$ gosub crea_olist
+$ write sys$output "Creating libzshr.exe"
+$ call map_2_shopt 'mapfile' 'optfile'
+$ LINK_'lopts'/SHARE=libzshr.exe modules.opt/opt,'optfile'/opt
 $ write sys$output "Zlib build completed"
 $ delete/nolog tmp.opt;*
 $ exit
@@ -419,10 +418,14 @@ OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzlib.obj\
 $ eod
 $ write out "CFLAGS=", ccopt
 $ write out "LOPTS=", lopts
+$ if f$search("x11vms:xvmsutils.olb") .nes. ""
+$ then
+$     write out "all : example.exe minigzip.exe libz.olb"
+$ else
+$     write out "all : example.exe libz.olb"
+$ endif
 $ copy sys$input: out
 $ deck
-
-all : example.exe minigzip.exe libz.olb
         @ write sys$output " Example applications available"
 
 libz.olb : libz.olb($(OBJS))
@@ -709,6 +712,7 @@ $! image from it
 $!
 $! Version history
 $! 0.01 20120128 First version
+$! 0.02 20120226 Add pre-load logic
 $!
 $ MAP_2_SHOPT: Subroutine
 $!
@@ -725,13 +729,35 @@ $    SAY "MAP_2_SHOPT:  Error, no output file provided"
 $    goto exit_m2s
 $ ENDIF
 $!
+$ module1 = "deflate#deflateEnd#deflateInit_#deflateParams#deflateSetDictionary"
+$ module2 = "gzclose#gzerror#gzgetc#gzgets#gzopen#gzprintf#gzputc#gzputs#gzread"
+$ module3 = "gzseek#gztell#inflate#inflateEnd#inflateInit_#inflateSetDictionary"
+$ module4 = "inflateSync#uncompress#zlibVersion#compress"
 $ open/read map 'p1
 $ if axp .or. ia64
-$ then 
+$ then
 $     open/write aopt a.opt
 $     open/write bopt b.opt
 $     write aopt " CASE_SENSITIVE=YES"
 $     write bopt "SYMBOL_VECTOR= (-"
+$     mod_sym_num = 1
+$ MOD_SYM_LOOP:
+$     if f$type(module'mod_sym_num') .nes. ""
+$     then
+$         mod_in = 0
+$ MOD_SYM_IN:
+$         shared_proc = f$element(mod_in, "#", module'mod_sym_num')
+$         if shared_proc .nes. "#"
+$         then
+$             write aopt f$fao(" symbol_vector=(!AS/!AS=PROCEDURE)",-
+        		       f$edit(shared_proc,"upcase"),shared_proc)
+$             write bopt f$fao("!AS=PROCEDURE,-",shared_proc)
+$             mod_in = mod_in + 1
+$             goto mod_sym_in
+$         endif
+$         mod_sym_num = mod_sym_num + 1
+$         goto mod_sym_loop
+$     endif
 $MAP_LOOP:
 $     read/end=map_end map line
 $     if (f$locate("{",line).lt. f$length(line)) .or. -
@@ -756,9 +782,9 @@ $     goto map_loop
 $MAP_END:
 $     close/nolog aopt
 $     close/nolog bopt
-$     open/append libopt 'p2' 
-$     open/read aopt a.opt 
-$     open/read bopt b.opt 
+$     open/append libopt 'p2'
+$     open/read aopt a.opt
+$     open/read bopt b.opt
 $ALOOP:
 $     read/end=aloop_end aopt line
 $     write libopt line
@@ -779,13 +805,31 @@ $     write libopt f$extract(0,f$length(sv)-2,sv), "-"
 $     write libopt ")"
 $     close/nolog bopt
 $     delete/nolog/noconf a.opt;*,b.opt;*
-$ else 
+$ else
 $     if vax
 $     then
+$     open/append libopt 'p2'
+$     mod_sym_num = 1
+$ VMOD_SYM_LOOP:
+$     if f$type(module'mod_sym_num') .nes. ""
+$     then
+$         mod_in = 0
+$ VMOD_SYM_IN:
+$         shared_proc = f$element(mod_in, "#", module'mod_sym_num')
+$         if shared_proc .nes. "#"
+$         then
+$     	      write libopt f$fao("UNIVERSAL=!AS",-
+      	  			     f$edit(shared_proc,"upcase"))
+$             mod_in = mod_in + 1
+$             goto vmod_sym_in
+$         endif
+$         mod_sym_num = mod_sym_num + 1
+$         goto vmod_sym_loop
+$     endif
 $VMAP_LOOP:
 $     	  read/end=vmap_end map line
 $     	  if (f$locate("{",line).lt. f$length(line)) .or. -
-$     	      (f$locate("global:", line) .lt. f$length(line))
+   	      (f$locate("global:", line) .lt. f$length(line))
 $     	  then
 $     	      proc = true
 $     	      goto vmap_loop
@@ -811,5 +855,4 @@ $ endif
 $ EXIT_M2S:
 $ close/nolog map
 $ close/nolog libopt
-$ endsubroutine 
-$!------------------------------------------------------------------------------
+$ endsubroutine
