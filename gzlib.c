@@ -196,10 +196,13 @@ local gzFile gz_open(path, fd, mode)
 #endif
             (state->mode == GZ_READ ?
                 O_RDONLY :
-                (O_WRONLY | O_CREAT | (exclusive ? O_EXCL : 0) | (
-                    state->mode == GZ_WRITE ?
-                        O_TRUNC :
-                        O_APPEND))),
+                (O_WRONLY | O_CREAT |
+#ifdef O_EXCL
+                 (exclusive ? O_EXCL : 0) |
+#endif
+                 (state->mode == GZ_WRITE ?
+                    O_TRUNC :
+                    O_APPEND))),
             0666);
     if (state->fd == -1) {
         free(state->path);
