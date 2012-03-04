@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2011 Jean-loup Gailly.
+ * Copyright (C) 1995-2012 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -67,7 +67,6 @@
 #    define gzdopen               z_gzdopen
 #    define gzeof                 z_gzeof
 #    define gzerror               z_gzerror
-#    define gzflags               z_gzflags
 #    define gzflush               z_gzflush
 #    define gzgetc                z_gzgetc
 #    define gzgetc_               z_gzgetc_
@@ -129,9 +128,9 @@
 #  define free_func             z_free_func
 #  ifndef Z_SOLO
 #    define gzFile                z_gzFile
-#    define gz_header             z_gz_header
-#    define gz_headerp            z_gz_headerp
 #  endif
+#  define gz_header             z_gz_header
+#  define gz_headerp            z_gz_headerp
 #  define in_func               z_in_func
 #  define intf                  z_intf
 #  define out_func              z_out_func
@@ -144,9 +143,7 @@
 #  define voidpf                z_voidpf
 
 /* all zlib structs in zlib.h and zconf.h */
-#  ifndef Z_SOLO
-#    define gz_header_s           z_gz_header_s
-#  endif
+#  define gz_header_s           z_gz_header_s
 #  define internal_state        z_internal_state
 
 #endif
@@ -418,6 +415,9 @@ typedef uLong FAR uLongf;
 #  define Z_LARGE
 #endif
 
+#if defined(__WATCOMC__) && !defined(Z_HAVE_UNISTD_H)
+#  define Z_HAVE_UNISTD_H
+#endif
 #if (defined(Z_HAVE_UNISTD_H) || defined(Z_LARGE)) && !defined(Z_SOLO)
 #  include <unistd.h>       /* for SEEK_* and off_t */
 #  ifdef VMS
@@ -441,11 +441,11 @@ typedef uLong FAR uLongf;
 #if !defined(_WIN32) && (defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0)
 #  define z_off64_t off64_t
 #else
-#  if defined(_WIN32)
+#  if defined(_WIN32) && !defined(__GNUC__) && !defined(Z_SOLO)
 #    define z_off64_t __int64
 #  else
-#  define z_off64_t z_off_t
-#endif
+#    define z_off64_t z_off_t
+#  endif
 #endif
 
 /* MVS linker does not support external names larger than 8 bytes */

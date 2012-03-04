@@ -1,6 +1,23 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.7 (xx Feb 2012)
+- 
+
+Changes in 1.2.6.1 (12 Feb 2012)
+- Avoid the use of the Objective-C reserved name "id"
+- Include io.h in gzguts.h for Microsoft compilers
+- Fix problem with ./configure --prefix and gzgetc macro
+- Include gz_header definition when compiling zlib solo
+- Put gzflags() functionality back in zutil.c
+- Avoid library header include in crc32.c for Z_SOLO
+- Use name in GCC_CLASSIC as C compiler for coverage testing, if set
+- Minor cleanup in contrib/minizip/zip.c [Vollant]
+- Update make_vms.com [Zinser]
+- Remove unnecessary gzgetc_ function
+- Use optimized byte swap operations for Microsoft and GNU [Snyder]
+- Fix minor typo in zlib.h comments [Rzesniowiecki]
+
 Changes in 1.2.6 (29 Jan 2012)
 - Update the Pascal interface in contrib/pascal
 - Fix function numbers for gzgetc_ in zlibvc.def files
