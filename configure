@@ -136,6 +136,18 @@ else
   }
 fi
 
+tryboth()
+{
+  show $*
+  got=`( $* ) 2>&1`
+  ret=$?
+  printf %s "$got" >> configure.log
+  if test $ret -ne 0; then
+    return $ret
+  fi
+  test "$got" = ""
+}
+
 echo >> configure.log
 
 cat > $test.c <<EOF
@@ -367,6 +379,21 @@ EOF
   fi
 fi
 
+echo >> configure.log
+
+cat > $test.c <<EOF
+#include <string.h>
+#include <errno.h>
+int main() { return strlen(strerror(errno)); }
+EOF
+if try $CC $CFLAGS -o $test $test.c; then
+  echo "Checking for strerror... Yes." | tee -a configure.log
+else
+  CFLAGS="${CFLAGS} -DNO_STRERROR"
+  SFLAGS="${SFLAGS} -DNO_STRERROR"
+  echo "Checking for strerror... No." | tee -a configure.log
+fi
+
 cp -p zconf.h.in zconf.h
 
 echo >> configure.log
@@ -416,6 +443,9 @@ fi
 
 if test $cover -eq 1; then
   CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
+  if test -n "$GCC_CLASSIC"; then
+    CC=$GCC_CLASSIC
+  fi
 fi
 
 echo >> configure.log
@@ -432,7 +462,6 @@ int main()
   return 0;
 }
 EOF
-
 if try $CC -c $CFLAGS $test.c; then
   echo "Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf()." | tee -a configure.log
 
@@ -609,22 +638,18 @@ fi
 if test "$gcc" -eq 1; then
   echo >> configure.log
   cat > $test.c <<EOF
-#if ((__GNUC__-0) * 10 + __GNUC_MINOR__-0 >= 33)
-#  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
-#else
-#  define ZLIB_INTERNAL
-#endif
+#define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
 int ZLIB_INTERNAL foo;
 int main()
 {
   return 0;
 }
 EOF
-  if try $CC -c $CFLAGS $test.c; then
+  if tryboth $CC -c $CFLAGS $test.c; then
+    CFLAGS="$CFLAGS -DHAVE_HIDDEN"
+    SFLAGS="$SFLAGS -DHAVE_HIDDEN"
     echo "Checking for attribute(visibility) support... Yes." | tee -a configure.log
   else
-    CFLAGS="$CFLAGS -DNO_VIZ"
-    SFLAGS="$SFLAGS -DNO_VIZ"
     echo "Checking for attribute(visibility) support... No." | tee -a configure.log
   fi
 fi

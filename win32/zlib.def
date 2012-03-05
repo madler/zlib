@@ -81,4 +81,3 @@ EXPORTS
     inflateResetKeep
     deflateResetKeep
     gzgetc_
-    gzflags

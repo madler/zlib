@@ -1,7 +1,7 @@
       *  ZLIB.INC - Interface to the general purpose compression library
       *
       *  ILE RPG400 version by Patrick Monnerat, DATASPHERE.
-      *  Version 1.2.6
+      *  Version 1.2.7
       *
       *
       *  WARNING:
@@ -22,12 +22,12 @@
       *
       *  Versioning information.
       *
-     D ZLIB_VERSION    C                   '1.2.6'
-     D ZLIB_VERNUM     C                   X'1260'
+     D ZLIB_VERSION    C                   '1.2.7'
+     D ZLIB_VERNUM     C                   X'1270'
      D ZLIB_VER_MAJOR  C                   1
      D ZLIB_VER_MINOR  C                   2
      D ZLIB_VER_REVISION...
-     D                 C                   6
+     D                 C                   7
      D ZLIB_VER_SUBREVISION...
      D                 C                   0
       *
@@ -441,7 +441,5 @@
      D deflateResetKeep...
      D                 PR            10I 0 extproc('deflateResetKeep')          End and init. stream
      D  strm                               like(z_stream)                       Expansion stream
-      *
-     D gzflags         PR            10U 0 extproc('gzflags')
       *
       /endif
