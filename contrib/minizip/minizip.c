@@ -71,10 +71,10 @@
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
-uLong filetime(f, tmzip, dt)
-    char *f;                /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
+uLong filetime(
+    const char *f,              /* name of file to get info on */
+    tm_zip *tmzip,        /* return value: access, modific. and creation times */
+    uLong *dt             /* dostime */  )
 {
   int ret = 0;
   {
@@ -95,10 +95,10 @@ uLong filetime(f, tmzip, dt)
 }
 #else
 #ifdef unix || __APPLE__
-uLong filetime(f, tmzip, dt)
-    char *f;               /* name of file to get info on */
-    tm_zip *tmzip;         /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
+uLong filetime(
+    const char *f,               /* name of file to get info on */
+    tm_zip *tmzip,         /* return value: access, modific. and creation times */
+    uLong *dt              /* dostime */  )
 {
   int ret=0;
   struct stat s;        /* results of stat() */
@@ -137,10 +137,10 @@ uLong filetime(f, tmzip, dt)
   return ret;
 }
 #else
-uLong filetime(f, tmzip, dt)
-    char *f;                /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
+uLong filetime(
+    const char *f,         /* name of file to get info on */
+    tm_zip *tmzip,         /* return value: access, modific. and creation times */
+    uLong *dt              /* dostime */  )
 {
     return 0;
 }
@@ -150,8 +150,8 @@ uLong filetime(f, tmzip, dt)
 
 
 
-int check_exist_file(filename)
-    const char* filename;
+int check_exist_file(
+    const char* filename)
 {
     FILE* ftestexist;
     int ret = 1;
@@ -163,13 +163,13 @@ int check_exist_file(filename)
     return ret;
 }
 
-void do_banner()
+void do_banner(void)
 {
     printf("MiniZip 1.1, demo of zLib + MiniZip64 package, written by Gilles Vollant\n");
     printf("more info on MiniZip at http://www.winimage.com/zLibDll/minizip.html\n\n");
 }
 
-void do_help()
+void do_help(void)
 {
     printf("Usage : minizip [-o] [-a] [-0 to -9] [-p password] [-j] file.zip [files_to_add]\n\n" \
            "  -o  Overwrite existing file.zip\n" \
@@ -182,7 +182,7 @@ void do_help()
 
 /* calculate the CRC32 of a file,
    because to encrypt a file, we need known the CRC32 of the file before */
-int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
+int getFileCrc(const char* filenameinzip, void*buf, unsigned long size_buf, unsigned long* result_crc)
 {
    unsigned long calculate_crc=0;
    int err=ZIP_OK;
@@ -243,9 +243,9 @@ int isLargeFile(const char* filename)
  return largeFile;
 }
 
-int main(argc,argv)
-    int argc;
-    char *argv[];
+int main(
+    int argc,
+    char *argv[])
 {
     int i;
     int opt_overwrite=0;

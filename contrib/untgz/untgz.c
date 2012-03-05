@@ -107,13 +107,13 @@ void TGZnotfound        OF((const char *));
 
 int getoct              OF((char *, int));
 char *strtime           OF((time_t *));
-int setfiletime         OF((char *, time_t));
+int setfiletime         OF((const char *, time_t));
 void push_attr          OF((struct attr_item **, char *, int, time_t));
 void restore_attr       OF((struct attr_item **));
 
 int ExprMatch           OF((char *, char *));
 
-int makedir             OF((char *));
+int makedir             OF((const char *));
 int matchname           OF((int, int, char **, char *));
 
 void error              OF((const char *));
@@ -203,7 +203,7 @@ char *strtime (time_t *t)
 
 /* set file time */
 
-int setfiletime (char *fname,time_t ftime)
+int setfiletime (const char *fname,time_t ftime)
 {
 #ifdef WIN32
   static int isWinNT = -1;
@@ -325,7 +325,7 @@ int ExprMatch (char *string,char *expr)
 /* return 1 if OK */
 /*        0 on error */
 
-int makedir (char *newdir)
+int makedir (const char *newdir)
 {
   char *buffer = strdup(newdir);
   char *p;
