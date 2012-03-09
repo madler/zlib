@@ -123,20 +123,20 @@ zlibrc.o: win32/zlib1.rc
 .PHONY: install uninstall clean
 
 install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
-	@if test -z "$(INCLUDE_PATH)" -o -z "$(LIBRARY_PATH)" -o -z "$(BINARY_PATH)"; then \
+	@if test -z "$(DESTDIR)$(INCLUDE_PATH)" -o -z "$(DESTDIR)$(LIBRARY_PATH)" -o -z "$(DESTDIR)$(BINARY_PATH)"; then \
 		echo INCLUDE_PATH, LIBRARY_PATH, and BINARY_PATH must be specified; \
 		exit 1; \
 	fi
-	-@mkdir -p $(INCLUDE_PATH)
-	-@mkdir -p $(LIBRARY_PATH) $(LIBRARY_PATH)/pkgconfig
+	-@mkdir -p '$(DESTDIR)$(INCLUDE_PATH)'
+	-@mkdir -p '$(DESTDIR)$(LIBRARY_PATH)' '$(DESTDIR)$(LIBRARY_PATH)'/pkgconfig
 	-if [ "$(SHARED_MODE)" = "1" ]; then \
-		mkdir -p $(BINARY_PATH); \
-		$(INSTALL) $(SHAREDLIB) $(BINARY_PATH); \
-		$(INSTALL) $(IMPLIB) $(LIBRARY_PATH); \
+		mkdir -p '$(DESTDIR)$(BINARY_PATH)'; \
+		$(INSTALL) $(SHAREDLIB) '$(DESTDIR)$(BINARY_PATH)'; \
+		$(INSTALL) $(IMPLIB) '$(DESTDIR)$(LIBRARY_PATH)'; \
 	fi
-	-$(INSTALL) zlib.h $(INCLUDE_PATH)
-	-$(INSTALL) zconf.h $(INCLUDE_PATH)
-	-$(INSTALL) $(STATICLIB) $(LIBRARY_PATH)
+	-$(INSTALL) zlib.h '$(DESTDIR)$(INCLUDE_PATH)'
+	-$(INSTALL) zconf.h '$(DESTDIR)$(INCLUDE_PATH)'
+	-$(INSTALL) $(STATICLIB) '$(DESTDIR)$(LIBRARY_PATH)'
 	sed \
 		-e 's|@prefix@|${prefix}|g' \
 		-e 's|@exec_prefix@|${exec_prefix}|g' \
@@ -144,16 +144,16 @@ install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
 		-e 's|@sharedlibdir@|$(LIBRARY_PATH)|g' \
 		-e 's|@includedir@|$(INCLUDE_PATH)|g' \
 		-e 's|@VERSION@|'`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`'|g' \
-		zlib.pc.in > $(LIBRARY_PATH)/pkgconfig/zlib.pc
+		zlib.pc.in > '$(DESTDIR)$(LIBRARY_PATH)'/pkgconfig/zlib.pc
 
 uninstall:
 	-if [ "$(SHARED_MODE)" = "1" ]; then \
-		$(RM) $(BINARY_PATH)/$(SHAREDLIB); \
-		$(RM) $(LIBRARY_PATH)/$(IMPLIB); \
+		$(RM) '$(DESTDIR)$(BINARY_PATH)'/$(SHAREDLIB); \
+		$(RM) '$(DESTDIR)$(LIBRARY_PATH)'/$(IMPLIB); \
 	fi
-	-$(RM) $(INCLUDE_PATH)/zlib.h
-	-$(RM) $(INCLUDE_PATH)/zconf.h
-	-$(RM) $(LIBRARY_PATH)/$(STATICLIB)
+	-$(RM) '$(DESTDIR)$(INCLUDE_PATH)'/zlib.h
+	-$(RM) '$(DESTDIR)$(INCLUDE_PATH)'/zconf.h
+	-$(RM) '$(DESTDIR)$(LIBRARY_PATH)'/$(STATICLIB)
 
 clean:
 	-$(RM) $(STATICLIB)
