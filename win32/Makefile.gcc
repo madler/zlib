@@ -1,23 +1,25 @@
 # Makefile for zlib, derived from Makefile.dj2.
 # Modified for mingw32 by C. Spieler, 6/16/98.
 # Updated for zlib 1.2.x by Christian Spieler and Cosmin Truta, Mar-2003.
-# Last updated: 1-Aug-2003.
+# Last updated: Mar 2012.
 # Tested under Cygwin and MinGW.
 
 # Copyright (C) 1995-2003 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h
 
-# To compile, or to compile and test, type:
+# To compile, or to compile and test, type from the top level zlib directory:
 #
-#   make -fmakefile.gcc;  make test testdll -fmakefile.gcc
+#   make -fwin32/Makefile.gcc;  make test testdll -fwin32/Makefile.gcc
 #
 # To use the asm code, type:
 #   cp contrib/asm?86/match.S ./match.S
-#   make LOC=-DASMV OBJA=match.o -fmakefile.gcc
+#   make LOC=-DASMV OBJA=match.o -fwin32/Makefile.gcc
 #
 # To install libz.a, zconf.h and zlib.h in the system directories, type:
 #
-#   make install -fmakefile.gcc
+#   make install -fwin32/Makefile.gcc
+#
+# BINARY_PATH, INCLUDE_PATH and LIBRARY_PATH must be set.
 
 # Note:
 # If the platform is *not* MinGW (e.g. it is Cygwin or UWIN),
@@ -116,9 +118,6 @@ minigzip.o: test/minigzip.c zlib.h zconf.h
 
 zlibrc.o: win32/zlib1.rc
 	$(RC) $(RCFLAGS) -o $@ win32/zlib1.rc
-
-
-# BINARY_PATH, INCLUDE_PATH and LIBRARY_PATH must be set.
 
 .PHONY: install uninstall clean
 
