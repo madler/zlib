@@ -7,6 +7,7 @@ set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation direc
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
+set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
 if(NOT DEFINED BUILD_SHARED_LIBS)
     option(BUILD_SHARED_LIBS "Build a shared library form of zlib" ON)
@@ -75,8 +76,10 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   endif()
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
-               ${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
+		${CMAKE_CURRENT_BINARY_DIR}/zlib.pc @ONLY)
+configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
+		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
@@ -179,6 +182,9 @@ if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
 endif()
 if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
     install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
+endif()
+if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
+    install(FILES zlib.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
 endif()
 
 #============================================================================
