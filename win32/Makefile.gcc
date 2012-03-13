@@ -40,7 +40,6 @@ SHARED_MODE=0
 PREFIX =
 CC = $(PREFIX)gcc
 CFLAGS = $(LOC) -O3 -Wall
-EXTRA_CFLAGS = -DNO_VIZ
 
 AS = $(CC)
 ASFLAGS = $(LOC) -Wall
@@ -79,7 +78,7 @@ testdll: example_d.exe minigzip_d.exe
 	echo hello world | ./minigzip_d | ./minigzip_d -d
 
 .c.o:
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .S.o:
 	$(AS) $(ASFLAGS) -c -o $@ $<
@@ -111,10 +110,10 @@ minigzip_d.exe: minigzip.o $(IMPLIB)
 	$(STRIP) $@
 
 example.o: test/example.c zlib.h zconf.h
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -I. -c -o $@ test/example.c
+	$(CC) $(CFLAGS) -I. -c -o $@ test/example.c
 
 minigzip.o: test/minigzip.c zlib.h zconf.h
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -I. -c -o $@ test/minigzip.c
+	$(CC) $(CFLAGS) -I. -c -o $@ test/minigzip.c
 
 zlibrc.o: win32/zlib1.rc
 	$(RC) $(RCFLAGS) -o $@ win32/zlib1.rc
