@@ -161,6 +161,7 @@ cflags=${CFLAGS-"-O3"}
 # to force the asm version use: CFLAGS="-O3 -DASMV" ./configure
 case "$cc" in
   *gcc*) gcc=1 ;;
+  *clang*) gcc=1 ;;
 esac
 case `$cc -v 2>&1` in
   *gcc*) gcc=1 ;;
