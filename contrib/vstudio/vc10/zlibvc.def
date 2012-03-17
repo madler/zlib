@@ -135,3 +135,6 @@ EXPORTS
         gzflags                                 @162
         inflateResetKeep                        @163
         deflateResetKeep                        @164
+
+; zlib1 v1.2.7 added:
+        gzopen_w                                @165

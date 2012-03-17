@@ -17,7 +17,7 @@
 
 /* Local functions */
 local void gz_reset OF((gz_statep));
-local gzFile gz_open OF((const char *, int, const char *));
+local gzFile gz_open OF((const void *, int, const char *));
 
 #if defined UNDER_CE
 
@@ -89,11 +89,12 @@ local void gz_reset(state)
 
 /* Open a gzip file either by name or file descriptor. */
 local gzFile gz_open(path, fd, mode)
-    const char *path;
+    const void *path;
     int fd;
     const char *mode;
 {
     gz_statep state;
+    int oflag;
 #ifdef O_CLOEXEC
     int cloexec = 0;
 #endif
@@ -191,28 +192,33 @@ local gzFile gz_open(path, fd, mode)
     }
     strcpy(state->path, path);
 
-    /* open the file with the appropriate mode (or just use fd) */
-    state->fd = fd != -1 ? fd :
-        open(path,
+    /* compute the flags for open() */
+    oflag =
 #ifdef O_LARGEFILE
-            O_LARGEFILE |
+        O_LARGEFILE |
 #endif
 #ifdef O_BINARY
-            O_BINARY |
+        O_BINARY |
 #endif
 #ifdef O_CLOEXEC
-            (cloexec ? O_CLOEXEC : 0) |
+        (cloexec ? O_CLOEXEC : 0) |
 #endif
-            (state->mode == GZ_READ ?
-                O_RDONLY :
-                (O_WRONLY | O_CREAT |
+        (state->mode == GZ_READ ?
+         O_RDONLY :
+         (O_WRONLY | O_CREAT |
 #ifdef O_EXCL
-                 (exclusive ? O_EXCL : 0) |
+          (exclusive ? O_EXCL : 0) |
 #endif
-                 (state->mode == GZ_WRITE ?
-                    O_TRUNC :
-                    O_APPEND))),
-            0666);
+          (state->mode == GZ_WRITE ?
+           O_TRUNC :
+           O_APPEND)));
+
+    /* open the file with the appropriate flags (or just use fd) */
+    state->fd = fd > -1 ? fd : (
+#ifdef _WIN32
+        fd == -2 ? _wopen(path, oflag, 0666) :
+#endif
+        open(path, oflag, 0666));
     if (state->fd == -1) {
         free(state->path);
         free(state);
@@ -265,6 +271,16 @@ gzFile ZEXPORT gzdopen(fd, mode)
     free(path);
     return gz;
 }
+
+/* -- see zlib.h -- */
+#ifdef _WIN32
+gzFile ZEXPORT gzopen_w(path, mode)
+    const w_char *path;
+    const char *mode;
+{
+    return gz_open(path, -2, mode);
+}
+#endif
 
 /* -- see zlib.h -- */
 int ZEXPORT gzbuffer(file, size)

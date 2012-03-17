@@ -73,6 +73,9 @@
 #    define gzoffset64            z_gzoffset64
 #    define gzopen                z_gzopen
 #    define gzopen64              z_gzopen64
+#    ifdef _WIN32
+#      define gzopen_w              z_gzopen_w
+#    endif
 #    define gzprintf              z_gzprintf
 #    define gzputc                z_gzputc
 #    define gzputs                z_gzputs
