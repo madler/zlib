@@ -275,7 +275,7 @@ gzFile ZEXPORT gzdopen(fd, mode)
 /* -- see zlib.h -- */
 #ifdef _WIN32
 gzFile ZEXPORT gzopen_w(path, mode)
-    const w_char *path;
+    const wchar_t *path;
     const char *mode;
 {
     return gz_open(path, -2, mode);

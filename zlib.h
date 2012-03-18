@@ -1733,7 +1733,7 @@ ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
 ZEXTERN int            ZEXPORT inflateResetKeep OF((z_streamp));
 ZEXTERN int            ZEXPORT deflateResetKeep OF((z_streamp));
 #if defined(_WIN32) && !defined(Z_SOLO)
-ZEXTERN gzFile         ZEXPORT gzopen_w OF((const w_char *path,
+ZEXTERN gzFile         ZEXPORT gzopen_w OF((const wchar_t *path,
                                             const char *mode));
 #endif
 
