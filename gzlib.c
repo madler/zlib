@@ -186,7 +186,7 @@ local gzFile gz_open(path, fd, mode)
 
     /* save the path name for error messages */
 #   define WPATH "<widepath>"
-    state->path = malloc(strlen(fd == -2 ? WPATH : (path) + 1);
+    state->path = malloc(strlen(fd == -2 ? WPATH : path) + 1);
     if (state->path == NULL) {
         free(state);
         return NULL;
