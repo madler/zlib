@@ -185,12 +185,13 @@ local gzFile gz_open(path, fd, mode)
     }
 
     /* save the path name for error messages */
-    state->path = malloc(strlen(path) + 1);
+#   define WPATH "<widepath>"
+    state->path = malloc(strlen(fd == -2 ? WPATH : (path) + 1);
     if (state->path == NULL) {
         free(state);
         return NULL;
     }
-    strcpy(state->path, path);
+    strcpy(state->path, fd == -2 ? WPATH : path);
 
     /* compute the flags for open() */
     oflag =
