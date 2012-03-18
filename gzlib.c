@@ -94,6 +94,7 @@ local gzFile gz_open(path, fd, mode)
     const char *mode;
 {
     gz_statep state;
+    size_t len;
     int oflag;
 #ifdef O_CLOEXEC
     int cloexec = 0;
@@ -185,13 +186,29 @@ local gzFile gz_open(path, fd, mode)
     }
 
     /* save the path name for error messages */
-#   define WPATH "<widepath>"
-    state->path = malloc(strlen(fd == -2 ? WPATH : path) + 1);
+#ifdef _WIN32
+    if (fd == -2) {
+        len = wcstombs(NULL, path, 0);
+        if (len == (size_t)-1)
+            len = 0;
+    }
+    else
+#endif
+        len = strlen(path);
+    state->path = malloc(len + 1);
     if (state->path == NULL) {
         free(state);
         return NULL;
     }
-    strcpy(state->path, fd == -2 ? WPATH : path);
+#ifdef _WIN32
+    if (fd == -2)
+        if (len)
+            wcstombs(state->path, path, len + 1);
+        else
+            *(state->path) = 0;
+    else
+#endif
+        strcpy(state->path, path);
 
     /* compute the flags for open() */
     oflag =
