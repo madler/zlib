@@ -74,10 +74,11 @@ EXPORTS
     inflateInit_
     inflateInit2_
     inflateBackInit_
+    gzgetc_
     zError
     inflateSyncPoint
     get_crc_table
     inflateUndermine
     inflateResetKeep
     deflateResetKeep
-    gzgetc_
+    gzopen_w

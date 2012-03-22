@@ -20,6 +20,8 @@ $! 0.07 20120115 Triggered by work done by Alexey Chupahin completly redesigned
 $!               shared image creation
 $! 0.08 20120219 Make it work on VAX again, pre-load missing symbols to shared
 $!               image
+$! 0.09 20120305 SMS.  P1 sets builder ("MMK", "MMS", " " (built-in)).
+$!               "" -> automatic, preference: MMK, MMS, built-in.
 $!
 $ on error then goto err_exit
 $!
@@ -37,12 +39,12 @@ $ s_case   = False
 $!
 $! Setup variables holding "config" information
 $!
-$ Make    = ""
+$ Make    = "''p1'"
 $ name     = "Zlib"
 $ version  = "?.?.?"
 $ v_string = "ZLIB_VERSION"
 $ v_file   = "zlib.h"
-$ ccopt   = ""
+$ ccopt   = "/include = []"
 $ lopts   = ""
 $ dnsrl   = ""
 $ aconf_in_file = "zconf.h.in#zconf.h_in#zconf_h.in"
@@ -55,17 +57,25 @@ $ vax      = f$getsyi("HW_MODEL").lt.1024
 $ axp      = f$getsyi("HW_MODEL").ge.1024 .and. f$getsyi("HW_MODEL").lt.4096
 $ ia64     = f$getsyi("HW_MODEL").ge.4096
 $!
-$ if axp .or. ia64 then  set proc/parse=extended
-$ whoami = f$parse(f$enviornment("Procedure"),,,,"NO_CONCEAL")
+$! 2012-03-05 SMS.
+$! Why is this needed?  And if it is needed, why not simply ".not. vax"?
+$!
+$!!! if axp .or. ia64 then  set proc/parse=extended
+$!
+$ whoami = f$parse(f$environment("Procedure"),,,,"NO_CONCEAL")
 $ mydef  = F$parse(whoami,,,"DEVICE")
 $ mydir  = f$parse(whoami,,,"DIRECTORY") - "]["
 $ myproc = f$parse(whoami,,,"Name") + f$parse(whoami,,,"type")
 $!
 $! Check for MMK/MMS
 $!
-$ If F$Search ("Sys$System:MMS.EXE") .nes. "" Then Make = "MMS"
-$ If F$Type (MMK) .eqs. "STRING" Then Make = "MMK"
-$!
+$ if (Make .eqs. "")
+$ then
+$   If F$Search ("Sys$System:MMS.EXE") .nes. "" Then Make = "MMS"
+$   If F$Type (MMK) .eqs. "STRING" Then Make = "MMK"
+$ else
+$   Make = f$edit( Make, "trim")
+$ endif
 $!
 $ gosub find_version
 $!
@@ -93,6 +103,10 @@ $       ccopt = "/decc" + ccopt
 $       define sys decc$library_include:
 $     endif
 $   endif
+$!
+$! 2012-03-05 SMS.
+$! Why /NAMES = AS_IS?  Why not simply ".not. vax"?  And why not on VAX?
+$!
 $   if axp .or. ia64
 $   then
 $       ccopt = ccopt + "/name=as_is/opt=(inline=speed)"
@@ -137,15 +151,20 @@ $   gosub check_config
 $ endif
 $ goto aconf_loop
 $ACONF_EXIT:
+$ write aconf ""
+$ write aconf "/* VMS specifics added by make_vms.com: */"
 $ write aconf "#define VMS 1"
 $ write aconf "#include <unistd.h>"
 $ write aconf "#include <unixio.h>"
 $ write aconf "#ifdef _LARGEFILE"
-$ write aconf "#define off64_t __off64_t"
-$ write aconf "#define fopen64 fopen"
-$ write aconf "#define fseeko64 fseeko"
-$ write aconf "#define lseek64 lseek"
-$ write aconf "#define ftello64 ftell"
+$ write aconf "# define off64_t __off64_t"
+$ write aconf "# define fopen64 fopen"
+$ write aconf "# define fseeko64 fseeko"
+$ write aconf "# define lseek64 lseek"
+$ write aconf "# define ftello64 ftell"
+$ write aconf "#endif"
+$ write aconf "#if !defined( __VAX) && (__CRTL_VER >= 70312000)"
+$ write aconf "# define HAVE_VSNPRINTF"
 $ write aconf "#endif"
 $ close aconf_in
 $ close aconf
@@ -154,8 +173,9 @@ $! Build the thing plain or with mms
 $!
 $ write sys$output "Compiling Zlib sources ..."
 $ if make.eqs.""
-$  then
-$   dele example.obj;*,minigzip.obj;*
+$ then
+$   if (f$search( "example.obj;*") .nes. "") then delete example.obj;*
+$   if (f$search( "minigzip.obj;*") .nes. "") then delete minigzip.obj;*
 $   CALL MAKE adler32.OBJ "CC ''CCOPT' adler32" -
                 adler32.c zlib.h zconf.h
 $   CALL MAKE compress.OBJ "CC ''CCOPT' compress" -
@@ -189,23 +209,20 @@ $   CALL MAKE zutil.OBJ "CC ''CCOPT' zutil" -
 $   write sys$output "Building Zlib ..."
 $   CALL MAKE libz.OLB "lib/crea libz.olb *.obj" *.OBJ
 $   write sys$output "Building example..."
-$   CALL MAKE example.OBJ "CC ''CCOPT'/include=[] [.test]example" -
+$   CALL MAKE example.OBJ "CC ''CCOPT' [.test]example" -
                 [.test]example.c zlib.h zconf.h
 $   call make example.exe "LINK example,libz.olb/lib" example.obj libz.olb
-$   if f$search("x11vms:xvmsutils.olb") .nes. ""
-$   then
-$     write sys$output "Building minigzip..."
-$     CALL MAKE minigzip.OBJ "CC ''CCOPT'/include=[] [.test]minigzip" -
-                [.test]minigzip.c zlib.h zconf.h
-$     call make minigzip.exe -
-                "LINK minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib" -
-                minigzip.obj libz.olb
-$   endif
-$  else
+$   write sys$output "Building minigzip..."
+$   CALL MAKE minigzip.OBJ "CC ''CCOPT' [.test]minigzip" -
+              [.test]minigzip.c zlib.h zconf.h
+$   call make minigzip.exe -
+              "LINK minigzip,libz.olb/lib" -
+              minigzip.obj libz.olb
+$ else
 $   gosub crea_mms
 $   write sys$output "Make ''name' ''version' with ''Make' "
 $   'make'
-$  endif
+$ endif
 $!
 $! Create shareable image
 $!
@@ -227,7 +244,6 @@ $ERR_EXIT:
 $ set message/facil/ident/sever/text
 $ close/nolog optf
 $ close/nolog topt
-$ close/nolog conf_hin
 $ close/nolog aconf_in
 $ close/nolog aconf
 $ close/nolog out
@@ -418,12 +434,7 @@ OBJS = adler32.obj, compress.obj, crc32.obj, gzclose.obj, gzlib.obj\
 $ eod
 $ write out "CFLAGS=", ccopt
 $ write out "LOPTS=", lopts
-$ if f$search("x11vms:xvmsutils.olb") .nes. ""
-$ then
-$     write out "all : example.exe minigzip.exe libz.olb"
-$ else
-$     write out "all : example.exe libz.olb"
-$ endif
+$ write out "all : example.exe minigzip.exe libz.olb"
 $ copy sys$input: out
 $ deck
         @ write sys$output " Example applications available"
@@ -435,7 +446,7 @@ example.exe : example.obj libz.olb
               link $(LOPTS) example,libz.olb/lib
 
 minigzip.exe : minigzip.obj libz.olb
-              link $(LOPTS) minigzip,libz.olb/lib,x11vms:xvmsutils.olb/lib
+              link $(LOPTS) minigzip,libz.olb/lib
 
 clean :
 	delete *.obj;*,libz.olb;*,*.opt;*,*.exe;*
@@ -447,7 +458,6 @@ compress.obj : compress.c zlib.h zconf.h
 crc32.obj    : crc32.c zutil.h zlib.h zconf.h
 deflate.obj  : deflate.c deflate.h zutil.h zlib.h zconf.h
 example.obj  : [.test]example.c zlib.h zconf.h
-              cc $(CFLAGS)/include=[] [.test]example.c
 gzclose.obj  : gzclose.c zutil.h zlib.h zconf.h
 gzlib.obj    : gzlib.c zutil.h zlib.h zconf.h
 gzread.obj   : gzread.c zutil.h zlib.h zconf.h
@@ -456,7 +466,6 @@ inffast.obj  : inffast.c zutil.h zlib.h zconf.h inftrees.h inffast.h
 inflate.obj  : inflate.c zutil.h zlib.h zconf.h
 inftrees.obj : inftrees.c zutil.h zlib.h zconf.h inftrees.h
 minigzip.obj : [.test]minigzip.c zlib.h zconf.h
-              cc $(CFLAGS)/include=[] [.test]minigzip.c
 trees.obj    : trees.c deflate.h zutil.h zlib.h zconf.h
 uncompr.obj  : uncompr.c zlib.h zconf.h
 zutil.obj    : zutil.c zutil.h zlib.h zconf.h

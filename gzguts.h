@@ -27,7 +27,11 @@
 #endif
 #include <fcntl.h>
 
-#if defined(__TURBOC__) || defined(_MSC_VER)
+#ifdef _WIN32
+#  include <stddef.h>
+#endif
+
+#if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
 #endif
 
