@@ -16,6 +16,16 @@ else
 	AC_MSG_RESULT([no])
 fi
 
+case "${host}" in
+	*-mingw* | mingw*)
+		WIN32="yes"
+		;;
+	*)
+		;;
+esac
+AM_CONDITIONAL([WIN32], [test "${WIN32}" = "yes"])
+
+
 AC_SUBST([HAVE_UNISTD_H], [0])
 AC_CHECK_HEADER([unistd.h], [HAVE_UNISTD_H=1], [])
 AC_CONFIG_FILES([Makefile minizip.pc])
