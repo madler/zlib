@@ -276,15 +276,28 @@ else
              CFLAGS=${CFLAGS-"-O3"}
              LDSHARED=${LDSHARED-"cc -dy -KPIC -G"} ;;
   SunOS\ 5* | solaris*)
-         LDSHARED=${LDSHARED-"cc -G"}
-         case `(uname -m || echo unknown) 2>/dev/null` in
-         i86*)
-             SFLAGS=${CFLAGS-"-xpentium -fast -KPIC -R."}
-             CFLAGS=${CFLAGS-"-xpentium -fast"} ;;
-         *)
-             SFLAGS=${CFLAGS-"-fast -xcg92 -KPIC -R."}
-             CFLAGS=${CFLAGS-"-fast -xcg92"} ;;
-         esac ;;
+         LDSHARED=${LDSHARED-"cc -G -h libz$shared_ext.$VER1"}
+         SFLAGS=${CFLAGS-"-fast -KPIC -R."}
+         CFLAGS=${CFLAGS-"-fast"}
+         if test $build64 -eq 1; then
+             # old versions of SunPRO/Workshop/Studio don't support -m64,
+             # but newer ones do.  Check for it.
+             flag64=`$CC -flags | egrep -- '^-m64'`
+             if test x"$flag64" != x"" ; then
+                 CFLAGS="${CFLAGS} -m64"
+                 SFLAGS="${SFLAGS} -m64"
+             else
+                 case `(uname -m || echo unknown) 2>/dev/null` in
+                   i86*)
+                     SFLAGS="$SFLAGS -xarch=amd64"
+                     CFLAGS="$CFLAGS -xarch=amd64" ;;
+                   *)
+                     SFLAGS="$SFLAGS -xarch=v9"
+                     CFLAGS="$CFLAGS -xarch=v9" ;;
+                 esac
+             fi
+         fi
+         ;;
   SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
              CFLAGS=${CFLAGS-"-O2"}
              LDSHARED=${LDSHARED-"ld"} ;;
