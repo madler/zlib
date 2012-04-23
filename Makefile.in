@@ -83,32 +83,35 @@ check: test
 test: all teststatic testshared
 
 teststatic: static
-	@if echo hello world | ./minigzip | ./minigzip -d && ./example; then \
+	@TMPST=`mktemp fooXXXXXX`; \
+	if echo hello world | ./minigzip | ./minigzip -d && ./example $$TMPST ; then \
 	  echo '		*** zlib test OK ***'; \
 	else \
 	  echo '		*** zlib test FAILED ***'; false; \
-	fi
-	-@rm -f foo.gz
+	fi; \
+	rm -f $$TMPST
 
 testshared: shared
 	@LD_LIBRARY_PATH=`pwd`:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
 	LD_LIBRARYN32_PATH=`pwd`:$(LD_LIBRARYN32_PATH) ; export LD_LIBRARYN32_PATH; \
 	DYLD_LIBRARY_PATH=`pwd`:$(DYLD_LIBRARY_PATH) ; export DYLD_LIBRARY_PATH; \
 	SHLIB_PATH=`pwd`:$(SHLIB_PATH) ; export SHLIB_PATH; \
-	if echo hello world | ./minigzipsh | ./minigzipsh -d && ./examplesh; then \
+	TMPSH=`mktemp fooXXXXXX`; \
+	if echo hello world | ./minigzipsh | ./minigzipsh -d && ./examplesh $$TMPSH; then \
 	  echo '		*** zlib shared test OK ***'; \
 	else \
 	  echo '		*** zlib shared test FAILED ***'; false; \
-	fi
-	-@rm -f foo.gz
+	fi; \
+	rm -f $$TMPSH
 
 test64: all64
-	@if echo hello world | ./minigzip64 | ./minigzip64 -d && ./example64; then \
+	@TMP64=`mktemp fooXXXXXX`; \
+	if echo hello world | ./minigzip64 | ./minigzip64 -d && ./example64 $$TMP64; then \
 	  echo '		*** zlib 64-bit test OK ***'; \
 	else \
 	  echo '		*** zlib 64-bit test FAILED ***'; false; \
-	fi
-	-@rm -f foo.gz
+	fi; \
+	rm -f $$TMP64
 
 infcover.o: test/infcover.c zlib.h zconf.h
 	$(CC) $(CFLAGS) -I. -c -o $@ test/infcover.c
