@@ -277,7 +277,7 @@ else
              LDSHARED=${LDSHARED-"cc -dy -KPIC -G"} ;;
   SunOS\ 5* | solaris*)
          LDSHARED=${LDSHARED-"cc -G -h libz$shared_ext.$VER1"}
-         SFLAGS=${CFLAGS-"-fast -KPIC -R."}
+         SFLAGS=${CFLAGS-"-fast -KPIC"}
          CFLAGS=${CFLAGS-"-fast"}
          if test $build64 -eq 1; then
              # old versions of SunPRO/Workshop/Studio don't support -m64,
