@@ -128,7 +128,7 @@ endif()
 
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
-string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([0-9A-Za-z.]+)\".*"
+string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([0-9A-Za-z.-]+)\".*"
     "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
 
 if(MINGW)
@@ -166,7 +166,7 @@ endif()
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
-   set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,zlib.map")
+   set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,${CMAKE_CURRENT_SOURCE_DIR}/zlib.map")
 elseif(BUILD_SHARED_LIBS AND WIN32)
     # Creates zlib1.dll when building shared library version
     set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
