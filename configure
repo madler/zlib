@@ -716,7 +716,7 @@ int main() {
 }
 EOF
 Z_U4=""
-if try $CC $CFLAGS $test.c -o $test && Z_U4=`$test` && test -n "$Z_U4"; then
+if try $CC $CFLAGS $test.c -o $test && Z_U4=`./$test` && test -n "$Z_U4"; then
   sed < zconf.h "/#define Z_U4/s/\/\* \.\/configure may/#define Z_U4 $Z_U4   \/* .\/configure put the/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Looking for a four-byte integer type... Found." | tee -a configure.log
