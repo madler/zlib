@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.7.1 (xx May 2012)
+- 
+
 Changes in 1.2.7 (2 May 2012)
 - Replace use of memmove() with a simple copy for portability
 - Test for existence of strerror
