@@ -20,6 +20,10 @@
 #   make install -fwin32/Makefile.gcc
 #
 # BINARY_PATH, INCLUDE_PATH and LIBRARY_PATH must be set.
+#
+# To install the shared lib, append SHARED_MODE=1 to the make command :
+#
+#   make install -fwin32/Makefile.gcc SHARED_MODE=1
 
 # Note:
 # If the platform is *not* MinGW (e.g. it is Cygwin or UWIN),
