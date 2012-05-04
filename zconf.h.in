@@ -426,7 +426,9 @@ typedef uLong FAR uLongf;
 #endif
 
 #ifdef _WIN32
-#  include <stddef.h>           /* for wchar_t */
+#  ifndef Z_SOLO
+#    include <stddef.h>         /* for wchar_t */
+#  endif
 #endif
 
 /* a little trick to accommodate both "#define _LARGEFILE64_SOURCE" and
