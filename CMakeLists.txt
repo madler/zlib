@@ -172,6 +172,13 @@ elseif(BUILD_SHARED_LIBS AND WIN32)
     set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 endif()
 
+# Explicitly set machine type for VS2010 x64 to fix a linker error when trying
+# to build static libraries using .rc files.
+# For details see: http://public.kitware.com/Bug/view.php?id=11240
+if(MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set_target_properties(zlibstatic PROPERTIES STATIC_LIBRARY_FLAGS "/machine:x64")
+endif()
+
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlib zlibstatic
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
