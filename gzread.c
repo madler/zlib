@@ -378,7 +378,11 @@ int ZEXPORT gzread(file, buf, len)
 }
 
 /* -- see zlib.h -- */
-#undef gzgetc
+#ifdef Z_PREFIX_SET
+#  undef z_gzgetc
+#else
+#  undef gzgetc
+#endif
 int ZEXPORT gzgetc(file)
     gzFile file;
 {
