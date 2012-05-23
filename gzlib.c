@@ -162,8 +162,10 @@ local gzFile gz_open(path, fd, mode)
                 break;
             case 'F':
                 state->strategy = Z_FIXED;
+                break;
             case 'T':
                 state->direct = 1;
+                break;
             default:        /* could consider as an error, but just ignore */
                 ;
             }
