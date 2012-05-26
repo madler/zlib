@@ -17,6 +17,7 @@ EXPORTS
     deflatePrime
     deflateSetHeader
     inflateSetDictionary
+    inflateGetDictionary
     inflateSync
     inflateCopy
     inflateReset

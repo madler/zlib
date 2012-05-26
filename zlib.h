@@ -839,6 +839,21 @@ ZEXTERN int ZEXPORT inflateSetDictionary OF((z_streamp strm,
    inflate().
 */
 
+ZEXTERN int ZEXPORT inflateGetDictionary OF((z_streamp strm,
+                                             Bytef *dictionary,
+                                             uInt  *dictLength));
+/*
+     Returns the sliding dictionary being maintained by inflate.  dictLength is
+   set to the number of bytes in the dictionary, and that many bytes are copied
+   to dictionary.  dictionary must have enough space, where 32768 bytes is
+   always enough.  If inflateGetDictionary() is called with dictionary equal to
+   Z_NULL, then only the dictionary length is returned, and nothing is copied.
+   Similary, if dictLength is Z_NULL, then it is not set.
+
+     inflateSetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
+   stream state is inconsistent.
+*/
+
 ZEXTERN int ZEXPORT inflateSync OF((z_streamp strm));
 /*
      Skips invalid compressed data until a possible full flush point (see above

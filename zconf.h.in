@@ -103,6 +103,7 @@
 #  define inflateReset          z_inflateReset
 #  define inflateReset2         z_inflateReset2
 #  define inflateSetDictionary  z_inflateSetDictionary
+#  define inflateGetDictionary  z_inflateGetDictionary
 #  define inflateSync           z_inflateSync
 #  define inflateSyncPoint      z_inflateSyncPoint
 #  define inflateUndermine      z_inflateUndermine
