@@ -88,6 +88,14 @@
 #  endif
 #endif
 
+/* unlike snprintf (which is required in C99, yet still not supported by
+   Microsoft more than a decade later!), _snprintf does not guarantee null
+   termination of the result -- however this is only used in gzlib.c where
+   the result is assured to fit in the space provided */
+#ifdef _MSC_VER
+#  define snprintf _snprintf
+#endif
+
 #ifndef local
 #  define local static
 #endif
