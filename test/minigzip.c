@@ -40,6 +40,10 @@
 #  define SET_BINARY_MODE(file)
 #endif
 
+#ifdef _MSC_VER
+#  define snprintf _snprintf
+#endif
+
 #ifdef VMS
 #  define unlink delete
 #  define GZ_SUFFIX "-gz"
