@@ -729,7 +729,7 @@ else
 fi
 
 # clean up files produced by running the compiler and linker
-rm -f $test.[co] $test $test$shared_ext $test.gcno
+rm -f $test.[co] $test $test$shared_ext $test.gcno ./--version
 
 # show the results in the log
 echo >> configure.log
