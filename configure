@@ -231,7 +231,7 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) >> configure.log 2>&1; then
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
              LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
-             if test "`libtool -V 2>&1 | grep -c Apple`" != "0"; then
+             if libtool -V 2>&1 | grep Apple > /dev/null; then
                  AR="libtool"
              else
                  AR="/usr/bin/libtool"
