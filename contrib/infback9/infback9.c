@@ -229,7 +229,6 @@ void FAR *out_desc;
     inflate_mode mode;          /* current inflate mode */
     int lastblock;              /* true if processing last block */
     int wrap;                   /* true if the window has wrapped */
-    unsigned long write;        /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if needed */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
@@ -259,7 +258,6 @@ void FAR *out_desc;
     strm->msg = Z_NULL;
     mode = TYPE;
     lastblock = 0;
-    write = 0;
     wrap = 0;
     window = state->window;
     next = strm->next_in;
