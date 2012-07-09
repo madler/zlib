@@ -1,8 +1,8 @@
 /*
  * gzlog.c
- * Copyright (C) 2004, 2008 Mark Adler, all rights reserved
+ * Copyright (C) 2004, 2008, 2012 Mark Adler, all rights reserved
  * For conditions of distribution and use, see copyright notice in gzlog.h
- * version 2.0, 25 Apr 2008
+ * version 2.1, 8 Jul 2012
  */
 
 /*
@@ -913,7 +913,7 @@ int gzlog_compress(gzlog *logd)
     struct log *log = logd;
 
     /* check arguments */
-    if (log == NULL || strcmp(log->id, LOGID) || len < 0)
+    if (log == NULL || strcmp(log->id, LOGID))
         return -3;
 
     /* see if we lost the lock -- if so get it again and reload the extra
@@ -997,9 +997,9 @@ int gzlog_write(gzlog *logd, void *data, size_t len)
     struct log *log = logd;
 
     /* check arguments */
-    if (log == NULL || strcmp(log->id, LOGID) || len < 0)
+    if (log == NULL || strcmp(log->id, LOGID))
         return -3;
-    if (data == NULL || len == 0)
+    if (data == NULL || len <= 0)
         return 0;
 
     /* see if we lost the lock -- if so get it again and reload the extra
