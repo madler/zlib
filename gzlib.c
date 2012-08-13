@@ -541,7 +541,8 @@ const char * ZEXPORT gzerror(file, errnum)
     /* return error information */
     if (errnum != NULL)
         *errnum = state->err;
-    return state->msg == NULL ? "" : state->msg;
+    return state->err == Z_MEM_ERROR ? "out of memory" :
+                                       (state->msg == NULL ? "" : state->msg);
 }
 
 /* -- see zlib.h -- */
@@ -592,16 +593,13 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
     if (msg == NULL)
         return;
 
-    /* for an out of memory error, save as static string */
-    if (err == Z_MEM_ERROR) {
-        state->msg = (char *)msg;
+    /* for an out of memory error, return literal string when requested */
+    if (err == Z_MEM_ERROR)
         return;
-    }
 
     /* construct error message with path */
     if ((state->msg = malloc(strlen(state->path) + strlen(msg) + 3)) == NULL) {
         state->err = Z_MEM_ERROR;
-        state->msg = (char *)"out of memory";
         return;
     }
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)

@@ -168,7 +168,6 @@ int ZEXPORT gzwrite(file, buf, len)
     unsigned len;
 {
     unsigned put = len;
-    unsigned n;
     gz_statep state;
     z_streamp strm;
 
@@ -208,16 +207,19 @@ int ZEXPORT gzwrite(file, buf, len)
     if (len < state->size) {
         /* copy to input buffer, compress when full */
         do {
+            unsigned have, copy;
+
             if (strm->avail_in == 0)
                 strm->next_in = state->in;
-            n = state->size - strm->avail_in;
-            if (n > len)
-                n = len;
-            memcpy(strm->next_in + strm->avail_in, buf, n);
-            strm->avail_in += n;
-            state->x.pos += n;
-            buf = (char *)buf + n;
-            len -= n;
+            have = strm->next_in + strm->avail_in - state->in;
+            copy = state->size - have;
+            if (copy > len)
+                copy = len;
+            memcpy(state->in + have, buf, copy);
+            strm->avail_in += copy;
+            state->x.pos += copy;
+            buf = (const char *)buf + copy;
+            len -= copy;
             if (len && gz_comp(state, Z_NO_FLUSH) == -1)
                 return 0;
         } while (len);
@@ -229,7 +231,7 @@ int ZEXPORT gzwrite(file, buf, len)
 
         /* directly compress user buffer to file */
         strm->avail_in = len;
-        strm->next_in = (voidp)buf;
+        strm->next_in = (z_const Bytef *)buf;
         state->x.pos += len;
         if (gz_comp(state, Z_NO_FLUSH) == -1)
             return 0;
@@ -244,6 +246,7 @@ int ZEXPORT gzputc(file, c)
     gzFile file;
     int c;
 {
+    unsigned have;
     unsigned char buf[1];
     gz_statep state;
     z_streamp strm;
@@ -267,10 +270,12 @@ int ZEXPORT gzputc(file, c)
 
     /* try writing to input buffer for speed (state->size == 0 if buffer not
        initialized) */
-    if (strm->avail_in < state->size) {
-        if (strm->avail_in == 0)
-            strm->next_in = state->in;
-        strm->next_in[strm->avail_in++] = c;
+    if (strm->avail_in == 0)
+        strm->next_in = state->in;
+    have = strm->next_in + strm->avail_in - state->in;
+    if (have < state->size) {
+        state->in[have] = c;
+        strm->avail_in++;
         state->x.pos++;
         return c & 0xff;
     }
