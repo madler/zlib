@@ -270,14 +270,16 @@ int ZEXPORT gzputc(file, c)
 
     /* try writing to input buffer for speed (state->size == 0 if buffer not
        initialized) */
-    if (strm->avail_in == 0)
-        strm->next_in = state->in;
-    have = strm->next_in + strm->avail_in - state->in;
-    if (have < state->size) {
-        state->in[have] = c;
-        strm->avail_in++;
-        state->x.pos++;
-        return c & 0xff;
+    if (state->size) {
+        if (strm->avail_in == 0)
+            strm->next_in = state->in;
+        have = strm->next_in + strm->avail_in - state->in;
+        if (have < state->size) {
+            state->in[have] = c;
+            strm->avail_in++;
+            state->x.pos++;
+            return c & 0xff;
+        }
     }
 
     /* no room in buffer or not initialized, use gz_write() */
