@@ -31,6 +31,7 @@ local int gz_init(state)
         state->out = malloc(state->want);
         if (state->out == NULL) {
             free(state->in);
+            state->in = NULL;
             gz_error(state, Z_MEM_ERROR, "out of memory");
             return -1;
         }
@@ -44,6 +45,8 @@ local int gz_init(state)
         if (ret != Z_OK) {
             free(state->out);
             free(state->in);
+            state->out = NULL;
+            state->in = NULL;
             gz_error(state, Z_MEM_ERROR, "out of memory");
             return -1;
         }
@@ -547,15 +550,14 @@ int ZEXPORT gzclose_w(file)
     }
 
     /* flush, free memory, and close file */
-    if (state->size) {
-        if (gz_comp(state, Z_FINISH) == -1)
-            ret = state->err;
-        if (!state->direct) {
-            (void)deflateEnd(&(state->strm));
-            free(state->out);
-        }
-        free(state->in);
+    if (gz_comp(state, Z_FINISH) == -1)
+        ret = state->err;
+    if (!state->direct) {
+        (void)deflateEnd(&(state->strm));
+        free(state->out);
     }
+    free(state->in);
+
     gz_error(state, Z_OK, NULL);
     free(state->path);
     if (close(state->fd) == -1)
