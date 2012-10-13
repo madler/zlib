@@ -554,9 +554,9 @@ int ZEXPORT gzclose_w(file)
     }
 
     /* flush, free memory, and close file */
+    if (gz_comp(state, Z_FINISH) == -1)
+        ret = state->err;
     if (state->size) {
-        if (gz_comp(state, Z_FINISH) == -1)
-            ret = state->err;
         if (!state->direct) {
             (void)deflateEnd(&(state->strm));
             free(state->out);
