@@ -116,7 +116,7 @@ DWORD GetMsecSincePerfCounter(LARGE_INTEGER beginTime64,BOOL fComputeTimeQueryPe
     return dwRet;
 }
 
-int ReadFileMemory(const char* filename,long* plFileSize,void** pFilePtr)
+int ReadFileMemory(const char* filename,long* plFileSize,unsigned char** pFilePtr)
 {
     FILE* stream;
     void* ptr;
@@ -138,7 +138,7 @@ int ReadFileMemory(const char* filename,long* plFileSize,void** pFilePtr)
             retVal=0;
     }
     fclose(stream);
-    *pFilePtr=ptr;
+    *pFilePtr=(unsigned char*)ptr;
     return retVal;
 }
 
