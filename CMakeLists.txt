@@ -136,10 +136,14 @@ if(CMAKE_COMPILER_IS_GNUCC)
         set(ZLIB_ASMS contrib/amd64/amd64-match.S)
     endif ()
 
-	if(ZLIB_ASMS)
-		add_definitions(-DASMV)
-		set_source_files_properties(${ZLIB_ASMS} PROPERTIES LANGUAGE C COMPILE_FLAGS -DNO_UNDERLINE)
-	endif()
+    if(ZLIB_ASMS)
+        add_definitions(-DASMV)
+        set_property(SOURCE ${ZLIB_ASMS} PROPERTY LANGUAGE C)
+
+        if(NOT MINGW OR AMD64)
+            set_property(SOURCE ${ZLIB_ASMS} PROPERTY COMPILE_FLAGS -DNO_UNDERLINE)
+        endif()
+    endif()
 endif()
 
 if(MSVC)
