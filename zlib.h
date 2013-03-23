@@ -1753,6 +1753,12 @@ ZEXTERN int            ZEXPORT deflateResetKeep OF((z_streamp));
 ZEXTERN gzFile         ZEXPORT gzopen_w OF((const wchar_t *path,
                                             const char *mode));
 #endif
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#  ifndef Z_SOLO
+ZEXTERN int ZEXPORTVA gzvprintf Z_ARG((gzFile file, const char *format,
+                                       va_list va));
+#  endif
+#endif
 
 #ifdef __cplusplus
 }

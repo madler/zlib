@@ -429,6 +429,12 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#  ifndef Z_SOLO
+#    include <stdarg.h>         /* for va_list */
+#  endif
+#endif
+
 #ifdef _WIN32
 #  ifndef Z_SOLO
 #    include <stddef.h>         /* for wchar_t */
