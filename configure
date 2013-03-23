@@ -365,7 +365,9 @@ cat > $test.c << EOF
 int foo() { return 0; }
 EOF
 echo "Checking for obsessive-compulsive compiler options..." >> configure.log
-if ! try $CC -c $CFLAGS $test.c; then
+if try $CC -c $CFLAGS $test.c; then
+  :
+else
   echo "Compiler error reporting is too harsh for $0 (perhaps remove -Werror)." | tee -a configure.log
   leave 1
 fi
