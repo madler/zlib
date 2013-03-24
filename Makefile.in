@@ -216,13 +216,13 @@ install: install-libs
 	chmod 644 $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h
 
 uninstall:
-	cd $(DESTDIR)$(includedir); rm -f zlib.h zconf.h
-	cd $(DESTDIR)$(libdir); rm -f libz.a; \
+	cd $(DESTDIR)$(includedir) && rm -f zlib.h zconf.h
+	cd $(DESTDIR)$(libdir) && rm -f libz.a; \
 	if test -n "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
 	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
 	fi
-	cd $(DESTDIR)$(man3dir); rm -f zlib.3
-	cd $(DESTDIR)$(pkgconfigdir); rm -f zlib.pc
+	cd $(DESTDIR)$(man3dir) && rm -f zlib.3
+	cd $(DESTDIR)$(pkgconfigdir) && rm -f zlib.pc
 
 docs: zlib.3.pdf
 
