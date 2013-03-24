@@ -850,7 +850,7 @@ ZEXTERN int ZEXPORT inflateGetDictionary OF((z_streamp strm,
    Z_NULL, then only the dictionary length is returned, and nothing is copied.
    Similary, if dictLength is Z_NULL, then it is not set.
 
-     inflateSetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
+     inflateGetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
    stream state is inconsistent.
 */
 
