@@ -390,20 +390,14 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
-/* ./configure may #define Z_U4 here */
-
 #if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
-#  if (UINT_MAX == 0xffffffffUL)
+#  if (UINT_MAX == 4294967295)
 #    define Z_U4 unsigned
-#  else
-#    if (ULONG_MAX == 0xffffffffUL)
-#      define Z_U4 unsigned long
-#    else
-#      if (USHRT_MAX == 0xffffffffUL)
-#        define Z_U4 unsigned short
-#      endif
-#    endif
+#  elif (ULONG_MAX == 4294967295)
+#    define Z_U4 unsigned long
+#  elif (USHRT_MAX == 4294967295)
+#    define Z_U4 unsigned short
 #  endif
 #endif
 
