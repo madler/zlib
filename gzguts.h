@@ -67,7 +67,7 @@
 #ifndef HAVE_VSNPRINTF
 #  ifdef MSDOS
 /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
- but for now we just assume it doesn't. */
+   but for now we just assume it doesn't. */
 #    define NO_vsnprintf
 #  endif
 #  ifdef __TURBOC__
