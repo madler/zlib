@@ -1755,8 +1755,9 @@ ZEXTERN gzFile         ZEXPORT gzopen_w OF((const wchar_t *path,
 #endif
 #if defined(STDC) || defined(Z_HAVE_STDARG_H)
 #  ifndef Z_SOLO
-ZEXTERN int ZEXPORTVA gzvprintf Z_ARG((gzFile file, const char *format,
-                                       va_list va));
+ZEXTERN int            ZEXPORTVA gzvprintf Z_ARG((gzFile file,
+                                                  const char *format,
+                                                  va_list va));
 #  endif
 #endif
 

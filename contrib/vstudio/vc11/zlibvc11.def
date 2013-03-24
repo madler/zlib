@@ -140,3 +140,4 @@ EXPORTS
 
 ; zlib1 v1.2.8 added:
         inflateGetDictionary                    @166
+        gzvprintf                               @167
