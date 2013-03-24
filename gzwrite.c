@@ -19,7 +19,7 @@ local int gz_init(state)
     z_streamp strm = &(state->strm);
 
     /* allocate input buffer */
-    state->in = malloc(state->want);
+    state->in = (unsigned char *)malloc(state->want);
     if (state->in == NULL) {
         gz_error(state, Z_MEM_ERROR, "out of memory");
         return -1;
@@ -28,7 +28,7 @@ local int gz_init(state)
     /* only need output buffer and deflate state if compressing */
     if (!state->direct) {
         /* allocate output buffer */
-        state->out = malloc(state->want);
+        state->out = (unsigned char *)malloc(state->want);
         if (state->out == NULL) {
             free(state->in);
             gz_error(state, Z_MEM_ERROR, "out of memory");
