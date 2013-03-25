@@ -513,6 +513,8 @@ int ZEXPORT deflateParams(strm, level, strategy)
         strm->total_in != 0) {
         /* Flush the last buffer: */
         err = deflate(strm, Z_BLOCK);
+        if (err == Z_BUF_ERROR && s->pending == 0)
+            err = Z_OK;
     }
     if (s->level != level) {
         s->level = level;
