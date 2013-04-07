@@ -40,6 +40,7 @@ EXPORTS
     gzread
     gzwrite
     gzprintf
+    gzvprintf
     gzputs
     gzgets
     gzputc

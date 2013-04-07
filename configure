@@ -365,7 +365,9 @@ cat > $test.c << EOF
 int foo() { return 0; }
 EOF
 echo "Checking for obsessive-compulsive compiler options..." >> configure.log
-if ! try $CC -c $CFLAGS $test.c; then
+if try $CC -c $CFLAGS $test.c; then
+  :
+else
   echo "Compiler error reporting is too harsh for $0 (perhaps remove -Werror)." | tee -a configure.log
   leave 1
 fi
@@ -736,32 +738,6 @@ EOF
   else
     echo "Checking for attribute(visibility) support... No." | tee -a configure.log
   fi
-fi
-
-echo >> configure.log
-
-# find a four-byte unsiged integer type for crc calculations
-cat > $test.c <<EOF
-#include <stdio.h>
-#define is32(n,t) for(n=1,k=0;n;n<<=1,k++);if(k==32){puts(t);return 0;}
-int main() {
-  int k;
-  unsigned i;
-  unsigned long l;
-  unsigned short s;
-  is32(i, "unsigned")
-  is32(l, "unsigned long")
-  is32(s, "unsigned short")
-  return 1;
-}
-EOF
-Z_U4=""
-if try $CC $CFLAGS $test.c -o $test && Z_U4=`./$test` && test -n "$Z_U4"; then
-  sed < zconf.h "/#define Z_U4/s/\/\* \.\/configure may/#define Z_U4 $Z_U4   \/* .\/configure put the/" > zconf.temp.h
-  mv zconf.temp.h zconf.h
-  echo "Looking for a four-byte integer type... Found." | tee -a configure.log
-else
-  echo "Looking for a four-byte integer type... Not found." | tee -a configure.log
 fi
 
 # show the results in the log

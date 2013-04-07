@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2012 Jean-loup Gailly and Mark Adler
+ * Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.7.1 Copyright 1995-2012 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.2.7.1 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -513,6 +513,8 @@ int ZEXPORT deflateParams(strm, level, strategy)
         strm->total_in != 0) {
         /* Flush the last buffer: */
         err = deflate(strm, Z_BLOCK);
+        if (err == Z_BUF_ERROR && s->pending == 0)
+            err = Z_OK;
     }
     if (s->level != level) {
         s->level = level;

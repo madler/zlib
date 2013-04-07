@@ -1,5 +1,5 @@
 /* gzguts.h -- zlib internal header definitions for gz* operations
- * Copyright (C) 2004, 2005, 2010, 2011, 2012 Mark Adler
+ * Copyright (C) 2004, 2005, 2010, 2011, 2012, 2013 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -67,7 +67,7 @@
 #ifndef HAVE_VSNPRINTF
 #  ifdef MSDOS
 /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
- but for now we just assume it doesn't. */
+   but for now we just assume it doesn't. */
 #    define NO_vsnprintf
 #  endif
 #  ifdef __TURBOC__

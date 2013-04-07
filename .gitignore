@@ -21,3 +21,5 @@
 /minigzip64
 /minigzipsh
 /zlib.pc
+
+.DS_Store

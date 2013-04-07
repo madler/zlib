@@ -1,5 +1,5 @@
 /* gzlib.c -- zlib functions common to reading and writing gzip files
- * Copyright (C) 2004, 2010, 2011, 2012 Mark Adler
+ * Copyright (C) 2004, 2010, 2011, 2012, 2013 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -108,7 +108,7 @@ local gzFile gz_open(path, fd, mode)
         return NULL;
 
     /* allocate gzFile structure to return */
-    state = malloc(sizeof(gz_state));
+    state = (gz_statep)malloc(sizeof(gz_state));
     if (state == NULL)
         return NULL;
     state->size = 0;            /* no buffers allocated yet */
@@ -196,8 +196,8 @@ local gzFile gz_open(path, fd, mode)
     }
     else
 #endif
-        len = strlen(path);
-    state->path = malloc(len + 1);
+        len = strlen((const char *)path);
+    state->path = (char *)malloc(len + 1);
     if (state->path == NULL) {
         free(state);
         return NULL;
@@ -242,7 +242,7 @@ local gzFile gz_open(path, fd, mode)
 #ifdef _WIN32
         fd == -2 ? _wopen(path, oflag, 0666) :
 #endif
-        open(path, oflag, 0666));
+        open((const char *)path, oflag, 0666));
     if (state->fd == -1) {
         free(state->path);
         free(state);
@@ -288,7 +288,7 @@ gzFile ZEXPORT gzdopen(fd, mode)
     char *path;         /* identifier for error messages */
     gzFile gz;
 
-    if (fd == -1 || (path = malloc(7 + 3 * sizeof(int))) == NULL)
+    if (fd == -1 || (path = (char *)malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
     snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd); /* for debugging */
@@ -598,7 +598,8 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
         return;
 
     /* construct error message with path */
-    if ((state->msg = malloc(strlen(state->path) + strlen(msg) + 3)) == NULL) {
+    if ((state->msg = (char *)malloc(strlen(state->path) + strlen(msg) + 3)) ==
+            NULL) {
         state->err = Z_MEM_ERROR;
         return;
     }

@@ -1,5 +1,5 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2012 Jean-loup Gailly.
+ * Copyright (C) 1995-2013 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -78,6 +78,7 @@
 #      define gzopen_w              z_gzopen_w
 #    endif
 #    define gzprintf              z_gzprintf
+#    define gzvprintf             z_gzvprintf
 #    define gzputc                z_gzputc
 #    define gzputs                z_gzputs
 #    define gzread                z_gzread
@@ -217,7 +218,7 @@
 #  endif
 #endif
 
-#if defined(ZLIB_CONST) && !defined(z_const)
+#if ( defined(ZLIB_CONST) || defined(__cplusplus) ) && !defined(z_const)
 #  define z_const const
 #else
 #  define z_const
@@ -390,20 +391,14 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
-/* ./configure may #define Z_U4 here */
-
 #if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
-#  if (UINT_MAX == 0xffffffffUL)
+#  if (UINT_MAX == 4294967295)
 #    define Z_U4 unsigned
-#  else
-#    if (ULONG_MAX == 0xffffffffUL)
-#      define Z_U4 unsigned long
-#    else
-#      if (USHRT_MAX == 0xffffffffUL)
-#        define Z_U4 unsigned short
-#      endif
-#    endif
+#  elif (ULONG_MAX == 4294967295)
+#    define Z_U4 unsigned long
+#  elif (USHRT_MAX == 4294967295)
+#    define Z_U4 unsigned short
 #  endif
 #endif
 
@@ -424,6 +419,12 @@ typedef uLong FAR uLongf;
 #ifdef STDC
 #  ifndef Z_SOLO
 #    include <sys/types.h>      /* for off_t */
+#  endif
+#endif
+
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#  ifndef Z_SOLO
+#    include <stdarg.h>         /* for va_list */
 #  endif
 #endif
 

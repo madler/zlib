@@ -78,5 +78,6 @@ ZLIB_1.2.5.2 {
 } ZLIB_1.2.5.1;
 
 ZLIB_1.2.7.1 {
-    inflateSetDictionary;
-} ZLIB_1.2.7;
+    inflateGetDictionary;
+    gzvprintf;
+} ZLIB_1.2.5.2;
