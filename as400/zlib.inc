@@ -1,7 +1,7 @@
       *  ZLIB.INC - Interface to the general purpose compression library
       *
       *  ILE RPG400 version by Patrick Monnerat, DATASPHERE.
-      *  Version 1.2.7.1
+      *  Version 1.2.7.2
       *
       *
       *  WARNING:
@@ -22,14 +22,14 @@
       *
       *  Versioning information.
       *
-     D ZLIB_VERSION    C                   '1.2.7.1'
-     D ZLIB_VERNUM     C                   X'1271'
+     D ZLIB_VERSION    C                   '1.2.7.2'
+     D ZLIB_VERNUM     C                   X'1272'
      D ZLIB_VER_MAJOR  C                   1
      D ZLIB_VER_MINOR  C                   2
      D ZLIB_VER_REVISION...
      D                 C                   7
      D ZLIB_VER_SUBREVISION...
-     D                 C                   1
+     D                 C                   2
       *
       *  Other equates.
       *
