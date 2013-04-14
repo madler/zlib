@@ -142,7 +142,8 @@
 #  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
 #endif
 
-/* default i/o buffer size -- double this for output when reading */
+/* default i/o buffer size -- double this for output when reading (this and
+   twice this must be able to fit in an unsigned type) */
 #define GZBUFSIZE 8192
 
 /* gzip modes, also provide a little integrity check on the passed structure */

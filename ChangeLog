@@ -1,6 +1,14 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.7.3 (13 Apr 2013)
+- Fix version numbers and DLL names in contrib/vstudio/*/zlib.rc
+
+Changes in 1.2.7.2 (13 Apr 2013)
+- Change check for a four-byte type back to hexadecimal
+- Fix typo in win32/Makefile.msc
+- Add casts in gzwrite.c for pointer differences
+
 Changes in 1.2.7.1 (24 Mar 2013)
 - Replace use of unsafe string functions with snprintf if available
 - Avoid including stddef.h on Windows for Z_SOLO compile [Niessink]
