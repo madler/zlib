@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.7.3 (xx Apr 2013)
+- 
+
 Changes in 1.2.7.2 (13 Apr 2013)
 - Change check for a four-byte type back to hexadecimal
 - Fix typo in win32/Makefile.msc
