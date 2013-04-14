@@ -1,8 +1,8 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.7.3 (xx Apr 2013)
-- 
+Changes in 1.2.7.3 (13 Apr 2013)
+- Fix version numbers and DLL names in contrib/vstudio/*/zlib.rc
 
 Changes in 1.2.7.2 (13 Apr 2013)
 - Change check for a four-byte type back to hexadecimal
