@@ -211,7 +211,7 @@ int ZEXPORT gzwrite(file, buf, len)
 
             if (strm->avail_in == 0)
                 strm->next_in = state->in;
-            have = strm->next_in + strm->avail_in - state->in;
+            have = (unsigned)((strm->next_in + strm->avail_in) - state->in);
             copy = state->size - have;
             if (copy > len)
                 copy = len;
@@ -273,7 +273,7 @@ int ZEXPORT gzputc(file, c)
     if (state->size) {
         if (strm->avail_in == 0)
             strm->next_in = state->in;
-        have = strm->next_in + strm->avail_in - state->in;
+        have = (unsigned)((strm->next_in + strm->avail_in) - state->in);
         if (have < state->size) {
             state->in[have] = c;
             strm->avail_in++;
