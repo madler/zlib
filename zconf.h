@@ -218,7 +218,7 @@
 #  endif
 #endif
 
-#if ( defined(ZLIB_CONST) || defined(__cplusplus) ) && !defined(z_const)
+#if defined(ZLIB_CONST) && !defined(z_const)
 #  define z_const const
 #else
 #  define z_const
