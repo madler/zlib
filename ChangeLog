@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.8 (xx Apr 2013)
+- 
+
 Changes in 1.2.7.3 (13 Apr 2013)
 - Fix version numbers and DLL names in contrib/vstudio/*/zlib.rc
 
