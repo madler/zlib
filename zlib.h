@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.7.2, April xxth, 2013
+  version 1.2.7.2, April 13th, 2013
 
   Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
 
