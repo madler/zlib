@@ -1,8 +1,12 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.8 (xx Apr 2013)
-- 
+Changes in 1.2.8 (28 Apr 2013)
+- Update contrib/minizip/iowin32.c for Windows RT [Vollant]
+- Do not force Z_CONST for C++
+- Clean up contrib/vstudio [Ro§]
+- Correct spelling error in zlib.h
+- Fix mixed line endings in contrib/vstudio
 
 Changes in 1.2.7.3 (13 Apr 2013)
 - Fix version numbers and DLL names in contrib/vstudio/*/zlib.rc
