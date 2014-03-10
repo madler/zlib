@@ -1431,14 +1431,43 @@ local void fill_window(s)
              */
             n = s->hash_size;
             p = &s->head[n];
+#ifdef NOT_TWEAK_COMPILER
             do {
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
             } while (--n);
-
+#else
+            /* As of I make this change, gcc (4.8.*) isn't able to vectorize
+             * this hot loop using saturated-subtraction on x86-64 architecture.
+             * To avoid this defect, we can change the loop such that
+             *    o. the pointer advance forward, and
+             *    o. demote the variable 'm' to be local to the loop, and
+             *       choose type "Pos" (instead of 'unsigned int') for the
+             *       variable to avoid unncessary zero-extension.
+             */
+            {
+                int i; 
+                typeof(p) q = p - n;
+                for (i = 0; i < n; i++) {
+                    Pos m = *q;
+                    Pos t = wsize;
+                    *q++ = (Pos)(m >= t ? m-t: NIL);
+                }
+            }
+            
+            /* The following three assignments are unnecessary as the variable
+             * p, n and m are dead at this point. The rationale for these
+             * statements is to ease the reader to verify the two loops are
+             * equivalent.
+             */
+            p = p - n;
+            n = 0;
+            m = *p;
+#endif /* NOT_TWEAK_COMPILER */
             n = wsize;
 #ifndef FASTEST
             p = &s->prev[n];
+#ifdef NOT_TWEAK_COMPILER
             do {
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
@@ -1446,6 +1475,20 @@ local void fill_window(s)
                  * its value will never be used.
                  */
             } while (--n);
+#else
+            {
+                int i; 
+                typeof(p) q = p - n;
+                for (i = 0; i < n; i++) {
+                    Pos m = *q;
+                    Pos t = wsize;
+                    *q++ = (Pos)(m >= t ? m-t: NIL);
+                }
+                p = p - n;
+                m = *p;
+                n = 0;
+            }
+#endif /* NOT_TWEAK_COMPILER */
 #endif
             more += wsize;
         }
