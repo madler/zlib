@@ -189,6 +189,17 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
     s->head[s->ins_h] = (Pos)(str))
 #endif
 
+#ifndef NOT_TWEAK_COMPILER
+__attribute__ ((always_inline)) local void 
+bulk_insert_str(deflate_state *s, Pos startpos, uInt count) {
+    uInt idx;
+    for (idx = 0; idx < count; idx++) {
+        Posf dummy;
+        INSERT_STRING(s, startpos + idx, dummy);
+    }
+}
+#endif
+
 /* ===========================================================================
  * Initialize the hash table (avoiding 64K overflow for 16 bit systems).
  * prev[] will be initialized on the fly.
@@ -1845,6 +1856,8 @@ local block_state deflate_slow(s, flush)
              * the hash table.
              */
             s->lookahead -= s->prev_length-1;
+
+#ifdef NOT_TWEAK_COMPILER
             s->prev_length -= 2;
             do {
                 if (++s->strstart <= max_insert) {
@@ -1854,6 +1867,20 @@ local block_state deflate_slow(s, flush)
             s->match_available = 0;
             s->match_length = MIN_MATCH-1;
             s->strstart++;
+#else
+            {
+                uInt mov_fwd = s->prev_length - 2;
+                uInt insert_cnt = mov_fwd;
+                if (unlikely(insert_cnt > max_insert - s->strstart))
+                    insert_cnt = max_insert - s->strstart;
+
+                bulk_insert_str(s, s->strstart + 1, insert_cnt);
+                s->prev_length = 0;
+                s->match_available = 0;
+                s->match_length = MIN_MATCH-1;
+                s->strstart += mov_fwd + 1;
+            }
+#endif /*NOT_TWEAK_COMPILER*/
 
             if (bflush) FLUSH_BLOCK(s, 0);
 
