@@ -16,6 +16,7 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
+TGT_ARCH=
 CC=cc
 
 CFLAGS=-O
@@ -267,6 +268,9 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+ifeq ($(TGT_ARCH), x86_64)
+deflate.o: contrib/amd64/longest-match.inc
+endif
 adler32.o zutil.o: zutil.h zlib.h zconf.h
 gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h

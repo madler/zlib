@@ -58,7 +58,8 @@ fi
 # set defaults before processing command line options
 LDCONFIG=${LDCONFIG-"ldconfig"}
 LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
-ARCHS=
+ARCHS=   # target specific flags
+TGT_ARCH=$(uname -m)  # the name of target architecture
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
@@ -118,6 +119,7 @@ case "$1" in
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
+    -T*=* | --target=*) TGT_ARCH=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
@@ -774,6 +776,7 @@ echo uname = $uname >> configure.log
 
 # udpate Makefile with the configure results
 sed < Makefile.in "
+/^TGT_ARCH *=/s#=.*#=$TGT_ARCH#
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^SFLAGS *=/s#=.*#=$SFLAGS#
