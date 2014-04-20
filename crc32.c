@@ -201,7 +201,7 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
 
 /* ========================================================================= */
-unsigned long ZEXPORT crc32(crc, buf, len)
+local unsigned long crc32_generic(crc, buf, len)
     unsigned long crc;
     const unsigned char FAR *buf;
     uInt len;
@@ -234,6 +234,63 @@ unsigned long ZEXPORT crc32(crc, buf, len)
     } while (--len);
     return crc ^ 0xffffffffUL;
 }
+
+#ifdef HAS_PCLMUL
+
+#define PCLMUL_MIN_LEN 64
+#define PCLMUL_ALIGN 16
+#define PCLMUL_ALIGN_MASK 15
+
+/* Function stolen from linux kernel 3.14. It computes the CRC over the given
+ * buffer with initial CRC value <crc32>. The buffer is <len> byte in length,
+ * and must be 16-byte aligned.
+ */
+extern uint crc32_pclmul_le_16(unsigned char const *buffer,
+                               size_t len, uInt crc32);
+
+unsigned long crc32(crc, buf, len)
+    unsigned long crc;
+    const unsigned char FAR *buf;
+    uInt len;
+{
+    if (len < PCLMUL_MIN_LEN + PCLMUL_ALIGN  - 1)
+      return crc32_generic(crc, buf, len);
+
+    /* Handle the leading patial chunk */
+    uInt misalign = PCLMUL_ALIGN_MASK & ((unsigned long)buf);
+    uInt sz = (PCLMUL_ALIGN - misalign) % PCLMUL_ALIGN;
+    if (sz) {
+      crc = crc32_generic(crc, buf, sz);
+      buf += sz;
+      len -= sz;
+    }
+
+    /* Go over 16-byte chunks */
+    crc = crc32_pclmul_le_16(buf, (len & ~PCLMUL_ALIGN_MASK),
+                             crc ^ 0xffffffffUL);
+    crc = crc ^ 0xffffffffUL;
+
+    /* Handle the trailing partial chunk */
+    sz = len & PCLMUL_ALIGN_MASK;
+    if (sz) {
+      crc = crc32_generic(crc, buf + len - sz, sz);
+    }
+
+    return crc;
+}
+#undef PCLMUL_MIN_LEN
+#undef PCLMUL_ALIGN
+#undef PCLMUL_ALIGN_MASK
+
+#else
+unsigned long crc32(crc, buf, len)
+    unsigned long crc;
+    const unsigned char FAR *buf;
+    uInt len;
+{
+    return crc32_generic(crc, buf, len);
+}
+#endif
 
 #ifdef BYFOUR
 

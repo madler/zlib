@@ -125,6 +125,18 @@ cover: infcover
 	./infcover
 	gcov inf*.c
 
+ifneq ($(findstring -DHAS_PCLMUL, $(CFLAGS)),)
+OBJA += crc32-pclmul_asm.o
+crc32-pclmul_asm.o : contrib/amd64/crc32-pclmul_asm.S
+	$(CC) $(CFLAGS) -c $< -o $@
+endif
+
+ifneq ($(findstring -DHAS_PCLMUL, $(SFLAGS)),)
+PIC_OBJA += crc32-pclmul_asm.lo
+crc32-pclmul_asm.lo : contrib/amd64/crc32-pclmul_asm.S
+	$(CC) $(SFLAGS) -c $< -o $@
+endif
+
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1

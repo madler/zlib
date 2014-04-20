@@ -742,6 +742,36 @@ EOF
   fi
 fi
 
+# Check for AMD64 hardware support.
+if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" ] ; then
+ 
+  # Check for PCLMUL support
+cat > $test.c << EOF
+#include <cpuid.h>
+int
+main(int argc, char** argv) {
+    unsigned int eax, ebx, ecx, edx;
+    __get_cpuid(1, &eax, &ebx, &ecx, &edx);
+    return (eax & bit_PCLMUL) ?  0 : 1;
+}
+EOF
+
+  x86_hw=0
+  if try $CC $CFLAGS $test.c -o $test; then
+    if try ./$test; then
+        CFLAGS="-DHAS_PCLMUL $CFLAGS"
+        SFLAGS="-DHAS_PCLMUL $SFLAGS"
+        x86_hw=1
+    fi 
+  fi
+  if [ $x86_hw -eq 1 ]; then
+    echo "Checking for PCLMUL support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for PCLMUL support ... No" | tee -a configure.log
+  fi
+
+fi # end of "Check amd64 hardware support"
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
