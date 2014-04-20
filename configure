@@ -752,7 +752,7 @@ int
 main(int argc, char** argv) {
     unsigned int eax, ebx, ecx, edx;
     __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-    return (eax & bit_PCLMUL) ?  0 : 1;
+    return (ecx & bit_PCLMUL) ?  0 : 1;
 }
 EOF
 
