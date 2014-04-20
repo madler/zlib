@@ -277,6 +277,30 @@ typedef struct internal_state {
  */
 #define put_byte(s, c) {s->pending_buf[s->pending++] = (c);}
 
+/* ===========================================================================
+ * Output a short LSB first on the stream.
+ * IN assertion: there is enough room in pendingBuf.
+ */
+#if defined(__x86_64) || defined(__i386_)
+/* Compared to the else-clause's implementation, there are few advantages:
+ *  - s->pending is loaded only once (else-clause's implementation needs to
+ *    load s->pending twice due to the alias between s->pending and
+ *    s->pending_buf[].
+ *  - no instructions for extracting bytes from short.
+ *  - needs less registers
+ *  - stores to adjacent bytes are merged into a single store, albeit at the
+ *    cost of penalty of potentially unaligned access. 
+ */
+#define put_short(s, w) { \
+    s->pending += 2; \
+    *(ush*)(&s->pending_buf[s->pending - 2]) = (w) ; \
+}
+#else
+#define put_short(s, w) { \
+    put_byte(s, (uch)((w) & 0xff)); \
+    put_byte(s, (uch)((ush)(w) >> 8)); \
+}
+#endif
 
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
 /* Minimum amount of lookahead, except at the end of the input file.
