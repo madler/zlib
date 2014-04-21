@@ -772,6 +772,37 @@ EOF
 
 fi # end of "Check amd64 hardware support"
 
+  # Check for SSE4.2 support. Not all compiler set __SSE4_2__ 
+  # 
+cat > $test.c << EOF
+#include <cpuid.h>
+int
+main(int argc, char** argv) {
+    #ifdef __SSE4_2__ 
+        return 0;
+    #else
+        unsigned int eax, ebx, ecx, edx;
+        __get_cpuid(1, &eax, &ebx, &ecx, &edx);
+        return (ecx & bit_SSE4_2) ?  0 : 1;
+    #endif
+}
+EOF
+
+  x86_hw=0
+  if try $CC $CFLAGS $test.c -o $test; then
+    if try ./$test; then
+        CFLAGS="-DHAS_SSE42 $CFLAGS"
+        SFLAGS="-DHAS_SSE42 $SFLAGS"
+        x86_hw=1
+    fi 
+  fi
+  if [ $x86_hw -eq 1 ]; then
+    echo "Checking for SSE4.2 support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for SSE4.2 support ... No" | tee -a configure.log
+  fi
+
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
