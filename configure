@@ -747,61 +747,39 @@ if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" ] ; then
  
   # Check for PCLMUL support
 cat > $test.c << EOF
-#include <cpuid.h>
-int
-main(int argc, char** argv) {
-    unsigned int eax, ebx, ecx, edx;
-    __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-    return (ecx & bit_PCLMUL) ?  0 : 1;
+void foo(void) {
+#ifndef __PCLMUL__
+    #error no pclmul
+#endif
 }
 EOF
 
-  x86_hw=0
-  if try $CC $CFLAGS $test.c -o $test; then
-    if try ./$test; then
-        CFLAGS="-DHAS_PCLMUL $CFLAGS"
-        SFLAGS="-DHAS_PCLMUL $SFLAGS"
-        x86_hw=1
-    fi 
-  fi
-  if [ $x86_hw -eq 1 ]; then
+  if try $CC -c $CFLAGS $test.c ; then
+    CFLAGS="-DHAS_PCLMUL $CFLAGS"
+    SFLAGS="-DHAS_PCLMUL $SFLAGS"
     echo "Checking for PCLMUL support ... Yes" | tee -a configure.log
   else
     echo "Checking for PCLMUL support ... No" | tee -a configure.log
   fi
 
-fi # end of "Check amd64 hardware support"
-
   # Check for SSE4.2 support. Not all compiler set __SSE4_2__ 
-  # 
 cat > $test.c << EOF
-#include <cpuid.h>
-int
-main(int argc, char** argv) {
-    #ifdef __SSE4_2__ 
-        return 0;
-    #else
-        unsigned int eax, ebx, ecx, edx;
-        __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-        return (ecx & bit_SSE4_2) ?  0 : 1;
-    #endif
+void foo(void) {
+#ifndef __SSE4_2__
+    #error no sse4.2
+#endif
 }
 EOF
 
-  x86_hw=0
-  if try $CC $CFLAGS $test.c -o $test; then
-    if try ./$test; then
-        CFLAGS="-DHAS_SSE42 $CFLAGS"
-        SFLAGS="-DHAS_SSE42 $SFLAGS"
-        x86_hw=1
-    fi 
-  fi
-  if [ $x86_hw -eq 1 ]; then
+  if try $CC $CFLAGS $test.c -c $test; then
+    CFLAGS="-DHAS_SSE42 $CFLAGS"
+    SFLAGS="-DHAS_SSE42 $SFLAGS"
     echo "Checking for SSE4.2 support ... Yes" | tee -a configure.log
   else
     echo "Checking for SSE4.2 support ... No" | tee -a configure.log
   fi
 
+fi # end of "Check amd64 hardware support"
 
 # show the results in the log
 echo >> configure.log
