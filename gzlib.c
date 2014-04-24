@@ -248,8 +248,10 @@ local gzFile gz_open(path, fd, mode)
         free(state);
         return NULL;
     }
-    if (state->mode == GZ_APPEND)
+    if (state->mode == GZ_APPEND) {
+        LSEEK(state->fd, 0, SEEK_END);  /* so gzoffset() is correct */
         state->mode = GZ_WRITE;         /* simplify later checks */
+    }
 
     /* save the current position for rewinding (only if reading) */
     if (state->mode == GZ_READ) {
