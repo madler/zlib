@@ -1164,7 +1164,8 @@ ZEXTERN int ZEXPORT compress OF((Bytef *dest,   uLongf *destLen,
    the byte length of the source buffer.  Upon entry, destLen is the total size
    of the destination buffer, which must be at least the value returned by
    compressBound(sourceLen).  Upon exit, destLen is the actual size of the
-   compressed buffer.
+   compressed buffer.  compress() is equivalent to compress2() with a level
+   parameter of Z_DEFAULT_COMPRESSION.
 
      compress returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_BUF_ERROR if there was not enough room in the output
