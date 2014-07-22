@@ -304,7 +304,7 @@ fi
 
 if action_needed "${LIBIFSNAME}/TOOLS.FILE"
 then    CMD="CRTSRCPF FILE(${TARGETLIB}/TOOLS) RCDLEN(112)"
-        CMD="${CMD} TEXT('ZLIB: build tools')"
+        CMD="${CMD} CCSID(${TGTCCSID}) TEXT('ZLIB: build tools')"
         system "${CMD}"
 fi
 
