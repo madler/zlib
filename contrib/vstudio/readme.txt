@@ -33,6 +33,10 @@ Build instructions for Visual Studio 2012 (32 bits or 64 bits)
 - Uncompress current zlib, including all contrib/* files
 - Open contrib\vstudio\vc11\zlibvc.sln with Microsoft Visual C++ 2012
 
+Build instructions for Visual Studio 2013 (32 bits or 64 bits)
+--------------------------------------------------------------
+- Uncompress current zlib, including all contrib/* files
+- Open contrib\vstudio\vc12\zlibvc.sln with Microsoft Visual C++ 2013
 
 Important
 ---------
