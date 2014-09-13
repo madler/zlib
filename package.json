@@ -1,4 +1,5 @@
 {
+  "repo": "georgy7/zlib",
   "description": "A general purpose data compression library.",
 
   "keywords": [
