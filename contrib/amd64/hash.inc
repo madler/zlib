@@ -9,7 +9,8 @@
 
 __attribute__ ((always_inline)) local uInt
 x86_compute_hash(deflate_state *s, uInt h, const unsigned char *str) {
-    uInt v = 0xffffff & *(unsigned int*)str;
+    /* Perform a match on at least four bytes */
+    uInt v = *(unsigned int*)str;
     uInt hash = _mm_crc32_u32(0, v);
     return hash & s->hash_mask;
 }
