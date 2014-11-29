@@ -1831,12 +1831,7 @@ local block_state deflate_slow(s, flush)
             s->match_length = longest_match (s, hash_head);
             /* longest_match() sets match_start */
 
-            if (s->match_length <= 5 && (s->strategy == Z_FILTERED
-#if TOO_FAR <= 32767
-                || (s->match_length == MIN_MATCH &&
-                    s->strstart - s->match_start > TOO_FAR)
-#endif
-                )) {
+            if (s->match_length <= 5 && (s->strategy == Z_FILTERED )) {
 
                 /* If prev_match is also MIN_MATCH, match_start is garbage
                  * but we will ignore the current match anyway.
