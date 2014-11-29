@@ -7,14 +7,8 @@
 
 #include <x86intrin.h>
 
-__attribute__ ((always_inline)) local uInt
-x86_compute_hash(deflate_state *s, uInt h, const unsigned char *str) {
-    uInt v = 0xffffff & *(unsigned int*)str;
-    uInt hash = _mm_crc32_u32(0, v);
-    return hash & s->hash_mask;
-}
-
-#define UPDATE_HASH(s,h,str) (h = x86_compute_hash(s, h, str - 2))
+/* Perform a match on at least four bytes and therefore the hash should be for 4 bytes */
+#define UPDATE_HASH(s,h,str) (h = _mm_crc32_u32(0,  *(uInt*)(str - 2)) & s->hash_mask)
 #define INIT_HASH
 
 #endif
