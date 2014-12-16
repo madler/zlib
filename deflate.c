@@ -158,15 +158,20 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 /* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
 #define RANK(f) (((f) << 1) - ((f) > 4 ? 9 : 0))
 
-/* ===========================================================================
- * Update a hash value with the given input byte
- * IN  assertion: all calls to to UPDATE_HASH are made with consecutive
- *    input characters, so that a running hash key can be computed from the
- *    previous key instead of complete recalculation each time.
- */
-#define UPDATE_HASH(s,h,c) (h = (((h)<<s->hash_shift) ^ (c)) & s->hash_mask)
+#ifdef HAS_SSE42
+#include "contrib/amd64/hash.inc"
+#endif
 
+#ifndef UPDATE_HASH
+    #define UPDATE_HASH(s,h,str) (h =  *(uInt*)(str - 2), h ^= h>>17, h ^= h >> 10, h  &= s->hash_mask)
+#endif
 
+#ifndef INIT_HASH
+    #if MIN_MATCH != 3
+        #error Need to Call UPDATE_HASH() MIN_MATCH-3 more times in INIT_HAHS
+    #endif
+    #define INIT_HASH(s, h, str) (h = *str, UPDATE_HASH(s, h, (str)+1))
+#endif
 /* ===========================================================================
  * Insert string str in the dictionary and set match_head to the previous head
  * of the hash chain (the most recent string with same hash key). Return
@@ -179,14 +184,25 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
  */
 #ifdef FASTEST
 #define INSERT_STRING(s, str, match_head) \
-   (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (UPDATE_HASH(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #else
 #define INSERT_STRING(s, str, match_head) \
-   (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (UPDATE_HASH(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->prev[(str) & s->w_mask] = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
+#endif
+
+#ifndef NOT_TWEAK_COMPILER
+__attribute__ ((always_inline)) local void 
+bulk_insert_str(deflate_state *s, Pos startpos, uInt count) {
+    uInt idx;
+    for (idx = 0; idx < count; idx++) {
+        Posf dummy;
+        INSERT_STRING(s, startpos + idx, dummy);
+    }
+}
 #endif
 
 /* ===========================================================================
@@ -364,14 +380,16 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     while (s->lookahead >= MIN_MATCH) {
         str = s->strstart;
         n = s->lookahead - (MIN_MATCH-1);
+        uInt ins_h = s->ins_h;
         do {
-            UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+            UPDATE_HASH(s, ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
-            s->prev[str & s->w_mask] = s->head[s->ins_h];
+            s->prev[str & s->w_mask] = s->head[ins_h];
 #endif
-            s->head[s->ins_h] = (Pos)str;
+            s->head[ins_h] = (Pos)str;
             str++;
         } while (--n);
+        s->ins_h = ins_h;
         s->strstart = str;
         s->lookahead = MIN_MATCH-1;
         fill_window(s);
@@ -1142,6 +1160,10 @@ local void lm_init (s)
  * OUT assertion: the match length is not greater than s->lookahead.
  */
 #ifndef ASMV
+
+#if (defined(__i386) || defined(__x86_64)) && !defined(NOT_TWEAK_COMPILER)
+#include "contrib/amd64/longest-match.inc"
+#else
 /* For 80x86 and 680x0, an optimized version will be provided in match.asm or
  * match.S. The code will be functionally equivalent.
  */
@@ -1287,6 +1309,7 @@ local uInt longest_match(s, cur_match)
     if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
     return s->lookahead;
 }
+#endif
 #endif /* ASMV */
 
 #else /* FASTEST */
@@ -1431,14 +1454,43 @@ local void fill_window(s)
              */
             n = s->hash_size;
             p = &s->head[n];
+#ifdef NOT_TWEAK_COMPILER
             do {
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
             } while (--n);
-
+#else
+            /* As of I make this change, gcc (4.8.*) isn't able to vectorize
+             * this hot loop using saturated-subtraction on x86-64 architecture.
+             * To avoid this defect, we can change the loop such that
+             *    o. the pointer advance forward, and
+             *    o. demote the variable 'm' to be local to the loop, and
+             *       choose type "Pos" (instead of 'unsigned int') for the
+             *       variable to avoid unncessary zero-extension.
+             */
+            {
+                int i; 
+                typeof(p) q = p - n;
+                for (i = 0; i < n; i++) {
+                    Pos m = *q;
+                    Pos t = wsize;
+                    *q++ = (Pos)(m >= t ? m-t: NIL);
+                }
+            }
+            
+            /* The following three assignments are unnecessary as the variable
+             * p, n and m are dead at this point. The rationale for these
+             * statements is to ease the reader to verify the two loops are
+             * equivalent.
+             */
+            p = p - n;
+            n = 0;
+            m = *p;
+#endif /* NOT_TWEAK_COMPILER */
             n = wsize;
 #ifndef FASTEST
             p = &s->prev[n];
+#ifdef NOT_TWEAK_COMPILER
             do {
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
@@ -1446,6 +1498,20 @@ local void fill_window(s)
                  * its value will never be used.
                  */
             } while (--n);
+#else
+            {
+                int i; 
+                typeof(p) q = p - n;
+                for (i = 0; i < n; i++) {
+                    Pos m = *q;
+                    Pos t = wsize;
+                    *q++ = (Pos)(m >= t ? m-t: NIL);
+                }
+                p = p - n;
+                m = *p;
+                n = 0;
+            }
+#endif /* NOT_TWEAK_COMPILER */
 #endif
             more += wsize;
         }
@@ -1470,22 +1536,20 @@ local void fill_window(s)
         /* Initialize the hash value now that we have some input: */
         if (s->lookahead + s->insert >= MIN_MATCH) {
             uInt str = s->strstart - s->insert;
-            s->ins_h = s->window[str];
-            UPDATE_HASH(s, s->ins_h, s->window[str + 1]);
-#if MIN_MATCH != 3
-            Call UPDATE_HASH() MIN_MATCH-3 more times
-#endif
+            uInt ins_h = s->window[str];
+            INIT_HASH(s, ins_h, &s->window[str]);
             while (s->insert) {
-                UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+                UPDATE_HASH(s, ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
-                s->prev[str & s->w_mask] = s->head[s->ins_h];
+                s->prev[str & s->w_mask] = s->head[ins_h];
 #endif
-                s->head[s->ins_h] = (Pos)str;
+                s->head[ins_h] = (Pos)str;
                 str++;
                 s->insert--;
                 if (s->lookahead + s->insert < MIN_MATCH)
                     break;
             }
+            s->ins_h = ins_h;
         }
         /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
          * but this is not important since only literal bytes will be emitted.
@@ -1693,11 +1757,7 @@ local block_state deflate_fast(s, flush)
             {
                 s->strstart += s->match_length;
                 s->match_length = 0;
-                s->ins_h = s->window[s->strstart];
-                UPDATE_HASH(s, s->ins_h, s->window[s->strstart+1]);
-#if MIN_MATCH != 3
-                Call UPDATE_HASH() MIN_MATCH-3 more times
-#endif
+                INIT_HASH(s, s->ins_h, &s->window[s->strstart]);
                 /* If lookahead < MIN_MATCH, ins_h is garbage, but it does not
                  * matter since it will be recomputed at next deflate call.
                  */
@@ -1771,12 +1831,7 @@ local block_state deflate_slow(s, flush)
             s->match_length = longest_match (s, hash_head);
             /* longest_match() sets match_start */
 
-            if (s->match_length <= 5 && (s->strategy == Z_FILTERED
-#if TOO_FAR <= 32767
-                || (s->match_length == MIN_MATCH &&
-                    s->strstart - s->match_start > TOO_FAR)
-#endif
-                )) {
+            if (s->match_length <= 5 && (s->strategy == Z_FILTERED )) {
 
                 /* If prev_match is also MIN_MATCH, match_start is garbage
                  * but we will ignore the current match anyway.
@@ -1802,6 +1857,8 @@ local block_state deflate_slow(s, flush)
              * the hash table.
              */
             s->lookahead -= s->prev_length-1;
+
+#ifdef NOT_TWEAK_COMPILER
             s->prev_length -= 2;
             do {
                 if (++s->strstart <= max_insert) {
@@ -1811,6 +1868,20 @@ local block_state deflate_slow(s, flush)
             s->match_available = 0;
             s->match_length = MIN_MATCH-1;
             s->strstart++;
+#else
+            {
+                uInt mov_fwd = s->prev_length - 2;
+                uInt insert_cnt = mov_fwd;
+                if (unlikely(insert_cnt > max_insert - s->strstart))
+                    insert_cnt = max_insert - s->strstart;
+
+                bulk_insert_str(s, s->strstart + 1, insert_cnt);
+                s->prev_length = 0;
+                s->match_available = 0;
+                s->match_length = MIN_MATCH-1;
+                s->strstart += mov_fwd + 1;
+            }
+#endif /*NOT_TWEAK_COMPILER*/
 
             if (bflush) FLUSH_BLOCK(s, 0);
 

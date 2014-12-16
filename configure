@@ -58,7 +58,8 @@ fi
 # set defaults before processing command line options
 LDCONFIG=${LDCONFIG-"ldconfig"}
 LDSHAREDLIBC="${LDSHAREDLIBC--lc}"
-ARCHS=
+ARCHS=   # target specific flags
+TGT_ARCH=$(uname -m)  # the name of target architecture
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
@@ -118,6 +119,7 @@ case "$1" in
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
+    -T*=* | --target=*) TGT_ARCH=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
@@ -740,6 +742,45 @@ EOF
   fi
 fi
 
+# Check for AMD64 hardware support.
+if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" ] ; then
+ 
+  # Check for PCLMUL support
+cat > $test.c << EOF
+void foo(void) {
+#ifndef __PCLMUL__
+    #error no pclmul
+#endif
+}
+EOF
+
+  if try $CC -c $CFLAGS $test.c ; then
+    CFLAGS="-DHAS_PCLMUL $CFLAGS"
+    SFLAGS="-DHAS_PCLMUL $SFLAGS"
+    echo "Checking for PCLMUL support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for PCLMUL support ... No" | tee -a configure.log
+  fi
+
+  # Check for SSE4.2 support. Not all compiler set __SSE4_2__ 
+cat > $test.c << EOF
+void foo(void) {
+#ifndef __SSE4_2__
+    #error no sse4.2
+#endif
+}
+EOF
+
+  if try $CC $CFLAGS $test.c -c $test; then
+    CFLAGS="-DHAS_SSE42 $CFLAGS"
+    SFLAGS="-DHAS_SSE42 $SFLAGS"
+    echo "Checking for SSE4.2 support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for SSE4.2 support ... No" | tee -a configure.log
+  fi
+
+fi # end of "Check amd64 hardware support"
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -774,6 +815,7 @@ echo uname = $uname >> configure.log
 
 # udpate Makefile with the configure results
 sed < Makefile.in "
+/^TGT_ARCH *=/s#=.*#=$TGT_ARCH#
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^SFLAGS *=/s#=.*#=$SFLAGS#

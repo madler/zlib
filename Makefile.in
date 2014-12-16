@@ -16,6 +16,7 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
+TGT_ARCH=
 CC=cc
 
 CFLAGS=-O
@@ -123,6 +124,18 @@ cover: infcover
 	rm -f *.gcda
 	./infcover
 	gcov inf*.c
+
+ifneq ($(findstring -DHAS_PCLMUL, $(CFLAGS)),)
+OBJA += crc32-pclmul_asm.o
+crc32-pclmul_asm.o : contrib/amd64/crc32-pclmul_asm.S
+	$(CC) $(CFLAGS) -c $< -o $@
+endif
+
+ifneq ($(findstring -DHAS_PCLMUL, $(SFLAGS)),)
+PIC_OBJA += crc32-pclmul_asm.lo
+crc32-pclmul_asm.lo : contrib/amd64/crc32-pclmul_asm.S
+	$(CC) $(SFLAGS) -c $< -o $@
+endif
 
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
@@ -267,6 +280,9 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+ifeq ($(TGT_ARCH), x86_64)
+deflate.o: contrib/amd64/longest-match.inc
+endif
 adler32.o zutil.o: zutil.h zlib.h zconf.h
 gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h
