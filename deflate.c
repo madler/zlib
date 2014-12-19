@@ -162,18 +162,8 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 #include "contrib/amd64/hash.inc"
 #endif
 
-/* ===========================================================================
- * Update a hash value with the given input byte
- * IN  assertion: all calls to to UPDATE_HASH are made with consecutive
- *    input characters, so that a running hash key can be computed from the
- *    previous key instead of complete recalculation each time.
- */
 #ifndef UPDATE_HASH
-    __attribute__ ((always_inline)) local uInt
-    _update_hash(deflate_state *s, uInt h, const unsigned char *str)  {
-        return (((h << s->hash_shift) ^ *(str)) & (s->hash_mask));
-    }
-    #define UPDATE_HASH(s,h,str) (h = _update_hash(s, h, str), h)
+    #define UPDATE_HASH(s,h,str) (h =  *(uInt*)(str - 2), h ^= h>>17, h ^= h >> 10, h  &= s->hash_mask)
 #endif
 
 #ifndef INIT_HASH
@@ -1841,12 +1831,7 @@ local block_state deflate_slow(s, flush)
             s->match_length = longest_match (s, hash_head);
             /* longest_match() sets match_start */
 
-            if (s->match_length <= 5 && (s->strategy == Z_FILTERED
-#if TOO_FAR <= 32767
-                || (s->match_length == MIN_MATCH &&
-                    s->strstart - s->match_start > TOO_FAR)
-#endif
-                )) {
+            if (s->match_length <= 5 && (s->strategy == Z_FILTERED )) {
 
                 /* If prev_match is also MIN_MATCH, match_start is garbage
                  * but we will ignore the current match anyway.

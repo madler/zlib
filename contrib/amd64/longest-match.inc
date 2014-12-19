@@ -80,7 +80,8 @@ local uInt longest_match(s, cur_match)
     uInt wmask = s->w_mask;
 
     register Bytef *strend = s->window + s->strstart + MAX_MATCH;
-    register ush scan_start = *(ushf*)scan;
+    /* We optimize for a minimal match of four bytes */
+    register uInt scan_start = *(uInt*)scan;
     register ush scan_end   = *(ushf*)(scan+best_len-1);
 
     /* The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
@@ -114,7 +115,7 @@ local uInt longest_match(s, cur_match)
         int cont = 1;
         do {
             match = win + cur_match;
-            if (likely(*(ushf*)(match+best_len-1) != scan_end)) {
+            if (likely(*(ushf*)(match+best_len-1) != scan_end) || (*(uInt*)match != scan_start)) {
                 if ((cur_match = prev[cur_match & wmask]) > limit
                     && --chain_length != 0) {
                     continue;
@@ -127,19 +128,7 @@ local uInt longest_match(s, cur_match)
         if (!cont)
             break;
 
-        if (*(ushf*)match != scan_start)
-            continue;
-
-        /* It is not necessary to compare scan[2] and match[2] since they are
-         * always equal when the other bytes match, given that the hash keys
-         * are equal and that HASH_BITS >= 8. Compare 2 bytes at a time at
-         * strstart+3, +5, ... up to strstart+257. We check for insufficient
-         * lookahead only every 4th comparison; the 128th check will be made
-         * at strstart+257. If MAX_MATCH-2 is not a multiple of 8, it is
-         * necessary to put more guard bytes at the end of the window, or
-         * to check more often for insufficient lookahead.
-         */
-        scan += 2, match+=2;
+        scan += 4, match+=4;
         Assert(*scan == *match, "match[2]?");
         do {
             unsigned long sv = *(unsigned long*)(void*)scan;
