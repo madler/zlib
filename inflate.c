@@ -1510,3 +1510,12 @@ z_streamp strm;
         (state->mode == COPY ? state->length :
             (state->mode == MATCH ? state->was - state->length : 0));
 }
+
+unsigned long ZEXPORT inflateCodesUsed(strm)
+z_streamp strm;
+{
+    struct inflate_state FAR *state;
+    if (strm == Z_NULL || strm->state == Z_NULL) return -1L;
+    state = (struct inflate_state FAR *)strm->state;
+    return state->next - state->codes;
+}
