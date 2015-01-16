@@ -7,9 +7,6 @@
 # Normally configure builds both a static and a shared library.
 # If you want to build just a static library, use: ./configure --static
 
-# To use the asm code, type:
-#    cp contrib/asm?86/match.S ./match.S
-#    make LOC=-DASMV OBJA=match.o
 
 # To install /usr/local/lib/libz.* and /usr/local/include/zlib.h, type:
 #    make install
@@ -280,9 +277,6 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-ifeq ($(TGT_ARCH), x86_64)
-deflate.o: contrib/amd64/longest-match.inc
-endif
 adler32.o zutil.o: zutil.h zlib.h zconf.h
 gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h
