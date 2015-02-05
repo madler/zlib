@@ -1153,12 +1153,12 @@ static uint32_t longest_match(s, cur_match)
     deflate_state *s;
     IPos cur_match;                             /* current match */
 {
-    uint32_t chain_length = s->max_chain_length;/* max hash chain length */
+    uint32_t chain_length = s->max_chain_length;      /* max hash chain length */
     register uint8_t *scan = s->window + s->strstart; /* current string */
-    register uint8_t *match;                       /* matched string */
-    register int len;                           /* length of current match */
-    int best_len = s->prev_length;              /* best match length so far */
-    int nice_match = s->nice_match;             /* stop if match long enough */
+    register uint8_t *match;                          /* matched string */
+    register int len;                                 /* length of current match */
+    int best_len = s->prev_length;                    /* best match length so far */
+    int nice_match = s->nice_match;                   /* stop if match long enough */
     IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
         s->strstart - (IPos)MAX_DIST(s) : NIL;
     /* Stop when cur_match becomes <= limit. To simplify the code,
@@ -1169,8 +1169,8 @@ static uint32_t longest_match(s, cur_match)
 
     register uint8_t *strend = s->window + s->strstart + MAX_MATCH;
     /* We optimize for a minimal match of four bytes */
-    register uint32_t scan_start = *(uInt*)scan;
-    register uint16_t scan_end   = *(ushf*)(scan+best_len-1);
+    register uint32_t scan_start = *(uint32_t*)scan;
+    register uint32_t scan_end   = *(uint32_t*)(scan+best_len-3);
 
     /* The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
      * It is easy to get rid of this optimization if necessary.
@@ -1203,7 +1203,7 @@ static uint32_t longest_match(s, cur_match)
         int cont = 1;
         do {
             match = win + cur_match;
-            if (likely(*(uint16_t*)(match+best_len-1) != scan_end) || (*(uint32_t*)match != scan_start)) {
+            if (likely(*(uint32_t*)(match+best_len-3) != scan_end) || (*(uint32_t*)match != scan_start)) {
                 if ((cur_match = prev[cur_match & wmask]) > limit
                     && --chain_length != 0) {
                     continue;
@@ -1217,7 +1217,6 @@ static uint32_t longest_match(s, cur_match)
             break;
 
         scan += 4, match+=4;
-        Assert(*scan == *match, "match[2]?");
         do {
             uint64_t sv = *(uint64_t*)(void*)scan;
             uint64_t mv = *(uint64_t*)(void*)match;
@@ -1245,12 +1244,12 @@ static uint32_t longest_match(s, cur_match)
             s->match_start = cur_match;
             best_len = len;
             if (len >= nice_match) break;
-            scan_end = *(ushf*)(scan+best_len-1);
+            scan_end = *(uint32_t*)(scan+best_len-3);
         }
     } while ((cur_match = prev[cur_match & wmask]) > limit
              && --chain_length != 0);
 
-    if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
+    if ((uint32_t)best_len <= s->lookahead) return (uint32_t)best_len;
     return s->lookahead;
 }
 
