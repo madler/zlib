@@ -5,9 +5,10 @@ project(zlib C)
 
 set(VERSION "1.2.8")
 
-option(ASM686 "Enable building i686 assembly implementation")
-option(AMD64 "Enable building amd64 assembly implementation")
-option(DISABLE_EXAMPLE_BINARIES "Disable the building of example binaries")
+option(ASM686                       "Enable building i686 assembly implementation")
+option(AMD64                        "Enable building amd64 assembly implementation")
+option(DISABLE_EXAMPLE_BINARIES     "Disable the building of example binaries")
+option(COMPILE_STATIC_LIB_WITH_FPIC "use -FPIC when compiling the static lib.")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -202,6 +203,9 @@ endif()
 
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
+   if(COMPILE_STATIC_LIB_WITH_FPIC)
+      set_target_properties(zlibstatic PROPERTIES LINK_FLAGS "-fPIC")
+   endif()
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
      set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
