@@ -202,8 +202,11 @@ if(NOT CYGWIN)
 endif()
 
 if(UNIX)
+
+    message("UNIX----------------------------------------------------------------------------------------------------------------------------------------------------------")
     # On unix-like platforms the library is almost always called libz
    if(COMPILE_STATIC_LIB_WITH_FPIC)
+      message("fPIC------------------------------------------------------------------------------------------------------------------------------------------------------------")
       set_target_properties(zlibstatic PROPERTIES COMPILE_FLAGS "-fPIC")
    endif()
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
