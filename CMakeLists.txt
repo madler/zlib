@@ -203,9 +203,7 @@ endif()
 
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
-   message ("${COMPILE_STATIC_LIB_WITH_FPIC}" ----------------------------------------------------------------------------------)
    if(COMPILE_STATIC_LIB_WITH_FPIC)
-      message("fPIC------------------------------------------------------------------------------------------------------------------------------------------------------------")
       set_target_properties(zlibstatic PROPERTIES COMPILE_FLAGS "-fPIC")
    endif()
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
