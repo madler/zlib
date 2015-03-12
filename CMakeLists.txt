@@ -201,12 +201,9 @@ if(NOT CYGWIN)
     set_target_properties(zlib PROPERTIES VERSION ${ZLIB_FULL_VERSION})
 endif()
 
-message("${UNIX} ------------------------------------------------------------------------------------------------------------------------------------------------------------")
-
 if(UNIX)
-
-    message("UNIX----------------------------------------------------------------------------------------------------------------------------------------------------------")
     # On unix-like platforms the library is almost always called libz
+   message ("${COMPILE_STATIC_LIB_WITH_FPIC}" ----------------------------------------------------------------------------------)
    if(COMPILE_STATIC_LIB_WITH_FPIC)
       message("fPIC------------------------------------------------------------------------------------------------------------------------------------------------------------")
       set_target_properties(zlibstatic PROPERTIES COMPILE_FLAGS "-fPIC")
