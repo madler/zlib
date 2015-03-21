@@ -23,3 +23,10 @@
 /zlib.pc
 
 .DS_Store
+/contrib/vstudio/vc12/*.suo
+/contrib/vstudio/vc12/*.sdf
+/contrib/vstudio/vc12/x64
+/contrib/vstudio/vc12/Release
+/contrib/vstudio/vc12/Debug
+/contrib/vstudio/vc12/*.user
+/contrib/vstudio/vc12/Example

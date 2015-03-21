@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright, Eugene Sadovi, All rights reserved.-->
+<Rule
+      Name="zlib"
+      DisplayName="General"
+      PageTemplate="generic"
+      Description="General setting for building of ZLib library"
+      xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <Rule.Categories>
+    <Category Name="General" DisplayName="General" Description="General" />
+    <Category Name="ProjectDefaults" DisplayName="Project Defaults" Description="Project Defaults" />
+  </Rule.Categories>
+  <Rule.DataSource>
+    <DataSource Persistence="ProjectFile" Label="zlib" />
+  </Rule.DataSource>
+  <StringProperty Name="ZLibDir" DisplayName="ZLib Root Directory"
+                  Description="Specifies a relative path to the root directory; can include environment variables."
+                  Category="General" Default="$(SolutionDir)$(Configuration)\"
+                  Subtype="folder" >
+  </StringProperty>
+  <StringProperty Name="OutDir" DisplayName="Output Directory"
+                  Description="Specifies a relative path to the output file directory; can include environment variables."
+                  Category="General" Default="$(SolutionDir)$(Configuration)\"
+                  Subtype="folder"
+                  F1Keyword="VC.Project.VCConfiguration.OutputDirectory">
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" Label="" />
+                  </StringProperty.DataSource>
+  </StringProperty>
+  <StringProperty Name="IntDir" DisplayName="Intermediate Directory"
+                  Description="Specifies a relative path to the intermediate file directory; can include environment variables."
+                  Category="General" Default="$(Configuration)\"
+                  Subtype="folder"
+                  F1Keyword="VC.Project.VCConfiguration.IntermediateDirectory">
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" Label="" />
+                  </StringProperty.DataSource>
+  </StringProperty>
+  <StringProperty Name="TargetName" DisplayName="Target Name"
+                  Description="Specifies a file name that this project will generate."
+                  F1Keyword="VC.Project.VCConfiguration.TargetName"
+                  HelpUrl=""
+                  Category="General" Default="zlib1" >
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" Label="" />
+                  </StringProperty.DataSource>
+  </StringProperty>
+  <StringProperty Name="TargetExt" DisplayName="Target Extension" Visible="false"
+                  Description="Specifies a file extension that this project will generate. (Example: .exe or .dll)"
+                  F1Keyword="VC.Project.VCConfiguration.TargetExt"
+                  Category="General"
+                  >
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" Label="" />
+                  </StringProperty.DataSource>
+  </StringProperty>
+  <StringListProperty Name="ExtensionsToDeleteOnClean" DisplayName="Extensions to Delete on Clean" Visible="false"
+                      Description="Semi-colon delimited wildcard specification for which files in the intermediate directory to delete on clean or rebuild."
+                      Category="General" Separator=";"
+                      F1Keyword="VC.Project.VCConfiguration.DeleteExtensionsOnClean">
+                      <StringListProperty.DataSource>
+                            <DataSource Persistence="ProjectFile" Label="" />
+                      </StringListProperty.DataSource>
+  </StringListProperty>
+  <StringProperty Name="BuildLogFile" DisplayName="Build Log File"
+                  Description="Specifies the build log file to write to when build logging is enabled."
+                  F1Keyword="VC.Project.VCConfiguration.BuildLogFile"
+                  Category="General" Default="$(ProjectDir)\$(MSBuildProjectName).log"
+                  Subtype="file">
+                  <StringProperty.DataSource>
+                     <DataSource Persistence="ProjectFile" ItemType="BuildLog" PersistedName="Path" />
+                  </StringProperty.DataSource>
+  </StringProperty>
+  <DynamicEnumProperty Name="PlatformToolset" DisplayName="Platform Toolset" EnumProvider="Toolsets"
+                       Description="Specifies the toolset used for building the current configuration; If not set, the default toolset is used"
+                       F1Keyword="VC.Project.VCConfiguration.PlatformToolset"
+                       Category="General" />
+  <EnumProperty Name="ConfigurationType" DisplayName="Configuration Type"
+                Description="Specifies the type of output this configuration generates."
+                Category="ProjectDefaults"
+                F1Keyword="VC.Project.VCConfiguration.ConfigurationType">
+    <EnumValue Name="DynamicLibrary" DisplayName="Dynamic Library (.dll)" Description="Dynamic Library (.dll)" />
+    <EnumValue Name="StaticLibrary" DisplayName="Static library (.lib)" Description="Static Library (.lib)" />
+  </EnumProperty>
+  <EnumProperty Name="CharacterSet" DisplayName="Character Set"
+                Description="Tells the compiler to use the specified character set; aids in localization issues."
+                Category="ProjectDefaults"
+                F1Keyword="VC.Project.VCConfiguration.CharacterSet">
+    <EnumValue Name="NotSet" DisplayName="Not Set" Description="Not Set" />
+    <EnumValue Name="Unicode" DisplayName="Use Unicode Character Set" Description="Use Unicode Character Set" />
+    <EnumValue Name="MultiByte" DisplayName="Use Multi-Byte Character Set" Description="Use Multi-Byte Character Set" />
+  </EnumProperty>
+  <EnumProperty Name="CLRSupport" DisplayName="Common Language Runtime Support"
+                Description="Specifies whether this configuration supports the Common Language Runtime. This is incompatible with some other settings, e.g. runtime checks. See help for /clr family of C++ compiler switches for full list of conflicts."
+                Category="ProjectDefaults"
+                F1Keyword="VC.Project.VCConfiguration.ManagedExtensions">
+    <EnumValue Name="false" DisplayName="No Common Language Runtime Support"
+               Description="No Common Language Runtime Support" />
+    <EnumValue Name="true" DisplayName="Common Language Runtime Support (/clr)"
+               Description="Common Language Runtime Support (/clr)"/>
+    <EnumValue Name="Pure" DisplayName="Pure MSIL Common Language Runtime Support (/clr:pure)"
+               Description="Pure MSIL Common Language Runtime Support (/clr:pure)" />
+    <EnumValue Name="Safe" DisplayName="Safe MSIL Common Language Runtime Support (/clr:safe)"
+               Description="Safe MSIL Common Language Runtime Support (/clr:safe)" />
+    <EnumValue Name="OldSyntax" DisplayName="Common Language Runtime Support, Old Syntax (/clr:oldSyntax)"
+               Description="Common Language Runtime Support, Old Syntax (/clr:oldSyntax)" />
+  </EnumProperty>
+  <EnumProperty Name="WholeProgramOptimization" DisplayName="Whole Program Optimization"
+                Description="Specifies that the program will be optimized across .obj boundaries; works best if C/C++ optimizations are turned on."
+                Category="ProjectDefaults"
+                F1Keyword="VC.Project.VCConfiguration.WholeProgramOptimization">
+    <EnumValue Name="false" DisplayName="No Whole Program Optimization"
+               Description="No Whole Program Optimization" />
+    <EnumValue Name="true" DisplayName="Use Link Time Code Generation"
+               Description="Use Link Time Code Generation"/>
+    <EnumValue Name="PGInstrument" DisplayName="Profile Guided Optimization - Instrument"
+               Description="Profile Guided Optimization - Instrument"/>
+    <EnumValue Name="PGOptimize" DisplayName="Profile Guided Optimization - Optimize"
+               Description="Profile Guided Optimization - Optimize"/>
+    <EnumValue Name="PGUpdate" DisplayName="Profile Guided Optimization - Update"
+               Description="Profile Guided Optimization - Update"/>
+  </EnumProperty>
+  <BoolProperty Name="WindowsAppContainer" DisplayName="Windows Store App Support" Description="Enable this project to support Windows Store apps." Category="ProjectDefaults" F1Keyword="VC.Project.VCConfiguration.AppSupport" />
+  <DynamicEnumProperty Name="TargetPlatformVersion" DisplayName="Target Platform Version" Description="Target Platform" Category="ProjectDefaults" EnumProvider="ProjectExpression" F1Keyword="VC.Project.VCConfiguration.TargetPlatformVersion" Visible="false">
+    <DynamicEnumProperty.ProviderSettings>
+      <NameValuePair Name="Include" Value="$(TargetPlatformVersionOptions)"/>
+    </DynamicEnumProperty.ProviderSettings>
+  </DynamicEnumProperty>
+  <BoolProperty Name="UseAssembler" DisplayName="Use ASM Implementations"
+                Description="Specifies whether this configuration should use ASM implementations"
+                Category="ProjectDefaults">
+  </BoolProperty>
+  <BoolProperty Name="UseWINAPI" DisplayName="WINAPI Calling Convention"
+                Description="It uses the WINAPI calling convention for the exported functions."
+                Category="ProjectDefaults">
+  </BoolProperty>
+</Rule>

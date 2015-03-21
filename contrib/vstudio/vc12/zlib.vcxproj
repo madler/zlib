@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</ProjectGuid>
+    <Keyword>zlib</Keyword>
+    <RootNamespace>zlib</RootNamespace>
+    <ZLibDir>..\..\..\</ZLibDir>
+    <UseDefaultGeneralPropertyPageSchema>false</UseDefaultGeneralPropertyPageSchema>
+    <TargetName>zlib1</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Label="Globals">
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_LIB%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>$(ZLibDir)win32\zlib.def</ModuleDefinitionFile>
+    </Link>
+    <MASM>
+      <WarningLevel>1</WarningLevel>
+      <AssembledCodeListingFile>$(IntDir)match686.lst</AssembledCodeListingFile>
+    </MASM>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level2</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level1</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level2</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level1</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN64;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ZLibDir)adler32.c" />
+    <ClCompile Include="$(ZLibDir)compress.c" />
+    <ClCompile Include="$(ZLibDir)crc32.c" />
+    <ClCompile Include="$(ZLibDir)deflate.c" />
+    <ClCompile Include="$(ZLibDir)gzclose.c" />
+    <ClCompile Include="$(ZLibDir)gzlib.c" />
+    <ClCompile Include="$(ZLibDir)gzread.c" />
+    <ClCompile Include="$(ZLibDir)gzwrite.c" />
+    <ClCompile Include="$(ZLibDir)infback.c" />
+    <ClCompile Include="$(ZLibDir)inffast.c" />
+    <ClCompile Include="$(ZLibDir)inflate.c" />
+    <ClCompile Include="$(ZLibDir)inftrees.c" />
+    <ClCompile Include="$(ZLibDir)trees.c" />
+    <ClCompile Include="$(ZLibDir)uncompr.c" />
+    <ClCompile Include="$(ZLibDir)zutil.c" />
+    <ClCompile Include="$(ZLibDir)contrib\masmx64\inffas8664.c" Condition="'$(Platform)'=='x64'" />
+    <ClCompile Include="$(ZLibDir)contrib\minizip\ioapi.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">ZLIB_INTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="$(ZLibDir)contrib\minizip\iowin32.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">ZLIB_INTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="$(ZLibDir)contrib\minizip\unzip.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">ZLIB_INTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="$(ZLibDir)contrib\minizip\zip.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">ZLIB_INTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ZLibDir)deflate.h" />
+    <ClInclude Include="$(ZLibDir)infblock.h" />
+    <ClInclude Include="$(ZLibDir)infcodes.h" />
+    <ClInclude Include="$(ZLibDir)inffast.h" />
+    <ClInclude Include="$(ZLibDir)inftrees.h" />
+    <ClInclude Include="$(ZLibDir)infutil.h" />
+    <ClInclude Include="$(ZLibDir)zconf.h" />
+    <ClInclude Include="$(ZLibDir)zlib.h" />
+    <ClInclude Include="$(ZLibDir)zutil.h" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Platform)'=='Win32' And '$(UseAssembler)'!='false'">
+    <MASM Include="$(ZLibDir)contrib\masmx86\inffas32.asm">
+      <WarningLevel>1</WarningLevel>
+    </MASM>
+    <MASM Include="$(ZLibDir)contrib\masmx86\match686.asm">
+      <WarningLevel>1</WarningLevel>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Platform)'=='x64' And '$(UseAssembler)'!='false'">
+    <MASM Include="$(ZLibDir)contrib\masmx64\gvmat64.asm">
+      <WarningLevel>1</WarningLevel>
+    </MASM>
+    <MASM Include="$(ZLibDir)contrib\masmx64\inffasx64.asm">
+      <WarningLevel>1</WarningLevel>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(ZLibDir)win32\zlib1.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+  <ItemDefinitionGroup Label="Overrides">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ZLibDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(UseAssembler)'!='false'">ASMV;ASMINF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(UseWINAPI)'=='true'">ZLIB_WINAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>$(ZLibDir)win32\zlib.def</ModuleDefinitionFile>
+    </Link>
+    <MASM>
+      <WarningLevel>1</WarningLevel>
+      <AssembledCodeListingFile>$(IntDir)match686.lst</AssembledCodeListingFile>
+    </MASM>
+  </ItemDefinitionGroup>
+  <ItemGroup Label="Property Pages">
+    <PropertyPageSchema Include="$(ZLibDir)contrib\vstudio\vc12\zlib.xml" Condition="Exists('$(ZLibDir)contrib\vstudio\vc12\zlib.xml')">
+      <Context>Project</Context>
+    </PropertyPageSchema>
+  </ItemGroup>
+</Project>
