@@ -158,7 +158,7 @@
     <ClInclude Include="$(ZLibDir)zlib.h" />
     <ClInclude Include="$(ZLibDir)zutil.h" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Platform)'=='Win32' And '$(UseAssembler)'!='false'">
+  <ItemGroup Condition="'$(Platform)'=='Win32' And '$(UseAssembler)'=='true'">
     <MASM Include="$(ZLibDir)contrib\masmx86\inffas32.asm">
       <WarningLevel>1</WarningLevel>
     </MASM>
@@ -166,7 +166,7 @@
       <WarningLevel>1</WarningLevel>
     </MASM>
   </ItemGroup>
-  <ItemGroup Condition="'$(Platform)'=='x64' And '$(UseAssembler)'!='false'">
+  <ItemGroup Condition="'$(Platform)'=='x64' And '$(UseAssembler)'=='true'">
     <MASM Include="$(ZLibDir)contrib\masmx64\gvmat64.asm">
       <WarningLevel>1</WarningLevel>
     </MASM>
@@ -184,7 +184,7 @@
   <ItemDefinitionGroup Label="Overrides">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ZLibDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions Condition="'$(UseAssembler)'!='false'">ASMV;ASMINF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(UseAssembler)'=='true'">ASMV;ASMINF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(UseWINAPI)'=='true'">ZLIB_WINAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
