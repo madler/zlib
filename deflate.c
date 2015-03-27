@@ -341,16 +341,9 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     fill_window(s);
     while (s->lookahead >= ACTUAL_MIN_MATCH) {
         str = s->strstart;
-        n = s->lookahead - (ACTUAL_MIN_MATCH-1);
-        uint32_t ins_h = s->ins_h;
-        do {
-            ins_h = hash_func(s, &s->window[str]);
-            s->prev[str & s->w_mask] = s->head[ins_h];
-            s->head[ins_h] = (Pos)str;
-            str++;
-        } while (--n);
-        s->ins_h = ins_h;
-        s->strstart = str;
+       	n = s->lookahead - (ACTUAL_MIN_MATCH-1);
+        bulk_insert_str(s, str, n);
+        s->strstart = str + n;
         s->lookahead = ACTUAL_MIN_MATCH-1;
         fill_window(s);
     }
@@ -892,7 +885,7 @@ int ZEXPORT deflate (strm, flush)
             if (flush == Z_PARTIAL_FLUSH) {
                 _tr_align(s);
             } else if (flush != Z_BLOCK) { /* FULL_FLUSH or SYNC_FLUSH */
-                _tr_stored_block(s, (char*)0, 0L, 0);
+                _tr_stored_block(s, (uint8_t*)0, 0L, 0);
                 /* For a full flush, this empty block will be recognized
                  * as a special marker by inflate_sync().
                  */
@@ -1438,8 +1431,8 @@ static void fill_window(s)
  */
 #define FLUSH_BLOCK_ONLY(s, last) { \
    _tr_flush_block(s, (s->block_start >= 0L ? \
-                   (charf *)&s->window[(uint64_t)s->block_start] : \
-                   (charf *)Z_NULL), \
+                   (uint8_t *)&s->window[(uint64_t)s->block_start] : \
+                   (uint8_t *)Z_NULL), \
                 (uint64_t)((int64_t)s->strstart - s->block_start), \
                 (last)); \
    s->block_start = s->strstart; \
