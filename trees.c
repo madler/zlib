@@ -171,35 +171,18 @@ static void gen_trees_header OF(void);
 
 /* ===========================================================================
  * Send a value on a given number of bits.
- * IN assertion: length <= 16 and value fits in length bits.
+ * IN assertion: length <= 64 and value fits in length bits.
  */
-#ifdef DEBUG
-static void send_bits(s, value, length)
-    deflate_state *s;
-    uint64_t value;  /* value to send */
-    int length; /* number of bits */
-{
-    Tracevv((stderr," l %2d v %4x ", length, value));
-    Assert(length > 0 && length <= 15, "invalid length");
-    s->bits_sent += (ulg)length;
 
-    /* If not enough room in bi_buf, use (valid) bits from bi_buf and
-     * (16 - bi_valid) bits from value, leaving (width - (16-bi_valid))
-     * unused bits in value.
-     */
-    if (s->bi_valid > (int)Buf_size - length) {
-        s->bi_buf |= (uint16_t)value << s->bi_valid;
-        put_short(s, s->bi_buf);
-        s->bi_buf = (uint16_t)value >> (Buf_size - s->bi_valid);
-        s->bi_valid += length - Buf_size;
-    } else {
-        s->bi_buf |= (uint16_t)value << s->bi_valid;
-        s->bi_valid += length;
-    }
-}
-#else /* !DEBUG */
 
 static void send_bits(deflate_state* s, uint64_t val, int len) {
+
+#ifdef DEBUG
+    Tracevv((stderr," l %2d v %4llx ", len, val));
+    Assert(len > 0 && len <= 64, "invalid length");
+    s->bits_sent += len;
+#endif
+
     s->bi_buf ^= (val<<s->bi_valid);
     s->bi_valid += len;
     if (s->bi_valid >= 64) {
@@ -210,7 +193,6 @@ static void send_bits(deflate_state* s, uint64_t val, int len) {
     }
 }
 
-#endif
 /* the arguments must not have side effects */
 
 /* ===========================================================================
@@ -807,7 +789,7 @@ static int build_bl_tree(s)
     }
     /* Update opt_len to include the bit length tree and counts */
     s->opt_len += 3*(max_blindex+1) + 5+5+4;
-    Tracev((stderr, "\ndyn trees: dyn %ld, stat %ld",
+    Tracev((stderr, "\ndyn trees: dyn %lld, stat %lld",
             s->opt_len, s->static_len));
 
     return max_blindex;
@@ -835,13 +817,13 @@ static void send_all_trees(s, lcodes, dcodes, blcodes)
         Tracev((stderr, "\nbl code %2d ", bl_order[rank]));
         send_bits(s, s->bl_tree[bl_order[rank]].Len, 3);
     }
-    Tracev((stderr, "\nbl tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\nbl tree: sent %lld", s->bits_sent));
 
     send_tree(s, (ct_data *)s->dyn_ltree, lcodes-1); /* literal tree */
-    Tracev((stderr, "\nlit tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\nlit tree: sent %lld", s->bits_sent));
 
     send_tree(s, (ct_data *)s->dyn_dtree, dcodes-1); /* distance tree */
-    Tracev((stderr, "\ndist tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\ndist tree: sent %lld", s->bits_sent));
 }
 
 /* ===========================================================================
@@ -855,7 +837,7 @@ void ZLIB_INTERNAL _tr_stored_block(s, buf, stored_len, last)
 {
     send_bits(s, (STORED_BLOCK<<1)+last, 3);    /* send block type */
 #ifdef DEBUG
-    s->compressed_len = (s->compressed_len + 3 + 7) & (ulg)~7L;
+    s->compressed_len = (s->compressed_len + 3 + 7) & (uint64_t)~7L;
     s->compressed_len += (stored_len + 4) << 3;
 #endif
     copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
@@ -907,11 +889,11 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
 
         /* Construct the literal and distance trees */
         build_tree(s, (tree_desc *)(&(s->l_desc)));
-        Tracev((stderr, "\nlit data: dyn %ld, stat %ld", s->opt_len,
+        Tracev((stderr, "\nlit data: dyn %lld, stat %lld", s->opt_len,
                 s->static_len));
 
         build_tree(s, (tree_desc *)(&(s->d_desc)));
-        Tracev((stderr, "\ndist data: dyn %ld, stat %ld", s->opt_len,
+        Tracev((stderr, "\ndist data: dyn %lld, stat %lld", s->opt_len,
                 s->static_len));
         /* At this point, opt_len and static_len are the total bit lengths of
          * the compressed block data, excluding the tree representations.
@@ -926,14 +908,14 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
         opt_lenb = (s->opt_len+3+7)>>3;
         static_lenb = (s->static_len+3+7)>>3;
 
-        Tracev((stderr, "\nopt %lu(%lu) stat %lu(%lu) stored %lu lit %u ",
+        Tracev((stderr, "\nopt %llu(%llu) stat %llu(%llu) stored %llu lit %u ",
                 opt_lenb, s->opt_len, static_lenb, s->static_len, stored_len,
                 s->last_lit));
 
         if (static_lenb <= opt_lenb) opt_lenb = static_lenb;
 
     } else {
-        Assert(buf != (char*)0, "lost buf");
+        Assert(buf != (uint8_t*)0, "lost buf");
         opt_lenb = static_lenb = stored_len + 5; /* force a stored block */
     }
 
@@ -973,9 +955,6 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
 #endif
     }
     Assert (s->compressed_len == s->bits_sent, "bad compressed size");
-    /* The above check is made mod 2^32, for files larger than 512 MB
-     * and uint64_t implemented on 32 bits.
-     */
     init_block(s);
 
     if (last) {
@@ -984,7 +963,7 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
         s->compressed_len += 7;  /* align on byte boundary */
 #endif
     }
-    Tracev((stderr,"\ncomprlen %lu(%lu) ", s->compressed_len>>3,
+    Tracev((stderr,"\ncomprlen %llu(%llu) ", s->compressed_len>>3,
            s->compressed_len-7*last));
 }
 
@@ -1062,7 +1041,11 @@ static void compress_block(s, ltree, dtree)
         if (dist == 0) {
             uint64_t val = ltree[lc].Code;
             int len = ltree[lc].Len;
-
+#ifdef DEBUG
+            Tracevv((stderr," l %2d v %4llx ", len, val));
+            Assert(len > 0 && len <= 64, "invalid length");
+            s->bits_sent += len;
+#endif
             bit_buf ^= (val << filled);
             filled += len;
 
@@ -1080,6 +1063,11 @@ static void compress_block(s, ltree, dtree)
 
             uint64_t val = ltree[code+LITERALS+1].Code;
             int len = ltree[code+LITERALS+1].Len;
+#ifdef DEBUG
+            Tracevv((stderr," l %2d v %4llx ", len, val));
+            Assert(len > 0 && len <= 64, "invalid length");
+            s->bits_sent += len;
+#endif
             bit_buf ^= (val << filled);
             filled += len;
             if(filled >= 64) {
@@ -1092,9 +1080,13 @@ static void compress_block(s, ltree, dtree)
             extra = extra_lbits[code];
             if (extra != 0) {
                 lc -= base_length[code];
-
                 val = lc;
                 len = extra;
+#ifdef DEBUG
+                Tracevv((stderr," l %2d v %4llx ", len, val));
+                Assert(len > 0 && len <= 64, "invalid length");
+                s->bits_sent += len;
+#endif
                 bit_buf ^= (val << filled);
                 filled += len;
 
@@ -1110,7 +1102,11 @@ static void compress_block(s, ltree, dtree)
             Assert (code < D_CODES, "bad d_code");
             val = dtree[code].Code;
             len = dtree[code].Len;
-
+#ifdef DEBUG
+            Tracevv((stderr," l %2d v %4llx ", len, val));
+            Assert(len > 0 && len <= 64, "invalid length");
+            s->bits_sent += len;
+#endif
             bit_buf ^= (val << filled);
             filled += len;
             if(filled >= 64) {
@@ -1128,7 +1124,11 @@ static void compress_block(s, ltree, dtree)
                 len = extra;
                 bit_buf ^= (val << filled);
                 filled += len;
-
+#ifdef DEBUG
+                Tracevv((stderr," l %2d v %4llx ", len, val));
+                Assert(len > 0 && len <= 64, "invalid length");
+                s->bits_sent += len;
+#endif
                 if(filled >= 64) {
                     *(uint64_t*)(&s->pending_buf[s->pending]) = bit_buf;
                     s->pending += 8;
@@ -1145,7 +1145,11 @@ static void compress_block(s, ltree, dtree)
     } while (lx < s->last_lit);
     uint64_t val = ltree[END_BLOCK].Code;
     int len = ltree[END_BLOCK].Len;
-
+#ifdef DEBUG
+    Tracevv((stderr," l %2d v %4llx ", len, val));
+    Assert(len > 0 && len <= 64, "invalid length");
+    s->bits_sent += len;
+#endif
     bit_buf ^= (val << filled);
     filled += len;
 

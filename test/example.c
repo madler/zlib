@@ -362,7 +362,7 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     CHECK_ERR(err, "inflateEnd");
 
     if (d_stream.total_out != 2*uncomprLen + comprLen/2) {
-        fprintf(stderr, "bad large inflate: %ld\n", d_stream.total_out);
+        fprintf(stderr, "bad large inflate: %lld\n", d_stream.total_out);
         exit(1);
     } else {
         printf("large_inflate(): OK\n");
@@ -559,7 +559,7 @@ int main(argc, argv)
         fprintf(stderr, "warning: different zlib version\n");
     }
 
-    printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
+    printf("zlib version %s = 0x%04x, compile flags = 0x%llx\n",
             ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
 
     compr    = (Byte*)calloc((uInt)comprLen, 1);
