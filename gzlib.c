@@ -102,6 +102,9 @@ local gzFile gz_open(path, fd, mode)
 #ifdef O_EXCL
     int exclusive = 0;
 #endif
+#if __STDC_WANT_SECURE_LIB__
+    int tempfd = -1;
+#endif
 
     /* check input */
     if (path == NULL)
@@ -190,7 +193,11 @@ local gzFile gz_open(path, fd, mode)
     /* save the path name for error messages */
 #ifdef _WIN32
     if (fd == -2) {
+#  if __STDC_WANT_SECURE_LIB__
+        (void) wcstombs_s(&len, NULL, 0, path, 0);
+#  else
         len = wcstombs(NULL, path, 0);
+#  endif
         if (len == (size_t)-1)
             len = 0;
     }
@@ -205,13 +212,24 @@ local gzFile gz_open(path, fd, mode)
 #ifdef _WIN32
     if (fd == -2)
         if (len)
+#  if __STDC_WANT_SECURE_LIB__
+        {
+            size_t bytes;
+            (void) wcstombs_s(&bytes, state->path, len + 1, path, len + 1);
+        }
+#  else
             wcstombs(state->path, path, len + 1);
+#  endif
         else
             *(state->path) = 0;
     else
 #endif
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#  if __STDC_WANT_SECURE_LIB__
+        _snprintf_s(state->path, len + 1, _TRUNCATE, "%s", (const char *)path);
+#  else
         snprintf(state->path, len + 1, "%s", (const char *)path);
+#  endif
 #else
         strcpy(state->path, path);
 #endif
@@ -240,9 +258,17 @@ local gzFile gz_open(path, fd, mode)
     /* open the file with the appropriate flags (or just use fd) */
     state->fd = fd > -1 ? fd : (
 #ifdef _WIN32
+#  if __STDC_WANT_SECURE_LIB__
+        fd == -2 ? (_wsopen_s(&tempfd, path, oflag, (state->mode == GZ_WRITE || state->mode == GZ_APPEND) ? _SH_DENYWR : _SH_DENYNO, 0666) == 0 ? tempfd : -1) :
+#  else
         fd == -2 ? _wopen(path, oflag, 0666) :
+#  endif
 #endif
+#if __STDC_WANT_SECURE_LIB__
+        (_sopen_s(&tempfd, (const char *)path, oflag, (state->mode == GZ_WRITE || state->mode == GZ_APPEND) ? _SH_DENYWR : _SH_DENYNO, 0666) == 0 ? tempfd : -1));
+#else
         open((const char *)path, oflag, 0666));
+#endif
     if (state->fd == -1) {
         free(state->path);
         free(state);
@@ -291,7 +317,11 @@ gzFile ZEXPORT gzdopen(fd, mode)
     if (fd == -1 || (path = (char *)malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#  if __STDC_WANT_SECURE_LIB__
+    _snprintf_s(path, 7 + 3 * sizeof(int), _TRUNCATE, "<fd:%d>", fd); /* for debugging */
+#  else
     snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd); /* for debugging */
+#  endif
 #else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
 #endif
@@ -604,7 +634,11 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
         return;
     }
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#  if __STDC_WANT_SECURE_LIB__
+    _snprintf_s(state->msg, strlen(state->path) + strlen(msg) + 3, _TRUNCATE,
+#  else
     snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
+#  endif
              "%s%s%s", state->path, ": ", msg);
 #else
     strcpy(state->msg, state->path);

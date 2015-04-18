@@ -33,7 +33,13 @@ local int gz_load(state, buf, len, have)
         *have += ret;
     } while (*have < len);
     if (ret < 0) {
+#if __STDC_WANT_SECURE_LIB__
+        char errbuf[255];
+        (void) zstrerror(errbuf, 255);
+        gz_error(state, Z_ERRNO, errbuf);
+#else
         gz_error(state, Z_ERRNO, zstrerror());
+#endif
         return -1;
     }
     if (ret == 0)
@@ -92,7 +98,7 @@ local int gz_look(state)
     if (state->size == 0) {
         /* allocate buffers */
         state->in = (unsigned char *)malloc(state->want);
-        state->out = (unsigned char *)malloc(state->want << 1);
+        state->out = (unsigned char *)malloc(state->want * 2);
         if (state->in == NULL || state->out == NULL) {
             if (state->out != NULL)
                 free(state->out);

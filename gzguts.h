@@ -42,6 +42,10 @@
 #  define close _close
 #endif
 
+#if __STDC_WANT_SECURE_LIB__
+#  include <share.h>
+#endif
+
 #ifdef NO_DEFLATE       /* for compatibility with old definition */
 #  define NO_GZCOMPRESS
 #endif
@@ -121,7 +125,11 @@
 #else
 #  ifndef NO_STRERROR
 #    include <errno.h>
-#    define zstrerror() strerror(errno)
+#    if __STDC_WANT_SECURE_LIB__
+#      define zstrerror(errbuf, errsize) strerror_s(errbuf, errsize, errno)
+#    else
+#      define zstrerror() strerror(errno)
+#    endif
 #  else
 #    define zstrerror() "stdio error (consult errno)"
 #  endif
