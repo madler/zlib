@@ -7,6 +7,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#if HAVE_BSD_STDLIB
+#include <bsd/stdlib.h>
+#endif
 #include <string.h>
 #include <assert.h>
 #include "zlib.h"

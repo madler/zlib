@@ -53,6 +53,8 @@ includedir = ${prefix}/include
 mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
+SRCDIR=.
+BSDLIBS=
 
 OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
 OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
@@ -113,11 +115,11 @@ test64: all64
 	fi; \
 	rm -f $$TMP64
 
-infcover.o: test/infcover.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -c -o $@ test/infcover.c
+infcover.o: $(SRCDIR)/test/infcover.c $(SRCDIR)/zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -I$(SRCDIR) -c -o $@ $<
 
 infcover: infcover.o libz.a
-	$(CC) $(CFLAGS) -o $@ infcover.o libz.a
+	$(CC) $(CFLAGS) -o $@ infcover.o libz.a $(BSDLIBS)
 
 cover: infcover
 	rm -f *.gcda
@@ -140,23 +142,26 @@ match.lo: match.S
 	mv _match.o match.lo
 	rm -f _match.s
 
-example.o: test/example.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -c -o $@ test/example.c
+example.o: $(SRCDIR)/test/example.c $(SRCDIR)/zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -I$(SRCDIR) -c -o $@ $<
 
-minigzip.o: test/minigzip.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -c -o $@ test/minigzip.c
+minigzip.o: $(SRCDIR)/test/minigzip.c $(SRCDIR)/zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -I$(SRCDIR) -c -o $@ $<
 
-example64.o: test/example.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ test/example.c
+example64.o: $(SRCDIR)/test/example.c $(SRCDIR)/zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -I$(SRCDIR) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
 
-minigzip64.o: test/minigzip.c zlib.h zconf.h
-	$(CC) $(CFLAGS) -I. -D_FILE_OFFSET_BITS=64 -c -o $@ test/minigzip.c
+minigzip64.o: $(SRCDIR)/test/minigzip.c $(SRCDIR)/zlib.h zconf.h
+	$(CC) $(CFLAGS) -I. -I$(SRCDIR) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
 
 .SUFFIXES: .lo
 
-.c.lo:
+%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -I. -c -o $@ $<
+
+%.lo: $(SRCDIR)/%.c
 	-@mkdir objs 2>/dev/null || test -d objs
-	$(CC) $(SFLAGS) -DPIC -c -o objs/$*.o $<
+	$(CC) $(SFLAGS) -I. -DPIC -c -o objs/$*.o $<
 	-@mv objs/$*.o $@
 
 placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a
@@ -203,7 +208,7 @@ install-libs: $(LIBS)
 	  ln -s $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBM); \
 	  ($(LDCONFIG) || true)  >/dev/null 2>&1; \
 	fi
-	cp zlib.3 $(DESTDIR)$(man3dir)
+	cp $(SRCDIR)/zlib.3 $(DESTDIR)$(man3dir)
 	chmod 644 $(DESTDIR)$(man3dir)/zlib.3
 	cp zlib.pc $(DESTDIR)$(pkgconfigdir)
 	chmod 644 $(DESTDIR)$(pkgconfigdir)/zlib.pc
@@ -212,7 +217,7 @@ install-libs: $(LIBS)
 
 install: install-libs
 	-@if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
-	cp zlib.h zconf.h $(DESTDIR)$(includedir)
+	cp $(SRCDIR)/zlib.h zconf.h $(DESTDIR)$(includedir)
 	chmod 644 $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h
 
 uninstall:
@@ -226,18 +231,18 @@ uninstall:
 
 docs: zlib.3.pdf
 
-zlib.3.pdf: zlib.3
-	groff -mandoc -f H -T ps zlib.3 | ps2pdf - zlib.3.pdf
+zlib.3.pdf: $(SRCDIR)/zlib.3
+	groff -mandoc -f H -T ps $(SRCDIR)/zlib.3 | ps2pdf - zlib.3.pdf
 
-zconf.h.cmakein: zconf.h.in
+zconf.h.cmakein: $(SRCDIR)/zconf.h.in
 	-@ TEMPFILE=zconfh_$$; \
 	echo "/#define ZCONF_H/ a\\\\\n#cmakedefine Z_PREFIX\\\\\n#cmakedefine Z_HAVE_UNISTD_H\n" >> $$TEMPFILE &&\
-	sed -f $$TEMPFILE zconf.h.in > zconf.h.cmakein &&\
-	touch -r zconf.h.in zconf.h.cmakein &&\
+	sed -f $$TEMPFILE $(SRCDIR)/zconf.h.in > zconf.h.cmakein &&\
+	touch -r $(SRCDIR)/zconf.h.in zconf.h.cmakein &&\
 	rm $$TEMPFILE
 
-zconf: zconf.h.in
-	cp -p zconf.h.in zconf.h
+zconf: $(SRCDIR)/zconf.h.in
+	cp -p $< zconf.h
 
 mostlyclean: clean
 clean:
@@ -249,40 +254,48 @@ clean:
 	   _match.s maketree contrib/infback9/*.o
 	rm -rf objs
 	rm -f *.gcda *.gcno *.gcov
+	rm -f a.out ztest*
 	rm -f contrib/infback9/*.gcda contrib/infback9/*.gcno contrib/infback9/*.gcov
 
 maintainer-clean: distclean
 distclean: clean zconf zconf.h.cmakein docs
-	rm -f Makefile zlib.pc configure.log
+	rm -f zlib.pc configure.log match.S
 	-@rm -f .DS_Store
-	-@printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile
-	-@printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile
-	-@touch -r Makefile.in Makefile
+# Reset Makefile if building inside source tree
+	@if [ -f Makefile.in ]; then \
+	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile ; \
+	printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile ; \
+	touch -r $(SRCDIR)/Makefile.in Makefile ; fi
+# Cleanup these files if building outside source tree
+	@if [ ! -f zlib.3 ]; then rm -f zlib.3.pdf Makefile zconf.h zconf.h.cmakein ; fi
 
 tags:
-	etags *.[ch]
+	etags $(SRCDIR)/*.[ch]
 
 depend:
-	makedepend -- $(CFLAGS) -- *.[ch]
+	makedepend -- $(CFLAGS) -- $(SRCDIR)/*.[ch]
+	makedepend -a -o.lo -- $(SFLAGS) -- $(SRCDIR)/*.[ch]
+	@sed "s!^$(SRCDIR)/\([a-zA-Z0-9_]*\.\(lo\|o\):\)!\1!g" < Makefile > Makefile.tmp
+	@mv -f Makefile.tmp Makefile
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-adler32.o zutil.o: zutil.h zlib.h zconf.h
-gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
-compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h
-crc32.o: zutil.h zlib.h zconf.h crc32.h
-deflate.o: deflate.h zutil.h zlib.h zconf.h
-infback.o inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h
-inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
-inftrees.o: zutil.h zlib.h zconf.h inftrees.h
-trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
+adler32.o zutil.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/gzguts.h
+compress.o example.o minigzip.o uncompr.o: $(SRCDIR)/zlib.h zconf.h
+crc32.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/crc32.h
+deflate.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+infback.o inflate.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h $(SRCDIR)/inflate.h $(SRCDIR)/inffast.h $(SRCDIR)/inffixed.h
+inffast.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h $(SRCDIR)/inflate.h $(SRCDIR)/inffast.h
+inftrees.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h
+trees.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/trees.h
 
-adler32.lo zutil.lo: zutil.h zlib.h zconf.h
-gzclose.lo gzlib.lo gzread.lo gzwrite.lo: zlib.h zconf.h gzguts.h
-compress.lo example.lo minigzip.lo uncompr.lo: zlib.h zconf.h
-crc32.lo: zutil.h zlib.h zconf.h crc32.h
-deflate.lo: deflate.h zutil.h zlib.h zconf.h
-infback.lo inflate.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h
-inffast.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
-inftrees.lo: zutil.h zlib.h zconf.h inftrees.h
-trees.lo: deflate.h zutil.h zlib.h zconf.h trees.h
+adler32.lo zutil.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/gzguts.h
+compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)/zlib.h zconf.h
+crc32.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/crc32.h
+deflate.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+infback.lo inflate.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h $(SRCDIR)/inflate.h $(SRCDIR)/inffast.h $(SRCDIR)/inffixed.h
+inffast.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h $(SRCDIR)/inflate.h $(SRCDIR)/inffast.h
+inftrees.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h
+trees.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/trees.h
