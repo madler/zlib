@@ -21,5 +21,8 @@
 /minigzip64
 /minigzipsh
 /zlib.pc
+/Makefile
+/zconf.h
+/configure.log
 
 .DS_Store
