@@ -133,7 +133,7 @@ static const config configuration_table[10] = {
 /* result of memcmp for equal strings */
 
 /* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
-#define RANK(f) (((f) << 1) - ((f) > 4 ? 9 : 0))
+#define RANK(f) (((f) * 2) - ((f) > 4 ? 9 : 0))
 
 #ifdef __aarch64__
 
