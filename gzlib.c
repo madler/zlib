@@ -331,6 +331,8 @@ int ZEXPORT gzbuffer(file, size)
         return -1;
 
     /* check and set requested size */
+    if ((size << 1) < size)
+        return -1;              /* need to be able to double it */
     if (size < 2)
         size = 2;               /* need two bytes to check magic header */
     state->want = size;
