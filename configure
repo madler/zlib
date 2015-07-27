@@ -18,6 +18,10 @@ echo -------------------- >> configure.log
 echo $0 $* >> configure.log
 date >> configure.log
 
+# detect source and build directories
+SRCDIR=$(cd $(dirname $0); pwd)
+BUILDDIR=$(pwd)
+
 # set command prefix for cross-compilation
 if [ -n "${CHOST}" ]; then
     uname="`echo "${CHOST}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/'`"
@@ -28,10 +32,10 @@ fi
 STATICLIB=libz.a
 
 # extract zlib version numbers from zlib.h
-VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
-VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < zlib.h`
-VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < zlib.h`
-VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < zlib.h`
+VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < $SRCDIR/zlib.h`
+VER3=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\\.[0-9]*\).*/\1/p' < $SRCDIR/zlib.h`
+VER2=`sed -n -e '/VERSION "/s/.*"\([0-9]*\\.[0-9]*\)\\..*/\1/p' < $SRCDIR/zlib.h`
+VER1=`sed -n -e '/VERSION "/s/.*"\([0-9]*\)\\..*/\1/p' < $SRCDIR/zlib.h`
 
 # establish commands for library building
 if "${CROSS_PREFIX}ar" --version >/dev/null 2>/dev/null || test $? -lt 126; then
@@ -184,9 +188,9 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   fi
   case "$uname" in
   Linux* | linux* | GNU | GNU/* | solaris*)
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,$SRCDIR/zlib.map"} ;;
   *BSD | *bsd* | DragonFly)
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"}
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,$SRCDIR/zlib.map"}
         LDCONFIG="ldconfig -m" ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
@@ -469,8 +473,11 @@ else
   echo "Checking for strerror... No." | tee -a configure.log
 fi
 
+# We need to delete zconf.h from source directory if building outside of it
+if [ "$SRCDIR" != "$BUILDDIR" ]; then rm -f $SRCDIR/zconf.h; fi
+
 # copy clean zconf.h for subsequent edits
-cp -p zconf.h.in zconf.h
+cp -p $SRCDIR/zconf.h.in zconf.h
 
 echo >> configure.log
 
@@ -734,12 +741,54 @@ EOF
   if tryboth $CC -c $CFLAGS $test.c; then
     CFLAGS="$CFLAGS -DHAVE_HIDDEN"
     SFLAGS="$SFLAGS -DHAVE_HIDDEN"
+    echo >> configure.log
     echo "Checking for attribute(visibility) support... Yes." | tee -a configure.log
   else
+    echo >> configure.log
     echo "Checking for attribute(visibility) support... No." | tee -a configure.log
   fi
 fi
 
+# check where reallocf is defined
+cat > $test.c << EOF
+#include <stdlib.h>
+
+int main()
+{
+   void *p = reallocf(NULL, 255);
+   return p != NULL;
+}
+EOF
+if try $CC -c $CFLAGS -Werror $test.c; then
+  echo "Checking where reallocf is defined... stdlib.h" | tee -a configure.log
+else
+cat > $test.c << EOF
+#include <bsd/stdlib.h>
+
+int main()
+{
+   void *p = reallocf(NULL, 255);
+   return p != NULL;
+}
+EOF
+if try $CC -c $CFLAGS -Werror $test.c; then
+  echo "Checking where reallocf is defined... bsd/stdlib.h" | tee -a configure.log
+  CFLAGS="$CFLAGS -DHAVE_BSD_STDLIB"
+else
+  echo "Checking where reallocf is defined... Not found!" | tee -a configure.log
+fi;
+fi;
+
+# check if we need -lbsd for reallocf
+BSDLIBS=
+if ($CC $CFLAGS -o $test $test.c) 2>> configure.log ; then
+  echo "Checking for reallocf... Yes." | tee -a configure.log
+elif ($CC $CFLAGS -o $test $test.c -lbsd) 2>> configure.log ; then
+  BSDLIBS=-lbsd
+  echo "Checking for reallocf... -lbsd" | tee -a configure.log
+else
+  echo "Checking for reallocf... No." | tee -a configure.log
+fi;
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -753,6 +802,7 @@ echo LDCONFIG = $LDCONFIG >> configure.log
 echo LDFLAGS = $LDFLAGS >> configure.log
 echo LDSHARED = $LDSHARED >> configure.log
 echo LDSHAREDLIBC = $LDSHAREDLIBC >> configure.log
+echo BSDLIBS = $BSDLIBS >> configure.log
 echo OBJC = $OBJC >> configure.log
 echo PIC_OBJC = $PIC_OBJC >> configure.log
 echo RANLIB = $RANLIB >> configure.log
@@ -772,8 +822,8 @@ echo prefix = $prefix >> configure.log
 echo sharedlibdir = $sharedlibdir >> configure.log
 echo uname = $uname >> configure.log
 
-# udpate Makefile with the configure results
-sed < Makefile.in "
+# update Makefile with the configure results
+sed < $SRCDIR/Makefile.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^SFLAGS *=/s#=.*#=$SFLAGS#
@@ -796,6 +846,8 @@ sed < Makefile.in "
 /^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
+/^SRCDIR *=/s#=.*#=$SRCDIR#
+/^BSDLIBS *=/s#=.*#=$BSDLIBS#
 /^OBJC *=/s#=.*#= $OBJC#
 /^PIC_OBJC *=/s#=.*#= $PIC_OBJC#
 /^all: */s#:.*#: $ALL#
@@ -803,7 +855,7 @@ sed < Makefile.in "
 " > Makefile
 
 # create zlib.pc with the configure results
-sed < zlib.pc.in "
+sed < $SRCDIR/zlib.pc.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^CPP *=/s#=.*#=$CPP#
