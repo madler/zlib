@@ -25,6 +25,10 @@
 #  include <stdlib.h>
 #  include <limits.h>
 #endif
+
+#ifndef _POSIX_SOURCE
+#  define _POSIX_SOURCE
+#endif
 #include <fcntl.h>
 
 #ifdef _WIN32
