@@ -45,6 +45,7 @@ static int gz_init(gz_statep state) {
             gz_error(state, Z_MEM_ERROR, "out of memory");
             return -1;
         }
+        strm->next_in = NULL;
     }
 
     /* mark state as initialized */
