@@ -544,6 +544,14 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    compression at the expense of memory usage.  The default value is 15 if
    deflateInit is used instead.
 
+     For the current implementation of deflate(), a windowBits value of 8 (a
+   window size of 256 bytes) is not supported.  As a result, a request for 8
+   will result in 9 (a 512-byte window).  In that case, providing 8 to
+   inflateInit2() will result in an error when the zlib header with 9 is
+   checked against the initialization of inflate().  The remedy is to not use 8
+   with deflateInit2() with this initialization, or at least in that case use 9
+   with inflateInit2().
+
      windowBits can also be -8..-15 for raw deflate.  In this case, -windowBits
    determines the window size.  deflate() will then generate raw deflate data
    with no zlib header or trailer, and will not compute an adler32 check value.
