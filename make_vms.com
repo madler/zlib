@@ -312,7 +312,7 @@ $! Check if parameter actually contains something
 $!
 $   if f$edit(cparm,"trim") .nes. ""
 $   then
-$     if cparm .eqs. "DEBUG"
+$     if cparm .eqs. "ZLIB_DEBUG"
 $     then
 $       ccopt = ccopt + "/noopt/deb"
 $       lopts = lopts + "/deb"

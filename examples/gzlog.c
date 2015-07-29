@@ -243,7 +243,7 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 
 /* Macro for debugging to deterministically force recovery operations */
-#ifdef DEBUG
+#ifdef GZLOG_DEBUG
     #include <setjmp.h>         /* longjmp */
     jmp_buf gzlog_jump;         /* where to go back to */
     int gzlog_bail = 0;         /* which point to bail at (1..8) */

@@ -1264,13 +1264,13 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
        Note: a memory error from inflate() is non-recoverable.
      */
   inf_leave:
-#if defined(DEBUG) && (defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2))
+#if defined(ZLIB_DEBUG) && (defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2))
     /* XXX(cavalcantii): I put this in place back in 2017 to help debug faulty
     * client code relying on undefined behavior when chunk_copy first landed.
     *
     * It is save to say after all these years that Chromium code is well
     * behaved and works fine with the optimization, therefore we can enable
-    * this only for DEBUG builds.
+    * this only for ZLIB_DEBUG builds.
     *
     * We write a defined value in the unused space to help mark
     * where the stream has ended. We don't use zeros as that can
