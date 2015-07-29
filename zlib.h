@@ -656,10 +656,10 @@ ZEXTERN int ZEXPORT deflateCopy OF((z_streamp dest,
 
 ZEXTERN int ZEXPORT deflateReset OF((z_streamp strm));
 /*
-     This function is equivalent to deflateEnd followed by deflateInit,
-   but does not free and reallocate all the internal compression state.  The
-   stream will keep the same compression level and any other attributes that
-   may have been set by deflateInit2.
+     This function is equivalent to deflateEnd followed by deflateInit, but
+   does not free and reallocate the internal compression state.  The stream
+   will leave the compression level and any other attributes that may have been
+   set unchanged.
 
      deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
    stream state was inconsistent (such as zalloc or state being Z_NULL).
