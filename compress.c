@@ -28,7 +28,7 @@ int ZEXPORT compress2 (dest, destLen, source, sourceLen, level)
 {
     z_stream stream;
     int err;
-    const uInt max = -1;
+    const uInt max = (uInt)0 - 1;
     uLong left;
 
     left = *destLen;
