@@ -670,20 +670,34 @@ ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
                                       int strategy));
 /*
      Dynamically update the compression level and compression strategy.  The
-   interpretation of level and strategy is as in deflateInit2.  This can be
+   interpretation of level and strategy is as in deflateInit2().  This can be
    used to switch between compression and straight copy of the input data, or
    to switch to a different kind of input data requiring a different strategy.
-   If the compression level is changed, the input available so far is
-   compressed with the old level (and may be flushed); the new level will take
-   effect only at the next call of deflate().
+   If the compression approach (which is a function of the level) or the
+   strategy is changed, then the input available so far is compressed with the
+   old level and strategy using deflate(strm, Z_BLOCK).  There are three
+   approaches for the compression levels 0, 1..3, and 4..9 respectively.  The
+   new level and strategy will take effect at the next call of deflate().
 
-     Before the call of deflateParams, the stream state must be set as for
-   a call of deflate(), since the currently available input may have to be
-   compressed and flushed.  In particular, strm->avail_out must be non-zero.
+     If a deflate(strm, Z_BLOCK) is performed by deflateParams(), and it does
+   not have enough output space to complete, then the parameter change will
+   take effect at an undetermined location in the uncompressed data provided so
+   far.  In order to assure a change in the parameters at a specific location
+   in the uncompressed data, the deflate stream should first be flushed with
+   Z_BLOCK or another flush parameter, and deflate() called until
+   strm.avail_out is not zero, before the call of deflateParams().  Then no
+   more input data should be provided before the deflateParams() call.  If this
+   is done, the old level and strategy will be applied to the data compressed
+   before deflateParams(), and the new level and strategy will be applied to
+   the the data compressed after deflateParams().
 
-     deflateParams returns Z_OK if success, Z_STREAM_ERROR if the source
-   stream state was inconsistent or if a parameter was invalid, Z_BUF_ERROR if
-   strm->avail_out was zero.
+     deflateParams returns Z_OK if success, Z_STREAM_ERROR if the source stream
+   state was inconsistent or if a parameter was invalid, or Z_BUF_ERROR if
+   there was not enough output space to complete the compression before the
+   parameters were changed.  Note that in the case of a Z_BUF_ERROR, the
+   parameters are changed nevertheless, and will take effect at an undetermined
+   location in the previously supplied uncompressed data.  Compression may
+   proceed after a Z_BUF_ERROR.
 */
 
 ZEXTERN int ZEXPORT deflateTune OF((z_streamp strm,
