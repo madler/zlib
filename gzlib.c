@@ -191,7 +191,7 @@ local gzFile gz_open(path, fd, mode)
     }
 
     /* save the path name for error messages */
-#ifdef _WIN32
+#ifdef WIDECHAR
     if (fd == -2) {
 #  if __STDC_WANT_SECURE_LIB__
         (void) wcstombs_s(&len, NULL, 0, path, 0);
@@ -209,7 +209,7 @@ local gzFile gz_open(path, fd, mode)
         free(state);
         return NULL;
     }
-#ifdef _WIN32
+#ifdef WIDECHAR
     if (fd == -2)
         if (len)
 #  if __STDC_WANT_SECURE_LIB__
@@ -257,7 +257,7 @@ local gzFile gz_open(path, fd, mode)
 
     /* open the file with the appropriate flags (or just use fd) */
     state->fd = fd > -1 ? fd : (
-#ifdef _WIN32
+#ifdef WIDECHAR
 #  if __STDC_WANT_SECURE_LIB__
         fd == -2 ? (_wsopen_s(&tempfd, path, oflag, (state->mode == GZ_WRITE || state->mode == GZ_APPEND) ? _SH_DENYWR : _SH_DENYNO, 0666) == 0 ? tempfd : -1) :
 #  else
@@ -333,7 +333,7 @@ gzFile ZEXPORT gzdopen(fd, mode)
 }
 
 /* -- see zlib.h -- */
-#ifdef _WIN32
+#ifdef WIDECHAR
 gzFile ZEXPORT gzopen_w(path, mode)
     const wchar_t *path;
     const char *mode;
