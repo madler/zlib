@@ -246,7 +246,7 @@ int ZEXPORT inflatePrime(z_streamp strm, int bits, int value) {
     }
     if (bits > 16 || state->bits + bits > 32) return Z_STREAM_ERROR;
     value &= (1L << bits) - 1;
-    state->hold += value << state->bits;
+    state->hold += (unsigned)value << state->bits;
     state->bits += bits;
     return Z_OK;
 }
