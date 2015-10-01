@@ -95,11 +95,10 @@
 #  endif
 #endif
 
-/* unlike snprintf (which is required in C99, yet still not supported by
-   Microsoft more than a decade later!), _snprintf does not guarantee null
-   termination of the result -- however this is only used in gzlib.c where
-   the result is assured to fit in the space provided */
-#ifdef _MSC_VER
+/* unlike snprintf (which is required in C99), _snprintf does not guarantee
+   null termination of the result -- however this is only used in gzlib.c
+   where the result is assured to fit in the space provided */
+#if defined(_MSC_VER) && _MSC_VER < 1900
 #  define snprintf _snprintf
 #endif
 
