@@ -219,8 +219,10 @@ local ptr_table table[MAX_PTR];
 
 voidpf ZLIB_INTERNAL zcalloc (voidpf opaque, unsigned items, unsigned size)
 {
-    voidpf buf = opaque; /* just to make some compilers happy */
+    voidpf buf;
     ulg bsize = (ulg)items*size;
+
+    (void)opaque;
 
     /* If we allocate less than 65520 bytes, we assume that farmalloc
      * will return a usable pointer which doesn't have to be normalized.
@@ -244,6 +246,9 @@ voidpf ZLIB_INTERNAL zcalloc (voidpf opaque, unsigned items, unsigned size)
 void ZLIB_INTERNAL zcfree (voidpf opaque, voidpf ptr)
 {
     int n;
+
+    (void)opaque;
+
     if (*(ush*)&ptr != 0) { /* object < 64K */
         farfree(ptr);
         return;
@@ -259,7 +264,6 @@ void ZLIB_INTERNAL zcfree (voidpf opaque, voidpf ptr)
         next_ptr--;
         return;
     }
-    ptr = opaque; /* just to make some compilers happy */
     Assert(0, "zcfree: ptr not found");
 }
 
@@ -278,13 +282,13 @@ void ZLIB_INTERNAL zcfree (voidpf opaque, voidpf ptr)
 
 voidpf ZLIB_INTERNAL zcalloc (voidpf opaque, uInt items, uInt size)
 {
-    if (opaque) opaque = 0; /* to make compiler happy */
+    (void)opaque;
     return _halloc((long)items, size);
 }
 
 void ZLIB_INTERNAL zcfree (voidpf opaque, voidpf ptr)
 {
-    if (opaque) opaque = 0; /* to make compiler happy */
+    (void)opaque;
     _hfree(ptr);
 }
 
@@ -306,7 +310,7 @@ voidpf ZLIB_INTERNAL zcalloc (opaque, items, size)
     unsigned items;
     unsigned size;
 {
-    if (opaque) items += size - size; /* make compiler happy */
+    (void)opaque;
     return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
                               (voidpf)calloc(items, size);
 }
@@ -315,8 +319,8 @@ void ZLIB_INTERNAL zcfree (opaque, ptr)
     voidpf opaque;
     voidpf ptr;
 {
+    (void)opaque;
     free(ptr);
-    if (opaque) return; /* make compiler happy */
 }
 
 #endif /* MY_ZCALLOC */
