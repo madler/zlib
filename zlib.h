@@ -1783,6 +1783,16 @@ ZEXTERN int            ZEXPORTVA gzvprintf Z_ARG((gzFile file,
 #  endif
 #endif
 
+
+ZEXTERN int ZEXPORT deflate_make_dht OF(( z_streamp strm, int *lhistg, int *dhistg, int *bits_valid ));
+/*
+ * Given histograms l_hist and d_hist, the function builds a huffman table that 
+ * can be used as the front matter of Type 2 blocks.
+ * DHT is returned in the buffer strm->avail_out. 
+ * Number of valid bits in the last valid byte of the buffer is also returned.
+ */
+
+
 #ifdef __cplusplus
 }
 #endif

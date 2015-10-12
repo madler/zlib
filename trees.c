@@ -1224,3 +1224,63 @@ local void copy_block(s, buf, len, header)
         put_byte(s, *buf++);
     }
 }
+
+/* ===========================================================================
+ * Make deflate trees for a given literal/length and distance histograms
+ */
+int make_trees(s, l_hist, d_hist)
+    deflate_state *s;
+    int *l_hist;
+    int *d_hist;
+{
+    int max_blindex; 
+    int n;
+    int bits_valid;
+
+    init_block( s );
+
+    /* copy in histograms */
+    for (n = 0; n < D_CODES;  n++) 
+	s->dyn_dtree[n].Freq = d_hist[n];
+    for (n = 0; n < L_CODES;  n++) 
+	s->dyn_ltree[n].Freq = l_hist[n];
+
+    /* EOB symbol always present in a dynamic block */
+    s->dyn_ltree[END_BLOCK].Freq = 1;
+
+    build_tree(s, (tree_desc *) (&(s->l_desc))); /* Lit/Len tree */
+    build_tree(s, (tree_desc *) (&(s->d_desc))); /* Distance tree */
+    max_blindex = build_bl_tree(s);              /* Code length codes */
+
+    /* send_bits(s, (DYN_TREES << 1), 3);  no space for the 3 bit block header */
+
+    /* write trees to the pending buffer */
+    send_all_trees(s, s->l_desc.max_code + 1, s->d_desc.max_code + 1, max_blindex + 1);
+
+    /* flush the bit buffer and align output tail to the byte boundary */
+    bits_valid = s->bi_valid % 8;
+    bi_windup(s);
+    
+#ifdef DEBUG
+    do { 
+	int n;
+	fprintf(stderr, "BL_CODES:\n");
+	for (n = 0; n < BL_CODES;  n++)
+	    if( s->bl_tree[n].Len != 0 && n <= s->bl_desc.max_code )
+		fprintf(stderr, "bl: %3d  l: %2d  c: 0x%X\n", n, s->bl_tree[n].Len, s->bl_tree[n].Code );
+	fprintf(stderr, "L_CODES:\n");
+	for (n = 0; n < L_CODES;  n++)
+	    if( s->dyn_ltree[n].Len != 0 && n <= s->l_desc.max_code )
+		fprintf(stderr, "ll: %3d  l: %2d  c: 0x%X\n", n, s->dyn_ltree[n].Len, s->dyn_ltree[n].Code );
+	fprintf(stderr, "D_CODES:\n");
+	for (n = 0; n < D_CODES;  n++)
+	    if( s->dyn_dtree[n].Len != 0 && n <= s->d_desc.max_code )
+		fprintf(stderr, "di: %3d  l: %2d  c: 0x%X\n", n, s->dyn_dtree[n].Len, s->dyn_dtree[n].Code );
+	fprintf(stderr, "\n");
+    } while(0);
+
+    fprintf(stderr, "valid bits in the last byte: %d\n", bits_valid );      
+#endif
+
+    return bits_valid;
+}
