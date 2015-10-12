@@ -1261,7 +1261,7 @@ int make_trees(s, l_hist, d_hist)
     bits_valid = s->bi_valid % 8;
     bi_windup(s);
     
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
     do { 
 	int n;
 	fprintf(stderr, "BL_CODES:\n");
