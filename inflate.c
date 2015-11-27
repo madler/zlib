@@ -674,7 +674,7 @@ int flush;
             len = BITS(4) + 8;
             if (state->wbits == 0)
                 state->wbits = len;
-            else if (len > state->wbits) {
+            if (len > 15 || len > state->wbits) {
                 strm->msg = (char *)"invalid window size";
                 state->mode = BAD;
                 break;
