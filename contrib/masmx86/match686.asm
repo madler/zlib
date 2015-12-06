@@ -127,15 +127,16 @@ scanalign   equ  esp + 20   ; dword-misalignment of string
 nicematch   equ  esp + 24   ; a good enough match size
 bestlen     equ  esp + 28   ; size of best match so far
 scan        equ  esp + 32   ; ptr to string wanting match
+winend      equ  esp + 36   ; 
 
-LocalVarsSize   equ 36
-;   saved ebx   byte esp + 36
-;   saved edi   byte esp + 40
-;   saved esi   byte esp + 44
-;   saved ebp   byte esp + 48
-;   return address  byte esp + 52
-deflatestate    equ  esp + 56   ; the function arguments
-curmatch    equ  esp + 60
+LocalVarsSize   equ 40
+;   saved ebx   byte esp + 40
+;   saved edi   byte esp + 44
+;   saved esi   byte esp + 48
+;   saved ebp   byte esp + 52
+;   return address  byte esp + 56
+deflatestate    equ  esp + 60   ; the function arguments
+curmatch    equ  esp + 64
 
 ;;; Offsets for fields in the deflate_state structure. These numbers
 ;;; are calculated from the definition of deflate_state, with the
@@ -147,6 +148,7 @@ curmatch    equ  esp + 60
 dsWSize     equ 36+zlib1222add
 dsWMask     equ 44+zlib1222add
 dsWindow    equ 48+zlib1222add
+dsWindowSize    equ 52+zlib1222add
 dsPrev      equ 56+zlib1222add
 dsMatchLen  equ 88+zlib1222add
 dsPrevMatch equ 92+zlib1222add
@@ -252,6 +254,9 @@ LookaheadLess:  mov [nicematch], ebx
 
         mov esi, [edx + dsWindow]
         mov [window], esi
+        mov eax, [edx + dsWindowSize]
+        lea eax, [eax + esi]
+        mov [winend], eax
         mov ebp, [edx + dsStrStart]
         lea edi, [esi + ebp]
         mov [scan], edi
@@ -367,16 +372,26 @@ LoopEntry:  movzx   eax, word ptr [esi + ecx - 1]
 ;;; straightforward "rep cmpsb" would not drastically degrade
 ;;; performance.
 
+        mov ebx, [winend]
 LoopCmps:
-        mov eax, [esi + edx]
-        xor eax, [edi + edx]
+        lea eax, [edi + edx]
+        cmp eax, ebx
+        jge ExceedMax
+        mov eax, [eax]
+        xor eax, [esi + edx]
         jnz LeaveLoopCmps
-        mov eax, [esi + edx + 4]
-        xor eax, [edi + edx + 4]
+        lea eax, [edi + edx + 4]
+        cmp eax, ebx
+        jge ExceedMax4
+        mov eax, [eax]
+        xor eax, [esi + edx + 4]
         jnz LeaveLoopCmps4
         add edx, 8
         jnz LoopCmps
         jmp short LenMaximum
+ExceedMax4: add edx, 4
+ExceedMax:  mov al, 0FFh
+        jmp LenLower
 LeaveLoopCmps4: add edx, 4
 LeaveLoopCmps:  test    eax, 0000FFFFh
         jnz LenLower
