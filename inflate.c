@@ -1181,11 +1181,12 @@ int flush;
                     strm->adler = state->check =
                         UPDATE(state->check, put - out, out);
                 out = left;
-                if ((
 #ifdef GUNZIP
-                     state->flags ? hold :
+                #define state_check state->flags ? hold : ZSWAP32(hold)
+#else
+                #define state_check ZSWAP32(hold)
 #endif
-                     ZSWAP32(hold)) != state->check) {
+                if (state_check != state->check) {
                     strm->msg = (char *)"incorrect data check";
                     state->mode = BAD;
                     break;
