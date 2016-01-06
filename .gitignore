@@ -23,3 +23,6 @@
 /zlib.pc
 
 .DS_Store
+
+Makefile
+zconf.h
