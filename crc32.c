@@ -38,9 +38,9 @@
 #endif
 #ifdef BYFOUR
    local unsigned long crc32_little OF((unsigned long,
-                        const unsigned char FAR *, unsigned));
+                        const unsigned char FAR *, uInt));
    local unsigned long crc32_big OF((unsigned long,
-                        const unsigned char FAR *, unsigned));
+                        const unsigned char FAR *, uInt));
 #  define TBLS 8
 #else
 #  define TBLS 1
@@ -201,29 +201,115 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
 
 /* ========================================================================= */
-unsigned long ZEXPORT crc32(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    uInt len;
+#ifdef Z_HAVE_IFUNC
+static
+unsigned long ZEXPORT crc32_software(
+    unsigned long crc,
+    const unsigned char FAR *buf,
+    uInt len);
+#ifdef Z_IFUNC_ASM
+unsigned long (*(crc32_ifunc(void)))(unsigned long, const unsigned char FAR *, uInt)  __asm__ ("crc32");
+#define STATIC_IFUNC
+#endif
+#endif
+
+#ifndef STATIC_IFUNC
+#define STATIC_IFUNC static
+#endif
+
+#if defined(__linux__) && !defined(GENERIC_CRC32_IFUNC)
+#if defined(__powerpc__)
+/* linux hardware detection via getauxval glibc function */
+#include <sys/auxv.h>
+#include <bits/hwcap.h>
+
+unsigned long crc32_vpmsum(unsigned long crc, const unsigned char *p,
+			  uInt len);
+
+STATIC_IFUNC unsigned long (*(crc32_ifunc(void)))(unsigned long, const unsigned char FAR *, uInt)
 {
-    if (buf == Z_NULL) return 0UL;
+    if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07)
+        return crc32_vpmsum;
+#ifdef Z_HAVE_IFUNC
+    return crc32_software;
+#else
+    return NULL;
+#endif
+}
 
-#ifdef DYNAMIC_CRC_TABLE
-    if (crc_table_empty)
-        make_crc_table();
-#endif /* DYNAMIC_CRC_TABLE */
+#else /* no other arch - return generic */
+#define GENERIC_CRC32_IFUNC
+#endif /* arch */
+#else /* not linux */
+#define GENERIC_CRC32_IFUNC
+#endif /* linux */
 
+#ifdef GENERIC_CRC32_IFUNC
+/* just return the software implementation */
+STATIC_IFUNC unsigned long (*(crc32_ifunc(void)))(unsigned long, const unsigned char FAR *, uInt)
+{
 #ifdef BYFOUR
     if (sizeof(void *) == sizeof(ptrdiff_t)) {
         z_crc_t endian;
 
         endian = 1;
         if (*((unsigned char *)(&endian)))
-            return crc32_little(crc, buf, len);
+            return crc32_little;
         else
-            return crc32_big(crc, buf, len);
+            return crc32_big;
     }
 #endif /* BYFOUR */
+#ifdef Z_HAVE_IFUNC
+    return crc32_software;
+#else
+    return NULL;
+#endif
+}
+#endif /* GENERIC_CRC32_IFUNC */
+
+#ifdef Z_HAVE_IFUNC
+#ifdef Z_IFUNC_NATIVE
+unsigned long ZEXPORT crc32(uLong, const unsigned char FAR *, uInt)
+  __attribute__ ((ifunc ("crc32_ifunc")));
+#elif defined(Z_IFUNC_ASM)
+__asm__(".type crc32, %gnu_indirect_function");
+#else
+#error Unknown IFUNC implementation
+#endif
+
+static
+unsigned long ZEXPORT crc32_software(crc, buf, len)
+#else /* Z_HAVE_IFUNC */
+unsigned long ZEXPORT crc32(crc, buf, len)
+#endif
+    unsigned long crc;
+    const unsigned char FAR *buf;
+    uInt len;
+{
+#if defined(BYFOUR) || !defined(Z_HAVE_IFUNC)
+    static int func_initialised = 0;
+    static unsigned long ZEXPORT (*crc32_func)(unsigned long, const unsigned char FAR *, uInt) = NULL;
+#endif
+
+    if (buf == Z_NULL) return 0UL;
+
+#if defined(BYFOUR) || !defined(Z_HAVE_IFUNC)
+    if (func_initialised) {
+        return (*crc32_func)(crc, buf, len);
+    } else {
+        crc32_func = crc32_ifunc();
+        if (crc32_func) {
+            func_initialised = 1;
+            return (*crc32_func)(crc, buf, len);
+        }
+    }
+#endif
+
+#ifdef DYNAMIC_CRC_TABLE
+    if (crc_table_empty)
+        make_crc_table();
+#endif /* DYNAMIC_CRC_TABLE */
+
     crc = crc ^ 0xffffffffUL;
     while (len >= 8) {
         DO8;
@@ -247,7 +333,7 @@ unsigned long ZEXPORT crc32(crc, buf, len)
 local unsigned long crc32_little(crc, buf, len)
     unsigned long crc;
     const unsigned char FAR *buf;
-    unsigned len;
+    uInt len;
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
@@ -287,7 +373,7 @@ local unsigned long crc32_little(crc, buf, len)
 local unsigned long crc32_big(crc, buf, len)
     unsigned long crc;
     const unsigned char FAR *buf;
-    unsigned len;
+    uInt len;
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
