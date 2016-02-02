@@ -31,7 +31,7 @@ package ZLib.Streams is
       Mode   : in     Flush_Mode := Sync_Flush);
    --  Flush the written data to the back stream,
    --  all data placed to the compressor is flushing to the Back stream.
-   --  Should not be used until necessary, becouse it is decreasing
+   --  Should not be used until necessary, because it is decreasing
    --  compression.
 
    function Read_Total_In (Stream : in Stream_Type) return Count;
