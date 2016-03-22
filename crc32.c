@@ -30,6 +30,11 @@
 
 #include "zutil.h"      /* for STDC and FAR definitions */
 
+#ifdef __ARM_FEATURE_CRC32
+#  define ARM_CRC32_INTRINSIC
+#  include <arm_acle.h>
+#endif
+
 #define local static
 
 /* Definitions for doing the crc four data bytes at a time. */
@@ -249,6 +254,43 @@ local unsigned long crc32_little(crc, buf, len)
     const unsigned char FAR *buf;
     unsigned len;
 {
+#ifdef ARM_CRC32_INTRINSIC
+    register z_crc_t c;
+    register const z_crc_t FAR *buf4;
+
+    c = (z_crc_t)crc;
+    c = ~c;
+    while (len && ((ptrdiff_t)buf & 3)) {
+        c = __crc32b(c, *buf++);
+        len--;
+    }
+
+    buf4 = (const z_crc_t FAR *)(const void FAR *) buf;
+    while (len >= 32) {
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        c = __crc32w(c, *buf4++);
+        len -= 32;
+    }
+
+    while (len >= 4) {
+        c = __crc32w(c, *buf4++);
+        len -= 4;
+    }
+
+    buf = (const unsigned char FAR *)buf4;
+    if (len) do {
+      c = __crc32b(c, *buf++);
+    } while (--len);
+
+    c = ~c;
+    return (unsigned long)c;
+#else /* ARM_CRC32_INTRINSIC */
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
 
@@ -275,6 +317,7 @@ local unsigned long crc32_little(crc, buf, len)
     } while (--len);
     c = ~c;
     return (unsigned long)c;
+#endif
 }
 
 /* ========================================================================= */
