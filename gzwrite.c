@@ -83,7 +83,13 @@ local int gz_comp(state, flush)
     if (state->direct) {
         got = write(state->fd, strm->next_in, strm->avail_in);
         if (got < 0 || (unsigned)got != strm->avail_in) {
+#if __STDC_WANT_SECURE_LIB__
+            char errbuf[255];
+            (void)zstrerror(errbuf, 255);
+            gz_error(state, Z_ERRNO, errbuf);
+#else
             gz_error(state, Z_ERRNO, zstrerror());
+#endif
             return -1;
         }
         strm->avail_in = 0;
@@ -100,7 +106,13 @@ local int gz_comp(state, flush)
             have = (unsigned)(strm->next_out - state->x.next);
             if (have && ((got = write(state->fd, state->x.next, have)) < 0 ||
                          (unsigned)got != have)) {
+#if __STDC_WANT_SECURE_LIB__
+                char errbuf[255];
+                (void)zstrerror(errbuf, 255);
+                gz_error(state, Z_ERRNO, errbuf);
+#else
                 gz_error(state, Z_ERRNO, zstrerror());
+#endif
                 return -1;
             }
             if (strm->avail_out == 0) {
@@ -353,6 +365,8 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va)
 #  ifdef HAS_vsnprintf_void
     (void)vsnprintf((char *)(state->in), size, format, va);
     len = strlen((char *)(state->in));
+#  elif __STDC_WANT_SECURE_LIB__
+    len = vsnprintf_s((char *)(state->in), size, _TRUNCATE, format, va);
 #  else
     len = vsnprintf((char *)(state->in), size, format, va);
 #  endif
