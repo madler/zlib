@@ -82,18 +82,21 @@ local int gz_comp(state, flush)
 
     /* write directly if requested */
     if (state->direct) {
-        got = write(state->fd, strm->next_in, strm->avail_in);
-        if (got < 0 || (unsigned)got != strm->avail_in) {
+        while (strm->avail_in) {
+            got = write(state->fd, strm->next_in, strm->avail_in);
+            if (got < 0) {
 #if __STDC_WANT_SECURE_LIB__
-            char errbuf[255];
-            (void)zstrerror(errbuf, 255);
-            gz_error(state, Z_ERRNO, errbuf);
+                char errbuf[255];
+                (void)zstrerror(errbuf, 255);
+                gz_error(state, Z_ERRNO, errbuf);
 #else
-            gz_error(state, Z_ERRNO, zstrerror());
+                gz_error(state, Z_ERRNO, zstrerror());
 #endif
-            return -1;
+                return -1;
+            }
+            strm->avail_in -= got;
+            strm->next_in += got;
         }
-        strm->avail_in = 0;
         return 0;
     }
 
@@ -104,23 +107,25 @@ local int gz_comp(state, flush)
            doing Z_FINISH then don't write until we get to Z_STREAM_END */
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
-            have = (unsigned)(strm->next_out - state->x.next);
-            if (have && ((got = write(state->fd, state->x.next, have)) < 0 ||
-                         (unsigned)got != have)) {
+            while (strm->next_out > state->x.next) {
+                got = write(state->fd, state->x.next,
+                            strm->next_out - state->x.next);
+                if (got < 0) {
 #if __STDC_WANT_SECURE_LIB__
-                char errbuf[255];
-                (void)zstrerror(errbuf, 255);
-                gz_error(state, Z_ERRNO, errbuf);
+                    char errbuf[255];
+                    (void)zstrerror(errbuf, 255);
+                    gz_error(state, Z_ERRNO, errbuf);
 #else
-                gz_error(state, Z_ERRNO, zstrerror());
+                    gz_error(state, Z_ERRNO, zstrerror());
 #endif
-                return -1;
+                    return -1;
+                }
+                state->x.next += got;
             }
             if (strm->avail_out == 0) {
                 strm->avail_out = state->size;
                 strm->next_out = state->out;
             }
-            state->x.next = strm->next_out;
         }
 
         /* compress */
