@@ -51,6 +51,27 @@
 
 #include "deflate.h"
 
+#ifdef __ARM_FEATURE_CRC32
+#  define ARM_CRC32_INTRINSIC
+#  include <arm_acle.h>
+#endif
+
+#ifndef FASTEST
+#if defined(ARM_CRC32_INTRINSIC)
+#  define USE_CRC32_INTRINSIC
+#  define EXTRA_DIST 1
+/* EXTRA_DIST is the difference of MIN_MATCH */
+#  undef MIN_MATCH
+#  define MIN_MATCH 4
+#endif
+#endif
+/*  MIN_MATCH optimization is disabled when FASTEST is defined.
+ */
+
+#ifndef EXTRA_DIST
+#define EXTRA_DIST 0
+#endif
+
 const char deflate_copyright[] =
    " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
 /*
@@ -160,12 +181,27 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 
 /* ===========================================================================
  * Update a hash value with the given input byte
- * IN  assertion: all calls to to UPDATE_HASH are made with consecutive
+ * IN  assertion: all calls to to hash are made with consecutive
  *    input characters, so that a running hash key can be computed from the
  *    previous key instead of complete recalculation each time.
  */
-#define UPDATE_HASH(s,h,c) (h = (((h)<<s->hash_shift) ^ (c)) & s->hash_mask)
+local uInt hash(s, h, str)
+    const deflate_state* s;
+    const uInt h;
+    const voidpf str;
+{
 
+#ifdef USE_CRC32_INTRINSIC
+#ifdef ARM_CRC32_INTRINSIC
+    (void)h;
+    return __crc32w(0, *(const uInt*)(str - (MIN_MATCH - 1))) & s->w_mask;
+#else
+#error No CRC32 intrinsic is found on current architecture.
+#endif
+#else /* USE_CRC32_INTRINSIC */
+    return ((h << s->hash_shift) ^ (*(const Bytef*)str)) & s->w_mask;
+#endif /* USE_CRC32_INTRINSIC */
+}
 
 /* ===========================================================================
  * Insert string str in the dictionary and set match_head to the previous head
@@ -179,12 +215,12 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
  */
 #ifdef FASTEST
 #define INSERT_STRING(s, str, match_head) \
-   (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (s->ins_h = hash(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #else
 #define INSERT_STRING(s, str, match_head) \
-   (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (s->ins_h = hash(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->prev[(str) & s->w_mask] = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #endif
@@ -365,7 +401,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
         str = s->strstart;
         n = s->lookahead - (MIN_MATCH-1);
         do {
-            UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+            s->ins_h = hash(s, s->ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
             s->prev[str & s->w_mask] = s->head[s->ins_h];
 #endif
@@ -1471,12 +1507,12 @@ local void fill_window(s)
         if (s->lookahead + s->insert >= MIN_MATCH) {
             uInt str = s->strstart - s->insert;
             s->ins_h = s->window[str];
-            UPDATE_HASH(s, s->ins_h, s->window[str + 1]);
-#if MIN_MATCH != 3
-            Call UPDATE_HASH() MIN_MATCH-3 more times
+            s->ins_h = hash(s, s->ins_h, &s->window[str + 1]);
+#if MIN_MATCH != 3 && !defined(USE_CRC32_INTRINSIC)
+            Call hash() MIN_MATCH-3 more times
 #endif
             while (s->insert) {
-                UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+                s->ins_h = hash(s, s->ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
                 s->prev[str & s->w_mask] = s->head[s->ins_h];
 #endif
@@ -1669,7 +1705,7 @@ local block_state deflate_fast(s, flush)
             check_match(s, s->strstart, s->match_start, s->match_length);
 
             _tr_tally_dist(s, s->strstart - s->match_start,
-                           s->match_length - MIN_MATCH, bflush);
+                           s->match_length - MIN_MATCH + EXTRA_DIST, bflush);
 
             s->lookahead -= s->match_length;
 
@@ -1694,9 +1730,9 @@ local block_state deflate_fast(s, flush)
                 s->strstart += s->match_length;
                 s->match_length = 0;
                 s->ins_h = s->window[s->strstart];
-                UPDATE_HASH(s, s->ins_h, s->window[s->strstart+1]);
-#if MIN_MATCH != 3
-                Call UPDATE_HASH() MIN_MATCH-3 more times
+                s->ins_h = hash(s, s->ins_h, &s->window[s->strstart+1]);
+#if MIN_MATCH != 3 && !defined(USE_CRC32_INTRINSIC)
+                Call hash() MIN_MATCH-3 more times
 #endif
                 /* If lookahead < MIN_MATCH, ins_h is garbage, but it does not
                  * matter since it will be recomputed at next deflate call.
@@ -1794,7 +1830,7 @@ local block_state deflate_slow(s, flush)
             check_match(s, s->strstart-1, s->prev_match, s->prev_length);
 
             _tr_tally_dist(s, s->strstart -1 - s->prev_match,
-                           s->prev_length - MIN_MATCH, bflush);
+                           s->prev_length - MIN_MATCH + EXTRA_DIST, bflush);
 
             /* Insert in hash table all strings up to the end of the match.
              * strstart-1 and strstart are already inserted. If there is not
@@ -1903,7 +1939,8 @@ local block_state deflate_rle(s, flush)
         if (s->match_length >= MIN_MATCH) {
             check_match(s, s->strstart, s->strstart - 1, s->match_length);
 
-            _tr_tally_dist(s, 1, s->match_length - MIN_MATCH, bflush);
+            _tr_tally_dist(s, 1, s->match_length - MIN_MATCH + EXTRA_DIST,
+                           bflush);
 
             s->lookahead -= s->match_length;
             s->strstart += s->match_length;
