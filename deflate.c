@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.2.8.1 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -92,7 +92,7 @@ local int read_buf        OF((z_streamp strm, Bytef *buf, unsigned size));
 local uInt longest_match  OF((deflate_state *s, IPos cur_match));
 #endif
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 local  void check_match OF((deflate_state *s, IPos start, IPos match,
                             int length));
 #endif
@@ -156,7 +156,7 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
 #endif
 
 /* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
-#define RANK(f) (((f) << 1) - ((f) > 4 ? 9 : 0))
+#define RANK(f) (((f) * 2) - ((f) > 4 ? 9 : 0))
 
 /* ===========================================================================
  * Update a hash value with the given input byte
@@ -509,8 +509,7 @@ int ZEXPORT deflateParams(strm, level, strategy)
     }
     func = configuration_table[s->level].func;
 
-    if ((strategy != s->strategy || func != configuration_table[level].func) &&
-        strm->total_in != 0) {
+    if ((strategy != s->strategy || func != configuration_table[level].func)) {
         /* Flush the last buffer: */
         err = deflate(strm, Z_BLOCK);
         if (err == Z_BUF_ERROR && s->pending == 0)
@@ -676,7 +675,7 @@ int ZEXPORT deflate (strm, flush)
     s = strm->state;
 
     if (strm->next_out == Z_NULL ||
-        (strm->next_in == Z_NULL && strm->avail_in != 0) ||
+        (strm->avail_in != 0 && strm->next_in == Z_NULL) ||
         (s->status == FINISH_STATE && flush != Z_FINISH)) {
         ERR_RETURN(strm, Z_STREAM_ERROR);
     }
@@ -1151,7 +1150,7 @@ local uInt longest_match(s, cur_match)
 {
     unsigned chain_length = s->max_chain_length;/* max hash chain length */
     register Bytef *scan = s->window + s->strstart; /* current string */
-    register Bytef *match;                       /* matched string */
+    register Bytef *match;                      /* matched string */
     register int len;                           /* length of current match */
     int best_len = s->prev_length;              /* best match length so far */
     int nice_match = s->nice_match;             /* stop if match long enough */
@@ -1349,7 +1348,7 @@ local uInt longest_match(s, cur_match)
 
 #endif /* FASTEST */
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 /* ===========================================================================
  * Check that the match at match_start is indeed a match.
  */
@@ -1375,7 +1374,7 @@ local void check_match(s, start, match, length)
 }
 #else
 #  define check_match(s, start, match, length)
-#endif /* DEBUG */
+#endif /* ZLIB_DEBUG */
 
 /* ===========================================================================
  * Fill the window when the lookahead becomes insufficient.
