@@ -71,7 +71,7 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
         message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
         message(STATUS "to 'zconf.h.included' because this file is included with zlib")
         message(STATUS "but CMake generates it automatically in the build directory.")
-        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
+        file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
   endif()
 endif()
 
