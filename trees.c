@@ -1220,7 +1220,5 @@ local void copy_block(s, buf, len, header)
 #ifdef DEBUG
     s->bits_sent += (ulg)len<<3;
 #endif
-    while (len--) {
-        put_byte(s, *buf++);
-    }
+    put_block(s, buf, len);
 }

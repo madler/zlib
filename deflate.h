@@ -276,6 +276,7 @@ typedef struct internal_state {
  * IN assertion: there is enough room in pending_buf.
  */
 #define put_byte(s, c) {s->pending_buf[s->pending++] = (c);}
+#define put_block(s, b, l) {memcpy(&s->pending_buf[s->pending], (b), (l)); s->pending += (l);}
 
 
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
