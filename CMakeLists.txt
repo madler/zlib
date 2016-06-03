@@ -214,6 +214,7 @@ endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlib zlibstatic
+        EXPORT zlib
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
@@ -249,3 +250,14 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+target_include_directories(zlib INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+target_include_directories(zlibstatic INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(zlib-config.cmake.in zlib-config.cmake INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake VERSION ${VERSION} COMPATIBILITY ExactVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+install(EXPORT zlib DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} NAMESPACE zlib:: FILE zlib-export.cmake)
