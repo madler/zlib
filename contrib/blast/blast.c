@@ -260,7 +260,7 @@ local int construct(struct huffman *h, const unsigned char *rep, int n)
  *   next, 0 for literals, 1 for length/distance.
  *
  * - If literals are uncoded, then the next eight bits are the literal, in the
- *   normal bit order in th stream, i.e. no bit-reversal is needed. Similarly,
+ *   normal bit order in the stream, i.e. no bit-reversal is needed. Similarly,
  *   no bit reversal is needed for either the length extra bits or the distance
  *   extra bits.
  *
