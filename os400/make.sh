@@ -21,7 +21,7 @@ TGTCCSID='500'                  # Target CCSID of objects
 DEBUG='*NONE'                   # Debug level
 OPTIMIZE='40'                   # Optimisation level
 OUTPUT='*NONE'                  # Compilation output option.
-TGTRLS='V5R3M0'                 # Target OS release
+TGTRLS='V6R1M0'                 # Target OS release
 
 export TARGETLIB STATBNDDIR DYNBNDDIR SRVPGM IFSDIR
 export TGTCCSID DEBUG OPTIMIZE OUTPUT TGTRLS
