@@ -60,6 +60,11 @@ endif()
 check_include_file(unistd.h Z_HAVE_UNISTD_H)
 
 if(MSVC)
+    # make sure PDBs are generated
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Zi")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Od /RTC1 /Gm" )
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Oxt /Gm- /Gy")
+    
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
@@ -188,6 +193,20 @@ add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZL
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
 
+# Make sure that full PDB is always generated for static library
+if(MSVC)
+    message(STATUS "Setting zlibstatic PDB path, name")
+    set_target_properties(zlibstatic
+               PROPERTIES
+               CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY_DEBUG
+               ${PROJECT_BINARY_DIR}/Debug
+               CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY_RELEASE
+               ${PROJECT_BINARY_DIR}/Release
+               COMPILE_PDB_NAME 
+               zlibstatic
+    )
+endif(MSVC)
+    
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
     # encoded into their final filename.  We disable this on Cygwin because
