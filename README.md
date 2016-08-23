@@ -1,4 +1,4 @@
-ZLIB DATA COMPRESSION LIBRARY
+# ZLIB DATA COMPRESSION LIBRARY
 
 zlib 1.2.8 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
@@ -7,7 +7,7 @@ http://tools.ietf.org/html/rfc1950 (zlib format), rfc1951 (deflate format) and
 rfc1952 (gzip format).
 
 All functions of the compression library are documented in the file zlib.h
-(volunteer to write man pages welcome, contact zlib@gzip.org).  A usage example
+(volunteers to write man pages are welcome, contact <zlib@gzip.org>).  A usage example
 of the library is given in the file test/example.c which also tests that
 the library is working correctly.  Another example is given in the file
 test/minigzip.c.  The compression library itself is composed of all source
@@ -25,35 +25,35 @@ http://zlib.net/ .  Before reporting a problem, please check this site to
 verify that you have the latest version of zlib; otherwise get the latest
 version and check whether the problem still exists or not.
 
-PLEASE read the zlib FAQ http://zlib.net/zlib_faq.html before asking for help.
+PLEASE read the zlib FAQ at <http://zlib.net/zlib_faq.html> before asking for help.
 
 Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan.  1997
-issue of Dr.  Dobb's Journal; a copy of the article is available at
-http://marknelson.us/1997/01/01/zlib-engine/ .
+issue of Dr. Dobb's Journal; a copy of the article is available at
+<http://marknelson.us/1997/01/01/zlib-engine/>.
 
-The changes made in version 1.2.8 are documented in the file ChangeLog.
+The changes made in version 1.2.8 are documented in the file <ChangeLog>.
 
-Unsupported third party contributions are provided in directory contrib/ .
+Unsupported third party contributions are provided in the directory `contrib`.
 
 zlib is available in Java using the java.util.zip package, documented at
-http://java.sun.com/developer/technicalArticles/Programming/compression/ .
+<http://java.sun.com/developer/technicalArticles/Programming/compression/>.
 
 A Perl interface to zlib written by Paul Marquess <pmqs@cpan.org> is available
 at CPAN (Comprehensive Perl Archive Network) sites, including
-http://search.cpan.org/~pmqs/IO-Compress-Zlib/ .
+<http://search.cpan.org/~pmqs/IO-Compress-Zlib/>.
 
 A Python interface to zlib written by A.M. Kuchling <amk@amk.ca> is
 available in Python 1.5 and later versions, see
-http://docs.python.org/library/zlib.html .
+<http://docs.python.org/library/zlib.html>.
 
-zlib is built into tcl: http://wiki.tcl.tk/4610 .
+zlib is built into tcl: <http://wiki.tcl.tk/4610>.
 
 An experimental package to read and write files in .zip format, written on top
 of zlib by Gilles Vollant <info@winimage.com>, is available in the
-contrib/minizip directory of zlib.
+`contrib/minizip` directory of zlib.
 
 
-Notes for some targets:
+#### Notes for some targets:
 
 - For Windows DLL versions, please see win32/DLL_FAQ.txt
 
@@ -72,17 +72,17 @@ Notes for some targets:
 
 - gzdopen is not supported on RISCOS or BEOS.
 
-- For PalmOs, see http://palmzlib.sourceforge.net/
+- For PalmOs, see <http://palmzlib.sourceforge.net/>.
 
 
-Acknowledgments:
+## Acknowledgments:
 
   The deflate format used by zlib was defined by Phil Katz.  The deflate and
   zlib specifications were written by L.  Peter Deutsch.  Thanks to all the
   people who reported problems and suggested various improvements in zlib; they
   are too numerous to cite here.
 
-Copyright notice:
+## Copyright notice:
 
  (C) 1995-2013 Jean-loup Gailly and Mark Adler
 
