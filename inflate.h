@@ -77,7 +77,8 @@ typedef enum {
         CHECK -> LENGTH -> DONE
  */
 
-/* state maintained between inflate() calls.  Approximately 10K bytes. */
+/* State maintained between inflate() calls -- approximately 7K bytes, not
+   inlcuding the allocated sliding window, which is up to 32K bytes. */
 struct inflate_state {
     z_streamp strm;		/* pointer back to this zlib stream */
     inflate_mode mode;          /* current inflate mode */
