@@ -1768,11 +1768,6 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);  /* backward compatibility */
 
 #endif /* !Z_SOLO */
 
-/* hack for buggy compilers */
-#if !defined(ZUTIL_H) && !defined(NO_DUMMY_DECL)
-    struct internal_state {int dummy;};
-#endif
-
 /* undocumented functions */
 ZEXTERN const char   * ZEXPORT zError(int);
 ZEXTERN int            ZEXPORT inflateSyncPoint(z_streamp);
