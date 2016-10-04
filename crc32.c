@@ -237,6 +237,18 @@ unsigned long ZEXPORT crc32(crc, buf, len)
 
 #ifdef BYFOUR
 
+/*
+   This BYFOUR code accesses the passed unsigned char * buffer with a 32-bit
+   integer pointer type. This violates the strict aliasing rule, where a
+   compiler can assume, for optimization purposes, that two pointers to
+   fundamentally different types won't ever point to the same memory. This can
+   manifest as a problem only if one of the pointers is written to. This code
+   only reads from those pointers. So long as this code remains isolated in
+   this compilation unit, there won't be a problem. For this reason, this code
+   should not be copied and pasted into a compilation unit in which other code
+   writes to the buffer that is passed to these routines.
+ */
+
 /* ========================================================================= */
 #define DOLIT4 c ^= *buf4++; \
         c = crc_table[3][c & 0xff] ^ crc_table[2][(c >> 8) & 0xff] ^ \
