@@ -23,14 +23,14 @@ local int gz_load(state, buf, len, have)
     unsigned len;
     unsigned *have;
 {
-    int ret;
+    ssize_t ret;
 
     *have = 0;
     do {
         ret = read(state->fd, buf + *have, len - *have);
         if (ret <= 0)
             break;
-        *have += ret;
+        *have += (unsigned)ret;
     } while (*have < len);
     if (ret < 0) {
 #if __STDC_WANT_SECURE_LIB__
@@ -457,7 +457,7 @@ int ZEXPORT gzungetc(c, file)
     if (state->x.have == 0) {
         state->x.have = 1;
         state->x.next = state->out + (state->size << 1) - 1;
-        state->x.next[0] = c;
+        state->x.next[0] = (unsigned char)c;
         state->x.pos--;
         state->past = 0;
         return c;
@@ -479,7 +479,7 @@ int ZEXPORT gzungetc(c, file)
     }
     state->x.have++;
     state->x.next--;
-    state->x.next[0] = c;
+    state->x.next[0] = (unsigned char)c;
     state->x.pos--;
     state->past = 0;
     return c;
