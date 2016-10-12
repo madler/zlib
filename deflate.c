@@ -84,7 +84,7 @@ local block_state deflate_huff   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
 local void putShortMSB    OF((deflate_state *s, uInt b));
 local void flush_pending  OF((z_streamp strm));
-local int read_buf        OF((z_streamp strm, Bytef *buf, unsigned size));
+local unsigned read_buf   OF((z_streamp strm, Bytef *buf, unsigned size));
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
       uInt longest_match  OF((deflate_state *s, IPos cur_match));
@@ -277,11 +277,11 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     s->wrap = wrap;
     s->gzhead = Z_NULL;
-    s->w_bits = windowBits;
+    s->w_bits = (uInt)windowBits;
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
 
-    s->hash_bits = memLevel + 7;
+    s->hash_bits = (uInt)memLevel + 7;
     s->hash_size = 1 << s->hash_bits;
     s->hash_mask = s->hash_size - 1;
     s->hash_shift =  ((s->hash_bits+MIN_MATCH-1)/MIN_MATCH);
@@ -534,10 +534,10 @@ int ZEXPORT deflateTune(strm, good_length, max_lazy, nice_length, max_chain)
 
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
     s = strm->state;
-    s->good_match = good_length;
-    s->max_lazy_match = max_lazy;
+    s->good_match = (uInt)good_length;
+    s->max_lazy_match = (uInt)max_lazy;
     s->nice_match = nice_length;
-    s->max_chain_length = max_chain;
+    s->max_chain_length = (uInt)max_chain;
     return Z_OK;
 }
 
@@ -1068,7 +1068,7 @@ int ZEXPORT deflateCopy (dest, source)
  * allocating a large strm->next_in buffer and copying from it.
  * (See also flush_pending()).
  */
-local int read_buf(strm, buf, size)
+local unsigned read_buf(strm, buf, size)
     z_streamp strm;
     Bytef *buf;
     unsigned size;
@@ -1092,7 +1092,7 @@ local int read_buf(strm, buf, size)
     strm->next_in  += len;
     strm->total_in += len;
 
-    return (int)len;
+    return len;
 }
 
 /* ===========================================================================
@@ -1148,7 +1148,7 @@ local uInt longest_match(s, cur_match)
     register Bytef *scan = s->window + s->strstart; /* current string */
     register Bytef *match;                      /* matched string */
     register int len;                           /* length of current match */
-    int best_len = s->prev_length;              /* best match length so far */
+    int best_len = (int)s->prev_length;         /* best match length so far */
     int nice_match = s->nice_match;             /* stop if match long enough */
     IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
         s->strstart - (IPos)MAX_DIST(s) : NIL;
@@ -1183,7 +1183,7 @@ local uInt longest_match(s, cur_match)
     /* Do not look for matches beyond the end of the input. This is necessary
      * to make deflate deterministic.
      */
-    if ((uInt)nice_match > s->lookahead) nice_match = s->lookahead;
+    if ((uInt)nice_match > s->lookahead) nice_match = (int)s->lookahead;
 
     Assert((ulg)s->strstart <= s->window_size-MIN_LOOKAHEAD, "need lookahead");
 
@@ -1589,7 +1589,7 @@ local block_state deflate_stored(s, flush)
         s->lookahead = 0;
 
         /* Emit a stored block if pending_buf will be full: */
-        max_start = s->block_start + max_block_size;
+        max_start = max_block_size + (ulg)s->block_start;
         if (s->strstart == 0 || (ulg)s->strstart >= max_start) {
             /* strstart == 0 is possible when wraparound on 16-bit machine */
             s->lookahead = (uInt)(s->strstart - max_start);
@@ -1887,7 +1887,7 @@ local block_state deflate_rle(s, flush)
                          prev == *++scan && prev == *++scan &&
                          prev == *++scan && prev == *++scan &&
                          scan < strend);
-                s->match_length = MAX_MATCH - (int)(strend - scan);
+                s->match_length = MAX_MATCH - (uInt)(strend - scan);
                 if (s->match_length > s->lookahead)
                     s->match_length = s->lookahead;
             }
