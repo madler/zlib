@@ -310,7 +310,7 @@ const char *gzerror(gzFile gz, int *err) {
 
 #endif
 
-char *prog;
+static char *prog;
 
 void error           (const char *msg);
 void gz_compress     (FILE   *in, gzFile out);
