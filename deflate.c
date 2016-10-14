@@ -129,9 +129,6 @@ static const config configuration_table[10] = {
  * meaning.
  */
 
-#define EQUAL 0
-/* result of memcmp for equal strings */
-
 /* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
 #define RANK(f) (((f) * 2) - ((f) > 4 ? 9 : 0))
 
@@ -1235,6 +1232,10 @@ static uint32_t longest_match(deflate_state *s, IPos cur_match /* current match 
 }
 
 #ifdef ZLIB_DEBUG
+
+#define EQUAL 0
+/* result of memcmp for equal strings */
+
 /* ===========================================================================
  * Check that the match at match_start is indeed a match.
  */
