@@ -26,13 +26,13 @@
     } \
 }
 
-z_const char hello[] = "hello, hello!";
+static z_const char hello[] = "hello, hello!";
 /* "hello world" would be more standard, but the repeated "hello"
  * stresses the compression code better, sorry...
  */
 
-const char dictionary[] = "hello";
-uLong dictId; /* Adler32 value of the dictionary */
+static const char dictionary[] = "hello";
+static uLong dictId;    /* Adler32 value of the dictionary */
 
 void test_deflate       OF((Byte *compr, uLong comprLen));
 void test_inflate       OF((Byte *compr, uLong comprLen,
