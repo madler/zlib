@@ -21,7 +21,7 @@ if (NOT INSTALL_MAN_DIR)
     set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man")
 endif ()
 if (NOT INSTALL_PKGCONFIG_DIR)
-    set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig")
+    set(INSTALL_PKGCONFIG_DIR "${INSTALL_LIB_DIR}/pkgconfig")
 endif ()
 
 include(CheckTypeSize)
