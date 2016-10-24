@@ -563,6 +563,10 @@ ZEXTERN int ZEXPORT deflateInit2 OF((z_streamp strm,
    header crc, and the operating system will be set to 255 (unknown).  If a
    gzip stream is being written, strm->adler is a crc32 instead of an adler32.
 
+     For raw deflate or gzip encoding, a request for a 256-byte window is
+   rejected as invalid, since only the zlib header provides a means of
+   transmitting the window size to the decompressor.
+
      The memLevel parameter specifies how much memory should be allocated
    for the internal compression state.  memLevel=1 uses minimum memory but is
    slow and reduces compression ratio; memLevel=9 uses maximum memory for
