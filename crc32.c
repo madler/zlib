@@ -30,8 +30,6 @@
 
 #include "zutil.h"      /* for STDC and FAR definitions */
 
-#define local static
-
 /* Definitions for doing the crc four data bytes at a time. */
 #if !defined(NOBYFOUR) && defined(Z_U4)
 #  define BYFOUR
