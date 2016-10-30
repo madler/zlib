@@ -154,9 +154,9 @@ local const config configuration_table[10] = {
 
 /* ===========================================================================
  * Update a hash value with the given input byte
- * IN  assertion: all calls to to UPDATE_HASH are made with consecutive
- *    input characters, so that a running hash key can be computed from the
- *    previous key instead of complete recalculation each time.
+ * IN  assertion: all calls to UPDATE_HASH are made with consecutive input
+ *    characters, so that a running hash key can be computed from the previous
+ *    key instead of complete recalculation each time.
  */
 #define UPDATE_HASH(s,h,c) (h = (((h)<<s->hash_shift) ^ (c)) & s->hash_mask)
 
@@ -167,9 +167,9 @@ local const config configuration_table[10] = {
  * the previous length of the hash chain.
  * If this file is compiled with -DFASTEST, the compression level is forced
  * to 1, and no hash chains are maintained.
- * IN  assertion: all calls to to INSERT_STRING are made with consecutive
- *    input characters and the first MIN_MATCH bytes of str are valid
- *    (except for the last MIN_MATCH-1 bytes of the input file).
+ * IN  assertion: all calls to INSERT_STRING are made with consecutive input
+ *    characters and the first MIN_MATCH bytes of str are valid (except for
+ *    the last MIN_MATCH-1 bytes of the input file).
  */
 #ifdef FASTEST
 #define INSERT_STRING(s, str, match_head) \
