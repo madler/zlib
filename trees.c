@@ -152,8 +152,6 @@ local int  detect_data_type OF((deflate_state *s));
 local unsigned bi_reverse OF((unsigned value, int length));
 local void bi_windup      OF((deflate_state *s));
 local void bi_flush       OF((deflate_state *s));
-local void copy_block     OF((deflate_state *s, charf *buf, unsigned len,
-                              int header));
 
 #ifdef GEN_TREES_H
 local void gen_trees_header OF((void));
@@ -869,11 +867,17 @@ void ZLIB_INTERNAL _tr_stored_block(s, buf, stored_len, last)
     int last;         /* one if this is the last block for a file */
 {
     send_bits(s, (STORED_BLOCK<<1)+last, 3);    /* send block type */
+    bi_windup(s);        /* align on byte boundary */
+    put_short(s, (ush)stored_len);
+    put_short(s, (ush)~stored_len);
+    zmemcpy(s->pending_buf + s->pending, buf, stored_len);
+    s->pending += stored_len;
 #ifdef ZLIB_DEBUG
     s->compressed_len = (s->compressed_len + 3 + 7) & (ulg)~7L;
     s->compressed_len += (stored_len + 4) << 3;
+    s->bits_sent += 2*16;
+    s->bits_sent += stored_len<<3;
 #endif
-    copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
 }
 
 /* ===========================================================================
@@ -1196,31 +1200,4 @@ local void bi_windup(s)
 #ifdef ZLIB_DEBUG
     s->bits_sent = (s->bits_sent+7) & ~7;
 #endif
-}
-
-/* ===========================================================================
- * Copy a stored block, storing first the length and its
- * one's complement if requested.
- */
-local void copy_block(s, buf, len, header)
-    deflate_state *s;
-    charf    *buf;    /* the input data */
-    unsigned len;     /* its length */
-    int      header;  /* true if block header must be written */
-{
-    bi_windup(s);        /* align on byte boundary */
-
-    if (header) {
-        put_short(s, (ush)len);
-        put_short(s, (ush)~len);
-#ifdef ZLIB_DEBUG
-        s->bits_sent += 2*16;
-#endif
-    }
-#ifdef ZLIB_DEBUG
-    s->bits_sent += (ulg)len<<3;
-#endif
-    while (len--) {
-        put_byte(s, *buf++);
-    }
 }
