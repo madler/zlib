@@ -47,3 +47,7 @@ zran.c
     index a zlib or gzip stream and randomly access it
     - illustrates the use of Z_BLOCK, inflatePrime(), and
       inflateSetDictionary() to provide random access
+
+makedht.c
+    makes a dynamic huffman table given lit/len and distance histograms
+    -- illustrates the proper use of deflate_make_dht() 
