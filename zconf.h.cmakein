@@ -253,7 +253,7 @@
  Of course this will generally degrade compression (there's no free lunch).
 
    The memory requirements for inflate are (in bytes) 1 << windowBits
- that is, 32K for windowBits=15 (default value) plus a few kilobytes
+ that is, 32K for windowBits=15 (default value) plus about 7 kilobytes
  for small objects.
 */
 
