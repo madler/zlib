@@ -321,4 +321,10 @@ void ZLIB_INTERNAL zcfree (opaque, ptr)
 
 #endif /* MY_ZCALLOC */
 
+/* Dummy function returned for ABI compatibility */
+unsigned long ZEXPORT gzflags (void)
+{
+    return 0;
+}
+
 #endif /* !Z_SOLO */
