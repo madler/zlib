@@ -494,7 +494,7 @@ int ZEXPORT gzflush(gzFile file, int flush) {
     }
 
     /* compress remaining data with requested flush */
-    gz_comp(state, flush);
+    (void)gz_comp(state, flush);
     return state->err;
 }
 
