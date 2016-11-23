@@ -695,24 +695,25 @@ ZEXTERN int ZEXPORT deflateParams OF((z_streamp strm,
    new level and strategy will take effect at the next call of deflate().
 
      If a deflate(strm, Z_BLOCK) is performed by deflateParams(), and it does
-   not have enough output space to complete, then the parameter change will
-   take effect at an undetermined location in the uncompressed data provided so
-   far.  In order to assure a change in the parameters at a specific location
-   in the uncompressed data, the deflate stream should first be flushed with
-   Z_BLOCK or another flush parameter, and deflate() called until
-   strm.avail_out is not zero, before the call of deflateParams().  Then no
-   more input data should be provided before the deflateParams() call.  If this
-   is done, the old level and strategy will be applied to the data compressed
-   before deflateParams(), and the new level and strategy will be applied to
-   the the data compressed after deflateParams().
+   not have enough output space to complete, then the parameter change will not
+   take effect.  In this case, deflateParams() can be called again with the
+   same parameters and more output space to try again.
 
-     deflateParams returns Z_OK if success, Z_STREAM_ERROR if the source stream
+     In order to assure a change in the parameters on the first try, the
+   deflate stream should be flushed using deflate() with Z_BLOCK or other flush
+   request until strm.avail_out is not zero, before calling deflateParams().
+   Then no more input data should be provided before the deflateParams() call.
+   If this is done, the old level and strategy will be applied to the data
+   compressed before deflateParams(), and the new level and strategy will be
+   applied to the the data compressed after deflateParams().
+
+     deflateParams returns Z_OK on success, Z_STREAM_ERROR if the source stream
    state was inconsistent or if a parameter was invalid, or Z_BUF_ERROR if
-   there was not enough output space to complete the compression before the
-   parameters were changed.  Note that in the case of a Z_BUF_ERROR, the
-   parameters are changed nevertheless, and will take effect at an undetermined
-   location in the previously supplied uncompressed data.  Compression may
-   proceed after a Z_BUF_ERROR.
+   there was not enough output space to complete the compression of the
+   available input data before a change in the strategy or approach.  Note that
+   in the case of a Z_BUF_ERROR, the parameters are not changed.  A return
+   value of Z_BUF_ERROR is not fatal, in which case deflateParams() can be
+   retried with more output space.
 */
 
 ZEXTERN int ZEXPORT deflateTune OF((z_streamp strm,
