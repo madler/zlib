@@ -1,10 +1,13 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.8.1 (xx May 2013)
+- 
+
 Changes in 1.2.8 (28 Apr 2013)
 - Update contrib/minizip/iowin32.c for Windows RT [Vollant]
 - Do not force Z_CONST for C++
-- Clean up contrib/vstudio [Ro§]
+- Clean up contrib/vstudio [RoÃŸ]
 - Correct spelling error in zlib.h
 - Fix mixed line endings in contrib/vstudio
 
@@ -34,7 +37,7 @@ Changes in 1.2.7.1 (24 Mar 2013)
 - Clean up the usage of z_const and respect const usage within zlib
 - Clean up examples/gzlog.[ch] comparisons of different types
 - Avoid shift equal to bits in type (caused endless loop)
-- Fix unintialized value bug in gzputc() introduced by const patches
+- Fix uninitialized value bug in gzputc() introduced by const patches
 - Fix memory allocation error in examples/zran.c [Nor]
 - Fix bug where gzopen(), gzclose() would write an empty file
 - Fix bug in gzclose() when gzwrite() runs out of memory
@@ -564,7 +567,7 @@ Changes in 1.2.3.1 (16 August 2006)
 - Update make_vms.com [Zinser]
 - Use -fPIC for shared build in configure [Teredesai, Nicholson]
 - Use only major version number for libz.so on IRIX and OSF1 [Reinholdtsen]
-- Use fdopen() (not _fdopen()) for Interix in zutil.h [BŠck]
+- Use fdopen() (not _fdopen()) for Interix in zutil.h [BÃ¤ck]
 - Add some FAQ entries about the contrib directory
 - Update the MVS question in the FAQ
 - Avoid extraneous reads after EOF in gzio.c [Brown]
@@ -1178,7 +1181,7 @@ Changes in 1.0.6 (19 Jan 1998)
         386 asm code replacing longest_match().
    contrib/iostream/ by Kevin Ruland <kevin@rodin.wustl.edu>
         A C++ I/O streams interface to the zlib gz* functions
-   contrib/iostream2/  by Tyge Løvset <Tyge.Lovset@cmr.no>
+   contrib/iostream2/  by Tyge LÃ¸vset <Tyge.Lovset@cmr.no>
         Another C++ I/O streams interface
    contrib/untgz/  by "Pedro A. Aranda Guti\irrez" <paag@tid.es>
         A very simple tar.gz file extractor using zlib

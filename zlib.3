@@ -1,4 +1,4 @@
-.TH ZLIB 3 "28 Apr 2013"
+.TH ZLIB 3 "7 July 2015"
 .SH NAME
 zlib \- compression/decompression library
 .SH SYNOPSIS
@@ -124,17 +124,35 @@ http://zlib.net/zlib_faq.html
 before asking for help.
 Send questions and/or comments to zlib@gzip.org,
 or (for the Windows DLL version) to Gilles Vollant (info@winimage.com).
-.SH AUTHORS
-Version 1.2.8
-Copyright (C) 1995-2013 Jean-loup Gailly (jloup@gzip.org)
-and Mark Adler (madler@alumni.caltech.edu).
+.SH AUTHORS AND LICENSE
+Version 1.2.8.1
 .LP
-This software is provided "as-is,"
-without any express or implied warranty.
-In no event will the authors be held liable for any damages
+Copyright (C) 1995-2015 Jean-loup Gailly and Mark Adler
+.LP
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
 arising from the use of this software.
-See the distribution directory with respect to requirements
-governing redistribution.
+.LP
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+.LP
+.nr step 1 1
+.IP \n[step]. 3
+The origin of this software must not be misrepresented; you must not
+claim that you wrote the original software. If you use this software
+in a product, an acknowledgment in the product documentation would be
+appreciated but is not required.
+.IP \n+[step].
+Altered source versions must be plainly marked as such, and must not be
+misrepresented as being the original software.
+.IP \n+[step].
+This notice may not be removed or altered from any source distribution.
+.LP
+Jean-loup Gailly        Mark Adler
+.br
+jloup@gzip.org          madler@alumni.caltech.edu
+.LP
 The deflate format used by
 .I zlib
 was defined by Phil Katz.
