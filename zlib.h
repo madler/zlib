@@ -1355,10 +1355,12 @@ ZEXTERN int ZEXPORT gzbuffer OF((gzFile file, unsigned size));
 ZEXTERN int ZEXPORT gzsetparams OF((gzFile file, int level, int strategy));
 /*
      Dynamically update the compression level or strategy.  See the description
-   of deflateInit2 for the meaning of these parameters.
+   of deflateInit2 for the meaning of these parameters.  Previously provided
+   data is flushed before the parameter change.
 
-     gzsetparams returns Z_OK if success, or Z_STREAM_ERROR if the file was not
-   opened for writing.
+     gzsetparams returns Z_OK if success, Z_STREAM_ERROR if the file was not
+   opened for writing, Z_ERRNO if there is an error writing the flushed data,
+   or Z_MEM_ERROR if there is a memory allocation error.
 */
 
 ZEXTERN int ZEXPORT gzread OF((gzFile file, voidp buf, unsigned len));
@@ -1401,15 +1403,15 @@ ZEXTERN int ZEXPORTVA gzprintf Z_ARG((gzFile file, const char *format, ...));
 /*
      Converts, formats, and writes the arguments to the compressed file under
    control of the format string, as in fprintf.  gzprintf returns the number of
-   uncompressed bytes actually written, or 0 in case of error.  The number of
-   uncompressed bytes written is limited to 8191, or one less than the buffer
-   size given to gzbuffer().  The caller should assure that this limit is not
-   exceeded.  If it is exceeded, then gzprintf() will return an error (0) with
-   nothing written.  In this case, there may also be a buffer overflow with
-   unpredictable consequences, which is possible only if zlib was compiled with
-   the insecure functions sprintf() or vsprintf() because the secure snprintf()
-   or vsnprintf() functions were not available.  This can be determined using
-   zlibCompileFlags().
+   uncompressed bytes actually written, or a negative zlib error code in case
+   of error.  The number of uncompressed bytes written is limited to 8191, or
+   one less than the buffer size given to gzbuffer().  The caller should assure
+   that this limit is not exceeded.  If it is exceeded, then gzprintf() will
+   return an error (0) with nothing written.  In this case, there may also be a
+   buffer overflow with unpredictable consequences, which is possible only if
+   zlib was compiled with the insecure functions sprintf() or vsprintf()
+   because the secure snprintf() or vsnprintf() functions were not available.
+   This can be determined using zlibCompileFlags().
 */
 
 ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));

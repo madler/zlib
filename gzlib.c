@@ -615,7 +615,6 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
     strcat(state->msg, ": ");
     strcat(state->msg, msg);
 #endif
-    return;
 }
 
 #ifndef INT_MAX
