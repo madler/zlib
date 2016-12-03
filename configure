@@ -181,9 +181,12 @@ show $cc -c $test.c
 if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   echo ... using gcc >> configure.log
   CC="$cc"
-  CFLAGS="${CFLAGS--O3} ${ARCHS}"
+  CFLAGS="${CFLAGS--O3}"
   SFLAGS="${CFLAGS--O3} -fPIC"
-  LDFLAGS="${LDFLAGS} ${ARCHS}"
+  if test "$ARCHS"; then
+    CFLAGS="${CFLAGS} ${ARCHS}"
+    LDFLAGS="${LDFLAGS} ${ARCHS}"
+  fi
   if test $build64 -eq 1; then
     CFLAGS="${CFLAGS} -m64"
     SFLAGS="${SFLAGS} -m64"
@@ -360,16 +363,16 @@ if ($CC -c $CFLAGS $test.c) 2>/dev/null; then
   }
   echo - using any output from compiler to indicate an error >> configure.log
 else
-try()
-{
-  show $*
-  ( $* ) >> configure.log 2>&1
-  ret=$?
-  if test $ret -ne 0; then
-    echo "(exit code "$ret")" >> configure.log
-  fi
-  return $ret
-}
+  try()
+  {
+    show $*
+    ( $* ) >> configure.log 2>&1
+    ret=$?
+    if test $ret -ne 0; then
+      echo "(exit code "$ret")" >> configure.log
+    fi
+    return $ret
+  }
 fi
 
 tryboth()
@@ -442,6 +445,85 @@ case $CFLAGS in
       echo Checking for underline in external names... Yes. | tee -a configure.log
     fi ;;
 esac
+
+echo >> configure.log
+
+# check for size_t
+cat > $test.c <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+size_t dummy = 0;
+EOF
+if try $CC -c $CFLAGS $test.c; then
+  echo "Checking for size_t... Yes." | tee -a configure.log
+  need_sizet=0
+else
+  echo "Checking for size_t... No." | tee -a configure.log
+  need_sizet=1
+fi
+
+echo >> configure.log
+
+# check for ssize_t
+cat > $test.c <<EOF
+#include <sys/types.h>
+ssize_t dummy = 0;
+EOF
+if try $CC -c $CFLAGS $test.c; then
+  echo "Checking for ssize_t... Yes." | tee -a configure.log
+  need_ssizet=0
+else
+  echo "Checking for ssize_t... No." | tee -a configure.log
+  need_ssizet=1
+fi
+
+echo >> configure.log
+
+# find the size_t integer type, if needed
+if test $need_sizet -eq 1 -o $need_ssizet -eq 1; then
+  cat > $test.c <<EOF
+long long dummy = 0;
+EOF
+  if try $CC -c $CFLAGS $test.c; then
+    echo "Checking for long long... Yes." | tee -a configure.log
+    cat > $test.c <<EOF
+#include <stdio.h>
+int main(void) {
+    if (sizeof(void *) <= sizeof(int)) puts("int");
+    else if (sizeof(void *) <= sizeof(long)) puts("long");
+    else puts("long long");
+    return 0;
+}
+EOF
+  else
+    echo "Checking for long long... No." | tee -a configure.log
+    cat > $test.c <<EOF
+#include <stdio.h>
+int main(void) {
+    if (sizeof(void *) <= sizeof(int)) puts("int");
+    else puts("long");
+    return 0;
+}
+EOF
+  fi
+  if try $CC $CFLAGS -o $test $test.c; then
+    sizet=`./$test`
+    echo "Checking for a pointer-size integer type..." $sizet"." | tee -a configure.log
+  else
+    echo "Failed to find a pointer-size integer type." | tee -a configure.log
+    leave 1
+  fi
+fi
+
+if test $need_sizet -eq 1; then
+  CFLAGS="${CFLAGS} -DNO_SIZE_T=${sizet}"
+  SFLAGS="${SFLAGS} -DNO_SIZE_T=${sizet}"
+fi
+
+if test $need_ssizet -eq 1; then
+  CFLAGS="${CFLAGS} -DNO_SSIZE_T=${sizet}"
+  SFLAGS="${SFLAGS} -DNO_SSIZE_T=${sizet}"
+fi
 
 echo >> configure.log
 

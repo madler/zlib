@@ -74,7 +74,7 @@ local int gz_comp(state, flush)
     int flush;
 {
     int ret;
-    ssize_t got;
+    z_ssize_t got;
     unsigned have;
     z_streamp strm = &(state->strm);
 

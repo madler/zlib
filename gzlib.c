@@ -94,7 +94,7 @@ local gzFile gz_open(path, fd, mode)
     const char *mode;
 {
     gz_statep state;
-    size_t len;
+    z_size_t len;
     int oflag;
 #ifdef O_CLOEXEC
     int cloexec = 0;
@@ -191,7 +191,7 @@ local gzFile gz_open(path, fd, mode)
 #ifdef WIDECHAR
     if (fd == -2) {
         len = wcstombs(NULL, path, 0);
-        if (len == (size_t)-1)
+        if (len == (z_size_t)-1)
             len = 0;
     }
     else
