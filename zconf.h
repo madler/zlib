@@ -224,6 +224,21 @@
 #  define z_const
 #endif
 
+#ifndef Z_SOLO
+#  ifdef NO_SIZE_T
+     typedef unsigned NO_SIZE_T z_size_t;
+#  else
+#    include <stddef.h>
+     typedef size_t z_size_t;
+#  endif
+#  ifdef NO_SSIZE_T
+     typedef NO_SSIZE_T z_ssize_t;
+#  else
+#    include <sys/types.h>
+     typedef ssize_t z_ssize_t;
+#  endif
+#endif
+
 /* Maximum value for memLevel in deflateInit2 */
 #ifndef MAX_MEM_LEVEL
 #  ifdef MAXSEG_64K

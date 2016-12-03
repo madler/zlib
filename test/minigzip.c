@@ -464,7 +464,7 @@ void file_uncompress(char  *file, int keep)
     char *infile, *outfile;
     FILE  *out;
     gzFile in;
-    size_t len = strlen(file);
+    z_size_t len = strlen(file);
 
     if (len + strlen(GZ_SUFFIX) >= sizeof(buf)) {
         fprintf(stderr, "%s: filename too long\n", prog);

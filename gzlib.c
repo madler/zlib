@@ -89,7 +89,7 @@ static void gz_reset(gz_statep state) {
 static gzFile gz_open(const void *path, int fd, const char *mode)
 {
     gz_statep state;
-    size_t len;
+    z_size_t len;
     int oflag;
 #ifdef O_CLOEXEC
     int cloexec = 0;
@@ -186,7 +186,7 @@ static gzFile gz_open(const void *path, int fd, const char *mode)
 #ifdef _WIN32
     if (fd == -2) {
         len = wcstombs(NULL, path, 0);
-        if (len == (size_t)-1)
+        if (len == (z_size_t)-1)
             len = 0;
     }
     else

@@ -19,7 +19,7 @@ local int gz_skip(gz_statep, z_off64_t);
    read the number of bytes requested, depending on the type of descriptor. */
 static int gz_load(gz_statep state, unsigned char *buf, unsigned len,
                   unsigned *have) {
-    int ret;
+    z_ssize_t ret;
 
     *have = 0;
     do {

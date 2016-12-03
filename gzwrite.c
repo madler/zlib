@@ -61,13 +61,14 @@ static int gz_init(gz_statep state) {
 }
 
 /* Compress whatever is at avail_in and next_in and write to the output file.
-   Return -1 if there is an error writing to the output file, otherwise 0.
-   flush is assumed to be a valid deflate() flush value.  If flush is Z_FINISH,
-   then the deflate() state is reset to start a new gzip stream.  If gz->direct
-   is true, then simply write to the output file without compressing, and
-   ignore flush. */
+   Return -1 if there is an error writing to the output file or if gz_init()
+   fails to allocate memory, otherwise 0.  flush is assumed to be a valid
+   deflate() flush value.  If flush is Z_FINISH, then the deflate() state is
+   reset to start a new gzip stream.  If gz->direct is true, then simply write
+   to the output file without compressing, and ignore flush. */
 static int gz_comp(gz_statep state, int flush) {
-    int ret, got;
+    int ret;
+    z_ssize_t got;
     unsigned have;
     z_streamp strm = &(state->strm);
 
