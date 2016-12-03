@@ -554,7 +554,7 @@ int ZEXPORT gzsetparams(file, level, strategy)
     /* change compression parameters for subsequent input */
     if (state->size) {
         /* flush previous input with previous parameters before changing */
-        if (strm->avail_in && gz_comp(state, Z_PARTIAL_FLUSH) == -1)
+        if (strm->avail_in && gz_comp(state, Z_BLOCK) == -1)
             return state->err;
         deflateParams(strm, level, strategy);
     }
