@@ -491,7 +491,7 @@ EOF
 int main(void) {
     if (sizeof(void *) <= sizeof(int)) puts("int");
     else if (sizeof(void *) <= sizeof(long)) puts("long");
-    else puts("long long");
+    else puts("z_longlong");
     return 0;
 }
 EOF
