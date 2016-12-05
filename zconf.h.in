@@ -225,6 +225,7 @@
 #endif
 
 #ifndef Z_SOLO
+#  define z_longlong long long
 #  ifdef NO_SIZE_T
      typedef unsigned NO_SIZE_T z_size_t;
 #  else
@@ -237,6 +238,7 @@
 #    include <sys/types.h>
      typedef ssize_t z_ssize_t;
 #  endif
+#  undef z_longlong
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */
