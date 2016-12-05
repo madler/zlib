@@ -188,6 +188,7 @@ unsigned short FAR *work;
         extra = lext;
         match = 257;
         break;
+    default:
     case DISTS:
         base = dbase;
         extra = dext;
