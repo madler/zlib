@@ -1388,7 +1388,35 @@ ZEXTERN int ZEXPORT gzread OF((gzFile file, voidp buf, unsigned len));
    case.
 
      gzread returns the number of uncompressed bytes actually read, less than
-   len for end of file, or -1 for error.
+   len for end of file, or -1 for error.  If len is too large to fit in an int,
+   then nothing is read, -1 is returned, and the error state is set to
+   Z_STREAM_ERROR.
+*/
+
+ZEXTERN z_size_t ZEXPORT gzfread OF((voidp buf, z_size_t size, z_size_t nitems,
+                                     gzFile file));
+/*
+     Read up to nitems items of size size from file to buf, otherwise operating
+   as gzread() does.  This duplicates the interface of stdio's fread(), with
+   size_t request and return types.  If the library defines size_t, then
+   z_size_t is identical to size_t.  If not, then z_size_t is an unsigned
+   integer type that can contain a pointer.
+
+     gzfread() returns the number of full items read of size size, or zero if
+   the end of the file was reached and a full item could not be read, or if
+   there was an error.  gzerror() must be consulted if zero is returned in
+   order to determine if there was an error.  If the multiplication of size and
+   nitems overflows, i.e. the product does not fit in a z_size_t, then nothing
+   is read, zero is returned, and the error state is set to Z_STREAM_ERROR.
+
+     In the event that the end of file is reached and only a partial item is
+   available at the end, i.e. the remaining uncompressed data length is not a
+   multiple of size, then the final partial item is nevetheless read into buf
+   and the end-of-file flag is set.  The length of the partial item read is not
+   provided, but could be inferred from the result of gztell().  This behavior
+   is the same as the behavior of fread() implementations in common libraries,
+   but it prevents the direct use of gzfread() to read a concurrently written
+   file, reseting and retrying on end-of-file, when size is not 1.
 */
 
 ZEXTERN int ZEXPORT gzwrite OF((gzFile file,
