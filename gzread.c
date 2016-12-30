@@ -95,10 +95,8 @@ local int gz_look(state)
         state->in = (unsigned char *)malloc(state->want);
         state->out = (unsigned char *)malloc(state->want << 1);
         if (state->in == NULL || state->out == NULL) {
-            if (state->out != NULL)
-                free(state->out);
-            if (state->in != NULL)
-                free(state->in);
+            free(state->out);
+            free(state->in);
             gz_error(state, Z_MEM_ERROR, "out of memory");
             return -1;
         }
