@@ -59,13 +59,13 @@ void *myalloc(q, n, m)
     void *q;
     unsigned n, m;
 {
-    q = Z_NULL;
+    (void)q;
     return calloc(n, m);
 }
 
 void myfree(void *q, void *p)
 {
-    q = Z_NULL;
+    (void)q;
     free(p);
 }
 
@@ -573,7 +573,8 @@ int main(argc, argv)
     }
 
 #ifdef Z_SOLO
-    argc = strlen(argv[0]);
+    (void)argc;
+    (void)argv;
 #else
     test_compress(compr, comprLen, uncompr, uncomprLen);
 

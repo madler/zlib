@@ -447,11 +447,12 @@ int ZEXPORT deflateGetDictionary (strm, dictionary, dictLength)
     uInt  *dictLength;
 {
     deflate_state *s;
+    uInt len;
 
     if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
-    uInt len = s->strstart + s->lookahead;
+    len = s->strstart + s->lookahead;
     if (len > s->w_size)
         len = s->w_size;
     if (dictionary != Z_NULL && len)
@@ -1758,12 +1759,12 @@ local block_state deflate_stored(s, flush)
      * code following this won't be able to either.
      */
     if (flush != Z_NO_FLUSH && s->strm->avail_in == 0 &&
-        s->strstart == s->block_start)
+        (long)s->strstart == s->block_start)
         return flush == Z_FINISH ? finish_done : block_done;
 
     /* Fill the window with any remaining input. */
     have = s->window_size - s->strstart - 1;
-    if (s->strm->avail_in > have && s->block_start >= s->w_size) {
+    if (s->strm->avail_in > have && s->block_start >= (long)s->w_size) {
         /* Slide the window down. */
         s->block_start -= s->w_size;
         s->strstart -= s->w_size;
