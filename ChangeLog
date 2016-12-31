@@ -1,8 +1,37 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.8.1 (xx May 2013)
-- 
+Changes in 1.2.9 (31 Dec 2016)
+- Fix contrib/minizip to permit unzipping with desktop API [Zouzou]
+- Improve contrib/blast to return unused bytes
+- Assure that gzoffset() is correct when appending
+- Improve compress() and uncompress() to support large lengths
+- Fix bug in test/example.c where error code not saved
+- Remedy Coverity warning [Randers-Pehrson]
+- Improve speed of gzprintf() in transparent mode
+- Fix inflateInit2() bug when windowBits is 16 or 32
+- Change DEBUG macro to ZLIB_DEBUG
+- Avoid uninitialized access by gzclose_w()
+- Allow building zlib outside of the source directory
+- Fix bug that accepted invalid zlib header when windowBits is zero
+- Fix gzseek() problem on MinGW due to buggy _lseeki64 there
+- Loop on write() calls in gzwrite.c in case of non-blocking I/O
+- Add --warn (-w) option to ./configure for more compiler warnings
+- Reject a window size of 256 bytes if not using the zlib wrapper
+- Fix bug when level 0 used with Z_HUFFMAN or Z_RLE
+- Add --debug (-d) option to ./configure to define ZLIB_DEBUG
+- Fix bugs in creating a very large gzip header
+- Add uncompress2() function, which returns the input size used
+- Assure that deflateParams() will not switch functions mid-block
+- Dramatically speed up deflation for level 0 (storing)
+- Add gzfread(), duplicating the interface of fread()
+- Add gzfwrite(), duplicating the interface of fwrite()
+- Add deflateGetDictionary() function
+- Use snprintf() for later versions of Microsoft C
+- Fix *Init macros to use z_ prefix when requested
+- Replace as400 with os400 for OS/400 support [Monnerat]
+- Add crc32_z() and adler32_z() functions with size_t lengths
+- Update Visual Studio project files [AraHaan]
 
 Changes in 1.2.8 (28 Apr 2013)
 - Update contrib/minizip/iowin32.c for Windows RT [Vollant]
