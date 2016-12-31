@@ -46,6 +46,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("uncompress")
   EXPORT SYMBOL("zlibVersion")
   EXPORT SYMBOL("zError")
+  EXPORT SYMBOL("z_errmsg")
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 /*   Version 1.2.1 additional entry points.                         */
@@ -53,6 +54,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 
   EXPORT SYMBOL("compressBound")
   EXPORT SYMBOL("deflateBound")
+  EXPORT SYMBOL("deflatePending")
   EXPORT SYMBOL("gzungetc")
   EXPORT SYMBOL("gzclearerr")
   EXPORT SYMBOL("inflateBack")
@@ -62,21 +64,25 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
   EXPORT SYMBOL("zlibCompileFlags")
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-/*   Version 1.2.5 additional entry points.                         */
+/*   Version 1.2.4 additional entry points.                         */
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
   EXPORT SYMBOL("adler32_combine")
   EXPORT SYMBOL("adler32_combine64")
   EXPORT SYMBOL("crc32_combine")
   EXPORT SYMBOL("crc32_combine64")
+  EXPORT SYMBOL("deflateSetHeader")
+  EXPORT SYMBOL("deflateTune")
   EXPORT SYMBOL("gzbuffer")
+  EXPORT SYMBOL("gzclose_r")
+  EXPORT SYMBOL("gzclose_w")
+  EXPORT SYMBOL("gzdirect")
   EXPORT SYMBOL("gzoffset")
   EXPORT SYMBOL("gzoffset64")
   EXPORT SYMBOL("gzopen64")
   EXPORT SYMBOL("gzseek64")
   EXPORT SYMBOL("gztell64")
-  EXPORT SYMBOL("gzclose_r")
-  EXPORT SYMBOL("gzclose_w")
+  EXPORT SYMBOL("inflateGetHeader")
   EXPORT SYMBOL("inflateMark")
   EXPORT SYMBOL("inflatePrime")
   EXPORT SYMBOL("inflateReset2")
@@ -87,7 +93,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
   EXPORT SYMBOL("deflateResetKeep")
-  EXPORT SYMBOL("deflatePending")
   EXPORT SYMBOL("gzgetc_")
   EXPORT SYMBOL("inflateResetKeep")
 
@@ -95,6 +100,20 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ZLIB')
 /*   Version 1.2.8 additional entry points.                         */
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
+  EXPORT SYMBOL("gzvprintf")
   EXPORT SYMBOL("inflateGetDictionary")
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+/*   Version 1.2.9 additional entry points.                         */
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+  EXPORT SYMBOL("adler32_z")
+  EXPORT SYMBOL("crc32_z")
+  EXPORT SYMBOL("deflateGetDictionary")
+  EXPORT SYMBOL("gzfread")
+  EXPORT SYMBOL("gzfwrite")
+  EXPORT SYMBOL("inflateCodesUsed")
+  EXPORT SYMBOL("inflateValidate")
+  EXPORT SYMBOL("uncompress2")
 
 ENDPGMEXP

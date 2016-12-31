@@ -1,4 +1,4 @@
-.TH ZLIB 3 "7 July 2015"
+.TH ZLIB 3 "31 Dec 2016"
 .SH NAME
 zlib \- compression/decompression library
 .SH SYNOPSIS
@@ -48,32 +48,10 @@ Changes to this version are documented in the file
 that accompanies the source.
 .LP
 .I zlib
-is available in Java using the java.util.zip package:
-.IP
-http://java.sun.com/developer/technicalArticles/Programming/compression/
+is built in to many languages and operating systems, including but not limited to
+Java, Python, .NET, PHP, Perl, Ruby, Swift, and Go.
 .LP
-A Perl interface to
-.IR zlib ,
-written by Paul Marquess (pmqs@cpan.org),
-is available at CPAN (Comprehensive Perl Archive Network) sites,
-including:
-.IP
-http://search.cpan.org/~pmqs/IO-Compress-Zlib/
-.LP
-A Python interface to
-.IR zlib ,
-written by A.M. Kuchling (amk@magnet.com),
-is available in Python 1.5 and later versions:
-.IP
-http://docs.python.org/library/zlib.html
-.LP
-.I zlib
-is built into
-.IR tcl:
-.IP
-http://wiki.tcl.tk/4610
-.LP
-An experimental package to read and write files in .zip format,
+An experimental package to read and write files in the .zip format,
 written on top of
 .I zlib
 by Gilles Vollant (info@winimage.com),
@@ -92,7 +70,9 @@ web site can be found at:
 .IP
 http://zlib.net/
 .LP
-The data format used by the zlib library is described by RFC
+The data format used by the
+.I zlib
+library is described by RFC
 (Request for Comments) 1950 to 1952 in the files:
 .IP
 http://tools.ietf.org/html/rfc1950 (for the zlib header and trailer format)
@@ -125,9 +105,9 @@ before asking for help.
 Send questions and/or comments to zlib@gzip.org,
 or (for the Windows DLL version) to Gilles Vollant (info@winimage.com).
 .SH AUTHORS AND LICENSE
-Version 1.2.8.1
+Version 1.2.9
 .LP
-Copyright (C) 1995-2015 Jean-loup Gailly and Mark Adler
+Copyright (C) 1995-2016 Jean-loup Gailly and Mark Adler
 .LP
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
