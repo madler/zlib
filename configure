@@ -846,6 +846,84 @@ EOF
   fi
 fi
 
+# test to see if powerpc implementation is compile time possible
+echo >> configure.log
+cat > $test.c <<EOF
+#include <sys/auxv.h>
+
+#if defined(__linux__) && defined(__powerpc__)
+#include <bits/hwcap.h>
+#else
+#error No Linux Power Architecture
+#endif
+EOF
+
+if tryboth $CC -c $CFLAGS $test.c; then
+  OBJC="$OBJC crc32_power8.o crc32_power8_wrapper.o"
+  PIC_OBJC="$PIC_OBJC crc32_power8.lo crc32_power8_wrapper.lo"
+  CAN_USE_INDIRECTION="Power Architecture"
+  echo "Checking for Linux Power Architecture support... Yes." | tee -a configure.log
+else
+  echo "Checking for Linux Power Architecture support... No." | tee -a configure.log
+fi
+
+# test to see if we can use a gnu indirection function to detect and load optimized code at runtime
+echo >> configure.log
+cat > $test.c <<EOF
+static unsigned int crc32_real_optimized(unsigned int crc, unsigned char *p,
+                          unsigned long len)
+{
+        return 1;
+}
+
+static unsigned int (*(crc32_ifunc(void)))(unsigned int, unsigned char *,unsigned long)
+{
+  return crc32_real_optimized;
+}
+
+unsigned int crc32(unsigned int, unsigned char *,unsigned long)
+                    __attribute__ ((ifunc ("crc32_ifunc")));
+EOF
+
+if tryboth $CC -c $CFLAGS $test.c; then
+  INDIRECTION_SFLAGS="-DZ_HAVE_IFUNC -DZ_IFUNC_NATIVE"
+  echo "Checking for attribute(ifunc) support... Yes." | tee -a configure.log
+else
+  echo "Checking for attribute(ifunc) support... No." | tee -a configure.log
+
+  # alternately can we can use a gnu indirection using __asm__ attributes to detect and load optimized code at runtime
+  echo >> configure.log
+  cat > $test.c <<EOF
+static unsigned int crc32_real_optimized(unsigned int crc, unsigned char *p,
+                          unsigned long len)
+{
+        return 1;
+}
+
+static unsigned int (*(crc32_ifunc(void)))(unsigned int, unsigned char *,unsigned long)
+       __asm__ ("crc32");
+
+static unsigned int (*(crc32_ifunc(void)))(unsigned int, unsigned char *,unsigned long)
+{
+  return crc32_real_optimized;
+}
+
+__asm__(".type crc32, %gnu_indirect_function");
+EOF
+
+  if tryboth $CC -c $CFLAGS $test.c; then
+    INDIRECTION_SFLAGS="-DZ_HAVE_IFUNC -DZ_IFUNC_ASM"
+    echo "Checking for asm .type %gnu_indirect_function support... Yes." | tee -a configure.log
+  else
+    echo "Checking for asm .type %gnu_indirect_function support... No." | tee -a configure.log
+  fi
+fi
+
+if test -n "$INDIRECTION_SFLAGS" -a -n "$CAN_USE_INDIRECTION"; then
+    SFLAGS="${SFLAGS} ${INDIRECTION_SFLAGS}"
+    echo "Using GNU indirection for ${CAN_USE_INDIRECTION}" | tee -a configure.log
+fi
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
