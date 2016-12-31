@@ -17,7 +17,7 @@
 #ifdef Z_PREFIX     /* may be set to #if 1 by ./configure */
 #  define Z_PREFIX_SET
 
-/* all linked symbols */
+/* all linked symbols and init macros */
 #  define _dist_code            z__dist_code
 #  define _length_code          z__length_code
 #  define _tr_align             z__tr_align
@@ -41,6 +41,8 @@
 #  define deflateBound          z_deflateBound
 #  define deflateCopy           z_deflateCopy
 #  define deflateEnd            z_deflateEnd
+#  define deflateInit           z_deflateInit
+#  define deflateInit2          z_deflateInit2
 #  define deflateInit2_         z_deflateInit2_
 #  define deflateInit_          z_deflateInit_
 #  define deflateParams         z_deflateParams
@@ -94,10 +96,13 @@
 #  define inflate               z_inflate
 #  define inflateBack           z_inflateBack
 #  define inflateBackEnd        z_inflateBackEnd
+#  define inflateBackInit       z_inflateBackInit
 #  define inflateBackInit_      z_inflateBackInit_
 #  define inflateCopy           z_inflateCopy
 #  define inflateEnd            z_inflateEnd
 #  define inflateGetHeader      z_inflateGetHeader
+#  define inflateInit           z_inflateInit
+#  define inflateInit2          z_inflateInit2
 #  define inflateInit2_         z_inflateInit2_
 #  define inflateInit_          z_inflateInit_
 #  define inflateMark           z_inflateMark
