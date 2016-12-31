@@ -651,6 +651,28 @@ ZEXTERN int ZEXPORT deflateSetDictionary OF((z_streamp strm,
    not perform any compression: this will be done by deflate().
 */
 
+ZEXTERN int ZEXPORT deflateGetDictionary OF((z_streamp strm,
+                                             Bytef *dictionary,
+                                             uInt  *dictLength));
+/*
+     Returns the sliding dictionary being maintained by deflate.  dictLength is
+   set to the number of bytes in the dictionary, and that many bytes are copied
+   to dictionary.  dictionary must have enough space, where 32768 bytes is
+   always enough.  If deflateGetDictionary() is called with dictionary equal to
+   Z_NULL, then only the dictionary length is returned, and nothing is copied.
+   Similary, if dictLength is Z_NULL, then it is not set.
+
+     deflateGetDictionary() may return a length less than the window size, even
+   when more than the window size in input has been provided. It may return up
+   to 258 bytes less in that case, due to how zlib's implementation of deflate
+   manages the sliding window and lookahead for matches, where matches can be
+   up to 258 bytes long. If the application needs the last window-size bytes of
+   input, then that would need to be saved by the application outside of zlib.
+
+     deflateGetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
+   stream state is inconsistent.
+*/
+
 ZEXTERN int ZEXPORT deflateCopy OF((z_streamp dest,
                                     z_streamp source));
 /*
