@@ -156,14 +156,14 @@ void *myalloc(q, n, m)
     void *q;
     unsigned n, m;
 {
-    q = Z_NULL;
+    (void)q;
     return calloc(n, m);
 }
 
 void myfree(q, p)
     void *q, *p;
 {
-    q = Z_NULL;
+    (void)q;
     free(p);
 }
 

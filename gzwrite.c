@@ -225,7 +225,7 @@ local z_size_t gz_write(state, buf, len)
         /* directly compress user buffer to file */
         state->strm.next_in = (z_const Bytef *)buf;
         do {
-            unsigned n = -1;
+            unsigned n = (unsigned)-1;
             if (n > len)
                 n = len;
             state->strm.avail_in = n;

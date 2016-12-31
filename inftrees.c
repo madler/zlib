@@ -188,7 +188,7 @@ unsigned short FAR *work;
         extra = lext;
         match = 257;
         break;
-    case DISTS:
+    default:    /* DISTS */
         base = dbase;
         extra = dext;
         match = 0;
@@ -214,7 +214,7 @@ unsigned short FAR *work;
     for (;;) {
         /* create table entry */
         here.bits = (unsigned char)(len - drop);
-        if (work[sym] + 1 < match) {
+        if (work[sym] + 1U < match) {
             here.op = (unsigned char)0;
             here.val = work[sym];
         }
