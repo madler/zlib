@@ -242,8 +242,13 @@
 #  ifdef NO_SSIZE_T
      typedef NO_SSIZE_T z_ssize_t;
 #  else
+#    include <stddef.h>
 #    include <sys/types.h>
-     typedef ssize_t z_ssize_t;
+#    ifdef _MSC_VER
+       typedef intptr_t z_ssize_t;
+#    else
+       typedef ssize_t z_ssize_t;
+#    endif
 #  endif
 #  undef z_longlong
 #endif
