@@ -465,23 +465,8 @@ fi
 
 echo >> configure.log
 
-# check for ssize_t
-cat > $test.c <<EOF
-#include <sys/types.h>
-ssize_t dummy = 0;
-EOF
-if try $CC -c $CFLAGS $test.c; then
-  echo "Checking for ssize_t... Yes." | tee -a configure.log
-  need_ssizet=0
-else
-  echo "Checking for ssize_t... No." | tee -a configure.log
-  need_ssizet=1
-fi
-
-echo >> configure.log
-
 # find the size_t integer type, if needed
-if test $need_sizet -eq 1 -o $need_ssizet -eq 1; then
+if test $need_sizet -eq 1; then
   cat > $test.c <<EOF
 long long dummy = 0;
 EOF
@@ -519,11 +504,6 @@ fi
 if test $need_sizet -eq 1; then
   CFLAGS="${CFLAGS} -DNO_SIZE_T=${sizet}"
   SFLAGS="${SFLAGS} -DNO_SIZE_T=${sizet}"
-fi
-
-if test $need_ssizet -eq 1; then
-  CFLAGS="${CFLAGS} -DNO_SSIZE_T=${sizet}"
-  SFLAGS="${SFLAGS} -DNO_SSIZE_T=${sizet}"
 fi
 
 echo >> configure.log
