@@ -1761,19 +1761,35 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
                                          unsigned char FAR *window,
                                          const char *version,
                                          int stream_size));
-#define deflateInit(strm, level) \
-        deflateInit_((strm), (level), ZLIB_VERSION, (int)sizeof(z_stream))
-#define inflateInit(strm) \
-        inflateInit_((strm), ZLIB_VERSION, (int)sizeof(z_stream))
-#define deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
-        deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
-                      (strategy), ZLIB_VERSION, (int)sizeof(z_stream))
-#define inflateInit2(strm, windowBits) \
-        inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
-                      (int)sizeof(z_stream))
-#define inflateBackInit(strm, windowBits, window) \
-        inflateBackInit_((strm), (windowBits), (window), \
-                      ZLIB_VERSION, (int)sizeof(z_stream))
+#ifdef Z_PREFIX_SET
+#  define z_deflateInit(strm, level) \
+          deflateInit_((strm), (level), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define z_inflateInit(strm) \
+          inflateInit_((strm), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define z_deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
+          deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
+                        (strategy), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define z_inflateInit2(strm, windowBits) \
+          inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
+                        (int)sizeof(z_stream))
+#  define z_inflateBackInit(strm, windowBits, window) \
+          inflateBackInit_((strm), (windowBits), (window), \
+                           ZLIB_VERSION, (int)sizeof(z_stream))
+#else
+#  define deflateInit(strm, level) \
+          deflateInit_((strm), (level), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define inflateInit(strm) \
+          inflateInit_((strm), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
+          deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
+                        (strategy), ZLIB_VERSION, (int)sizeof(z_stream))
+#  define inflateInit2(strm, windowBits) \
+          inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
+                        (int)sizeof(z_stream))
+#  define inflateBackInit(strm, windowBits, window) \
+          inflateBackInit_((strm), (windowBits), (window), \
+                           ZLIB_VERSION, (int)sizeof(z_stream))
+#endif
 
 #ifndef Z_SOLO
 
