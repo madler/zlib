@@ -24,11 +24,15 @@ local int gz_load(state, buf, len, have)
     unsigned len;
     unsigned *have;
 {
-    z_ssize_t ret;
+    int ret;
+    unsigned get, max = ((unsigned)-1 >> 2) + 1;
 
     *have = 0;
     do {
-        ret = read(state->fd, buf + *have, len - *have);
+        get = len - *have;
+        if (get > max)
+            get = max;
+        ret = read(state->fd, buf + *have, get);
         if (ret <= 0)
             break;
         *have += (unsigned)ret;

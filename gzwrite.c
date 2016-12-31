@@ -74,9 +74,8 @@ local int gz_comp(state, flush)
     gz_statep state;
     int flush;
 {
-    int ret;
-    z_ssize_t got;
-    unsigned have;
+    int ret, writ;
+    unsigned have, put, max = ((unsigned)-1 >> 2) + 1;
     z_streamp strm = &(state->strm);
 
     /* allocate memory if this is the first time through */
@@ -86,13 +85,14 @@ local int gz_comp(state, flush)
     /* write directly if requested */
     if (state->direct) {
         while (strm->avail_in) {
-            got = write(state->fd, strm->next_in, strm->avail_in);
-            if (got < 0) {
+            put = strm->avail_in > max ? max : strm->avail_in;
+            writ = write(state->fd, strm->next_in, put);
+            if (writ < 0) {
                 gz_error(state, Z_ERRNO, zstrerror());
                 return -1;
             }
-            strm->avail_in -= (unsigned)got;
-            strm->next_in += got;
+            strm->avail_in -= (unsigned)writ;
+            strm->next_in += writ;
         }
         return 0;
     }
@@ -105,13 +105,14 @@ local int gz_comp(state, flush)
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
             while (strm->next_out > state->x.next) {
-                got = write(state->fd, state->x.next,
-                            (unsigned long)(strm->next_out - state->x.next));
-                if (got < 0) {
+                put = strm->next_out - state->x.next > (int)max ? max :
+                      (unsigned)(strm->next_out - state->x.next);
+                writ = write(state->fd, state->x.next, put);
+                if (writ < 0) {
                     gz_error(state, Z_ERRNO, zstrerror());
                     return -1;
                 }
-                state->x.next += got;
+                state->x.next += writ;
             }
             if (strm->avail_out == 0) {
                 strm->avail_out = state->size;
