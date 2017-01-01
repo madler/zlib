@@ -17,7 +17,7 @@ using NUnit.Framework;
 // Unit tests for the DotZLib class library
 // ----------------------------------------
 //
-// Use this with NUnit 2 from http://www.nunit.org
+// Use this with NUnit 2 from https://www.nunit.org
 //
 
 namespace DotZLibTests

@@ -110,8 +110,8 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
 16. Can zlib decode Flate data in an Adobe PDF file?
 
-    Yes. See http://www.pdflib.com/ . To modify PDF forms, see
-    http://sourceforge.net/projects/acroformtool/ .
+    Yes. See https://www.pdflib.com/ . To modify PDF forms, see
+    https://sourceforge.net/projects/acroformtool/ .
 
 17. Why am I getting this "register_frame_info not found" error on Solaris?
 
@@ -272,7 +272,7 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
     If you don't have snprintf() or vsnprintf() and would like one, you can
     find a portable implementation here:
 
-        http://www.ijs.si/software/snprintf/
+        https://www.ijs.si/software/snprintf/
 
     Note that you should be using the most recent version of zlib.  Versions
     1.1.3 and before were subject to a double-free vulnerability, and versions
@@ -315,7 +315,7 @@ The lastest zlib FAQ is at http://zlib.net/zlib_faq.html
 
     zlib doesn't support encryption.  The original PKZIP encryption is very
     weak and can be broken with freely available programs.  To get strong
-    encryption, use GnuPG, http://www.gnupg.org/ , which already includes zlib
+    encryption, use GnuPG, https://www.gnupg.org/ , which already includes zlib
     compression.  For PKZIP compatible "encryption", look at
     http://www.info-zip.org/
 

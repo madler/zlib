@@ -49,7 +49,7 @@
 ;   ml64.exe is given with Visual Studio 2005/2008/2010 and Windows WDK
 ;
 ;   (you can get Windows WDK with ml64 for AMD64 from
-;      http://www.microsoft.com/whdc/Devtools/wdk/default.mspx for low price)
+;      https://developer.microsoft.com/en-us/windows/hardware/download-kits-windows-hardware-development for low price)
 ;
 
 
@@ -192,8 +192,8 @@ ENDIF
 
 ; parameter 1 in r8(deflate state s), param 2 in rdx (cur match)
 
-; see http://weblogs.asp.net/oldnewthing/archive/2004/01/14/58579.aspx and
-; http://msdn.microsoft.com/library/en-us/kmarch/hh/kmarch/64bitAMD_8e951dd2-ee77-4728-8702-55ce4b5dd24a.xml.asp
+; see https://blogs.msdn.microsoft.com/oldnewthing/20040114-00/?p=41053 and
+; https://msdn.microsoft.com/library/en-us/kmarch/hh/kmarch/64bitAMD_8e951dd2-ee77-4728-8702-55ce4b5dd24a.xml.asp
 ;
 ; All registers must be preserved across the call, except for
 ;   rax, rcx, rdx, r8, r9, r10, and r11, which are scratch.
