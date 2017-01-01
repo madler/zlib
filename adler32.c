@@ -60,10 +60,10 @@ local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
 #endif
 
 /* ========================================================================= */
-uLong ZEXPORT adler32(adler, buf, len)
+uLong ZEXPORT adler32_z(adler, buf, len)
     uLong adler;
     const Bytef *buf;
-    uInt len;
+    z_size_t len;
 {
     unsigned long sum2;
     unsigned n;
@@ -128,6 +128,15 @@ uLong ZEXPORT adler32(adler, buf, len)
 
     /* return recombined sums */
     return adler | (sum2 << 16);
+}
+
+/* ========================================================================= */
+uLong ZEXPORT adler32(adler, buf, len)
+    uLong adler;
+    const Bytef *buf;
+    uInt len;
+{
+    return adler32_z(adler, buf, len);
 }
 
 /* ========================================================================= */
