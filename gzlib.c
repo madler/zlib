@@ -228,7 +228,7 @@ local gzFile gz_open(path, fd, mode)
 #  if __STDC_WANT_SECURE_LIB__
         _snprintf_s(state->path, len + 1, _TRUNCATE, "%s", (const char *)path);
 #  else
-        snprintf(state->path, len + 1, "%s", (const char *)path);
+        (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #  endif
 #else
         strcpy(state->path, path);
@@ -322,7 +322,7 @@ gzFile ZEXPORT gzdopen(fd, mode)
 #  if __STDC_WANT_SECURE_LIB__
     _snprintf_s(path, 7 + 3 * sizeof(int), _TRUNCATE, "<fd:%d>", fd); /* for debugging */
 #  else
-    snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd); /* for debugging */
+    (void)snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd); /* for debugging */
 #  endif
 #else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
@@ -641,9 +641,9 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
 #  if __STDC_WANT_SECURE_LIB__
     _snprintf_s(state->msg, strlen(state->path) + strlen(msg) + 3, _TRUNCATE,
 #  else
-    snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
+    (void)snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
 #  endif
-             "%s%s%s", state->path, ": ", msg);
+                   "%s%s%s", state->path, ": ", msg);
 #else
     strcpy(state->msg, state->path);
     strcat(state->msg, ": ");
