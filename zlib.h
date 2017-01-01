@@ -1702,6 +1702,12 @@ ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
      if (adler != original_adler) error();
 */
 
+ZEXTERN uLong ZEXPORT adler32_z OF((uLong adler, const Bytef *buf,
+                                    z_size_t len));
+/*
+     Same as adler32(), but with a size_t length.
+*/
+
 /*
 ZEXTERN uLong ZEXPORT adler32_combine OF((uLong adler1, uLong adler2,
                                           z_off_t len2));
@@ -1729,6 +1735,12 @@ ZEXTERN uLong ZEXPORT crc32   OF((uLong crc, const Bytef *buf, uInt len));
        crc = crc32(crc, buffer, length);
      }
      if (crc != original_crc) error();
+*/
+
+ZEXTERN uLong ZEXPORT crc32_z OF((uLong adler, const Bytef *buf,
+                                  z_size_t len));
+/*
+     Same as crc32(), but with a size_t length.
 */
 
 /*
