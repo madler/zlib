@@ -229,13 +229,17 @@
 #  define z_const
 #endif
 
-#ifndef Z_SOLO
+#ifdef Z_SOLO
+   typedef unsigned long z_size_t;
+#else
 #  define z_longlong long long
-#  ifdef NO_SIZE_T
+#  if defined(NO_SIZE_T)
      typedef unsigned NO_SIZE_T z_size_t;
-#  else
+#  elif defined(STDC)
 #    include <stddef.h>
      typedef size_t z_size_t;
+#  else
+     typedef unsigned long z_size_t;
 #  endif
 #  undef z_longlong
 #endif
