@@ -204,7 +204,7 @@ static gzFile gz_open(const void *path, int fd, const char *mode)
     else
 #endif
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
-        snprintf(state->path, len + 1, "%s", (const char *)path);
+        (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #else
         strcpy(state->path, path);
 #endif
@@ -277,7 +277,7 @@ gzFile ZEXPORT gzdopen(int fd, const char *mode) {
     if (fd == -1 || (path = (char *)malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
-    snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd); /* for debugging */
+    (void)snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd);
 #else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
 #endif
@@ -558,8 +558,8 @@ void ZLIB_INTERNAL gz_error(gz_statep state, int err, const char *msg) {
         return;
     }
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
-    snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
-             "%s%s%s", state->path, ": ", msg);
+    (void)snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
+                   "%s%s%s", state->path, ": ", msg);
 #else
     strcpy(state->msg, state->path);
     strcat(state->msg, ": ");
