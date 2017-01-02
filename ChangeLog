@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.9.1 (xx Jan 2017)
+- 
+
 Changes in 1.2.9 (31 Dec 2016)
 - Fix contrib/minizip to permit unzipping with desktop API [Zouzou]
 - Improve contrib/blast to return unused bytes
