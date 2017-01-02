@@ -367,7 +367,11 @@ int ZEXPORT gzputs(file, str)
 
     /* write string */
     len = strlen(str);
-    ret = gz_write(state, str, len);
+    /* check if string length will fit in signed int */
+    ret = (int)len;
+    if (ret < 0 || (unsigned)ret != len)
+        return -1;
+    ret = (int)gz_write(state, str, len);
     return ret == 0 && len != 0 ? -1 : ret;
 }
 
