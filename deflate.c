@@ -1040,7 +1040,6 @@ int ZEXPORT deflate (strm, flush)
             }
         }
     }
-    Assert(strm->avail_out > 0, "bug2");
 
     if (flush != Z_FINISH) return Z_OK;
     if (s->wrap <= 0) return Z_STREAM_END;
@@ -1653,17 +1652,19 @@ local block_state deflate_stored(s, flush)
      * possible. If flushing, copy the remaining available input to next_out as
      * stored blocks, if there is enough space.
      */
-    unsigned len, left, have, last;
+    unsigned len, left, have, last = 0;
     unsigned used = s->strm->avail_in;
-    for (;;) {
+    do {
         /* Set len to the maximum size block that we can copy directly with the
          * available input data and output space. Set left to how much of that
          * would be copied from what's left in the window.
          */
         len = MAX_STORED;       /* maximum deflate stored block length */
         have = (s->bi_valid + 42) >> 3;         /* number of header bytes */
+        if (s->strm->avail_out < have)          /* need room for header */
+            break;
             /* maximum stored block length that will fit in avail_out: */
-        have = s->strm->avail_out > have ? s->strm->avail_out - have : 0;
+        have = s->strm->avail_out - have;
         left = s->strstart - s->block_start;    /* bytes left in window */
         if (len > (ulg)left + s->strm->avail_in)
             len = left + s->strm->avail_in;     /* limit len to the input */
@@ -1677,7 +1678,8 @@ local block_state deflate_stored(s, flush)
          * copying to the window and the pending buffer instead. Also don't
          * write an empty block when flushing -- deflate() does that.
          */
-        if (len < min_block && (len == 0 || flush == Z_NO_FLUSH ||
+        if (len < min_block && ((len == 0 && flush != Z_FINISH) ||
+                                flush == Z_NO_FLUSH ||
                                 len - left != s->strm->avail_in))
             break;
 
@@ -1721,7 +1723,7 @@ local block_state deflate_stored(s, flush)
             s->strm->avail_out -= len;
             s->strm->total_out += len;
         }
-    }
+    } while (last == 0);
 
     /* Update the sliding window with the last s->w_size bytes of the copied
      * data, or append all of the copied data to the existing window if less
@@ -1754,13 +1756,14 @@ local block_state deflate_stored(s, flush)
         s->insert += MIN(used, s->w_size - s->insert);
     }
 
-    /* If flushing or finishing and all input has been consumed, then done. If
-     * the code above couldn't write a complete block to next_out, then the
-     * code following this won't be able to either.
-     */
-    if (flush != Z_NO_FLUSH && s->strm->avail_in == 0 &&
-        (long)s->strstart == s->block_start)
-        return flush == Z_FINISH ? finish_done : block_done;
+    /* If the last block was written to next_out, then done. */
+    if (last)
+        return finish_done;
+
+    /* If flushing and all input has been consumed, then done. */
+    if (flush != Z_NO_FLUSH && flush != Z_FINISH &&
+        s->strm->avail_in == 0 && (long)s->strstart == s->block_start)
+        return block_done;
 
     /* Fill the window with any remaining input. */
     have = s->window_size - s->strstart - 1;
@@ -1791,20 +1794,18 @@ local block_state deflate_stored(s, flush)
     min_block = MIN(have, s->w_size);
     left = s->strstart - s->block_start;
     if (left >= min_block ||
-        (left && flush != Z_NO_FLUSH && s->strm->avail_in == 0 &&
-         left <= have)) {
+        ((left || flush == Z_FINISH) && flush != Z_NO_FLUSH &&
+         s->strm->avail_in == 0 && left <= have)) {
         len = MIN(left, have);
         last = flush == Z_FINISH && s->strm->avail_in == 0 &&
                len == left ? 1 : 0;
         _tr_stored_block(s, (charf *)s->window + s->block_start, len, last);
         s->block_start += len;
         flush_pending(s->strm);
-        if (last)
-            return finish_started;
     }
 
     /* We've done all we can with the available input and output. */
-    return need_more;
+    return last ? finish_started : need_more;
 }
 
 /* ===========================================================================
