@@ -10,8 +10,8 @@ unit zlibpas;
 interface
 
 const
-  ZLIB_VERSION = '1.2.9.1';
-  ZLIB_VERNUM  = $1291;
+  ZLIB_VERSION = '1.2.10';
+  ZLIB_VERNUM  = $12a0;
 
 type
   alloc_func = function(opaque: Pointer; items, size: Integer): Pointer;

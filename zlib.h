@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.9.1, January xxth, 2017
+  version 1.2.10, January 2nd, 2017
 
   Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
 
@@ -37,12 +37,12 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.9.1-motley"
-#define ZLIB_VERNUM 0x1291
+#define ZLIB_VERSION "1.2.10"
+#define ZLIB_VERNUM 0x12a0
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
-#define ZLIB_VER_REVISION 9
-#define ZLIB_VER_SUBREVISION 1
+#define ZLIB_VER_REVISION 10
+#define ZLIB_VER_SUBREVISION 0
 
 /*
     The 'zlib' compression library provides in-memory compression and
