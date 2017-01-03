@@ -8,7 +8,9 @@
 #include "inflate.h"
 #include "inffast.h"
 
-#ifndef ASMINF
+#ifdef ASMINF
+#  pragma message("Assembler code may have bugs -- use at your own risk")
+#else
 
 /*
    Decode literal, length, and distance codes and write out the resulting
