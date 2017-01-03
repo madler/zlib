@@ -117,6 +117,7 @@ local int gz_comp(state, flush)
             if (strm->avail_out == 0) {
                 strm->avail_out = state->size;
                 strm->next_out = state->out;
+                state->x.next = state->out;
             }
         }
 
