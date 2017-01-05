@@ -14,26 +14,33 @@
 
 #include "zlib.h"
 
+#ifdef __unix__
+# ifndef unix
+#  define unix 1
+# endif
+#endif
+
 #ifdef unix
-#  include <unistd.h>
+# include <unistd.h>
+# include <sys/stat.h>
 #else
-#  include <direct.h>
-#  include <io.h>
+# include <direct.h>
+# include <io.h>
 #endif
 
 #ifdef WIN32
 #include <windows.h>
-#  ifndef F_OK
-#    define F_OK  0
-#  endif
-#  define mkdir(dirname,mode)   _mkdir(dirname)
-#  ifdef _MSC_VER
-#    define access(path,mode)   _access(path,mode)
-#    define chmod(path,mode)    _chmod(path,mode)
-#    define strdup(str)         _strdup(str)
-#  endif
+# ifndef F_OK
+#  define F_OK  0
+# endif
+# define mkdir(dirname,mode)   _mkdir(dirname)
+# ifdef _MSC_VER
+#  define access(path,mode)   _access(path,mode)
+#  define chmod(path,mode)    _chmod(path,mode)
+#  define strdup(str)         _strdup(str)
+# endif
 #else
-#  include <utime.h>
+# include <utime.h>
 #endif
 
 
@@ -277,6 +284,7 @@ void restore_attr(struct attr_item **list)
       chmod(item->fname,item->mode);
       prev = item;
       item = item->next;
+	  free(prev->fname);
       free(prev);
     }
   *list = NULL;
@@ -608,7 +616,7 @@ int main(int argc,char **argv)
     int         action = TGZ_EXTRACT;
     int         arg = 1;
     char        *TGZfile;
-    gzFile      *f;
+    gzFile      f;
 
     prog = strrchr(argv[0],'\\');
     if (prog == NULL)
