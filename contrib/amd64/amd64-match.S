@@ -98,19 +98,19 @@ printf("#define dsNiceMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->nice_match))-
 
 
 #ifndef CURRENT_LINX_XCODE_MAC_X64_STRUCTURE
-#define dsWSize		( 68)(%rdi)
-#define dsWMask		( 76)(%rdi)
-#define dsWindow	( 80)(%rdi)
-#define dsPrev		( 96)(%rdi)
-#define dsMatchLen	(144)(%rdi)
-#define dsPrevMatch	(148)(%rdi)
-#define dsStrStart	(156)(%rdi)
-#define dsMatchStart	(160)(%rdi)
-#define dsLookahead	(164)(%rdi)
-#define dsPrevLen	(168)(%rdi)
-#define dsMaxChainLen	(172)(%rdi)
-#define dsGoodMatch	(188)(%rdi)
-#define dsNiceMatch	(192)(%rdi)
+#define dsWSize         ( 80)(%rdi)
+#define dsWMask         ( 88)(%rdi)
+#define dsWindow        ( 96)(%rdi)
+#define dsPrev          (112)(%rdi)
+#define dsMatchLen      (160)(%rdi)
+#define dsPrevMatch     (164)(%rdi)
+#define dsStrStart      (172)(%rdi)
+#define dsMatchStart    (176)(%rdi)
+#define dsLookahead     (180)(%rdi)
+#define dsPrevLen       (184)(%rdi)
+#define dsMaxChainLen   (188)(%rdi)
+#define dsGoodMatch     (204)(%rdi)
+#define dsNiceMatch     (208)(%rdi)
 
 #else 
 
