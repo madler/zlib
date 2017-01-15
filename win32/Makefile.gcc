@@ -141,10 +141,10 @@ install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
 	-$(INSTALL) $(STATICLIB) '$(DESTDIR)$(LIBRARY_PATH)'
 	sed \
 		-e 's|@prefix@|${prefix}|g' \
-		-e 's|@exec_prefix@|${exec_prefix}|g' \
-		-e 's|@libdir@|$(LIBRARY_PATH)|g' \
-		-e 's|@sharedlibdir@|$(LIBRARY_PATH)|g' \
-		-e 's|@includedir@|$(INCLUDE_PATH)|g' \
+		-e 's|@exec_prefix@|$${prefix}|g' \
+		-e 's|@libdir@|$${exec_prefix}$(LIBRARY_PATH)|g' \
+		-e 's|@sharedlibdir@|$${exec_prefix}$(LIBRARY_PATH)|g' \
+		-e 's|@includedir@|$${prefix}$(INCLUDE_PATH)|g' \
 		-e 's|@VERSION@|'`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`'|g' \
 		zlib.pc.in > '$(DESTDIR)$(LIBRARY_PATH)'/pkgconfig/zlib.pc
 
