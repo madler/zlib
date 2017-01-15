@@ -37,7 +37,6 @@ uLong* bytesRecovered;
   int err = Z_OK;
   FILE* fpZip = fopen(file, "rb");
   FILE* fpOut = fopen(fileOut, "wb");
-  FILE* fpOutCD = fopen(fileOutTmp, "wb");
   if (fpZip != NULL &&  fpOut != NULL) {
     int entries = 0;
     uLong totalBytes = 0;
@@ -46,6 +45,7 @@ uLong* bytesRecovered;
     char extra[1024];
     int offset = 0;
     int offsetCD = 0;
+    FILE* fpOutCD = fopen(fileOutTmp, "wb");
     while ( fread(header, 1, 30, fpZip) == 30 ) {
       int currentOffset = offset;
 
