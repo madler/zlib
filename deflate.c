@@ -497,7 +497,8 @@ int ZEXPORT deflateParams(z_streamp strm, int level, int strategy) {
     }
     func = configuration_table[s->level].func;
 
-    if ((strategy != s->strategy || func != configuration_table[level].func)) {
+    if ((strategy != s->strategy || func != configuration_table[level].func) &&
+        s->high_water) {
         /* Flush the last buffer: */
         int err = deflate(strm, Z_BLOCK);
         if (err == Z_STREAM_ERROR)
