@@ -5,8 +5,10 @@ project(zlib C)
 
 set(VERSION "1.2.11")
 
-option(ASM686 "Enable building i686 assembly implementation")
-option(AMD64 "Enable building amd64 assembly implementation")
+option(ASM686                       "Enable building i686 assembly implementation")
+option(AMD64                        "Enable building amd64 assembly implementation")
+option(DISABLE_EXAMPLE_BINARIES     "Disable the building of example binaries")
+option(COMPILE_STATIC_LIB_WITH_FPIC "use -fPIC when compiling the static lib.")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -201,6 +203,9 @@ endif()
 
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
+   if(COMPILE_STATIC_LIB_WITH_FPIC)
+      set_target_properties(zlibstatic PROPERTIES COMPILE_FLAGS "-fPIC")
+   endif()
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
      set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
@@ -230,20 +235,22 @@ endif()
 # Example binaries
 #============================================================================
 
-add_executable(example test/example.c)
-target_link_libraries(example zlib)
-add_test(example example)
+if(NOT DISABLE_EXAMPLE_BINARIES)
+    add_executable(example test/example.c)
+    target_link_libraries(example zlib)
+    add_test(example example)
 
-add_executable(minigzip test/minigzip.c)
-target_link_libraries(minigzip zlib)
+    add_executable(minigzip test/minigzip.c)
+    target_link_libraries(minigzip zlib)
 
-if(HAVE_OFF64_T)
-    add_executable(example64 test/example.c)
-    target_link_libraries(example64 zlib)
-    set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+    if(HAVE_OFF64_T)
+    	add_executable(example64 test/example.c)
+    	target_link_libraries(example64 zlib)
+    	set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+	    add_test(example64 example64)
 
-    add_executable(minigzip64 test/minigzip.c)
-    target_link_libraries(minigzip64 zlib)
-    set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    	add_executable(minigzip64 test/minigzip.c)
+    	target_link_libraries(minigzip64 zlib)
+    	set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    endif()
 endif()
