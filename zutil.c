@@ -136,10 +136,11 @@ const char * ZEXPORT zError(err)
     return ERR_MSG(err);
 }
 
-#if defined(_WIN32_WCE)
+#if defined(_WIN32_WCE) && (defined(_MSC_VER) && (_MSC_VER < 1600))
     /* The Microsoft C Run-Time Library for Windows CE doesn't have
-     * errno.  We define it as a global variable to simplify porting.
-     * Its value is always 0 and should not be used.
+     * errno until and including version 15, which is shipped with
+     * Visual Studio 2008.  We define it as a global variable to
+     * simplify porting.  Its value is always 0 and should not be used.
      */
     int errno = 0;
 #endif
