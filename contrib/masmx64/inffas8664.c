@@ -144,7 +144,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
 
     /* align in on 1/2 hold size boundary */
     while (((size_t)(void *)ar.in & (sizeof(ar.hold) / 2 - 1)) != 0) {
-        ar.hold += (unsigned long)*ar.in++ << ar.bits;
+        ar.hold += (size_t)*ar.in++ << ar.bits;
         ar.bits += 8;
     }
 
