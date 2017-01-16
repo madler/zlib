@@ -3,7 +3,7 @@ ZLIB DATA COMPRESSION LIBRARY
 zlib 1.2.11 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
 (Request for Comments) 1950 to 1952 in the files
-http://www.ietf.org/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate format)
+https://www.ietf.org/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate format)
 and rfc1952.txt (gzip format).
 
 All functions of the compression library are documented in the file zlib.h
@@ -58,7 +58,7 @@ The package zlib-1.2.11-win32-x86.zip will contain the following files:
 
 All .pdb files above are entirely optional, but are very useful to a developer
 attempting to diagnose program misbehavior or a crash.  Many additional
-important files for developers can be found in the zlib127.zip source package
+important files for developers can be found in the zlib129.zip source package
 available from http://zlib.net/ - review that package's README file for details.
 
 
