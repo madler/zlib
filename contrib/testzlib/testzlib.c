@@ -121,7 +121,11 @@ int ReadFileMemory(const char* filename,long* plFileSize,unsigned char** pFilePt
     FILE* stream;
     unsigned char* ptr;
     int retVal=1;
-    stream=fopen(filename, "rb");
+#if WIN32
+    fopen_s(&stream, filename, "rb");
+#else
+	stream = fopen(filename, "rb");
+#endif
     if (stream==NULL)
         return 0;
 
