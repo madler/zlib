@@ -903,7 +903,6 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
               ZLIB_FILEFUNC_SEEK_SET)!=0)
         err=UNZ_ERRNO;
 
-
     /* we check the magic */
     if (err==UNZ_OK)
     {
@@ -959,7 +958,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
     if (unz64local_getLong(&s->z_filefunc, s->filestream,&file_info.external_fa) != UNZ_OK)
         err=UNZ_ERRNO;
 
-                // relative offset of local header
+    // relative offset of local header
     if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
         err=UNZ_ERRNO;
     file_info_internal.offset_curfile = uL;
@@ -983,14 +982,11 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
     }
 
     // Read extrafield
-    if ((err==UNZ_OK) && (extraField!=NULL))
+    extraFieldBufferSize = file_info.size_file_extra < extraFieldBufferSize ?
+                           file_info.size_file_extra : extraFieldBufferSize;
+    if ((err==UNZ_OK)            && (file_info.size_file_extra>0) &&
+        (extraFieldBufferSize>0) && (extraField!=NULL))
     {
-        ZPOS64_T uSizeRead ;
-        if (file_info.size_file_extra<extraFieldBufferSize)
-            uSizeRead = file_info.size_file_extra;
-        else
-            uSizeRead = extraFieldBufferSize;
-
         if (lSeek!=0)
         {
             if (ZSEEK64(s->z_filefunc, s->filestream,lSeek,ZLIB_FILEFUNC_SEEK_CUR)==0)
@@ -999,22 +995,17 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
                 err=UNZ_ERRNO;
         }
 
-        if ((file_info.size_file_extra>0) && (extraFieldBufferSize>0))
-            if (ZREAD64(s->z_filefunc, s->filestream,extraField,(uLong)uSizeRead)!=uSizeRead)
-                err=UNZ_ERRNO;
-
-        lSeek += file_info.size_file_extra - (uLong)uSizeRead;
+        if (ZREAD64(s->z_filefunc, s->filestream,extraField,extraFieldBufferSize)!=extraFieldBufferSize)
+            err=UNZ_ERRNO;
     }
-    else
-        lSeek += file_info.size_file_extra;
-
+    lSeek += extraFieldBufferSize;
 
     if ((err==UNZ_OK) && (file_info.size_file_extra != 0))
     {
-                                uLong acc = 0;
+        uLong acc = 0;
 
         // since lSeek now points to after the extra field we need to move back
-        lSeek -= file_info.size_file_extra;
+        lSeek -= extraFieldBufferSize;
 
         if (lSeek!=0)
         {
@@ -1027,7 +1018,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
         while(acc < file_info.size_file_extra)
         {
             uLong headerId;
-                                                uLong dataSize;
+            uLong dataSize;
 
             if (unz64local_getShort(&s->z_filefunc, s->filestream,&headerId) != UNZ_OK)
                 err=UNZ_ERRNO;
@@ -1038,34 +1029,33 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
             /* ZIP64 extra fields */
             if (headerId == 0x0001)
             {
-                                                        uLong uL;
+                uLong uL;
 
-                                                                if(file_info.uncompressed_size == MAXU32)
-                                                                {
-                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
-                                                                                        err=UNZ_ERRNO;
-                                                                }
+                if(file_info.uncompressed_size == MAXU32)
+                {
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                }
 
-                                                                if(file_info.compressed_size == MAXU32)
-                                                                {
-                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
-                                                                                  err=UNZ_ERRNO;
-                                                                }
+                if(file_info.compressed_size == MAXU32)
+                {
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                }
 
-                                                                if(file_info_internal.offset_curfile == MAXU32)
-                                                                {
-                                                                        /* Relative Header offset */
-                                                                        if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
-                                                                                err=UNZ_ERRNO;
-                                                                }
+                if(file_info_internal.offset_curfile == MAXU32)
+                {
+                    /* Relative Header offset */
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                }
 
-                                                                if(file_info.disk_num_start == MAXU32)
-                                                                {
-                                                                        /* Disk Start Number */
-                                                                        if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
-                                                                                err=UNZ_ERRNO;
-                                                                }
-
+                if(file_info.disk_num_start == MAXU32)
+                {
+                    /* Disk Start Number */
+                    if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                }
             }
             else
             {
@@ -1104,7 +1094,6 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
     else
         lSeek+=file_info.size_file_comment;
 
-
     if ((err==UNZ_OK) && (pfile_info!=NULL))
         *pfile_info=file_info;
 
@@ -1113,8 +1102,6 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
 
     return err;
 }
-
-
 
 /*
   Write info about the ZipFile in the *pglobal_info structure.
