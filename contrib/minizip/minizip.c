@@ -93,8 +93,7 @@ uLong filetime(f, tmzip, dt)
   }
   return ret;
 }
-#else
-#ifdef unix || __APPLE__
+#elif defined(unix) || defined(__APPLE__)
 uLong filetime(f, tmzip, dt)
     char *f;               /* name of file to get info on */
     tm_zip *tmzip;         /* return value: access, modific. and creation times */
@@ -144,7 +143,6 @@ uLong filetime(f, tmzip, dt)
 {
     return 0;
 }
-#endif
 #endif
 
 
