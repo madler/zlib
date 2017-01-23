@@ -599,8 +599,9 @@ int ZEXPORT deflateParams(strm, level, strategy)
         if (s->level == 0 && s->matches != 0) {
             if (s->matches == 1)
                 slide_hash(s);
-            else
+            else {
                 CLEAR_HASH(s);
+            }
             s->matches = 0;
         }
         s->level = level;
