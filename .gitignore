@@ -9,6 +9,9 @@
 *.o
 *.dylib
 
+*.dll
+*.exe
+
 *.gcda
 *.gcno
 *.gcov
