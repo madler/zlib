@@ -40,7 +40,7 @@ OBJA =
 
 # targets
 all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) \
-     example.exe minigzip.exe example_d.exe minigzip_d.exe
+     $example.exe minigzip.exe example_d.exe minigzip_d.exe
 
 $(STATICLIB): $(OBJS) $(OBJA)
 	$(AR) $(ARFLAGS) -out:$@ $(OBJS) $(OBJA)
