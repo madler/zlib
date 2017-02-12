@@ -353,8 +353,7 @@ int ZEXPORT gzputs(file, str)
     gzFile file;
     const char *str;
 {
-    int ret;
-    z_size_t len;
+    z_size_t len, put;
     gz_statep state;
 
     /* get internal structure */
@@ -368,8 +367,12 @@ int ZEXPORT gzputs(file, str)
 
     /* write string */
     len = strlen(str);
-    ret = gz_write(state, str, len);
-    return ret == 0 && len != 0 ? -1 : ret;
+    if ((int)len < 0 || (unsigned)len != len) {
+        gz_error(state, Z_STREAM_ERROR, "string length does not fit in int");
+        return -1;
+    }
+    put = gz_write(state, str, len);
+    return put < len ? -1 : (int)len;
 }
 
 #if defined(STDC) || defined(Z_HAVE_STDARG_H)
