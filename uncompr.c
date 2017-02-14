@@ -46,8 +46,6 @@ int ZEXPORT uncompress2 (dest, destLen, source, sourceLen)
         dest = buf;
     }
 
-    stream.next_in = (z_const Bytef *)source;
-    stream.avail_in = 0;
     stream.zalloc = (alloc_func)0;
     stream.zfree = (free_func)0;
     stream.opaque = (voidpf)0;
@@ -55,8 +53,10 @@ int ZEXPORT uncompress2 (dest, destLen, source, sourceLen)
     err = inflateInit(&stream);
     if (err != Z_OK) return err;
 
-    stream.next_out = dest;
+    stream.total_out = 0;
     stream.avail_out = 0;
+    stream.total_in = 0;
+    stream.avail_in = 0;
 
     do {
         if (stream.avail_out == 0) {
@@ -64,9 +64,13 @@ int ZEXPORT uncompress2 (dest, destLen, source, sourceLen)
             left -= stream.avail_out;
         }
         if (stream.avail_in == 0) {
-            stream.avail_in = len > (uLong)max ? max : (uInt)len;
+            stream.avail_in = len > (uLong)max ? max : (uInt)len;            
             len -= stream.avail_in;
         }
+
+        stream.next_out = dest + stream.total_out;
+        stream.next_in = (z_const Bytef *)(source + stream.total_in);
+
         err = inflate(&stream, Z_NO_FLUSH);
     } while (err == Z_OK);
 
