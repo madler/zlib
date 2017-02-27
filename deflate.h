@@ -311,7 +311,23 @@ void ZLIB_INTERNAL _tr_stored_block(deflate_state *s, uint8_t *buf,
 extern const uint8_t ZLIB_INTERNAL _length_code[];
 extern const uint8_t ZLIB_INTERNAL _dist_code[];
 
+#ifdef _MSC_VER
+
+/* MSC doesn't have __builtin_expect.  Just ignore likely/unlikely and
+   hope the compiler optimizes for the best.
+*/
+#define likely(x)       (x)
+#define unlikely(x)     (x)
+
+int __inline __builtin_ctzl(unsigned long mask)
+{
+    unsigned long index ;
+
+    return _BitScanForward(&index, mask) == 0 ? 32 : ((int)index) ;
+}
+#else
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
+#endif
 
 #endif /* DEFLATE_H */

@@ -1182,6 +1182,7 @@ static uint32_t longest_match(s, cur_match)
     Assert((uint64_t)s->strstart <= s->window_size-MIN_LOOKAHEAD, "need lookahead");
 
     do {
+        int cont ;
         Assert(cur_match < s->strstart, "no future");
 
         /* Skip to next match if the match length cannot increase
@@ -1192,10 +1193,9 @@ static uint32_t longest_match(s, cur_match)
          * However the length of the match is limited to the lookahead, so
          * the output of deflate is not affected by the uninitialized values.
          */
-        typeof(s->window) win = s->window;
-        int cont = 1;
+        cont = 1;
         do {
-            match = win + cur_match;
+            match = s->window + cur_match;
             if (likely(*(uint32_t*)(match+best_len-3) != scan_end) || (*(uint32_t*)match != scan_start)) {
                 if ((cur_match = prev[cur_match & wmask]) > limit
                     && --chain_length != 0) {
@@ -1314,7 +1314,10 @@ static void fill_window(s)
          * move the upper half to the lower one to make room in the upper half.
          */
         if (s->strstart >= wsize+MAX_DIST(s)) {
-
+            __m128i W ;
+            __m128i *q ;
+            int i;
+  
             zmemcpy(s->window, s->window+wsize, (unsigned)wsize);
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
@@ -1329,9 +1332,9 @@ static void fill_window(s)
             
             /* Use intrinsics, because compiler generates suboptimal code */
             n = s->hash_size;
-            __m128i W = _mm_set1_epi16(wsize);
-            __m128i *q = (__m128i*)s->head;
-            int i;
+            W = _mm_set1_epi16(wsize);
+            q = (__m128i*)s->head;
+  
             /* hash size would always be a pot */
             for(i=0; i<n/8; i++) {
                 _mm_storeu_si128(q, _mm_subs_epu16(_mm_loadu_si128(q), W));
@@ -1668,6 +1671,9 @@ static block_state deflate_slow(s, flush)
          * match is not better, output the previous match:
          */
         if (s->prev_length >= ACTUAL_MIN_MATCH && s->match_length <= s->prev_length) {
+            uint32_t mov_fwd ;
+            uint32_t insert_cnt ;
+
             uint32_t max_insert = s->strstart + s->lookahead - ACTUAL_MIN_MATCH;
             /* Do not insert strings in hash table beyond this. */
 
@@ -1683,8 +1689,8 @@ static block_state deflate_slow(s, flush)
              */
             s->lookahead -= s->prev_length-1;
 
-            uint32_t mov_fwd = s->prev_length - 2;
-            uint32_t insert_cnt = mov_fwd;
+            mov_fwd = s->prev_length - 2;
+            insert_cnt = mov_fwd;
             if (unlikely(insert_cnt > max_insert - s->strstart))
                 insert_cnt = max_insert - s->strstart;
 

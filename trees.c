@@ -1035,6 +1035,9 @@ static void compress_block(s, ltree, dtree)
     uint64_t bit_buf = s->bi_buf;
     int filled = s->bi_valid;
 
+    uint64_t val ;
+    int len ;
+
     if (s->last_lit != 0) do {
         dist = s->d_buf[lx];
         lc = s->l_buf[lx++];
@@ -1058,11 +1061,13 @@ static void compress_block(s, ltree, dtree)
 
             Tracecv(isgraph(lc), (stderr," '%c' ", lc));
         } else {
+            uint64_t val ;
+            int len ;
             /* Here, lc is the match length - MIN_MATCH */
             code = _length_code[lc];
 
-            uint64_t val = ltree[code+LITERALS+1].Code;
-            int len = ltree[code+LITERALS+1].Len;
+            val = ltree[code+LITERALS+1].Code;
+            len = ltree[code+LITERALS+1].Len;
 #ifdef DEBUG
             Tracevv((stderr," l %2d v %4llx ", len, val));
             Assert(len > 0 && len <= 64, "invalid length");
@@ -1143,8 +1148,9 @@ static void compress_block(s, ltree, dtree)
                "pendingBuf overflow");
 
     } while (lx < s->last_lit);
-    uint64_t val = ltree[END_BLOCK].Code;
-    int len = ltree[END_BLOCK].Len;
+    val = ltree[END_BLOCK].Code;
+    len = ltree[END_BLOCK].Len;
+
 #ifdef DEBUG
     Tracevv((stderr," l %2d v %4llx ", len, val));
     Assert(len > 0 && len <= 64, "invalid length");
