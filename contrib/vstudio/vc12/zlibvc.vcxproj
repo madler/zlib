@@ -394,7 +394,7 @@ bld_ml32.bat</Command>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <PreBuildEvent>
-      <Command>cd ..\..\contrib\masmx64
+      <Command>cd ..\..\masmx64
 bld_ml64.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
