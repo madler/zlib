@@ -44,6 +44,9 @@ extern "C" {
 #define ZLIB_VER_REVISION 8
 #define ZLIB_VER_SUBREVISION 0
 
+/* START ADDITION BY INTELLIMAGIC, info@intellimagic.com */
+#include <stdio.h>  /* for FILE* */
+
 /*
     The 'zlib' compression library provides in-memory compression and
   decompression functions, including integrity checks of the uncompressed data.
@@ -1260,6 +1263,29 @@ ZEXTERN gzFile ZEXPORT gzopen OF((const char *path, const char *mode));
    errno can be checked to determine if the reason gzopen failed was that the
    file could not be opened.
 */
+
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+ZEXTERN gzFile ZEXPORT gzopen_fp OF((const char *path, const char *mode));
+ZEXTERN gzFile ZEXPORT gzopen64_fp OF((const char *path, const char *mode));
+  /* Like gzopen, but internally uses a file pointer rather than a
+     file descriptor */
+
+
+ZEXTERN gzFile ZEXPORT gzfopen OF((FILE* fp, const char *mode));
+/*
+  gzfopen associates a gzFile with the file pointer fp.  The mode
+  parameter is as in gzopen.
+
+  The next call of gzclose on the returned gzFile also closes the file
+  pointer fp.
+
+  gzfopen returns NULL if there was insufficient memory to allocate
+  the gzFile state, if an invalid mode was specified (an 'r', 'w', or
+  'a' was not provided, or '+' was provided), or if fp is NULL.  The
+  file pointer is not used until the next gz* read, write, seek, or
+  close operation, so gzfopen will not detect if fp is invalid.
+*/
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 ZEXTERN gzFile ZEXPORT gzdopen OF((int fd, const char *mode));
 /*

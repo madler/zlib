@@ -13,10 +13,31 @@ local int gz_decomp OF((gz_statep));
 local int gz_fetch OF((gz_statep));
 local int gz_skip OF((gz_statep, z_off64_t));
 
-/* Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
-   state->fd, and update state->eof, state->err, and state->msg as appropriate.
-   This function needs to loop on read(), since read() is not guaranteed to
-   read the number of bytes requested, depending on the type of descriptor. */
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* Added support for reading through a file pointer. */
+long READ(gz_statep state, unsigned char *data, unsigned int bytes)
+{
+  long ret;
+  size_t result;
+
+  if (state->fp) {
+    result = fread(data, 1, bytes, state->fp);
+    if (ferror(state->fp))
+      ret = -1;
+    else
+      ret = (long) result;
+    return ret;
+  } else {
+    return read(state->fd, data, bytes);
+  }
+}
+
+/* Use READ() to load a buffer -- return -1 on error, otherwise 0.
+   Read from state->fd or state->fp, and update state->eof,
+   state->err, and state->msg as appropriate.  This function needs to
+   loop on READ(), since READ() is not guaranteed to read the number
+   of bytes requested, depending on the type of descriptor. */
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 local int gz_load(state, buf, len, have)
     gz_statep state;
     unsigned char *buf;
@@ -27,7 +48,9 @@ local int gz_load(state, buf, len, have)
 
     *have = 0;
     do {
-        ret = read(state->fd, buf + *have, len - *have);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+        ret = READ(state, buf + *have, len - *have);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
         if (ret <= 0)
             break;
         *have += ret;
@@ -592,7 +615,18 @@ int ZEXPORT gzclose_r(file)
     err = state->err == Z_BUF_ERROR ? Z_BUF_ERROR : Z_OK;
     gz_error(state, Z_OK, NULL);
     free(state->path);
-    ret = close(state->fd);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The FILE*-based code is new by IntelliMagic; the
+ * file-descriptor-based code already existed. */
+    ret = 0;
+    if (state->fp) {            /* based on file pointer */
+      if (fclose(state->fp) < 0)
+        ret = Z_ERRNO;
+    } else {                    /* based on file descriptor */
+      if (close(state->fd) == -1)
+        ret = Z_ERRNO;
+    }
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     free(state);
     return ret ? Z_ERRNO : err;
 }

@@ -24,6 +24,12 @@
 #  include <string.h>
 #  include <stdlib.h>
 #  include <limits.h>
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+#else
+#  ifdef __MVS__
+#    include <string.h>
+#  endif
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 #endif
 #include <fcntl.h>
 
@@ -166,6 +172,9 @@ typedef struct {
                             /* x.pos: current position in uncompressed data */
         /* used for both reading and writing */
     int mode;               /* see gzip modes above */
+/* START ADDITION BY INTELLIMAGIC, info@intellimagic.com */
+    FILE* fp;               /* file pointer */
+/* END ADDITION BY INTELLIMAGIC, info@intellimagic.com */
     int fd;                 /* file descriptor */
     char *path;             /* path or fd for error messages */
     unsigned size;          /* buffer size, zero if not allocated yet */

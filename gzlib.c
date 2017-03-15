@@ -5,19 +5,32 @@
 
 #include "gzguts.h"
 
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The F-based code is new by IntelliMagic; the L-based code already
+   existed. */
 #if defined(_WIN32) && !defined(__BORLANDC__)
 #  define LSEEK _lseeki64
+#  define FSEEK _fseeki64
+#  define FTELL _ftelli64
 #else
-#if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
-#  define LSEEK lseek64
-#else
-#  define LSEEK lseek
+#  if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
+#    define LSEEK lseek64
+#    define FSEEK fseeko64
+#    define FTELL ftello64
+#  else
+#    define LSEEK lseek
+#    define FSEEK fseek
+#    define FTELL ftell
+#  endif
 #endif
-#endif
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 /* Local functions */
 local void gz_reset OF((gz_statep));
-local gzFile gz_open OF((const void *, int, const char *));
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The file pointer parameter is new. */
+local gzFile gz_open OF((const void *, int, FILE* fp, const char *));
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 #if defined UNDER_CE
 
@@ -87,15 +100,206 @@ local void gz_reset(state)
     state->strm.avail_in = 0;       /* no input data yet */
 }
 
-/* Open a gzip file either by name or file descriptor. */
-local gzFile gz_open(path, fd, mode)
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* Similar to gz_dopen, but based on file pointers.
+
+   If fp is not NULL, then it is used and the other arguments (except
+   state) are ignored.
+
+   Otherwise, if fd == -3, then the file named by the path parameter
+   is opened using fopen for the specified mode.
+
+   Otherwise, if fd == -4 on Windows, then the file named by the path
+   parameter is opened using _wfopen for the specified mode.
+
+   Otherwise, if fd >= 0, then fd is assumed to be a file descriptor
+   for an already opened file, a file pointer is created for it (using
+   fdopen) for the specified mode, and that file pointer is used.
+
+   Otherwise, doesn't open any file.
+
+   The state is updated appropriately.
+
+   Returns 1 for success, 0 for a problem.
+   */
+local int gz_fopen(path, fd, fp, state)
     const void *path;
     int fd;
+    FILE* fp;
+    gz_statep state;
+{
+    char* fflag;
+
+    state->fd = -1;             /* value indicates "not used",
+                                   i.e. file pointers are used */
+
+    if (fp) {
+      state->fp = fp;
+    } else {
+
+      /* compute the flags for open() */
+      if (state->mode == GZ_READ) {
+        fflag = "r";
+      } else if (state->mode == GZ_WRITE) {
+        fflag = "w";
+      } else {                /* GZ_APPEND */
+        fflag = "a";
+      }
+
+      /* open the file with the appropriate flags */
+
+      switch (fd) {
+      case -4:
+#ifdef _WIN32
+      {
+        wchar_t wfflag[2];
+        swprintf(wfflag, 2, L"%hs", fflag);
+        state->fp = _wfopen(path, wfflag);
+      }
+        break;
+#endif
+      case -3:
+        state->fp = fopen(path, fflag);
+        if (state->fp) {
+          setbuf(state->fp, NULL); /* turn off buffering */
+        }
+        break;
+      default:
+        if (fd >= 0) {
+          state->fp = fdopen(fd, fflag);
+          if (state->fp) {
+            setbuf(state->fp, NULL); /* turn off buffering */
+          }
+        }
+        break;
+      }
+    }
+    if (!state->fp) {
+      return 0;
+    }
+    if (state->mode == GZ_APPEND)
+        state->mode = GZ_WRITE;         /* simplify later checks */
+
+    /* save the current position for rewinding (only if reading) */
+    if (state->mode == GZ_READ) {
+        state->start = FTELL(state->fp);
+        if (state->start == -1) state->start = 0;
+    }
+    return 1;
+}
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* IntelliMagic moved the body of this function here from gz_open.
+
+   If fd >= 0, then fd is assumed to be a file descriptor for an
+   already opened file, and the other arguments (except state) are
+   ignored.
+
+   Otherwise, if fd == -1, then opens the file indicated by path (a
+   regular character string) through a file descriptor.
+
+   Otherwise, if fd == -2 on Windows, then opens the file indicated by
+   path (a wide character string) through a file descriptor.
+
+   Takes into account cloexec and exclusive when opening the file.
+   The state is updated accordingly.
+
+   Returns 1 for success, 0 for a problem.
+   */
+local int gz_dopen(path, fd, cloexec, exclusive, state)
+    const void *path;
+    int fd;
+    int cloexec;
+    int exclusive;
+    gz_statep state;
+{
+    int oflag;
+
+    state->fp = NULL;           /* value indicates "not used", i.e.,
+                                   file descriptors are used */
+
+#ifndef O_CLOEXEC
+    (void) cloexec; /* avoid 'unreferenced formal parameter' complaint */
+#endif
+
+    /* compute the flags for open() */
+    oflag =
+#ifdef O_LARGEFILE
+        O_LARGEFILE |
+#endif
+#ifdef O_BINARY
+        O_BINARY |
+#endif
+#ifdef O_CLOEXEC
+        (cloexec ? O_CLOEXEC : 0) |
+#endif
+        (state->mode == GZ_READ ?
+         O_RDONLY :
+         (O_WRONLY | O_CREAT |
+#ifdef O_EXCL
+          (exclusive ? O_EXCL : 0) |
+#endif
+          (state->mode == GZ_WRITE ?
+           O_TRUNC :
+           O_APPEND)));
+
+    /* open the file with the appropriate flags (or just use fd) */
+
+    state->fd = fd > -1 ? fd : (
+#  ifdef _WIN32
+        fd == -2 ? _wopen(path, oflag, 0666) :
+#  endif
+        open((const char *)path, oflag, 0666));
+    if (state->fd == -1) {
+      return 0;
+    }
+    if (state->mode == GZ_APPEND)
+        state->mode = GZ_WRITE;         /* simplify later checks */
+
+    /* save the current position for rewinding (only if reading) */
+    if (state->mode == GZ_READ) {
+        state->start = LSEEK(state->fd, 0, SEEK_CUR);
+        if (state->start == -1) state->start = 0;
+    }
+    return 1;
+}
+
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* Open a gzip file either by name or file descriptor. */
+/* IntelliMagic added the fp parameter.
+
+   If path is NULL, then returns NULL.
+   If mode is invalid or empty, then returns NULL.
+
+   If fp is not NULL, then configures for I/O through that file
+   pointer.
+
+   Otherwise, if fd > -1, then configures for I/O through that file
+   descriptor.
+
+   Otherwise, if fd == -1, then opens the file indicated by path (a
+   regular character string) through a file descriptor.
+
+   Otherwise, if fd == -2 on Windows, then opens the file indicated by
+   path (a wide character string) through a file descriptor.
+
+   Otherwise, if fd == -3, then opens the file indicated by path (a
+   regular character string) through a file pointer.
+
+   Otherwise, if fd == -4 on Windows, then opens the file indicated by
+   path (a wide character string) through a file pointer.
+
+*/
+local gzFile gz_open(path, fd, fp, mode)
+    const void *path;
+    int fd;
+    FILE* fp;
     const char *mode;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 {
     gz_statep state;
     size_t len;
-    int oflag;
 #ifdef O_CLOEXEC
     int cloexec = 0;
 #endif
@@ -189,7 +393,10 @@ local gzFile gz_open(path, fd, mode)
 
     /* save the path name for error messages */
 #ifdef _WIN32
-    if (fd == -2) {
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* fd == -4 is new */
+    if (fd == -2 || fd == -4) {
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
         len = wcstombs(NULL, path, 0);
         if (len == (size_t)-1)
             len = 0;
@@ -203,7 +410,10 @@ local gzFile gz_open(path, fd, mode)
         return NULL;
     }
 #ifdef _WIN32
-    if (fd == -2)
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* fd == -4 is new */
+    if (fd == -2 || fd == -4)
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
         if (len)
             wcstombs(state->path, path, len + 1);
         else
@@ -216,46 +426,30 @@ local gzFile gz_open(path, fd, mode)
         strcpy(state->path, path);
 #endif
 
-    /* compute the flags for open() */
-    oflag =
-#ifdef O_LARGEFILE
-        O_LARGEFILE |
-#endif
-#ifdef O_BINARY
-        O_BINARY |
-#endif
+    /* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    int ret;
+    if (fp || fd == -3 || fd == -4)
+      ret = gz_fopen(path, fd, fp, state);
+    else
+      ret = gz_dopen(path, fd,
 #ifdef O_CLOEXEC
-        (cloexec ? O_CLOEXEC : 0) |
+                     cloexec,
+#else
+                     0,
 #endif
-        (state->mode == GZ_READ ?
-         O_RDONLY :
-         (O_WRONLY | O_CREAT |
 #ifdef O_EXCL
-          (exclusive ? O_EXCL : 0) |
+                     exclusive,
+#else
+                     0,
 #endif
-          (state->mode == GZ_WRITE ?
-           O_TRUNC :
-           O_APPEND)));
+                     state);
 
-    /* open the file with the appropriate flags (or just use fd) */
-    state->fd = fd > -1 ? fd : (
-#ifdef _WIN32
-        fd == -2 ? _wopen(path, oflag, 0666) :
-#endif
-        open((const char *)path, oflag, 0666));
-    if (state->fd == -1) {
-        free(state->path);
-        free(state);
-        return NULL;
+    if (!ret) {
+      free(state->path);
+      free(state);
+      return NULL;
     }
-    if (state->mode == GZ_APPEND)
-        state->mode = GZ_WRITE;         /* simplify later checks */
-
-    /* save the current position for rewinding (only if reading) */
-    if (state->mode == GZ_READ) {
-        state->start = LSEEK(state->fd, 0, SEEK_CUR);
-        if (state->start == -1) state->start = 0;
-    }
+    /* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
     /* initialize stream */
     gz_reset(state);
@@ -269,7 +463,10 @@ gzFile ZEXPORT gzopen(path, mode)
     const char *path;
     const char *mode;
 {
-    return gz_open(path, -1, mode);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The NULL file pointer argument is new. */
+    return gz_open(path, -1, NULL, mode);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 }
 
 /* -- see zlib.h -- */
@@ -277,8 +474,48 @@ gzFile ZEXPORT gzopen64(path, mode)
     const char *path;
     const char *mode;
 {
-    return gz_open(path, -1, mode);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The NULL file pointer argument is new. */
+    return gz_open(path, -1, NULL, mode);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 }
+
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* -- see zlib.h -- */
+gzFile ZEXPORT gzopen_fp(path, mode)
+    const char *path;
+    const char *mode;
+{
+    return gz_open(path, -3, NULL, mode);
+}
+
+/* -- see zlib.h -- */
+gzFile ZEXPORT gzopen64_fp(path, mode)
+    const char *path;
+    const char *mode;
+{
+    return gzopen_fp(path, mode);
+}
+
+/* Open a compressed stream in an already open file. */
+gzFile ZEXPORT gzfopen(fp, mode)
+  FILE *fp;
+  const char *mode;
+{
+  if (!fp)
+    return NULL;
+
+  return gz_open("<fp>", -3, fp, mode);
+}
+
+/* Open a compressed stream in the middle of an already-open file. */
+gzFile ZEXPORT gzfopen64(fp, mode)
+  FILE *fp;
+  const char *mode;
+{
+  return gzfopen(fp, mode);
+}
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 /* -- see zlib.h -- */
 gzFile ZEXPORT gzdopen(fd, mode)
@@ -295,7 +532,10 @@ gzFile ZEXPORT gzdopen(fd, mode)
 #else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
 #endif
-    gz = gz_open(path, fd, mode);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The NULL file pointer argument is new. */
+    gz = gz_open(path, fd, NULL, mode);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     free(path);
     return gz;
 }
@@ -306,7 +546,10 @@ gzFile ZEXPORT gzopen_w(path, mode)
     const wchar_t *path;
     const char *mode;
 {
-    return gz_open(path, -2, mode);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The NULL file pointer argument is new. */
+    return gz_open(path, -2, NULL, mode);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 }
 #endif
 
@@ -352,8 +595,17 @@ int ZEXPORT gzrewind(file)
         return -1;
 
     /* back up and start over */
-    if (LSEEK(state->fd, state->start, SEEK_SET) == -1)
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The FILE*-based code is new by IntelliMagic; the
+ * file-descriptor-based code already existed. */
+    if (state->fp) {
+      if (FSEEK(state->fp, state->start, SEEK_SET))
         return -1;
+    } else {
+      if (LSEEK(state->fd, state->start, SEEK_SET) == -1)
+        return -1;
+    }
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     gz_reset(state);
     return 0;
 }
@@ -393,9 +645,16 @@ z_off64_t ZEXPORT gzseek64(file, offset, whence)
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY &&
             state->x.pos + offset >= 0) {
-        ret = LSEEK(state->fd, offset - state->x.have, SEEK_CUR);
-        if (ret == -1)
-            return -1;
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The FILE*-based code is new by IntelliMagic; the
+ * file-descriptor-based code already existed. */
+        if (state->fp)
+          ret = FSEEK(state->fp, offset - state->x.have, SEEK_CUR);
+        else
+          ret = LSEEK(state->fd, offset - state->x.have, SEEK_CUR);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+        if (ret)
+          return -1;
         state->x.have = 0;
         state->eof = 0;
         state->past = 0;
@@ -489,7 +748,15 @@ z_off64_t ZEXPORT gzoffset64(file)
         return -1;
 
     /* compute and return effective offset in file */
-    offset = LSEEK(state->fd, 0, SEEK_CUR);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* The FILE*-based code is new by IntelliMagic; the
+ * file-descriptor-based code already existed. */
+    if (state->fp) {
+      offset = FTELL(state->fp);
+    } else {
+      offset = LSEEK(state->fd, 0, SEEK_CUR);
+    }
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     if (offset == -1)
         return -1;
     if (state->mode == GZ_READ)             /* reading */

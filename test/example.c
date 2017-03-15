@@ -80,7 +80,17 @@ static free_func zfree = (free_func)0;
 void test_compress      OF((Byte *compr, uLong comprLen,
                             Byte *uncompr, uLong uncomprLen));
 void test_gzio          OF((const char *fname,
-                            Byte *uncompr, uLong uncomprLen));
+                            Byte *uncompr, uLong uncomprLen,
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* added use_fp; added test_gzio_in_middle */
+                            Byte use_fp));
+void test_gzio_in_middle OF((const char *fname,
+                            Byte *uncompr, uLong uncomprLen,
+                            Byte use_fp));
+void test_gzio_uncompressed_in_middle OF((const char *fname,
+                            Byte *uncompr, uLong uncomprLen,
+                            Byte use_fp, Byte use_compr));
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 /* ===========================================================================
  * Test compress() and uncompress()
@@ -111,10 +121,14 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
 /* ===========================================================================
  * Test read/write of .gz files
  */
-void test_gzio(fname, uncompr, uncomprLen)
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+/* added use_fp */
+void test_gzio(fname, uncompr, uncomprLen, use_fp)
     const char *fname; /* compressed file name */
     Byte *uncompr;
     uLong uncomprLen;
+    Byte use_fp;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 {
 #ifdef NO_GZCOMPRESS
     fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
@@ -124,7 +138,12 @@ void test_gzio(fname, uncompr, uncomprLen)
     gzFile file;
     z_off_t pos;
 
-    file = gzopen(fname, "wb");
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    if (use_fp)
+      file = gzopen_fp(fname, "wb");
+    else
+      file = gzopen(fname, "wb");
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
@@ -141,7 +160,12 @@ void test_gzio(fname, uncompr, uncomprLen)
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
-    file = gzopen(fname, "rb");
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    if (use_fp)
+      file = gzopen_fp(fname, "rb");
+    else
+      file = gzopen(fname, "rb");
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
@@ -191,6 +215,330 @@ void test_gzio(fname, uncompr, uncomprLen)
     gzclose(file);
 #endif
 }
+
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+#include <fcntl.h>
+
+/* ===========================================================================
+ * Test read/write of gzipped data stream after uncompressed prefix
+ */
+void test_gzio_in_middle(fname, uncompr, uncomprLen, use_fp)
+    const char *fname; /* compressed file name */
+    Byte *uncompr;
+    uLong uncomprLen;
+    Byte use_fp;
+{
+#ifdef NO_GZCOMPRESS
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int err;
+    int len = (int)strlen(hello)+1;
+    gzFile file;
+    z_off_t pos;
+    int fd;
+    FILE *fp;
+
+    if (use_fp) {
+      fp = fopen(fname, "w");
+      if (!fp) {
+        fprintf(stderr, "open w error\n");
+        exit(1);
+      }
+      fwrite(hello, 1, len, fp);
+
+      file = gzfopen(fp, "wb");
+    } else {
+      fd = open(fname, (O_CREAT | O_WRONLY | O_TRUNC));
+      if (fd == -1) {
+        fprintf(stderr, "open w error\n");
+        exit(1);
+      }
+      write(fd, hello, len);
+
+      file = gzdopen(fd, "wb");
+    }
+    if (file == NULL) {
+        fprintf(stderr, "gz[fd]open w error\n");
+        exit(1);
+    }
+
+    gzputc(file, 'h');
+    if (gzputs(file, "ello") != 4) {
+        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    if (gzprintf(file, ", %s!", "hello") != 8) {
+        fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
+    gzclose(file);              /* also closes file descriptor fd */
+
+    if (use_fp) {
+      fp = fopen(fname, "r");
+      if (!fp) {
+        fprintf(stderr, "open r error\n");
+        exit(1);
+      }
+    } else {
+      fd = open(fname, O_RDONLY);
+      if (fd == -1) {
+        fprintf(stderr, "open r error\n");
+        exit(1);
+      }
+    }
+
+    strcpy((char*)uncompr, "garbage");
+
+    if (use_fp) {
+      if (fread(uncompr, 1, len, fp) < len) {
+        fprintf(stderr, "read error\n");
+        exit(1);
+      }
+    } else {
+      if (read(fd, uncompr, len) < len) {
+        fprintf(stderr, "read error\n");
+        exit(1);
+      }
+    }
+    if (strcmp((char*)uncompr, hello)) {
+        fprintf(stderr, "bad read: %s\n", (char*)uncompr);
+        exit(1);
+    } else {
+        printf("read(): %s\n", (char*)uncompr);
+    }
+
+    if (use_fp)
+      file = gzfopen(fp, "rb");
+    else
+      file = gzdopen(fd, "rb");
+    if (file == NULL) {
+        fprintf(stderr, "gzdopen r error\n");
+        exit(1);
+    }
+    strcpy((char*)uncompr, "garbage");
+
+    if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
+        fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    if (strcmp((char*)uncompr, hello)) {
+        fprintf(stderr, "bad gzread: %s\n", (char*)uncompr);
+        exit(1);
+    } else {
+        printf("gzread(): %s\n", (char*)uncompr);
+    }
+
+    pos = gzseek(file, -8L, SEEK_CUR);
+    if (pos != 6 || gztell(file) != pos) {
+        fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
+                (long)pos, (long)gztell(file));
+        exit(1);
+    }
+
+    if (gzgetc(file) != ' ') {
+        fprintf(stderr, "gzgetc error\n");
+        exit(1);
+    }
+
+    if (gzungetc(' ', file) != ' ') {
+        fprintf(stderr, "gzungetc error\n");
+        exit(1);
+    }
+
+    gzgets(file, (char*)uncompr, (int)uncomprLen);
+    if (strlen((char*)uncompr) != 7) { /* " hello!" */
+        fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    if (strcmp((char*)uncompr, hello + 6)) {
+        fprintf(stderr, "bad gzgets after gzseek\n");
+        exit(1);
+    } else {
+        printf("gzgets() after gzseek: %s\n", (char*)uncompr);
+    }
+
+    gzclose(file);
+#endif
+}
+
+/* ===========================================================================
+ * Test reading of (un)compressed data through gzio after an
+ * uncompressed prefix
+ */
+void test_gzio_uncompressed_in_middle(fname, uncompr, uncomprLen, use_fp, use_compr)
+    const char *fname; /* compressed file name */
+    Byte *uncompr;
+    uLong uncomprLen;
+    Byte use_fp;
+    Byte use_compr;
+{
+#ifdef NO_GZCOMPRESS
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int err;
+    int len = (int)strlen(hello)+1;
+    gzFile file;
+    z_off_t pos;
+    z_off_t datastart;
+    int fd;
+    FILE *fp;
+
+    if (use_fp) {               /* use file pointers */
+      fp = fopen(fname, "w");
+      if (!fp) {
+        fprintf(stderr, "open uim w error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+      fwrite(hello, 1, len, fp);
+      if (use_compr) {          /* compress the rest of the data */
+        file = gzfopen(fp, "wb");
+      } else {                  /* don't compress any */
+        datastart = ftell(fp);
+        fwrite("RECORD1", 1, sizeof("RECORD1"), fp);
+        pos = ftell(fp) - datastart;
+        fwrite("RECORD2", 1, sizeof("RECORD2"), fp);
+        fclose(fp);
+      }
+    } else {                    /* use file descriptors */
+      fd = open(fname, (O_CREAT | O_WRONLY | O_TRUNC));
+      if (fd == -1) {
+        fprintf(stderr, "open uim w error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+      write(fd, hello, len);
+      if (use_compr) {          /* compress the rest of the data */
+        file = gzdopen(fd, "wb");
+      } else {                  /* don't compress any */
+        datastart = lseek(fd, 0, SEEK_CUR);
+        write(fd, "RECORD1", sizeof("RECORD1"));
+        pos = lseek(fd, 0, SEEK_CUR) - datastart;
+        write(fd, "RECORD2", sizeof("RECORD2"));
+        close(fd);
+      }
+    }
+
+    if (use_compr) {
+      if (file == NULL) {
+        fprintf(stderr, "gz[fd]open uim w error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+
+      if (gzwrite(file, "RECORD1", sizeof("RECORD1")) != sizeof("RECORD1")) {
+        fprintf(stderr, "gzwrite uim err [%d%d]: %s\n",
+                (int) use_fp, (int) use_compr,
+                gzerror(file, &err));
+        exit(1);
+      }
+
+      pos = gztell(file);
+
+      if (gzwrite(file, "RECORD2", sizeof("RECORD2")) != sizeof("RECORD2")) {
+        fprintf(stderr, "gzputs uim err [%d%d]: %s\n",
+                (int) use_fp, (int) use_compr,
+                gzerror(file, &err));
+        exit(1);
+      }
+
+      gzclose(file);          /* also closes file pointer */
+    }
+
+    if (use_fp) {
+      fp = fopen(fname, "r");
+      if (!fp) {
+        fprintf(stderr, "open uim r error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+    } else {
+      fd = open(fname, O_RDONLY);
+      if (fd == -1) {
+        fprintf(stderr, "open uim r error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+    }
+
+    strcpy((char*)uncompr, "garbage");
+
+    if (use_fp) {
+      if (fread(uncompr, 1, len, fp) < len) {
+        fprintf(stderr, "read uim error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+    } else {
+      if (read(fd, uncompr, len) < len) {
+        fprintf(stderr, "read uim error [%d%d]\n",
+                (int) use_fp, (int) use_compr);
+        exit(1);
+      }
+    }
+    if (strcmp((char*)uncompr, hello)) {
+      fprintf(stderr, "bad uim read [%d%d]: %s\n",
+              (int) use_fp, (int) use_compr,
+              (char*)uncompr);
+        exit(1);
+    } else {
+        printf("read() uim [%d%d]: %s\n",
+               (int) use_fp, (int) use_compr,
+               (char*)uncompr);
+    }
+
+    if (use_fp)
+      file = gzfopen(fp, "rb");
+    else
+      file = gzdopen(fd, "rb");
+    if (file == NULL) {
+      fprintf(stderr, "gzdopen uim r error [%d%d]\n",
+              (int) use_fp, (int) use_compr);
+        exit(1);
+    }
+
+    /* gztell counts from where gz[fd]open was called */
+    if (gztell(file) != 0) {
+      fprintf(stderr, "gztell uim should be 0 [%d%d] but is %u\n",
+              (int) use_fp, (int) use_compr,
+              gztell(file));
+      exit(1);
+    }
+
+    /* gzoffset estimates the offset into the source file without
+       regards to compression */
+    if (gzoffset(file) == 0) {
+      fprintf(stderr, "gzoffset uim should not be 0 [%d%d] but is\n",
+              (int) use_fp, (int) use_compr);
+      exit(1);
+    }
+
+    strcpy((char*)uncompr, "garbage");
+
+    gzseek(file, pos, SEEK_SET);
+
+    if (gzread(file, uncompr, sizeof("RECORD2")) != sizeof("RECORD2")) {
+        fprintf(stderr, "gzread uim err [%d%d]: %s\n",
+                (int) use_fp, (int) use_compr,
+                gzerror(file, &err));
+        exit(1);
+    }
+    if (strcmp((char*)uncompr, "RECORD2")) {
+        fprintf(stderr, "bad gzread uim [%d%d]: %s\n",
+                (int) use_fp, (int) use_compr,
+                (char*)uncompr);
+        exit(1);
+    } else {
+        printf("gzread() uim [%d%d]: %s\n",
+               (int) use_fp, (int) use_compr,
+               (char*)uncompr);
+    }
+
+    gzclose(file);
+#endif
+}
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 
 #endif /* Z_SOLO */
 
@@ -577,8 +925,29 @@ int main(argc, argv)
 #else
     test_compress(compr, comprLen, uncompr, uncomprLen);
 
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    puts(" Using file pointers:");
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
-              uncompr, uncomprLen);
+              uncompr, uncomprLen, 1);
+    test_gzio_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                        uncompr, uncomprLen, 1);
+    test_gzio_uncompressed_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                                     uncompr, uncomprLen, 1, 0);
+    test_gzio_uncompressed_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                                     uncompr, uncomprLen, 1, 1);
+
+    puts(" Using file descriptors:");
+    test_gzio((argc > 1 ? argv[1] : TESTFILE),
+              uncompr, uncomprLen, 0);
+    test_gzio_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                        uncompr, uncomprLen, 0);
+    test_gzio_uncompressed_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                                     uncompr, uncomprLen, 0, 0);
+    test_gzio_uncompressed_in_middle((argc > 1 ? argv[1] : TESTFILE),
+                                     uncompr, uncomprLen, 0, 1);
+
+    puts(" Without file I/O:");
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 #endif
 
     test_deflate(compr, comprLen);
