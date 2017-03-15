@@ -67,6 +67,10 @@
 #    define gzeof                 z_gzeof
 #    define gzerror               z_gzerror
 #    define gzflush               z_gzflush
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+#    define gzfopen               z_gzfopen
+#    define gzfopen64             z_gzfopen64
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 #    define gzgetc                z_gzgetc
 #    define gzgetc_               z_gzgetc_
 #    define gzgets                z_gzgets
@@ -74,6 +78,10 @@
 #    define gzoffset64            z_gzoffset64
 #    define gzopen                z_gzopen
 #    define gzopen64              z_gzopen64
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+#    define gzopen_fp             z_gzopen_fp
+#    define gzopen64_fp           z_gzopen64_fp
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
 #    ifdef _WIN32
 #      define gzopen_w              z_gzopen_w
 #    endif
@@ -259,24 +267,6 @@
  that is, 32K for windowBits=15 (default value) plus a few kilobytes
  for small objects.
 */
-
-                        /* Type declarations */
-
-#ifndef OF /* function prototypes */
-#  ifdef STDC
-#    define OF(args)  args
-#  else
-#    define OF(args)  ()
-#  endif
-#endif
-
-#ifndef Z_ARG /* function prototypes for stdarg */
-#  if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#    define Z_ARG(args)  args
-#  else
-#    define Z_ARG(args)  ()
-#  endif
-#endif
 
 /* The following definitions for FAR are needed only for MSDOS mixed
  * model programming (small or medium model with some far allocations).
@@ -488,6 +478,24 @@ typedef uLong FAR uLongf;
 #    define z_off64_t __int64
 #  else
 #    define z_off64_t z_off_t
+#  endif
+#endif
+
+                        /* Type declarations */
+
+#ifndef OF /* function prototypes */
+#  ifdef STDC
+#    define OF(args)  args
+#  else
+#    define OF(args)  ()
+#  endif
+#endif
+
+#ifndef Z_ARG /* function prototypes for stdarg */
+#  if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#    define Z_ARG(args)  args
+#  else
+#    define Z_ARG(args)  ()
 #  endif
 #endif
 
