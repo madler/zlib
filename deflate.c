@@ -808,7 +808,9 @@ int ZEXPORT deflate (strm, flush)
                     }
                 }
                 val = s->gzhead->name[s->gzindex++];
-                put_byte(s, val);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+                put_byte(s, (Byte) val);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
             } while (val != 0);
             if (s->gzhead->hcrc && s->pending > beg)
                 strm->adler = crc32(strm->adler, s->pending_buf + beg,
@@ -839,7 +841,9 @@ int ZEXPORT deflate (strm, flush)
                     }
                 }
                 val = s->gzhead->comment[s->gzindex++];
-                put_byte(s, val);
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+                put_byte(s, (Byte) val);
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
             } while (val != 0);
             if (s->gzhead->hcrc && s->pending > beg)
                 strm->adler = crc32(strm->adler, s->pending_buf + beg,

@@ -451,7 +451,9 @@ int ZEXPORT gzungetc(c, file)
     if (state->x.have == 0) {
         state->x.have = 1;
         state->x.next = state->out + (state->size << 1) - 1;
-        state->x.next[0] = c;
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+        state->x.next[0] = (Byte) c;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
         state->x.pos--;
         state->past = 0;
         return c;
@@ -473,7 +475,9 @@ int ZEXPORT gzungetc(c, file)
     }
     state->x.have++;
     state->x.next--;
-    state->x.next[0] = c;
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    state->x.next[0] = (Byte) c;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     state->x.pos--;
     state->past = 0;
     return c;

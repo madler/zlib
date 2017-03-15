@@ -275,7 +275,9 @@ int ZEXPORT gzputc(file, c)
             strm->next_in = state->in;
         have = (unsigned)((strm->next_in + strm->avail_in) - state->in);
         if (have < state->size) {
-            state->in[have] = c;
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+            state->in[have] = (Byte) c;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
             strm->avail_in++;
             state->x.pos++;
             return c & 0xff;
@@ -283,7 +285,9 @@ int ZEXPORT gzputc(file, c)
     }
 
     /* no room in buffer or not initialized, use gz_write() */
-    buf[0] = c;
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    buf[0] = (Byte) c;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
     if (gzwrite(file, buf, 1) != 1)
         return -1;
     return c & 0xff;
