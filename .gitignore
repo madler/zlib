@@ -23,4 +23,8 @@
 /zlib.pc
 /configure.log
 
+/contrib/vstudio/vc*/x64/*
+/contrib/vstudio/vc*/x86/*
+/contrib/masm*/*.lst
+
 .DS_Store
