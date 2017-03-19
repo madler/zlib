@@ -43,6 +43,11 @@ Build instructions for Visual Studio 2015 (32 bits or 64 bits)
 - Decompress current zlib, including all contrib/* files
 - Open contrib\vstudio\vc14\zlibvc.sln with Microsoft Visual C++ 2015
 
+Build instructions for Visual Studio 2017 (32 bits or 64 bits)
+--------------------------------------------------------------
+- Decompress current zlib, including all contrib/* files
+- Open contrib\vstudio\vc15\zlibvc.sln with Microsoft Visual C++ 2017
+
 
 Important
 ---------
