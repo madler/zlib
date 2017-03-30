@@ -1531,7 +1531,7 @@ int check;
 
     if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
-    if (check)
+    if (check && state->wrap)
         state->wrap |= 4;
     else
         state->wrap &= ~4;
