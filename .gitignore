@@ -24,3 +24,5 @@
 /configure.log
 
 .DS_Store
+build-*/
+/qt/zlib.pro.user
