@@ -92,9 +92,9 @@ $(STATICLIB): $(OBJS) $(OBJA)
 
 $(IMPLIB): $(SHAREDLIB)
 
-$(SHAREDLIB): win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
+$(SHAREDLIB): win32/zlib.gcc.def $(OBJS) $(OBJA) zlibrc.o
 	$(CC) -shared -Wl,--out-implib,$(IMPLIB) $(LDFLAGS) \
-	-o $@ win32/zlib.def $(OBJS) $(OBJA) zlibrc.o
+	-o $@ win32/zlib.gcc.def $(OBJS) $(OBJA) zlibrc.o
 	$(STRIP) $@
 
 example.exe: example.o $(STATICLIB)
