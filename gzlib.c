@@ -137,13 +137,13 @@ local int gz_fopen(path, fd, fp, state)
       state->fp = fp;
     } else {
 
-      /* compute the flags for open() */
+      /* compute the flags for fopen() */
       if (state->mode == GZ_READ) {
-        fflag = "r";
+        fflag = "rb";
       } else if (state->mode == GZ_WRITE) {
-        fflag = "w";
+        fflag = "wb";
       } else {                /* GZ_APPEND */
-        fflag = "a";
+        fflag = "ab";
       }
 
       /* open the file with the appropriate flags */
