@@ -787,6 +787,11 @@ int ZEXPORT gzeof(file)
     if (state->mode != GZ_READ && state->mode != GZ_WRITE)
         return 0;
 
+/* START MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+    if (state->eof)
+        return 1;
+/* END MODIFICATION BY INTELLIMAGIC, info@intellimagic.com */
+
     /* return end-of-file state */
     return state->mode == GZ_READ ? state->past : 0;
 }
