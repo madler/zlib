@@ -12,6 +12,9 @@ amd64/      by Mikhail Teterin <mi@ALDAN.algebra.com>
         asm code for AMD64
         See patch at http://www.freebsd.org/cgi/query-pr.cgi?pr=bin/96393
 
+arm/        by Adenilson Cavalcanti <cavalcantii@chromium.org>
+        ARM optimizations (NEON and ARMv8 code).
+
 asm686/     by Brian Raiter <breadbox@muppetlabs.com>
         asm code for Pentium and PPro/PII, using the AT&T (GNU as) syntax
         See http://www.muppetlabs.com/~breadbox/software/assembly.html

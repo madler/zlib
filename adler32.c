@@ -136,7 +136,12 @@ uLong ZEXPORT adler32(adler, buf, len)
     const Bytef *buf;
     uInt len;
 {
+#ifdef ARMv8
+#  pragma message("Using NEON-ized Adler32.")
+    return NEON_adler32(adler, buf, len);
+#else
     return adler32_z(adler, buf, len);
+#endif
 }
 
 /* ========================================================================= */
