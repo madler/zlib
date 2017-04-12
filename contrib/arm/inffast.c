@@ -7,6 +7,7 @@
 #include "inftrees.h"
 #include "inflate.h"
 #include "inffast.h"
+#include "chunkcopy.h"
 
 #ifdef ASMINF
 #  pragma message("Assembler code may have bugs -- use at your own risk")
@@ -57,6 +58,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned char FAR *out;     /* local strm->next_out */
     unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
     unsigned char FAR *end;     /* while out < end, enough space available */
+    unsigned char FAR *limit;   /* safety limit for chunky copies */
 #ifdef INFLATE_STRICT
     unsigned dmax;              /* maximum distance from zlib header */
 #endif
@@ -84,12 +86,13 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     out = strm->next_out;
     beg = out - (start - strm->avail_out);
     end = out + (strm->avail_out - 257);
+    limit = out + strm->avail_out;
 #ifdef INFLATE_STRICT
     dmax = state->dmax;
 #endif
     wsize = state->wsize;
     whave = state->whave;
-    wnext = state->wnext;
+    wnext = (state->wnext == 0 && whave >= wsize) ? wsize : state->wnext;
     window = state->window;
     hold = state->hold;
     bits = state->bits;
@@ -197,70 +200,51 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
 #endif
                     }
                     from = window;
-                    if (wnext == 0) {           /* very common case */
-                        from += wsize - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
+                    if (wnext >= op) {          /* contiguous in window */
+                        from += wnext - op;
                     }
-                    else if (wnext < op) {      /* wrap around window */
-                        from += wsize + wnext - op;
+                    else {                      /* wrap around window */
                         op -= wnext;
+                        from += wsize - op;
                         if (op < len) {         /* some from end of window */
                             len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = window;
-                            if (wnext < len) {  /* some from start of window */
-                                op = wnext;
-                                len -= op;
-                                do {
-                                    *out++ = *from++;
-                                } while (--op);
-                                from = out - dist;      /* rest from output */
-                            }
+                            out = chunkcopy_safe(out, from, op, limit);
+                            from = window;      /* more from start of window */
+                            op = wnext;
+                            /* This (rare) case can create a situation where
+                               the first chunkcopy below must be checked.
+                             */
                         }
                     }
-                    else {                      /* contiguous in window */
-                        from += wnext - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
-                    }
-                    while (len > 2) {
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        len -= 3;
-                    }
-                    if (len) {
-                        *out++ = *from++;
-                        if (len > 1)
-                            *out++ = *from++;
+                    if (op < len) {             /* still need some from output */
+                        out = chunkcopy_safe(out, from, op, limit);
+                        len -= op;
+                        /* When dist is small the amount of data that can be
+                           copied from the window is also small, and progress
+                           towards the dangerous end of the output buffer is
+                           also small.  This means that for trivial memsets and
+                           for chunkunroll_relaxed() a safety check is
+                           unnecessary.  However, these conditions may not be
+                           entered at all, and in that case it's possible that
+                           the main copy is near the end.
+                          */
+                        out = chunkunroll_relaxed(out, &dist, &len);
+                        out = chunkcopy_safe(out, out - dist, len, limit);
+                    } else {
+                        /* from points to window, so there is no risk of
+                           overlapping pointers requiring memset-like behaviour
+                         */
+                        out = chunkcopy_safe(out, from, len, limit);
                     }
                 }
                 else {
-                    from = out - dist;          /* copy direct from output */
-                    do {                        /* minimum length is three */
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        len -= 3;
-                    } while (len > 2);
-                    if (len) {
-                        *out++ = *from++;
-                        if (len > 1)
-                            *out++ = *from++;
-                    }
+                    /* Whole reference is in range of current output.  No
+                       range checks are necessary because we start with room
+                       for at least 258 bytes of output, so unroll and roundoff
+                       operations can write beyond `out+len` so long as they
+                       stay within 258 bytes of `out`.
+                     */
+                    out = chunkcopy_lapped_relaxed(out, dist, len);
                 }
             }
             else if ((op & 64) == 0) {          /* 2nd level distance code */
