@@ -84,6 +84,7 @@
 #include "inftrees.h"
 #include "inflate.h"
 #include "inffast.h"
+#include "contrib/arm/chunkcopy.h"
 
 #ifdef MAKEFIXED
 #  ifndef BUILDFIXED
@@ -405,10 +406,20 @@ unsigned copy;
 
     /* if it hasn't been done already, allocate space for the window */
     if (state->window == Z_NULL) {
+        unsigned wsize = 1U << state->wbits;
         state->window = (unsigned char FAR *)
-                        ZALLOC(strm, 1U << state->wbits,
+                        ZALLOC(strm, wsize + CHUNKCOPY_CHUNK_SIZE,
                                sizeof(unsigned char));
         if (state->window == Z_NULL) return 1;
+#ifdef INFLATE_CLEAR_UNUSED_UNDEFINED
+        /* Copies from the overflow portion of this buffer are undefined and
+           may cause analysis tools to raise a warning if we don't initialize
+           it.  However, this undefined data overwrites other undefined data
+           and is subsequently either overwritten or left deliberately
+           undefined at the end of decode; so there's really no point.
+         */
+        memset(state->window + wsize, 0, CHUNKCOPY_CHUNK_SIZE);
+#endif
     }
 
     /* if window not in use yet, initialize */
@@ -1175,17 +1186,16 @@ int flush;
                 else
                     from = state->window + (state->wnext - copy);
                 if (copy > state->length) copy = state->length;
+                if (copy > left) copy = left;
+                put = chunkcopy_safe(put, from, copy, put + left);
             }
             else {                              /* copy from output */
-                from = put - state->offset;
                 copy = state->length;
+                if (copy > left) copy = left;
+                put = chunkcopy_lapped_safe(put, state->offset, copy, put + left);
             }
-            if (copy > left) copy = left;
             left -= copy;
             state->length -= copy;
-            do {
-                *put++ = *from++;
-            } while (--copy);
             if (state->length == 0) state->mode = LEN;
             break;
         case LIT:
