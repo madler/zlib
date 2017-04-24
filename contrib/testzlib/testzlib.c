@@ -138,7 +138,7 @@ int ReadFileMemory(const char* filename,long* plFileSize,unsigned char** pFilePt
             retVal=0;
     }
     fclose(stream);
-    *pFilePtr=ptr;
+    *pFilePtr=(unsigned char*)ptr;
     return retVal;
 }
 
