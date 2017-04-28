@@ -311,7 +311,7 @@ fi
 
 DEST="${LIBIFSNAME}/TOOLS.FILE/BNDSRC.MBR"
 
-if action_needed "${SCRIPTDIR}/bndsrc" "${DEST}"
+if action_needed "${DEST}" "${SCRIPTDIR}/bndsrc"
 then    CMD="CPY OBJ('${SCRIPTDIR}/bndsrc') TOOBJ('${DEST}')"
         CMD="${CMD} TOCCSID(${TGTCCSID}) DTAFMT(*TEXT) REPLACE(*YES)"
         system "${CMD}"
