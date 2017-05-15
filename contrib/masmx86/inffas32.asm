@@ -35,7 +35,10 @@
 ; zlib122sup is 0 fort zlib 1.2.2.1 and lower
 ; zlib122sup is 8 fort zlib 1.2.2.2 and more (with addition of dmax and head
 ;        in inflate_state in inflate.h)
+; zlib129sup is 4 fort zlib 1.2.9 and more (with addition of z_streamp
+;        in inflate_state in inflate.h)
 zlib1222sup      equ    8
+zlib129sup		 equ	4
 
 
 IFDEF GUNZIP
@@ -133,16 +136,16 @@ dd	2147483647
 dd	4294967295
 
 
-mode_state	 equ	0	;/* state->mode	*/
-wsize_state	 equ	(32+zlib1222sup)	;/* state->wsize */
-write_state	 equ	(36+4+zlib1222sup)	;/* state->write */
-window_state	 equ	(40+4+zlib1222sup)	;/* state->window */
-hold_state	 equ	(44+4+zlib1222sup)	;/* state->hold	*/
-bits_state	 equ	(48+4+zlib1222sup)	;/* state->bits	*/
-lencode_state	 equ	(64+4+zlib1222sup)	;/* state->lencode */
-distcode_state	 equ	(68+4+zlib1222sup)	;/* state->distcode */
-lenbits_state	 equ	(72+4+zlib1222sup)	;/* state->lenbits */
-distbits_state	 equ	(76+4+zlib1222sup)	;/* state->distbits */
+mode_state		equ	(zlib129sup+0)					;/* state->mode	*/
+wsize_state		equ	(zlib129sup+32+zlib1222sup)		;/* state->wsize */
+write_state		equ	(zlib129sup+36+4+zlib1222sup)	;/* state->write */
+window_state	equ	(zlib129sup+40+4+zlib1222sup)	;/* state->window */
+hold_state		equ	(zlib129sup+44+4+zlib1222sup)	;/* state->hold	*/
+bits_state		equ	(zlib129sup+48+4+zlib1222sup)	;/* state->bits	*/
+lencode_state	equ	(zlib129sup+64+4+zlib1222sup)	;/* state->lencode */
+distcode_state	equ	(zlib129sup+68+4+zlib1222sup)	;/* state->distcode */
+lenbits_state	equ	(zlib129sup+72+4+zlib1222sup)	;/* state->lenbits */
+distbits_state	equ	(zlib129sup+76+4+zlib1222sup)	;/* state->distbits */
 
 
 ;;SECTION .text
