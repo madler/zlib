@@ -145,13 +145,13 @@ endif()
 if(MSVC)
     if(ASM686)
 		ENABLE_LANGUAGE(ASM_MASM)
-        set(ZLIB_ASMS
+		set(ZLIB_ASMS
 			contrib/masmx86/inffas32.asm
 			contrib/masmx86/match686.asm
 		)
     elseif (AMD64)
 		ENABLE_LANGUAGE(ASM_MASM)
-        set(ZLIB_ASMS
+		set(ZLIB_ASMS
 			contrib/masmx64/gvmat64.asm
 			contrib/masmx64/inffasx64.asm
 		)
