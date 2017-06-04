@@ -83,8 +83,8 @@
 /* ar offset                              register */
 /*  0    0 */ void *esp;                /* esp save */
 /*  8    4 */ void *ebp;                /* ebp save */
-/* 16    8 */ unsigned char FAR *in;    /* esi rsi  local strm->next_in */
-/* 24   12 */ unsigned char FAR *last;  /*     r9   while in < last */
+/* 16    8 */ z_const unsigned char FAR *in;    /* esi rsi  local strm->next_in */
+/* 24   12 */ z_const unsigned char FAR *last;  /*     r9   while in < last */
 /* 32   16 */ unsigned char FAR *out;   /* edi rdi  local strm->next_out */
 /* 40   20 */ unsigned char FAR *beg;   /*          inflate()'s init next_out */
 /* 48   24 */ unsigned char FAR *end;   /*     r10  while out < end */
