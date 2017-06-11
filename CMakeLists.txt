@@ -74,7 +74,7 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
         message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
         message(STATUS "to 'zconf.h.included' because this file is included with zlib")
         message(STATUS "but CMake generates it automatically in the build directory.")
-        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
+		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_BINARY_DIR}/zconf.h.included COPYONLY)
   endif()
 endif()
 
@@ -230,6 +230,7 @@ endif()
 # Example binaries
 #============================================================================
 
+if(NOT SKIP_EXAMPLES)
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
@@ -247,3 +248,4 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+endif(NOT SKIP_EXAMPLES)
