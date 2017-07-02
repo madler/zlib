@@ -43,6 +43,12 @@ Build instructions for Visual Studio 2015 (32 bits or 64 bits)
 - Decompress current zlib, including all contrib/* files
 - Open contrib\vstudio\vc14\zlibvc.sln with Microsoft Visual C++ 2015
 
+Build instructions for Visual Studio 2017 (32 bits or 64 bits)
+--------------------------------------------------------------
+- Decompress current zlib, including all contrib/* files
+- Open contrib\vstudio\vc15\zlibvc.sln with Microsoft Visual C++ 2017
+- You can build zlibstat project without building zlibvc project first
+
 
 Important
 ---------
@@ -76,3 +82,6 @@ info@winimage.com
 
 Visual Studio 2013 and 2015 Projects from Sean Hunt
 seandhunt_7@yahoo.com
+
+Visual Studio 2017 Project from Dmitry Savelev
+dv-sav@hotmail.com
