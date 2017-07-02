@@ -232,7 +232,7 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
         VERSION ${VERSION}
         COMPATIBILITY SameMajorVersion)
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ZLibConfig.cmake"
-        "include(\"\${CMAKE_CURRENT_LIST_DIR}/ZlibTargets.cmake\")"
+        "include(\"\${CMAKE_CURRENT_LIST_DIR}/ZLibTargets.cmake\")"
     )
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZLibConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/ZLibConfigVersion.cmake"
         DESTINATION lib/cmake/ZLib)
