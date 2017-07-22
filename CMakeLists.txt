@@ -221,9 +221,13 @@ endif()
 if(NOT SKIP_INSTALL_ALL)
     if(NOT SKIP_INSTALL_LIBRARIES)
         install(TARGETS zlib zlibstatic
+            EXPORT ${PROJECT_NAME}Config
             RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
             ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
             LIBRARY DESTINATION "${INSTALL_LIB_DIR}")
+        install(EXPORT ${PROJECT_NAME}Config
+            NAMESPACE zlib::
+            DESTINATION lib/cmake)
     endif()
     if(NOT SKIP_INSTALL_HEADERS)
         install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
