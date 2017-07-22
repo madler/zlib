@@ -14,6 +14,13 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
 set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
+if(MSVC)
+    option(BUILD_WITH_STATIC_MSVC_RUNTIME "Link with the static vc runtime" OFF)
+    if(BUILD_WITH_STATIC_MSVC_RUNTIME)
+        include(cmake/msvc_static_runtime.cmake)
+    endif()
+endif()
+
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
