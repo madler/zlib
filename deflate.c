@@ -296,11 +296,10 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     }
 #endif
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
-        windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
-        strategy < 0 || strategy > Z_FIXED || (windowBits == 8 && wrap != 1)) {
+        windowBits > 15 || level < 0 || level > 9 ||
+        strategy < 0 || strategy > Z_FIXED) {
         return Z_STREAM_ERROR;
     }
-    if (windowBits == 8) windowBits = 9;  /* until 256-byte window bug fixed */
     s = (deflate_state *) ZALLOC(strm, 1, sizeof(deflate_state));
     if (s == Z_NULL) return Z_MEM_ERROR;
     strm->state = (struct internal_state FAR *)s;
@@ -309,7 +308,11 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     s->wrap = wrap;
     s->gzhead = Z_NULL;
-    s->w_bits = (uInt)windowBits;
+#if MIN_LOOKAHEAD < 256
+    s->w_bits = ((uInt)windowBits >= 8) ? (uInt)windowBits : 8;
+#else
+    s->w_bits = ((uInt)windowBits >= 9) ? (uInt)windowBits : 9;
+#endif
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
 
@@ -813,7 +816,12 @@ int ZEXPORT deflate (strm, flush)
     /* Write the header */
     if (s->status == INIT_STATE) {
         /* zlib header */
+#if MIN_LOOKAHEAD < 256
         uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
+#else
+        uInt optimized_cinfo = (s->w_bits > 9) ? s->w_bits - 8 : 0;
+        uInt header = (Z_DEFLATED + (optimized_cinfo<<4)) << 8;
+#endif
         uInt level_flags;
 
         if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
