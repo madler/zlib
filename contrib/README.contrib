@@ -32,6 +32,9 @@ gcc_gvmat64/by Gilles Vollant <info@winimage.com>
 infback9/   by Mark Adler <madler@alumni.caltech.edu>
         Unsupported diffs to infback to decode the deflate64 format
 
+inffast64/  by Nigel Tao <nigeltao@google.com>
+        64 bit version of inffast.c. No asm, 1.5x faster on x86 64.
+
 inflate86/  by Chris Anderson <christop@charm.net>
         Tuned x86 gcc asm code to replace inflate_fast()
 

@@ -7,6 +7,7 @@ set(VERSION "1.2.11")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
+option(INFFAST64 "Enable 64 bit inflate_fast implementation")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -160,6 +161,11 @@ if(MSVC)
 	if(ZLIB_ASMS)
 		add_definitions(-DASMV -DASMINF)
 	endif()
+endif()
+
+if(INFFAST64)
+	add_definitions(-DINFLATE_FAST64)
+	list(APPEND ZLIB_SRCS contrib/inffast64/inffast64.c)
 endif()
 
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
