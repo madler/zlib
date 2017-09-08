@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
@@ -7,12 +7,7 @@ set(VERSION "1.2.11")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
-
-set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
-set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
-set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
-set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+option(ZLIB_SKIP_INSTALL_FILES "Disable installation of non-library files" OFF)
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -23,6 +18,10 @@ enable_testing()
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
 check_include_file(stddef.h    HAVE_STDDEF_H)
+
+if( MSVC )
+    add_definitions(/MP)
+endif()
 
 #
 # Check to see if we have large file support
@@ -184,9 +183,12 @@ if(MINGW)
 endif(MINGW)
 
 add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+set_target_properties(zlib PROPERTIES
+    DEFINE_SYMBOL ZLIB_DLL
+    SOVERSION 1
+)
+
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
-set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
-set_target_properties(zlib PROPERTIES SOVERSION 1)
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
@@ -210,20 +212,53 @@ elseif(BUILD_SHARED_LIBS AND WIN32)
     set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 endif()
 
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS zlib zlibstatic
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
-endif()
-if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+#============================================================================
+# Installation
+#============================================================================
+# Note: If you do not want installation, don't run the 'install' target.
+
+include(CMakePackageConfigHelpers)
+
+set(INSTALL_BIN_DIR         bin)
+set(INSTALL_LIB_DIR         lib)
+set(INSTALL_INC_DIR         include)
+set(INSTALL_MAN_DIR         share/man/man3)
+set(INSTALL_PKGCONFIG_DIR   share/pkgconfig)
+set(INSTALL_CMAKE_DIR       ${INSTALL_LIB_DIR}/zlib-${VERSION}/cmake)
+
+install(TARGETS zlib zlibstatic EXPORT zlib-targets
+    RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+    ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+    LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+    INCLUDES DESTINATION ${INSTALL_INC_DIR}
+)
+
+install(
+    EXPORT zlib-targets
+    DESTINATION ${INSTALL_CMAKE_DIR}
+    NAMESPACE zlib::
+)
+
+configure_file(cmake/zlib-config.cmake.in zlib-config.cmake @ONLY)
+
+write_basic_package_version_file(
+    zlib-config-version.cmake
+    VERSION ${VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake
+    DESTINATION ${INSTALL_CMAKE_DIR}
+)
+
+install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION ${INSTALL_INC_DIR})
+
+if(NOT ZLIB_SKIP_INSTALL_FILES )
+    install(FILES zlib.3 DESTINATION ${INSTALL_MAN_DIR})
+    install(FILES ${ZLIB_PC} DESTINATION ${INSTALL_PKGCONFIG_DIR})
 endif()
 
 #============================================================================
