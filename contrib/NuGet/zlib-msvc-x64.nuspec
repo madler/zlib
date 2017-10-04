@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>zlib-msvc-x64</id>
+        <version>1.2.11.8900</version>
+        <authors>administrator</authors>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Visual Studio 2017 Release zlib as NuGet package.</description>
+    </metadata>
+    <files>
+        <file src="..\..\FAQ" target="FAQ" />
+        <file src="..\..\README" target="README" />
+		<file src="..\..\build-nuget\**\*" target="build\native" />
+    </files>
+</package>
