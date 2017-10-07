@@ -75,6 +75,10 @@
 #include "zlib.h"
 #include "unzip.h"
 
+#if ZLIB_VERNUM < 0x1270
+#  define z_crc_t unsigned long
+#endif
+
 #ifdef STDC
 #  include <stddef.h>
 #  include <string.h>
@@ -1038,8 +1042,6 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
             /* ZIP64 extra fields */
             if (headerId == 0x0001)
             {
-                                                        uLong uL;
-
                                                                 if(file_info.uncompressed_size == MAXU32)
                                                                 {
                                                                         if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
@@ -1090,19 +1092,14 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
 
         if (lSeek!=0)
         {
-            if (ZSEEK64(s->z_filefunc, s->filestream,lSeek,ZLIB_FILEFUNC_SEEK_CUR)==0)
-                lSeek=0;
-            else
+            if (ZSEEK64(s->z_filefunc, s->filestream,lSeek,ZLIB_FILEFUNC_SEEK_CUR)!=0)
                 err=UNZ_ERRNO;
         }
 
         if ((file_info.size_file_comment>0) && (commentBufferSize>0))
             if (ZREAD64(s->z_filefunc, s->filestream,szComment,uSizeRead)!=uSizeRead)
                 err=UNZ_ERRNO;
-        lSeek+=file_info.size_file_comment - uSizeRead;
     }
-    else
-        lSeek+=file_info.size_file_comment;
 
 
     if ((err==UNZ_OK) && (pfile_info!=NULL))
@@ -1177,7 +1174,7 @@ extern int ZEXPORT unzGetCurrentFileInfo (unzFile file,
 */
 extern int ZEXPORT unzGoToFirstFile (unzFile file)
 {
-    int err=UNZ_OK;
+    int err;
     unz64_s* s;
     if (file==NULL)
         return UNZ_PARAMERROR;
@@ -1472,7 +1469,7 @@ local int unz64local_CheckCurrentFileCoherencyHeader (unz64_s* s, uInt* piSizeVa
 extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
                                             int* level, int raw, const char* password)
 {
-    int err=UNZ_OK;
+    int err;
     uInt iSizeVar;
     unz64_s* s;
     file_in_zip64_read_info_s* pfile_in_zip_read_info;
