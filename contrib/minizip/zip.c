@@ -29,6 +29,10 @@
 #include "zlib.h"
 #include "zip.h"
 
+#if ZLIB_VERNUM < 0x1270
+#  define z_crc_t unsigned long
+#endif
+
 #ifdef STDC
 #  include <stddef.h>
 #  include <string.h>
@@ -185,6 +189,12 @@ typedef struct
 #define INCLUDECRYPTINGCODE_IFCRYPTALLOWED
 #include "crypt.h"
 #endif
+
+/* Forward declarations */
+local linkedlist_datablock_internal* allocate_new_datablock( void );
+local void free_datablock( linkedlist_datablock_internal* ldi );
+local void init_linkedlist( linkedlist_data* ll );
+local int add_data_in_datablock( linkedlist_data* ll, const void* buf, uLong len );
 
 local linkedlist_datablock_internal* allocate_new_datablock()
 {
@@ -1034,10 +1044,10 @@ int Write_LocalFileHeader(zip64_internal* zi, const char* filename, uInt size_ex
       // Remember position of Zip64 extended info for the local file header. (needed when we update size after done with file)
       zi->ci.pos_zip64extrainfo = ZTELL64(zi->z_filefunc,zi->filestream);
 
-      err = zip64local_putValue(&zi->z_filefunc, zi->filestream, (short)HeaderID,2);
-      err = zip64local_putValue(&zi->z_filefunc, zi->filestream, (short)DataSize,2);
+      zip64local_putValue(&zi->z_filefunc, zi->filestream, (short)HeaderID,2);
+      zip64local_putValue(&zi->z_filefunc, zi->filestream, (short)DataSize,2);
 
-      err = zip64local_putValue(&zi->z_filefunc, zi->filestream, (ZPOS64_T)UncompressedSize,8);
+      zip64local_putValue(&zi->z_filefunc, zi->filestream, (ZPOS64_T)UncompressedSize,8);
       err = zip64local_putValue(&zi->z_filefunc, zi->filestream, (ZPOS64_T)CompressedSize,8);
   }
 
@@ -1064,7 +1074,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
     uInt size_filename;
     uInt size_comment;
     uInt i;
-    int err = ZIP_OK;
+    int err;
 
 #    ifdef NOCRYPT
     (crcForCrypting);
@@ -1370,7 +1380,7 @@ local int zip64FlushWriteBuffer(zip64_internal* zi)
         uInt i;
         int t;
         for (i=0;i<zi->ci.pos_in_buffered_data;i++)
-            zi->ci.buffered_data[i] = zencode(zi->ci.keys, zi->ci.pcrc_32_tab, zi->ci.buffered_data[i],t);
+            zi->ci.buffered_data[i] = (Byte) zencode(zi->ci.keys, zi->ci.pcrc_32_tab, zi->ci.buffered_data[i],t);
 #endif
     }
 
@@ -1649,7 +1659,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
 
     if(datasize > 0)
     {
-      char* p = NULL;
+      char* p;
 
       if((uLong)(datasize + 4) > zi->ci.size_centralExtraFree)
       {
@@ -1680,7 +1690,9 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
       if(zi->ci.pos_local_header >= 0xffffffff)
       {
         zip64local_putValue_inmemory(p, zi->ci.pos_local_header, 8);
+#if 0
         p += 8;
+#endif
       }
 
       // Update how much extra free space we got in the memory buffer
@@ -1697,7 +1709,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
     if (err==ZIP_OK)
         err = add_data_in_datablock(&zi->central_dir, zi->ci.central_header, (uLong)zi->ci.size_centralheader);
 
-    free(zi->ci.central_header);
+    TRYFREE(zi->ci.central_header);
 
     if (err==ZIP_OK)
     {
@@ -1754,7 +1766,7 @@ extern int ZEXPORT zipCloseFileInZip (zipFile file)
 
 int Write_Zip64EndOfCentralDirectoryLocator(zip64_internal* zi, ZPOS64_T zip64eocd_pos_inzip)
 {
-  int err = ZIP_OK;
+  int err;
   ZPOS64_T pos = zip64eocd_pos_inzip - zi->add_position_when_writing_offset;
 
   err = zip64local_putValue(&zi->z_filefunc,zi->filestream,(uLong)ZIP64ENDLOCHEADERMAGIC,4);
@@ -1776,7 +1788,7 @@ int Write_Zip64EndOfCentralDirectoryLocator(zip64_internal* zi, ZPOS64_T zip64eo
 
 int Write_Zip64EndOfCentralDirectoryRecord(zip64_internal* zi, uLong size_centraldir, ZPOS64_T centraldir_pos_inzip)
 {
-  int err = ZIP_OK;
+  int err;
 
   uLong Zip64DataSize = 44;
 
@@ -1815,7 +1827,7 @@ int Write_Zip64EndOfCentralDirectoryRecord(zip64_internal* zi, uLong size_centra
 }
 int Write_EndOfCentralDirectoryRecord(zip64_internal* zi, uLong size_centraldir, ZPOS64_T centraldir_pos_inzip)
 {
-  int err = ZIP_OK;
+  int err;
 
   /*signature*/
   err = zip64local_putValue(&zi->z_filefunc,zi->filestream,(uLong)ENDHEADERMAGIC,4);
@@ -1863,7 +1875,7 @@ int Write_EndOfCentralDirectoryRecord(zip64_internal* zi, uLong size_centraldir,
 
 int Write_GlobalComment(zip64_internal* zi, const char* global_comment)
 {
-  int err = ZIP_OK;
+  int err;
   uInt size_global_comment = 0;
 
   if(global_comment != NULL)
@@ -1957,7 +1969,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock (char* pData, int* dataLen, short sHe
   short header;
   short dataSize;
 
-  int retVal = ZIP_OK;
+  int retVal;
 
   if(pData == NULL || *dataLen < 4)
     return ZIP_PARAMERROR;
