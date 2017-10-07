@@ -4,13 +4,13 @@
 ; for MASM. This is as assembly version of longest_match
 ;  from Jean-loup Gailly in deflate.c
 ;
-;         http://www.zlib.net
+;         https://zlib.net/
 ;         http://www.winimage.com/zLibDll
 ;         http://www.muppetlabs.com/~breadbox/software/assembly.html
 ;
 ; For Visual C++ 4.x and higher and ML 6.x and higher
 ;   ml.exe is distributed in
-;  http://www.microsoft.com/downloads/details.aspx?FamilyID=7a1c9da0-0510-44a2-b042-7ef370530c64
+;  https://www.microsoft.com/downloads/details.aspx?FamilyID=7a1c9da0-0510-44a2-b042-7ef370530c64
 ;
 ; this file contain two implementation of longest_match
 ;

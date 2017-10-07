@@ -6,11 +6,11 @@ for help about these, not the zlib authors. Thanks.
 
 ada/        by Dmitriy Anisimkov <anisimkov@yahoo.com>
         Support for Ada
-        See http://zlib-ada.sourceforge.net/
+        See https://zlib-ada.sourceforge.io/
 
 amd64/      by Mikhail Teterin <mi@ALDAN.algebra.com>
         asm code for AMD64
-        See patch at http://www.freebsd.org/cgi/query-pr.cgi?pr=bin/96393
+        See patch at https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=96393
 
 asm686/     by Brian Raiter <breadbox@muppetlabs.com>
         asm code for Pentium and PPro/PII, using the AT&T (GNU as) syntax

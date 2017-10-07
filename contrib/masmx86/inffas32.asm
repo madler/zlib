@@ -15,14 +15,15 @@
 ; * compiled with gcc -DNO_MMX, but inffast.S is still faster on the P3 with MMX
 ; * enabled.  I will attempt to merge the MMX code into this version.  Newer
 ; * versions of this and inffast.S can be found at
-; * http://www.eetbeetee.com/zlib/ and http://www.charm.net/~christop/zlib/
+; * https://web.archive.org/web/20080924072251/www.eetbeetee.com/zlib/ and
+; * https://web.archive.org/web/www.charm.net/~christop/zlib/
 ; *
 ; * 2005 : modification by Gilles Vollant
 ; */
 ; For Visual C++ 4.x and higher and ML 6.x and higher
 ;   ml.exe is in directory \MASM611C of Win95 DDK
 ;   ml.exe is also distributed in http://www.masm32.com/masmdl.htm
-;    and in VC++2003 toolkit at http://msdn.microsoft.com/visualc/vctoolkit2003/
+;    and in VC++2003 toolkit at https://msdn.microsoft.com/visualc/vctoolkit2003/
 ;
 ;
 ;   compile with command line option

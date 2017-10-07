@@ -30,7 +30,7 @@ BEGIN
       VALUE "OriginalFilename",	"zlib1.dll\0"
       VALUE "ProductName",	"zlib\0"
       VALUE "ProductVersion",	ZLIB_VERSION "\0"
-      VALUE "Comments",		"For more information visit http://www.zlib.net/\0"
+      VALUE "Comments",		"For more information visit https://zlib.net/\0"
     END
   END
   BLOCK "VarFileInfo"

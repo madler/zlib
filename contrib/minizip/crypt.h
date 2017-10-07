@@ -23,7 +23,7 @@
    This code support the "Traditional PKWARE Encryption".
 
    The new AES encryption added on Zip format by Winzip (see the page
-   http://www.winzip.com/aes_info.htm ) and PKWare PKZip 5.x Strong
+   https://www.winzip.com/aes_info.htm ) and PKWare PKZip 5.x Strong
    Encryption is not supported.
 */
 
