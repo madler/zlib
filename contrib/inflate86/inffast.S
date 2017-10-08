@@ -50,8 +50,9 @@
  * version of the non-MMX code so that it doesn't depend on zstrm and zstate
  * structure offsets which are hard coded in this file.  This was last tested
  * with zlib-1.2.0 which is currently in beta testing, newer versions of this
- * and inffas86.c can be found at http://www.eetbeetee.com/zlib/ and
- * http://www.charm.net/~christop/zlib/
+ * and inffas86.c can be found at
+ * https://web.archive.org/web/20080924072251/www.eetbeetee.com/zlib/ and
+ * https://web.archive.org/web/www.charm.net/~christop/zlib/
  */
 
 

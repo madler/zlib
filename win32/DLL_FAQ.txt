@@ -16,7 +16,7 @@ in the zlib distribution, or at the following location:
 
     Pointers to a precompiled ZLIB1.DLL can be found in the zlib
     web site at:
-      http://www.zlib.net/
+      https://zlib.net/
 
     Applications that link to ZLIB1.DLL can rely on the following
     specification:
