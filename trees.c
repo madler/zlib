@@ -149,7 +149,7 @@ local void send_all_trees OF((deflate_state *s, int lcodes, int dcodes,
 local void compress_block OF((deflate_state *s, const ct_data *ltree,
                               const ct_data *dtree));
 local int  detect_data_type OF((deflate_state *s));
-local unsigned bi_reverse OF((unsigned value, int length));
+local unsigned bi_reverse OF((unsigned code, int len));
 local void bi_windup      OF((deflate_state *s));
 local void bi_flush       OF((deflate_state *s));
 
