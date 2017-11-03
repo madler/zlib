@@ -260,7 +260,7 @@ package ZLib is
         (Item : out Ada.Streams.Stream_Element_Array;
          Last : out Ada.Streams.Stream_Element_Offset);
       --  User should provide data for compression/decompression
-      --  thru this routine.
+      --  through this routine.
 
       Buffer : in out Ada.Streams.Stream_Element_Array;
       --  Buffer for keep remaining data from the previous
