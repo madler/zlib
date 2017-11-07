@@ -745,38 +745,60 @@ fi
 # Check for AMD64 hardware support.
 if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" ] ; then
  
-  # Check for PCLMUL support
+  # Check for SSE4.2 and CRC support
 cat > $test.c << EOF
+#include <immintrin.h>
 void foo(void) {
-#ifndef __PCLMUL__
-    #error no pclmul
-#endif
+  _mm_crc32_u32(0, 0);
 }
 EOF
 
-  if try $CC -c $CFLAGS $test.c ; then
-    CFLAGS="-DHAS_PCLMUL $CFLAGS"
-    SFLAGS="-DHAS_PCLMUL $SFLAGS"
+  if try $CC -msse4.2 $CFLAGS $test.c -c $test; then
+    CFLAGS="-DHAS_SSE42 -msse4.2 $CFLAGS"
+    SFLAGS="-DHAS_SSE42 -msse4.2 $SFLAGS"
+    echo "Checking for CRC and SSE4.2 support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for CRC and SSE4.2 support ... No" | tee -a configure.log
+    echo "CRC and SSE4.2 support is required" | tee -a configure.log
+    leave 1
+  fi
+
+  # Check for PCLMUL support
+cat > $test.c << EOF
+#include <immintrin.h>
+void foo(void) {
+  _mm_clmulepi64_si128(_mm_set1_epi16(1), _mm_set1_epi16(2), 0);
+}
+EOF
+
+  if try $CC -c -mpclmul $CFLAGS $test.c ; then
+    CFLAGS="-DHAS_PCLMUL -mpclmul $CFLAGS"
+    SFLAGS="-DHAS_PCLMUL -mpclmul $SFLAGS"
     echo "Checking for PCLMUL support ... Yes" | tee -a configure.log
   else
     echo "Checking for PCLMUL support ... No" | tee -a configure.log
   fi
 
-  # Check for SSE4.2 support. Not all compiler set __SSE4_2__ 
+elif [ x$TGT_ARCH = "xaarch64" -a $(uname -m) = "aarch64" ] ; then
+ 
+  # Check for NEON and CRC support
 cat > $test.c << EOF
+#include <arm_neon.h>
+#include <arm_acle.h>
 void foo(void) {
-#ifndef __SSE4_2__
-    #error no sse4.2
-#endif
+  __crc32cw(0, 0);
+  vqsubq_u16(vmovq_n_u16(1), vmovq_n_u16(2));
 }
 EOF
 
-  if try $CC $CFLAGS $test.c -c $test; then
-    CFLAGS="-DHAS_SSE42 $CFLAGS"
-    SFLAGS="-DHAS_SSE42 $SFLAGS"
-    echo "Checking for SSE4.2 support ... Yes" | tee -a configure.log
+  if try $CC -march=armv8-a+crc $CFLAGS $test.c -c $test; then
+    CFLAGS="-march=armv8-a+crc $CFLAGS"
+    SFLAGS="-march=armv8-a+crc $SFLAGS"
+    echo "Checking for CRC and NEON support ... Yes" | tee -a configure.log
   else
-    echo "Checking for SSE4.2 support ... No" | tee -a configure.log
+    echo "Checking for CRC and NEON support ... No" | tee -a configure.log
+    echo "CRC and NEON support is required" | tee -a configure.log
+    leave 1
   fi
 
 fi # end of "Check amd64 hardware support"

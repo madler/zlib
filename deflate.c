@@ -50,7 +50,6 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
-#include <immintrin.h>
 
 const char deflate_copyright[] =
    " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
@@ -135,9 +134,27 @@ static const config configuration_table[10] = {
 /* rank Z_BLOCK between Z_NO_FLUSH and Z_PARTIAL_FLUSH */
 #define RANK(f) (((f) << 1) - ((f) > 4 ? 9 : 0))
 
+#ifdef __aarch64__
+
+#include <arm_neon.h>
+#include <arm_acle.h>
+static uint32_t hash_func(deflate_state *s, void* str) {
+    return __crc32cw(0, *(uint32_t*)str) & s->hash_mask;
+}
+
+#elif defined __x86_64__
+
+#include <immintrin.h>
 static uint32_t hash_func(deflate_state *s, void* str) {
     return _mm_crc32_u32(0, *(uint32_t*)str) & s->hash_mask;
 }
+
+#else
+
+#error "Only 64-bit Intel and ARM architectures are supported"
+
+#endif
+
 /* ===========================================================================
  * Insert string str in the dictionary and return the previous head
  * of the hash chain (the most recent string with same hash key).
@@ -341,7 +358,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
     fill_window(s);
     while (s->lookahead >= ACTUAL_MIN_MATCH) {
         str = s->strstart;
-       	n = s->lookahead - (ACTUAL_MIN_MATCH-1);
+        n = s->lookahead - (ACTUAL_MIN_MATCH-1);
         bulk_insert_str(s, str, n);
         s->strstart = str + n;
         s->lookahead = ACTUAL_MIN_MATCH-1;
@@ -1087,7 +1104,7 @@ static void lm_init (s)
  *
  * ------------------------------------------------------------
  * uInt longest_match(...) {
- *    ...   
+ *    ...
  *    do {
  *        match = s->window + cur_match;                //s0
  *        if (*(ushf*)(match+best_len-1) != scan_end || //s1
@@ -1125,7 +1142,7 @@ static void lm_init (s)
  *       "s->window" is loop-invariant of that newly created tight loop. It is
  *       lot easier for compiler to promote this quantity to register and keep
  *       its value throughout the entire small loop.
- * 
+ *
  * 2) Transfrom s3 such that it examines sizeof(long)-byte-match at a time.
  *    This is done by:
  *        ------------------------------------------------
@@ -1313,29 +1330,43 @@ static void fill_window(s)
         /* If the window is almost full and there is insufficient lookahead,
          * move the upper half to the lower one to make room in the upper half.
          */
+
         if (s->strstart >= wsize+MAX_DIST(s)) {
-            __m128i W ;
-            __m128i *q ;
+
             int i;
-  
             zmemcpy(s->window, s->window+wsize, (unsigned)wsize);
             s->match_start -= wsize;
-            s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
+            s->strstart    -= wsize;
             s->block_start -= (int64_t) wsize;
-
-            /* Slide the hash table (could be avoided with 32 bit values
-               at the expense of memory usage). We slide even when level == 0
-               to keep the hash table consistent if we switch back to level > 0
-               later. (Using level 0 permanently is not an optimal usage of
-               zlib, so we don't care about this pathological case.)
-             */
-            
-            /* Use intrinsics, because compiler generates suboptimal code */
             n = s->hash_size;
+
+#ifdef __aarch64__
+
+            uint16x8_t  W;
+            uint16_t   *q ;
+            W = vmovq_n_u16(wsize);
+            q = (uint16_t*)s->head;
+
+            for(i=0; i<n/8; i++) {
+                vst1q_u16(q, vqsubq_u16(vld1q_u16(q), W));
+                q+=8;
+            }
+
+            n = wsize;
+            q = (uint16_t*)s->prev;
+
+            for(i=0; i<n/8; i++) {
+                vst1q_u16(q, vqsubq_u16(vld1q_u16(q), W));
+                q+=8;
+            }
+
+#elif defined __x86_64__
+
+            __m128i  W;
+            __m128i *q;
             W = _mm_set1_epi16(wsize);
             q = (__m128i*)s->head;
-  
-            /* hash size would always be a pot */
+
             for(i=0; i<n/8; i++) {
                 _mm_storeu_si128(q, _mm_subs_epu16(_mm_loadu_si128(q), W));
                 q++;
@@ -1343,12 +1374,13 @@ static void fill_window(s)
 
             n = wsize;
             q = (__m128i*)s->prev;
-            /* assuming wsize would always be a pot */
+
             for(i=0; i<n/8; i++) {
                 _mm_storeu_si128(q, _mm_subs_epu16(_mm_loadu_si128(q), W));
                 q++;
             }
 
+#endif
             more += wsize;
         }
         if (s->strm->avail_in == 0) break;
