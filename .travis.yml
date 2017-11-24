@@ -1,0 +1,55 @@
+sudo: false
+dist: trusty
+language: c
+
+branches:
+  only:
+    - master
+    
+script:
+  - ci/travis/build.sh
+
+compiler:
+# - clang
+  - gcc
+
+os:
+  - linux
+# - osx
+
+env:
+  - CMAKE_BUILD_TYPE=Debug
+  - CMAKE_BUILD_TYPE=RelWithDebInfo
+  - CMAKE_BUILD_TYPE=Release
+  - CONFIGURE=
+
+matrix:
+  include:
+    - os: linux
+      compiler: clang
+      env: 
+        - CMAKE_BUILD_TYPE=debug
+        - CTEST_DASHBOARD=ExperimentalMemCheck
+      addons:
+        apt:
+          packages:
+            - valgrind
+    - os: linux
+      compiler: gcc
+      env:
+        - COMMENT=UBSAN
+        - CMAKE_BUILD_TYPE=debug
+        - CMAKE_C_COMPILER=gcc-7
+        - CFLAGS='-fno-omit-frame-pointer -fsanitize=undefined'
+        - LDFLAGS='-fsanitize=undefined'
+      addons:
+        apt:
+          packages:
+            - g++-7
+          sources:
+            - ubuntu-toolchain-r-test
+
+notifications:
+  email:
+    false
+
