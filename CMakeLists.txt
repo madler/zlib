@@ -18,7 +18,11 @@ include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckCSourceCompiles)
-enable_testing()
+if(UNIX)
+    find_program( MEMORYCHECK_COMMAND valgrind )
+    set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
+endif()
+include(CTest)
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
@@ -167,7 +171,7 @@ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
 string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
     "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
 
-if(MINGW)
+if(MINGW OR CYGWIN)
     # This gets us DLL resource information when compiling on MinGW.
     if(NOT CMAKE_RC_COMPILER)
         set(CMAKE_RC_COMPILER windres.exe)
@@ -181,7 +185,7 @@ if(MINGW)
                             -o ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
                             -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc)
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
-endif(MINGW)
+endif()
 
 add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
@@ -233,6 +237,10 @@ endif()
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
+
+add_executable(infcover test/infcover.c)
+target_link_libraries(infcover zlibstatic)
+add_test(infcover infcover)
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)

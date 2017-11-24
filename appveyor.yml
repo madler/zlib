@@ -1,0 +1,65 @@
+version: 0.0.{build}-{branch}
+
+shallow_clone: true
+
+branches:
+  only:
+    - master
+
+# this a not a .NET project in all cases - we will build during install phase
+build: false
+
+install:
+  - ci\appveyor\env.bat
+  - ci\appveyor\install.bat
+
+test_script:
+  - ci\appveyor\test.bat
+
+matrix:
+  allow_failures:
+    - MAYFAIL: true
+
+environment:
+  global:
+    # Defaults for all builds, overridden below if needed
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    CMAKE_BUILD_TYPE: Release
+
+  matrix:
+    # Visual Studio 2010
+    - GENERATOR: Visual Studio 10 2010
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+
+    # Visual Studio 2015 Win64 Debug
+    - GENERATOR: Visual Studio 14 2015 Win64
+      CMAKE_BUILD_TYPE: Debug
+
+    # Visual Studio 2015 Win64 RelWithDebInfo
+    - GENERATOR: Visual Studio 14 2015 Win64
+      CMAKE_BUILD_TYPE: RelWithDebInfo
+
+    # Visual Studio 2015 Win64 Release
+    - GENERATOR: Visual Studio 14 2015 Win64
+
+    # Cygwin
+    - ADDPATH: C:\cygwin\bin;
+      WRAPPER: cygwin
+
+    # Cygwin64
+    - ADDPATH: C:\cygwin64\bin;
+      WRAPPER: cygwin64
+
+    # MinGW
+    - ADDPATH: C:\mingw\bin;
+      GENERATOR: MinGW Makefiles
+      WRAPPER: mingw
+
+    # MinGW-w64
+    - ADDPATH: C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;
+      GENERATOR: MinGW Makefiles
+      WRAPPER: mingw64
+
+    # MSYS2
+    - ADDPATH: C:\msys64\usr\bin;
+      GENERATOR: MSYS Makefiles
