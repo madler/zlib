@@ -6,7 +6,7 @@ for help about these, not the zlib authors. Thanks.
 
 ada/        by Dmitriy Anisimkov <anisimkov@yahoo.com>
         Support for Ada
-        See http://zlib-ada.sourceforge.net/
+        See https://zlib-ada.sourceforge.io/
 
 blast/      by Mark Adler <madler@alumni.caltech.edu>
         Decompressor for output of PKWare Data Compression Library (DCL)

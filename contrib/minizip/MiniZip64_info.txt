@@ -43,7 +43,7 @@ Credits
              Used when debugging and validating the creation of zip files using MiniZip64
 
 
- ZIP App Note  http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+ ZIP App Note  https://www.pkware.com/documents/casestudies/APPNOTE.TXT
                Zip File specification
 
 
