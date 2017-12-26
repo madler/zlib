@@ -28,6 +28,7 @@ SFLAGS=-O
 LDFLAGS=
 TEST_LDFLAGS=-L. libz.a
 LDSHARED=$(CC)
+LDSHAREDFLAGS=-shared
 CPP=$(CC) -E
 
 STATICLIB=libz.a
@@ -279,7 +280,7 @@ gzwrite.lo: $(SRCDIR)gzwrite.c
 
 
 placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a
-	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
+	$(LDSHARED) $(SFLAGS) $(LDFLAGS) $(LDSHAREDFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
