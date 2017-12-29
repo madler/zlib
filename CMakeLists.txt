@@ -34,14 +34,6 @@ endif()
 set(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 
 #
-# Check for fseeko
-#
-check_function_exists(fseeko HAVE_FSEEKO)
-if(NOT HAVE_FSEEKO)
-    add_definitions(-DNO_FSEEKO)
-endif()
-
-#
 # Check for unistd.h
 #
 check_include_file(unistd.h Z_HAVE_UNISTD_H)
