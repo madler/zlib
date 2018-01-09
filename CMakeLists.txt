@@ -184,7 +184,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
             if(POWER8)
                 add_definitions(-DZ_POWER8)
-                set(ZLIB_POWER8 )
+                set(ZLIB_POWER8
+                  contrib/power/crc32_z_power8.c)
 
                 set_source_files_properties(
                     ${ZLIB_POWER8}
@@ -300,6 +301,10 @@ endif()
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
+
+add_executable(crc32_test test/crc32_test.c)
+target_link_libraries(crc32_test zlib)
+add_test(crc32_test crc32_test)
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
