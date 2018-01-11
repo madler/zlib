@@ -40,11 +40,13 @@
 #include "crc32_constants.h"
 #endif
 
+#include "../zutil.h"
+
 #define VMX_ALIGN	16
 #define VMX_ALIGN_MASK	(VMX_ALIGN-1)
 
 #ifdef REFLECT
-static unsigned int crc32_align(unsigned int crc, unsigned char *p,
+static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
 			       unsigned long len)
 {
 	while (len--)
@@ -52,7 +54,7 @@ static unsigned int crc32_align(unsigned int crc, unsigned char *p,
 	return crc;
 }
 #else
-static unsigned int crc32_align(unsigned int crc, unsigned char *p,
+static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
 				unsigned long len)
 {
 	while (len--)
@@ -61,18 +63,23 @@ static unsigned int crc32_align(unsigned int crc, unsigned char *p,
 }
 #endif
 
-static unsigned int __attribute__ ((aligned (32)))
-__crc32_vpmsum(unsigned int crc, void* p, unsigned long len);
+static unsigned long __attribute__ ((aligned (32)))
+__crc32_vpmsum(unsigned int crc, const void* p, unsigned long len);
 
 #ifndef CRC32_FUNCTION
 #define CRC32_FUNCTION  crc32_vpmsum
 #endif
 
-unsigned int CRC32_FUNCTION(unsigned int crc, unsigned char *p,
-			    unsigned long len)
+unsigned long ZLIB_INTERNAL CRC32_FUNCTION(
+    unsigned long crc,
+    const unsigned char FAR *p,
+    z_size_t len)
 {
 	unsigned int prealign;
 	unsigned int tail;
+
+	/* For zlib API */
+	if (p == NULL) return 0UL;
 
 #ifdef CRC_XOR
 	crc ^= 0xffffffff;
@@ -143,8 +150,8 @@ static const __vector unsigned long long vperm_const
 #define VEC_PERM(vr, va, vb, vc)
 #endif
 
-static unsigned int __attribute__ ((aligned (32)))
-__crc32_vpmsum(unsigned int crc, void* p, unsigned long len) {
+static unsigned long __attribute__ ((aligned (32)))
+__crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 
 	const __vector unsigned long long vzero = {0,0};
 	const __vector unsigned long long vones = {0xffffffffffffffffUL,
