@@ -218,6 +218,19 @@ unsigned long ZEXPORT crc32_table_lookup(crc, buf, len)
     return crc ^ 0xffffffffUL;
 }
 
+/* Small helper function to compare optfun against the reference table lookup
+ * return test_ref_comparision_##optfn in crc32_z_ifunc
+#include <assert.h>
+#define TEST_COMPARE(optfn) \
+   static unsigned long test_ref_comparision_ ## optfn(unsigned long crc, const unsigned char FAR *p, z_size_t len) \
+   { \
+     unsigned long crc_tbl_lookup = crc32_table_lookup(crc, p, len); \
+     unsigned long optcrc = optfn(crc, p, len); \
+     assert( optcrc == crc_tbl_lookup ); \
+     return optcrc; \
+   }
+*/
+
 #ifdef Z_IFUNC_ASM
 unsigned long (*(crc32_z_ifunc(void)))(unsigned long, const unsigned char FAR *, z_size_t)
     __asm__ ("crc32_z");
