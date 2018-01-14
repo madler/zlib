@@ -230,6 +230,15 @@ unsigned long ZEXPORT crc32_z(
   __attribute__ ((ifunc ("crc32_z_ifunc")));
 #endif
 
+#if _ARCH_PWR8==1
+unsigned long crc32_vpmsum(unsigned long, const unsigned char FAR *, z_size_t);
+/* for testing TEST_COMPARE(crc32_vpmsum) */
+#ifndef __BUILTIN_CPU_SUPPORTS__
+#include <sys/auxv.h>
+#include <bits/hwcap.h>
+#endif
+#endif
+
 /* due to a quirk of gnu_indirect_function - "local" (aka static) is applied to
  * crc32_z which is not desired. crc32_z_ifunc is implictly "local" */
 #ifndef Z_IFUNC_ASM
@@ -237,6 +246,15 @@ local
 #endif
 unsigned long (*(crc32_z_ifunc(void)))(unsigned long, const unsigned char FAR *, z_size_t)
 {
+#if _ARCH_PWR8==1
+#if defined(__BUILTIN_CPU_SUPPORTS__)
+    if (__builtin_cpu_supports("arch_2_07"))
+        return crc32_vpmsum;
+#else
+    if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07)
+        return crc32_vpmsum;
+#endif
+#endif /* _ARCH_PWR8 */
 
 /* return a function pointer for optimized arches here */
 

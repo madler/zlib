@@ -826,6 +826,39 @@ EOF
   fi
 fi
 
+# test to see if Power8+ implementation is compile time possible
+echo >> configure.log
+cat > $test.c <<EOF
+#if _ARCH_PWR8==1
+
+#if __BYTE_ORDER == __BIG_ENDIAN && defined(__clang__)
+#error "Clang vector instructions aren't big endian compatible"
+#endif
+
+#if defined(__BUILTIN_CPU_SUPPORTS__)
+/* good and easy */
+#else
+#include <sys/auxv.h>
+#include <bits/hwcap.h>
+int main()
+{
+  return (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07);
+}
+#endif
+
+#else
+#error No Power 8 or newer architecture, may need -mcpu=power8
+#endif
+EOF
+
+if tryboth $CC -c $CFLAGS $test.c; then
+  OBJC="$OBJC crc32_power8.o"
+  PIC_OBJC="$PIC_OBJC crc32_power8.lo"
+  echo "Checking for runtime cpu detection and Power 8 (or newer) Architecture support... Yes." | tee -a configure.log
+else
+  echo "Checking for runtime cpu detection and Power 8 (or newer) Architecture support... No." | tee -a configure.log
+fi
+
 # test to see if we can use a gnu indirection function to detect and load optimized code at runtime
 echo >> configure.log
 cat > $test.c <<EOF
