@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 2.4.4)
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
+cmake_minimum_required(VERSION 3.0.2)
+if(POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+endif()
+# parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
+string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
+    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
 
-project(zlib C)
-
-set(VERSION "1.2.13")
+project(zlib VERSION ${ZLIB_FULL_VERSION} LANGUAGES C)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -126,11 +130,6 @@ if(NOT MINGW)
     )
 endif()
 
-# parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
-string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
-    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
-
 if(MINGW)
     # This gets us DLL resource information when compiling on MinGW.
     if(NOT CMAKE_RC_COMPILER)
@@ -155,12 +154,13 @@ set_target_properties(zlib PROPERTIES SOVERSION 1)
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
     # encoded into their final filename.  We disable this on Cygwin because
-    # it causes cygz-${ZLIB_FULL_VERSION}.dll to be created when cygz.dll
+    # it causes cygz-${PROJECT_VERSION}.dll to be created when cygz.dll
     # seems to be the default.
     #
     # This has no effect with MSVC, on that platform the version info for
     # the DLL comes from the resource file win32/zlib1.rc
-    set_target_properties(zlib PROPERTIES VERSION ${ZLIB_FULL_VERSION})
+    set_target_properties(zlib PROPERTIES VERSION ${PROJECT_VERSION})
+    set_target_properties(zlibstatic PROPERTIES VERSION ${PROJECT_VERSION})
 endif()
 
 if(UNIX)
