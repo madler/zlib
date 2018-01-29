@@ -191,9 +191,23 @@ endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     install(TARGETS zlib zlibstatic
+        EXPORT ZLIBTargets
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}")
+    install(EXPORT ZLIBTargets
+        NAMESPACE ZLIB::
+        DESTINATION lib/cmake/ZLIB)
+    include(CMakePackageConfigHelpers)
+    write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ZLIBConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ZLIBConfig.cmake"
+        "include(\"\${CMAKE_CURRENT_LIST_DIR}/ZLIBTargets.cmake\")"
+        )
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZLIBConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ZLIBConfigVersion.cmake"
+        DESTINATION lib/cmake/ZLIB)
 endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
     install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
