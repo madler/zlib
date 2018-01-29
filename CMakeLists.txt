@@ -159,6 +159,12 @@ target_include_directories(zlibstatic PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>)
 
+if(BUILD_SHARED_LIBS)
+    add_library(ZLIB::ZLIB ALIAS zlib)
+else()
+    add_library(ZLIB::ZLIB ALIAS zlibstatic)
+endif()
+
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
     # encoded into their final filename.  We disable this on Cygwin because
