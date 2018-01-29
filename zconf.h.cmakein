@@ -165,6 +165,9 @@
 #  define gz_header_s           z_gz_header_s
 #  define internal_state        z_internal_state
 
+/* all zlib structs in zutil.h */
+#  define z_errmsg              z_z_errmsg
+
 #endif
 
 #if defined(__MSDOS__) && !defined(MSDOS)
