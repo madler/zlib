@@ -40,13 +40,11 @@
 #include "crc32_constants.h"
 #endif
 
-#include "../zutil.h"
-
 #define VMX_ALIGN	16
 #define VMX_ALIGN_MASK	(VMX_ALIGN-1)
 
 #ifdef REFLECT
-static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
+static unsigned int crc32_align(unsigned int crc, const unsigned char *p,
 			       unsigned long len)
 {
 	while (len--)
@@ -54,7 +52,7 @@ static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
 	return crc;
 }
 #else
-static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
+static unsigned int crc32_align(unsigned int crc, const unsigned char *p,
 				unsigned long len)
 {
 	while (len--)
@@ -63,23 +61,18 @@ static unsigned long crc32_align(unsigned int crc, const unsigned char *p,
 }
 #endif
 
-static unsigned long __attribute__ ((aligned (32)))
+static unsigned int __attribute__ ((aligned (32)))
 __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len);
 
 #ifndef CRC32_FUNCTION
 #define CRC32_FUNCTION  crc32_vpmsum
 #endif
 
-unsigned long ZLIB_INTERNAL CRC32_FUNCTION(
-    unsigned long crc,
-    const unsigned char FAR *p,
-    z_size_t len)
+unsigned int CRC32_FUNCTION(unsigned int crc, const unsigned char *p,
+			    unsigned long len)
 {
 	unsigned int prealign;
 	unsigned int tail;
-
-	/* For zlib API */
-	if (p == NULL) return 0UL;
 
 #ifdef CRC_XOR
 	crc ^= 0xffffffff;
@@ -150,7 +143,7 @@ static const __vector unsigned long long vperm_const
 #define VEC_PERM(vr, va, vb, vc)
 #endif
 
-static unsigned long __attribute__ ((aligned (32)))
+static unsigned int __attribute__ ((aligned (32)))
 __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 
 	const __vector unsigned long long vzero = {0,0};
@@ -192,8 +185,8 @@ __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 	unsigned int result = 0;
 	unsigned int offset; /* Constant table offset. */
 
-	long i; /* Counter. */
-	long chunks;
+	unsigned long i; /* Counter. */
+	unsigned long chunks;
 
 	unsigned long block_size;
 	int next_block = 0;
@@ -265,7 +258,7 @@ __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 		/* xor in initial value */
 		vdata0 = vec_xor(vdata0, vcrc);
 
-		p += 128;
+		p = (char *)p + 128;
 
 		do {
 			/* Checksum in blocks of MAX_SIZE. */
@@ -333,14 +326,14 @@ __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 				vdata7 = vec_ld(112, (__vector unsigned long long*) p);
 				VEC_PERM(vdata7, vdata7, vdata7, vperm_const);
 
-				p += 128;
+				p = (char *)p + 128;
 
 				/*
 				 * main loop. We modulo schedule it such that it takes three
 				 * iterations to complete - first iteration load, second
 				 * iteration vpmsum, third iteration xor.
 				 */
-				for (i = 0; i < chunks-2; i++, p += 128) {
+				for (i = 0; i < chunks-2; i++) {
 					vconst1 = vec_ld(offset, vcrc_const);
 					offset += 16;
 					GROUP_ENDING_NOP;
@@ -401,6 +394,8 @@ __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 							long)vdata7, (__vector unsigned long long)vconst1);
 					vdata7 = vec_ld(112, (__vector unsigned long long*) p);
 					VEC_PERM(vdata7, vdata7, vdata7, vperm_const);
+
+					p = (char *)p + 128;
 				}
 
 				/* First cool down*/
@@ -507,7 +502,7 @@ __crc32_vpmsum(unsigned int crc, const void* p, unsigned long len) {
 			va7 = vec_ld(112, (__vector unsigned long long*) p);
 			VEC_PERM(va7, va7, va7, vperm_const);
 
-			p += 128;
+			p = (char *)p + 128;
 
 			vdata0 = vec_xor(v0, va0);
 			vdata1 = vec_xor(v1, va1);

@@ -5,10 +5,6 @@
  * These stubs fix clang incompatibilities with GCC builtins.
  */
 
-#if __BYTE_ORDER == __BIG_ENDIAN && defined(__clang__)
-#error These workaround aren't big endian compatible
-#endif
-
 #ifndef __builtin_crypto_vpmsumw
 #define __builtin_crypto_vpmsumw __builtin_crypto_vpmsumb
 #endif
@@ -35,7 +31,11 @@ static inline
 __vector unsigned long long  __builtin_pack_vector (unsigned long __a,
 						    unsigned long __b)
 {
+	#if defined(__BIG_ENDIAN__)
+	__vector unsigned long long __v = {__a, __b};
+	#else
 	__vector unsigned long long __v = {__b, __a};
+	#endif
 	return __v;
 }
 
@@ -48,21 +48,34 @@ unsigned long __builtin_unpack_vector (__vector unsigned long long __v,
 	return __v[__o];
 }
 
+#if defined(__BIG_ENDIAN__)
+#define __builtin_unpack_vector_0(a) __builtin_unpack_vector ((a), 0)
+#define __builtin_unpack_vector_1(a) __builtin_unpack_vector ((a), 1)
+#else
 #define __builtin_unpack_vector_0(a) __builtin_unpack_vector ((a), 1)
 #define __builtin_unpack_vector_1(a) __builtin_unpack_vector ((a), 0)
+#endif
 
 #else
 
 static inline
 unsigned long __builtin_unpack_vector_0 (__vector unsigned long long __v)
 {
+	#if defined(__BIG_ENDIAN__)
+	return vec_xxpermdi(__v, __v, 0x0)[1];
+	#else
 	return vec_xxpermdi(__v, __v, 0x0)[0];
+	#endif
 }
 
 static inline
 unsigned long __builtin_unpack_vector_1 (__vector unsigned long long __v)
 {
+	#if defined(__BIG_ENDIAN__)
+	return vec_xxpermdi(__v, __v, 0x3)[1];
+	#else
 	return vec_xxpermdi(__v, __v, 0x3)[0];
+	#endif
 }
 #endif /* vec_xxpermdi */
 
