@@ -31,16 +31,22 @@
 uint32_t crc32(uint32_t crc, uint8_t *buf, size_t len) {
     crc = ~crc;
 
-    while (len > 8) {
+    while (len >= 8) {
         crc = __crc32d(crc, *(uint64_t*)buf);
         len -= 8;
         buf += 8;
     }
 
-    while (len) {
+    if (len & 4) {
+        crc = __crc32w(crc, *(uint32_t*)buf);
+        buf += 4;
+    }
+    if (len & 2) {
+        crc = __crc32h(crc, *(uint16_t*)buf);
+        buf += 2;
+    }
+    if (len & 1) {
         crc = __crc32b(crc, *buf);
-        len--;
-        buf++;
     }
 
     return ~crc;
