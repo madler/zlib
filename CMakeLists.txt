@@ -139,9 +139,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
     if(ARM_NEON)
         list(REMOVE_ITEM ZLIB_SRCS inflate.c)
-        list(REMOVE_ITEM ZLIB_SRCS inffast.c)
-        set(ZLIB_ARM_NEON_HDRS contrib/arm/chunkcopy.h)
-        set(ZLIB_ARM_NEON contrib/arm/inflate.c contrib/arm/inffast.c)
+        set(ZLIB_ARM_NEON_HDRS contrib/arm/chunkcopy.h contrib/arm/inffast_chunk.h)
+        set(ZLIB_ARM_NEON contrib/arm/inflate.c contrib/arm/inffast_chunk.c)
         add_definitions(-DARM_NEON)
         set(COMPILER ${CMAKE_C_COMPILER})
         # NEON is mandatory in ARMv8.
