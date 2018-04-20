@@ -285,6 +285,10 @@
 
                         /* Type declarations */
 
+#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_STDARG_H
+#endif
+
 #ifndef OF /* function prototypes */
 #  ifdef STDC
 #    define OF(args)  args
@@ -433,10 +437,6 @@ typedef uLong FAR uLongf;
 
 #ifdef HAVE_UNISTD_H    /* may be set to #if 1 by ./configure */
 #  define Z_HAVE_UNISTD_H
-#endif
-
-#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */
-#  define Z_HAVE_STDARG_H
 #endif
 
 #ifdef STDC
