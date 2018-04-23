@@ -35,8 +35,8 @@
         #ifndef _LARGEFILE64_SOURCE
                 #define _LARGEFILE64_SOURCE
         #endif
-        #ifndef _FILE_OFFSET_BIT
-                #define _FILE_OFFSET_BIT 64
+        #ifndef _FILE_OFFSET_BITS
+                #define _FILE_OFFSET_BITS 64
         #endif
 
 #endif
