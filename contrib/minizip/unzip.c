@@ -53,7 +53,7 @@
   Oct-2009 - Mathias Svensson - Fixed problem if uncompressed size was > 4G and compressed size was <4G
                                 should only read the compressed/uncompressed size from the Zip64 format if
                                 the size from normal header was 0xFFFFFFFF
-  Oct-2009 - Mathias Svensson - Applied some bug fixes from paches recived from Gilles Vollant
+  Oct-2009 - Mathias Svensson - Applied some bug fixes from paches received from Gilles Vollant
         Oct-2009 - Mathias Svensson - Applied support to unzip files with compression mathod BZIP2 (bzip2 lib is required)
                                 Patch created by Daniel Borca
 
@@ -380,10 +380,10 @@ local int strcmpcasenosensitive_internal (const char* fileName1, const char* fil
 
 /*
    Compare two filename (fileName1,fileName2).
-   If iCaseSenisivity = 1, comparision is case sensitivity (like strcmp)
-   If iCaseSenisivity = 2, comparision is not case sensitivity (like strcmpi
+   If iCaseSenisivity = 1, comparison is case sensitivity (like strcmp)
+   If iCaseSenisivity = 2, comparison is not case sensitivity (like strcmpi
                                                                 or strcasecmp)
-   If iCaseSenisivity = 0, case sensitivity is defaut of your operating system
+   If iCaseSenisivity = 0, case sensitivity is default of your operating system
         (like 1 on Unix, 2 on Windows)
 
 */

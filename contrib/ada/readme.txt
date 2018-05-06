@@ -8,7 +8,7 @@ It provides Ada-style access to the ZLib C library.
 
         Here are the main changes since ZLib.Ada 1.2:
 
-- Attension: ZLib.Read generic routine have a initialization requirement
+- Attention: ZLib.Read generic routine have a initialization requirement
   for Read_Last parameter now. It is a bit incompartible with previous version,
   but extends functionality, we could use new parameters Allow_Read_Some and
   Flush now.

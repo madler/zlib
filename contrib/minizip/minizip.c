@@ -113,7 +113,7 @@ uLong filetime(f, tmzip, dt)
       len = MAXFILENAME;
 
     strncpy(name, f,MAXFILENAME-1);
-    /* strncpy doesnt append the trailing NULL, of the string is too long. */
+    /* strncpy doesn't append the trailing NULL, of the string is too long. */
     name[ MAXFILENAME ] = '\0';
 
     if (name[len - 1] == '/')
@@ -322,7 +322,7 @@ int main(argc,argv)
 
         zipok = 1 ;
         strncpy(filename_try, argv[zipfilenamearg],MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        /* strncpy doesn't append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
         len=(int)strlen(filename_try);

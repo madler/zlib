@@ -607,7 +607,7 @@ int main(argc,argv)
 #        endif
 
         strncpy(filename_try, zipfilename,MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        /* strncpy doesn't append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
 #        ifdef USEWIN32IOAPI
