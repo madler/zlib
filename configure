@@ -743,8 +743,8 @@ EOF
 fi
 
 # Check for AMD64 hardware support.
-if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" ] ; then
- 
+if [ x$TGT_ARCH = "xx86_64" -a $(uname -m) = "x86_64" -o x$TGT_ARCH = "xamd64" -a $(uname -m) = "amd64" ] ; then
+
   # Check for SSE4.2 and CRC support
 cat > $test.c << EOF
 #include <immintrin.h>
@@ -780,7 +780,7 @@ EOF
   fi
 
 elif [ x$TGT_ARCH = "xaarch64" -a $(uname -m) = "aarch64" ] ; then
- 
+
   # Check for NEON and CRC support
 cat > $test.c << EOF
 #include <arm_neon.h>
