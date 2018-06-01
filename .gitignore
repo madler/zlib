@@ -80,6 +80,12 @@
 *.VC.opendb
 *.vc.db
 
+# Visual Studio output directories
+x86/
+x64/
+Itanium/
+
+
 # NuGet (Don't check in your packages! Use Package Restore!)
 packages/
 *.nupkg
