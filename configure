@@ -831,10 +831,6 @@ echo >> configure.log
 cat > $test.c <<EOF
 #if _ARCH_PWR8==1
 
-#if __BYTE_ORDER == __BIG_ENDIAN && defined(__clang__)
-#error "Clang vector instructions aren't big endian compatible"
-#endif
-
 #if defined(__BUILTIN_CPU_SUPPORTS__)
 /* good and easy */
 #else
