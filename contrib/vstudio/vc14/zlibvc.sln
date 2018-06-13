@@ -15,6 +15,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minizip", "minizip.vcxproj"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniunz", "miniunz.vcxproj", "{C52F9E7B-498A-42BE-8DB4-85A15694382A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94109824-384F-4A0D-9E42-557FF0ADADC8}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\Zlib.autopkg = ..\..\..\Zlib.autopkg
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Itanium = Debug|Itanium

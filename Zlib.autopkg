@@ -1,0 +1,74 @@
+configurations
+{
+   Toolset {
+      key : "PlatformToolset";
+      choices: { v140 };
+   };
+}
+
+nuget
+{
+   nuspec
+   {
+      id = zlib-tsc-package;
+      version: 1.2.11.1;
+      title: zlib compression library;
+      authors: { TechSmith Corporation, Jean-loup Gailly, Mark Adler };
+      owners: { TechSmith Corporation };
+      licenseUrl: "https://zlib.net/zlib_license.html";
+      projectUrl: "https://github.com/TechSmith/ThirdParty-Windows-Zlib";
+      iconUrl: "http://www.techsmith.com/favicon.ico";
+      requireLicenseAcceptance: false;
+      summary: @"Zlib Compression Library for use in TechSmith products";
+      description: @"Zlib is a compression library written in C.
+         New features:
+         Breaking changes:
+         Bug fixes:
+         Misc:
+         ";
+      copyright: @"Copyright (c) 2018.";
+      tags: { zlib, CoApp, compression, vs2015, native };
+   };
+
+   files
+   {
+      nestedInclude: { #destination=${d_include}Zlib; *.h };
+      libpdb:        { #destination=${d_lib}; };
+      ("Win32", "v140", "Debug,Release") =>
+      {
+         [${0}, ${1}, ${2}]
+         {
+            lib:    { contrib\vstudio\vc14\x86\ZlibStat${2}\*.lib; }
+            libpdb: { contrib\vstudio\vc14\x86\ZlibStat${2}\*.pdb; }
+         };
+      };
+      ("x64", "v140", "Debug,Release") =>
+      {
+         [${0}, ${1}, ${2}]
+         {
+            lib:    { contrib\vstudio\vc14\${0}\ZlibStat${2}\*.lib; }
+            libpdb: { contrib\vstudio\vc14\${0}\ZlibStat${2}\*.pdb; }
+         };
+      };
+
+   };
+
+   props
+   {
+      // Additional declarations to insert into consuming projects before most of the
+      // project settings. (These may be modified in visual studio by a developer
+      // consuming this package.)
+      // This node is typically not needed for most packages and may be omitted.
+   }
+
+   targets
+   {
+      // Additional declarations to insert into consuming projects after most of the
+      // project settings. (These may NOT be modified in visual studio by a developer
+      // consuming this package.)
+      // This node is often used to set defines that are required that must be set by
+      // the consuming project in order to correctly link to the libraries in this
+      // package.  Such defines may be set either globally or only set under specific
+      // conditions.
+   }
+}
