@@ -132,7 +132,11 @@ static void pwinerror (s)
 #endif
 #define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
 
+#ifdef DFLTCC
+#define BUFLEN      262144
+#else
 #define BUFLEN      16384
+#endif
 #define MAX_NAME_LEN 1024
 
 #ifdef MAXSEG_64K

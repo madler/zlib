@@ -151,7 +151,7 @@ local TCONST static_tree_desc static_bl_desc =
  * method would use a table)
  * IN assertion: 1 <= len <= 15
  */
-local unsigned bi_reverse(unsigned code, int len) {
+unsigned ZLIB_INTERNAL bi_reverse(unsigned code, int len) {
     register unsigned res = 0;
     do {
         res |= code & 1;
@@ -178,7 +178,7 @@ local void bi_flush(deflate_state *s) {
 /* ===========================================================================
  * Flush the bit buffer and align the output on a byte boundary
  */
-local void bi_windup(deflate_state *s) {
+void ZLIB_INTERNAL bi_windup(deflate_state *s) {
     if (s->bi_valid > 8) {
         put_short(s, s->bi_buf);
     } else if (s->bi_valid > 0) {
@@ -285,6 +285,10 @@ local void send_bits(deflate_state *s, int value, int length) {
 }
 #endif /* ZLIB_DEBUG */
 
+void ZLIB_INTERNAL _tr_send_bits(deflate_state *s, int value, int length)
+{
+    send_bits(s, value, length);
+}
 
 /* the arguments must not have side effects */
 

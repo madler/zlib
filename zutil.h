@@ -87,6 +87,8 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
 #define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
 
+#define ZLIB_WRAPLEN 6 /* zlib format overhead */
+
         /* target dependencies */
 
 #if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
