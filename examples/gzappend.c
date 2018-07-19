@@ -13,7 +13,7 @@
 
   1. The origin of this software must not be misrepresented; you must not
      claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
+     in a product, an acknowledgement in the product documentation would be
      appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
      misrepresented as being the original software.
@@ -33,7 +33,7 @@
  *                      - Add L to constants in lseek() calls
  *                      - Remove some debugging information in error messages
  *                      - Use new data_type definition for zlib 1.2.1
- *                      - Simplfy and unify file operations
+ *                      - Simplify and unify file operations
  *                      - Finish off gzip file in gztack()
  *                      - Use deflatePrime() instead of adding empty blocks
  *                      - Keep gzip file clean on appended file read errors

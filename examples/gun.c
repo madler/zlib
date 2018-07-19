@@ -50,7 +50,7 @@
    file are maintained in the final uncompressed file, to the extent that the
    user permissions allow it.
 
-   On my Mac OS X PowerPC G4, gun is almost twice as fast as gunzip (version
+   On my macOS PowerPC G4, gun is almost twice as fast as gunzip (version
    1.2.4) is on the same file, when gun is linked with zlib 1.2.2.  Also the
    LZW decompression provided by gun is about twice as fast as the standard
    Unix uncompress command.

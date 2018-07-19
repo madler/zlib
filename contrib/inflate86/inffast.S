@@ -26,7 +26,7 @@
  * Jan-26-2003 -- Added runtime check for MMX support with cpuid instruction.
  * With -DUSE_MMX, only MMX code is compiled.  With -DNO_MMX, only non-MMX code
  * is compiled.  Without either option, runtime detection is enabled.  Runtime
- * detection should work on all modern cpus and the recomended algorithm (flip
+ * detection should work on all modern cpus and the recommended algorithm (flip
  * ID bit on eflags and then use the cpuid instruction) is used in many
  * multimedia applications.  Tested under win2k with gcc-2.95 and gas-2.12
  * distributed with cygwin3.  Compiling with gcc-2.95 -c inffast.S -o

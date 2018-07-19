@@ -23,7 +23,7 @@
 
 #if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__))
 
-  // Linux needs this to support file operation on files larger then 4+GB
+  // Linux needs this to support file operation on files larger than 4+GB
   // But might need better if/def to select just the platforms that needs them.
 
         #ifndef __USE_FILE_OFFSET64
@@ -82,7 +82,7 @@
 #include "mz64conf.h"
 #endif
 
-/* a type choosen by DEFINE */
+/* a type chosen by DEFINE */
 #ifdef HAVE_64BIT_INT_CUSTOM
 typedef  64BIT_INT_CUSTOM_TYPE ZPOS64_T;
 #else

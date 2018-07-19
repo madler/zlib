@@ -54,9 +54,9 @@
 const char deflate_copyright[] =
    " deflate 1.2.11 Copyright 1995-2017 Jean-loup Gailly and Mark Adler ";
 /*
-  If you use the zlib library in a product, an acknowledgment is welcome
+  If you use the zlib library in a product, an acknowledgement is welcome
   in the documentation of your product. If for some reason you cannot
-  include such an acknowledgment, I would appreciate that you keep this
+  include such an acknowledgement, I would appreciate that you keep this
   copyright string in the executable of your product.
  */
 
@@ -1638,7 +1638,7 @@ local void fill_window(s)
  *
  * deflate_stored() is written to minimize the number of times an input byte is
  * copied. It is most efficient with large input and output buffers, which
- * maximizes the opportunites to have a single copy from next_in to next_out.
+ * maximizes the opportunities to have a single copy from next_in to next_out.
  */
 local block_state deflate_stored(s, flush)
     deflate_state *s;

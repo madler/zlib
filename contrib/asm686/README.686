@@ -12,7 +12,7 @@ the default compression level, and 20-30% using -9, against a version
 compiled using gcc 2.7.2.3. Your mileage may vary.
 
 Note that this code has been tailored for the PPro/PII in particular,
-and will not perform particuarly well on a Pentium.
+and will not perform particularly well on a Pentium.
 
 If you are using an assembler other than GNU as, you will have to
 translate match.S to use your assembler's syntax. (Have fun.)
