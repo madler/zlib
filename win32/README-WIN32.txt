@@ -16,7 +16,7 @@ is http://zlib.net/ .  Before reporting a problem, please check this site to
 verify that you have the latest version of zlib; otherwise get the latest
 version and check whether the problem still exists or not.
 
-PLEASE read DLL_FAQ.txt, and the the zlib FAQ http://zlib.net/zlib_faq.html
+PLEASE read DLL_FAQ.txt, and the zlib FAQ http://zlib.net/zlib_faq.html
 before asking for help.
 
 
@@ -62,7 +62,7 @@ important files for developers can be found in the zlib127.zip source package
 available from http://zlib.net/ - review that package's README file for details.
 
 
-Acknowledgments:
+Acknowledgements:
 
 The deflate format used by zlib was defined by Phil Katz.  The deflate and
 zlib specifications were written by L.  Peter Deutsch.  Thanks to all the
@@ -84,7 +84,7 @@ Copyright notice:
 
   1. The origin of this software must not be misrepresented; you must not
      claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
+     in a product, an acknowledgement in the product documentation would be
      appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
      misrepresented as being the original software.

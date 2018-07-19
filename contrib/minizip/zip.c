@@ -134,18 +134,18 @@ typedef struct
     bz_stream bstream;          /* bzLib stream structure for bziped */
 #endif
 
-    int  stream_initialised;    /* 1 is stream is initialised */
+    int  stream_initialized;    /* 1 is stream is initialized */
     uInt pos_in_buffered_data;  /* last written byte in buffered_data */
 
     ZPOS64_T pos_local_header;     /* offset of the local header of the file
-                                     currenty writing */
+                                     currently writing */
     char* central_header;       /* central header data for the current file */
     uLong size_centralExtra;
     uLong size_centralheader;   /* size of the central header for cur file */
     uLong size_centralExtraFree; /* Extra bytes allocated to the centralheader but that are not used */
     uLong flag;                 /* flag of the file currently writing */
 
-    int  method;                /* compression method of file currenty wr.*/
+    int  method;                /* compression method of file currently wr.*/
     int  raw;                   /* 1 for directly writing raw data */
     Byte buffered_data[Z_BUFSIZE];/* buffer contain compressed data to be writ*/
     uLong dosDate;
@@ -649,7 +649,7 @@ int LoadCentralDirectoryRecord(zip64_internal* pziinit)
 
   uLong number_disk;          /* number of the current dist, used for
                               spaning ZIP, unsupported, always 0*/
-  uLong number_disk_with_CD;  /* number the the disk with central dir, used
+  uLong number_disk_with_CD;  /* number the disk with central dir, used
                               for spaning ZIP, unsupported, always 0*/
   ZPOS64_T number_entry;
   ZPOS64_T number_entry_CD;      /* total number of entries in
@@ -873,7 +873,7 @@ extern zipFile ZEXPORT zipOpen3 (const void *pathname, int append, zipcharpc* gl
 
     ziinit.begin_pos = ZTELL64(ziinit.z_filefunc,ziinit.filestream);
     ziinit.in_opened_file_inzip = 0;
-    ziinit.ci.stream_initialised = 0;
+    ziinit.ci.stream_initialized = 0;
     ziinit.number_entry = 0;
     ziinit.add_position_when_writing_offset = 0;
     init_linkedlist(&(ziinit.central_dir));
@@ -1125,7 +1125,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
     zi->ci.crc32 = 0;
     zi->ci.method = method;
     zi->ci.encrypt = 0;
-    zi->ci.stream_initialised = 0;
+    zi->ci.stream_initialized = 0;
     zi->ci.pos_in_buffered_data = 0;
     zi->ci.raw = raw;
     zi->ci.pos_local_header = ZTELL64(zi->z_filefunc,zi->filestream);
@@ -1221,7 +1221,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
           err = deflateInit2(&zi->ci.stream, level, Z_DEFLATED, windowBits, memLevel, strategy);
 
           if (err==Z_OK)
-              zi->ci.stream_initialised = Z_DEFLATED;
+              zi->ci.stream_initialized = Z_DEFLATED;
         }
         else if(zi->ci.method == Z_BZIP2ED)
         {
@@ -1233,7 +1233,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
 
           err = BZ2_bzCompressInit(&zi->ci.bstream, level, 0,35);
           if(err == BZ_OK)
-            zi->ci.stream_initialised = Z_BZIP2ED;
+            zi->ci.stream_initialized = Z_BZIP2ED;
 #endif
         }
 
@@ -1585,7 +1585,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
         int tmp_err = deflateEnd(&zi->ci.stream);
         if (err == ZIP_OK)
             err = tmp_err;
-        zi->ci.stream_initialised = 0;
+        zi->ci.stream_initialized = 0;
     }
 #ifdef HAVE_BZIP2
     else if((zi->ci.method == Z_BZIP2ED) && (!zi->ci.raw))
@@ -1593,7 +1593,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
       int tmperr = BZ2_bzCompressEnd(&zi->ci.bstream);
                         if (err==ZIP_OK)
                                 err = tmperr;
-                        zi->ci.stream_initialised = 0;
+                        zi->ci.stream_initialized = 0;
     }
 #endif
 

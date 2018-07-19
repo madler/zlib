@@ -456,7 +456,7 @@ local unsigned pull(void *desc, unsigned char **buf)
     }
     state = (void *)((z_stream *)desc)->state;
     if (state != Z_NULL)
-        state->mode = SYNC;     /* force an otherwise impossible situation */
+        state->mode = SYNC;     /* force anotherwise impossible situation */
     return next < sizeof(dat) ? (*buf = dat + next++, 1) : 0;
 }
 

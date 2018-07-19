@@ -53,7 +53,7 @@
   Oct-2009 - Mathias Svensson - Fixed problem if uncompressed size was > 4G and compressed size was <4G
                                 should only read the compressed/uncompressed size from the Zip64 format if
                                 the size from normal header was 0xFFFFFFFF
-  Oct-2009 - Mathias Svensson - Applied some bug fixes from paches recived from Gilles Vollant
+  Oct-2009 - Mathias Svensson - Applied some bug fixes from patches received from Gilles Vollant
         Oct-2009 - Mathias Svensson - Applied support to unzip files with compression mathod BZIP2 (bzip2 lib is required)
                                 Patch created by Daniel Borca
 
@@ -141,7 +141,7 @@ typedef struct
 #endif
 
     ZPOS64_T pos_in_zipfile;       /* position in byte on the zipfile, for fseek*/
-    uLong stream_initialised;   /* flag set if stream structure is initialised*/
+    uLong stream_initialized;   /* flag set if stream structure is initialized*/
 
     ZPOS64_T offset_local_extrafield;/* offset of the local extra field */
     uInt  size_local_extrafield;/* size of the local extra field */
@@ -380,10 +380,10 @@ local int strcmpcasenosensitive_internal (const char* fileName1, const char* fil
 
 /*
    Compare two filename (fileName1,fileName2).
-   If iCaseSenisivity = 1, comparision is case sensitivity (like strcmp)
-   If iCaseSenisivity = 2, comparision is not case sensitivity (like strcmpi
+   If iCaseSenisivity = 1, comparison is case sensitivity (like strcmp)
+   If iCaseSenisivity = 2, comparison is not case sensitivity (like strcmpi
                                                                 or strcasecmp)
-   If iCaseSenisivity = 0, case sensitivity is defaut of your operating system
+   If iCaseSenisivity = 0, case sensitivity is default of your operating system
         (like 1 on Unix, 2 on Windows)
 
 */
@@ -592,7 +592,7 @@ local unzFile unzOpenInternal (const void *path,
 
     uLong number_disk;          /* number of the current dist, used for
                                    spaning ZIP, unsupported, always 0*/
-    uLong number_disk_with_CD;  /* number the the disk with central dir, used
+    uLong number_disk_with_CD;  /* number the disk with central dir, used
                                    for spaning ZIP, unsupported, always 0*/
     ZPOS64_T number_entry_CD;      /* total number of entries in
                                    the central dir
@@ -1513,7 +1513,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
         return UNZ_INTERNALERROR;
     }
 
-    pfile_in_zip_read_info->stream_initialised=0;
+    pfile_in_zip_read_info->stream_initialized = 0;
 
     if (method!=NULL)
         *method = (int)s->cur_file_info.compression_method;
@@ -1563,7 +1563,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
 
       err=BZ2_bzDecompressInit(&pfile_in_zip_read_info->bstream, 0, 0);
       if (err == Z_OK)
-        pfile_in_zip_read_info->stream_initialised=Z_BZIP2ED;
+        pfile_in_zip_read_info->stream_initialized = Z_BZIP2ED;
       else
       {
         TRYFREE(pfile_in_zip_read_info);
@@ -1583,7 +1583,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
 
       err=inflateInit2(&pfile_in_zip_read_info->stream, -MAX_WBITS);
       if (err == Z_OK)
-        pfile_in_zip_read_info->stream_initialised=Z_DEFLATED;
+        pfile_in_zip_read_info->stream_initialized = Z_DEFLATED;
       else
       {
         TRYFREE(pfile_in_zip_read_info);
@@ -2026,15 +2026,15 @@ extern int ZEXPORT unzCloseCurrentFile (unzFile file)
 
     TRYFREE(pfile_in_zip_read_info->read_buffer);
     pfile_in_zip_read_info->read_buffer = NULL;
-    if (pfile_in_zip_read_info->stream_initialised == Z_DEFLATED)
+    if (pfile_in_zip_read_info->stream_initialized == Z_DEFLATED)
         inflateEnd(&pfile_in_zip_read_info->stream);
 #ifdef HAVE_BZIP2
-    else if (pfile_in_zip_read_info->stream_initialised == Z_BZIP2ED)
+    else if (pfile_in_zip_read_info->stream_initialized == Z_BZIP2ED)
         BZ2_bzDecompressEnd(&pfile_in_zip_read_info->bstream);
 #endif
 
 
-    pfile_in_zip_read_info->stream_initialised = 0;
+    pfile_in_zip_read_info->stream_initialized = 0;
     TRYFREE(pfile_in_zip_read_info);
 
     s->pfile_in_zip_read=NULL;

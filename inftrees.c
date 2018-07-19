@@ -11,9 +11,9 @@
 const char inflate_copyright[] =
    " inflate 1.2.11 Copyright 1995-2017 Mark Adler ";
 /*
-  If you use the zlib library in a product, an acknowledgment is welcome
+  If you use the zlib library in a product, an acknowledgement is welcome
   in the documentation of your product. If for some reason you cannot
-  include such an acknowledgment, I would appreciate that you keep this
+  include such an acknowledgement, I would appreciate that you keep this
   copyright string in the executable of your product.
  */
 
@@ -87,7 +87,7 @@ unsigned short FAR *work;
 
        This routine assumes, but does not check, that all of the entries in
        lens[] are in the range 0..MAXBITS.  The caller must assure this.
-       1..MAXBITS is interpreted as that code length.  zero means that that
+       1..MAXBITS is interpreted as that code length.  zero means that
        symbol does not occur in this code.
 
        The codes are sorted by computing a count of codes for each length,
