@@ -108,6 +108,7 @@
 
 /* special data types */
 typedef unsigned long long big_t;   /* type for code counting */
+#define PRIbig "llu"                /* printf format for big_t */
 typedef unsigned long long code_t;  /* type for bit pattern counting */
 struct tab {                        /* type for been here check */
     size_t len;         /* length of bit vector in char's */
@@ -452,11 +453,6 @@ local void enough(int syms)
 
    For the deflate literal/length code, use "enough".  For the deflate distance
    code, use "enough 30 6".
-
-   This uses the %llu printf format to print big_t numbers, which assumes that
-   big_t is an unsigned long long.  If the big_t type is changed (for example
-   to a multiple precision type), the method of printing will also need to be
-   updated.
  */
 int main(int argc, char **argv)
 {
@@ -543,9 +539,9 @@ int main(int argc, char **argv)
             cleanup();
             return 1;
         }
-        printf("%llu %d-codes\n", got, n);
+        printf("%"PRIbig" %d-codes\n", got, n);
     }
-    printf("%llu total codes for 2 to %d symbols", sum, syms);
+    printf("%"PRIbig" total codes for 2 to %d symbols", sum, syms);
     if (g.max < syms - 1)
         printf(" (%d-bit length limit)\n", g.max);
     else
