@@ -167,32 +167,34 @@ struct tab {                        /* type for been here check */
  */
 
 /* Globals to avoid propagating constants or constant pointers recursively */
-local int max;          /* maximum allowed bit length for the codes */
-local int root;         /* size of base code table in bits */
-local int large;        /* largest code table so far */
-local size_t size;      /* number of elements in num and done */
-local int *code;        /* number of symbols assigned to each bit length */
-local big_t *num;       /* saved results array for code counting */
-local struct tab *done; /* states already evaluated array */
+struct {
+    int max;            /* maximum allowed bit length for the codes */
+    int root;           /* size of base code table in bits */
+    int large;          /* largest code table so far */
+    size_t size;        /* number of elements in num and done */
+    int *code;          /* number of symbols assigned to each bit length */
+    big_t *num;         /* saved results array for code counting */
+    struct tab *done;   /* states already evaluated array */
+} g;
 
 /* Index function for num[] and done[] */
-#define INDEX(i,j,k) (((size_t)((i-1)>>1)*((i-2)>>1)+(j>>1)-1)*(max-1)+k-1)
+#define INDEX(i,j,k) (((size_t)((i-1)>>1)*((i-2)>>1)+(j>>1)-1)*(g.max-1)+k-1)
 
 /* Free allocated space.  Uses globals code, num, and done. */
 local void cleanup(void)
 {
     size_t n;
 
-    if (done != NULL) {
-        for (n = 0; n < size; n++)
-            if (done[n].len)
-                free(done[n].vec);
-        free(done);
+    if (g.done != NULL) {
+        for (n = 0; n < g.size; n++)
+            if (g.done[n].len)
+                free(g.done[n].vec);
+        free(g.done);
     }
-    if (num != NULL)
-        free(num);
-    if (code != NULL)
-        free(code);
+    if (g.num != NULL)
+        free(g.num);
+    if (g.code != NULL)
+        free(g.code);
 }
 
 /* Return the number of possible Huffman codes using bit patterns of lengths
@@ -214,11 +216,11 @@ local big_t count(int syms, int len, int left)
         return 1;
 
     /* note and verify the expected state */
-    assert(syms > left && left > 0 && len < max);
+    assert(syms > left && left > 0 && len < g.max);
 
     /* see if we've done this one already */
     index = INDEX(syms, left, len);
-    got = num[index];
+    got = g.num[index];
     if (got)
         return got;         /* we have -- return the saved result */
 
@@ -231,8 +233,8 @@ local big_t count(int syms, int len, int left)
     /* we can use at most this many bit patterns, lest there not be enough
        available for the remaining symbols at the maximum length (if there were
        no limit to the code length, this would become: most = left - 1) */
-    most = (((code_t)left << (max - len)) - syms) /
-            (((code_t)1 << (max - len)) - 1);
+    most = (((code_t)left << (g.max - len)) - syms) /
+            (((code_t)1 << (g.max - len)) - 1);
 
     /* count all possible codes from this juncture and add them up */
     sum = 0;
@@ -247,7 +249,7 @@ local big_t count(int syms, int len, int left)
     assert(sum != 0);
 
     /* save the result and return it */
-    num[index] = sum;
+    g.num[index] = sum;
     return sum;
 }
 
@@ -265,14 +267,14 @@ local int beenhere(int syms, int len, int left, int mem, int rem)
 
     /* point to vector for (syms,left,len), bit in vector for (mem,rem) */
     index = INDEX(syms, left, len);
-    mem -= 1 << root;
+    mem -= 1 << g.root;
     offset = (mem >> 3) + rem;
     offset = ((offset * (offset + 1)) >> 1) + rem;
     bit = 1 << (mem & 7);
 
     /* see if we've been here */
-    length = done[index].len;
-    if (offset < length && (done[index].vec[offset] & bit) != 0)
+    length = g.done[index].len;
+    if (offset < length && (g.done[index].vec[offset] & bit) != 0)
         return 1;       /* done this! */
 
     /* we haven't been here before -- set the bit to show we have now */
@@ -284,14 +286,15 @@ local int beenhere(int syms, int len, int left, int mem, int rem)
             do {
                 length <<= 1;
             } while (length <= offset);
-            vector = realloc(done[index].vec, length);
+            vector = realloc(g.done[index].vec, length);
             if (vector != NULL)
-                memset(vector + done[index].len, 0, length - done[index].len);
+                memset(vector + g.done[index].len, 0,
+                       length - g.done[index].len);
         }
 
         /* otherwise we need to make a new vector and zero it out */
         else {
-            length = 1 << (len - root);
+            length = 1 << (len - g.root);
             while (length <= offset)
                 length <<= 1;
             vector = calloc(length, sizeof(char));
@@ -305,12 +308,12 @@ local int beenhere(int syms, int len, int left, int mem, int rem)
         }
 
         /* install the new vector */
-        done[index].len = length;
-        done[index].vec = vector;
+        g.done[index].len = length;
+        g.done[index].vec = vector;
     }
 
     /* set the bit */
-    done[index].vec[offset] |= bit;
+    g.done[index].vec[offset] |= bit;
     return 0;
 }
 
@@ -328,29 +331,29 @@ local void examine(int syms, int len, int left, int mem, int rem)
     /* see if we have a complete code */
     if (syms == left) {
         /* set the last code entry */
-        code[len] = left;
+        g.code[len] = left;
 
         /* complete computation of memory used by this code */
         while (rem < left) {
             left -= rem;
-            rem = 1 << (len - root);
+            rem = 1 << (len - g.root);
             mem += rem;
         }
         assert(rem == left);
 
         /* if this is a new maximum, show the entries used and the sub-code */
-        if (mem > large) {
-            large = mem;
+        if (mem > g.large) {
+            g.large = mem;
             printf("max %d: ", mem);
-            for (use = root + 1; use <= max; use++)
-                if (code[use])
-                    printf("%d[%d] ", code[use], use);
+            for (use = g.root + 1; use <= g.max; use++)
+                if (g.code[use])
+                    printf("%d[%d] ", g.code[use], use);
             putchar('\n');
             fflush(stdout);
         }
 
         /* remove entries as we drop back down in the recursion */
-        code[len] = 0;
+        g.code[len] = 0;
         return;
     }
 
@@ -367,32 +370,32 @@ local void examine(int syms, int len, int left, int mem, int rem)
     /* we can use at most this many bit patterns, lest there not be enough
        available for the remaining symbols at the maximum length (if there were
        no limit to the code length, this would become: most = left - 1) */
-    most = (((code_t)left << (max - len)) - syms) /
-            (((code_t)1 << (max - len)) - 1);
+    most = (((code_t)left << (g.max - len)) - syms) /
+            (((code_t)1 << (g.max - len)) - 1);
 
     /* occupy least table spaces, creating new sub-tables as needed */
     use = least;
     while (rem < use) {
         use -= rem;
-        rem = 1 << (len - root);
+        rem = 1 << (len - g.root);
         mem += rem;
     }
     rem -= use;
 
     /* examine codes from here, updating table space as we go */
     for (use = least; use <= most; use++) {
-        code[len] = use;
+        g.code[len] = use;
         examine(syms - use, len + 1, (left - use) << 1,
-                mem + (rem ? 1 << (len - root) : 0), rem << 1);
+                mem + (rem ? 1 << (len - g.root) : 0), rem << 1);
         if (rem == 0) {
-            rem = 1 << (len - root);
+            rem = 1 << (len - g.root);
             mem += rem;
         }
         rem--;
     }
 
     /* remove entries as we drop back down in the recursion */
-    code[len] = 0;
+    g.code[len] = 0;
 }
 
 /* Look at all sub-codes starting with root + 1 bits.  Look at only the valid
@@ -407,30 +410,30 @@ local void enough(int syms)
     size_t index;       /* index of this case in *num */
 
     /* clear code */
-    for (n = 0; n <= max; n++)
-        code[n] = 0;
+    for (n = 0; n <= g.max; n++)
+        g.code[n] = 0;
 
     /* look at all (root + 1) bit and longer codes */
-    large = 1 << root;              /* base table */
-    if (root < max)                 /* otherwise, there's only a base table */
+    g.large = 1 << g.root;          /* base table */
+    if (g.root < g.max)             /* otherwise, there's only a base table */
         for (n = 3; n <= syms; n++)
             for (left = 2; left < n; left += 2)
             {
                 /* look at all reachable (root + 1) bit nodes, and the
                    resulting codes (complete at root + 2 or more) */
-                index = INDEX(n, left, root + 1);
-                if (root + 1 < max && num[index])       /* reachable node */
-                    examine(n, root + 1, left, 1 << root, 0);
+                index = INDEX(n, left, g.root + 1);
+                if (g.root + 1 < g.max && g.num[index]) /* reachable node */
+                    examine(n, g.root + 1, left, 1 << g.root, 0);
 
                 /* also look at root bit codes with completions at root + 1
                    bits (not saved in num, since complete), just in case */
-                if (num[index - 1] && n <= left << 1)
-                    examine((n - left) << 1, root + 1, (n - left) << 1,
-                            1 << root, 0);
+                if (g.num[index - 1] && n <= left << 1)
+                    examine((n - left) << 1, g.root + 1, (n - left) << 1,
+                            1 << g.root, 0);
             }
 
     /* done */
-    printf("done: maximum of %d table entries\n", large);
+    printf("done: maximum of %d table entries\n", g.large);
 }
 
 /*
@@ -464,52 +467,52 @@ int main(int argc, char **argv)
     code_t word;        /* for counting bits in code_t */
 
     /* set up globals for cleanup() */
-    code = NULL;
-    num = NULL;
-    done = NULL;
+    g.code = NULL;
+    g.num = NULL;
+    g.done = NULL;
 
     /* get arguments -- default to the deflate literal/length code */
     syms = 286;
-    root = 9;
-    max = 15;
+    g.root = 9;
+    g.max = 15;
     if (argc > 1) {
         syms = atoi(argv[1]);
         if (argc > 2) {
-            root = atoi(argv[2]);
+            g.root = atoi(argv[2]);
             if (argc > 3)
-                max = atoi(argv[3]);
+                g.max = atoi(argv[3]);
         }
     }
-    if (argc > 4 || syms < 2 || root < 1 || max < 1) {
+    if (argc > 4 || syms < 2 || g.root < 1 || g.max < 1) {
         fputs("invalid arguments, need: [sym >= 2 [root >= 1 [max >= 1]]]\n",
               stderr);
         return 1;
     }
 
     /* if not restricting the code length, the longest is syms - 1 */
-    if (max > syms - 1)
-        max = syms - 1;
+    if (g.max > syms - 1)
+        g.max = syms - 1;
 
     /* determine the number of bits in a code_t */
     for (n = 0, word = 1; word; n++, word <<= 1)
         ;
 
     /* make sure that the calculation of most will not overflow */
-    if (max > n || (code_t)(syms - 2) >= (((code_t)0 - 1) >> (max - 1))) {
+    if (g.max > n || (code_t)(syms - 2) >= (((code_t)0 - 1) >> (g.max - 1))) {
         fputs("abort: code length too long for internal types\n", stderr);
         return 1;
     }
 
     /* reject impossible code requests */
-    if ((code_t)(syms - 1) > ((code_t)1 << max) - 1) {
+    if ((code_t)(syms - 1) > ((code_t)1 << g.max) - 1) {
         fprintf(stderr, "%d symbols cannot be coded in %d bits\n",
-                syms, max);
+                syms, g.max);
         return 1;
     }
 
     /* allocate code vector */
-    code = calloc(max + 1, sizeof(int));
-    if (code == NULL) {
+    g.code = calloc(g.max + 1, sizeof(int));
+    if (g.code == NULL) {
         fputs("abort: unable to allocate enough memory\n", stderr);
         return 1;
     }
@@ -517,13 +520,13 @@ int main(int argc, char **argv)
     /* determine size of saved results array, checking for overflows,
        allocate and clear the array (set all to zero with calloc()) */
     if (syms == 2)              /* iff max == 1 */
-        num = NULL;             /* won't be saving any results */
+        g.num = NULL;           /* won't be saving any results */
     else {
-        size = syms >> 1;
-        if (size > ((size_t)0 - 1) / (n = (syms - 1) >> 1) ||
-                (size *= n, size > ((size_t)0 - 1) / (n = max - 1)) ||
-                (size *= n, size > ((size_t)0 - 1) / sizeof(big_t)) ||
-                (num = calloc(size, sizeof(big_t))) == NULL) {
+        g.size = syms >> 1;
+        if (g.size > ((size_t)0 - 1) / (n = (syms - 1) >> 1) ||
+                (g.size *= n, g.size > ((size_t)0 - 1) / (n = g.max - 1)) ||
+                (g.size *= n, g.size > ((size_t)0 - 1) / sizeof(big_t)) ||
+                (g.num = calloc(g.size, sizeof(big_t))) == NULL) {
             fputs("abort: unable to allocate enough memory\n", stderr);
             cleanup();
             return 1;
@@ -543,25 +546,25 @@ int main(int argc, char **argv)
         printf("%llu %d-codes\n", got, n);
     }
     printf("%llu total codes for 2 to %d symbols", sum, syms);
-    if (max < syms - 1)
-        printf(" (%d-bit length limit)\n", max);
+    if (g.max < syms - 1)
+        printf(" (%d-bit length limit)\n", g.max);
     else
         puts(" (no length limit)");
 
     /* allocate and clear done array for beenhere() */
     if (syms == 2)
-        done = NULL;
-    else if (size > ((size_t)0 - 1) / sizeof(struct tab) ||
-             (done = calloc(size, sizeof(struct tab))) == NULL) {
+        g.done = NULL;
+    else if (g.size > ((size_t)0 - 1) / sizeof(struct tab) ||
+             (g.done = calloc(g.size, sizeof(struct tab))) == NULL) {
         fputs("abort: unable to allocate enough memory\n", stderr);
         cleanup();
         return 1;
     }
 
     /* find and show maximum inflate table usage */
-    if (root > max)                 /* reduce root to max length */
-        root = max;
-    if ((code_t)syms < ((code_t)1 << (root + 1)))
+    if (g.root > g.max)             /* reduce root to max length */
+        g.root = g.max;
+    if ((code_t)syms < ((code_t)1 << (g.root + 1)))
         enough(syms);
     else
         puts("cannot handle minimum code lengths > root");
