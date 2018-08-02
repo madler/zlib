@@ -18,6 +18,7 @@
                      Clean up comparisons of different types
                      Clean up code indentation
    1.5   1 Aug 2018  Clean up code style and formatting
+                     Use inline function instead of macro for index
  */
 
 /*
@@ -179,7 +180,10 @@ struct {
 } g;
 
 // Index function for num[] and done[].
-#define INDEX(i,j,k) (((size_t)((i-1)>>1)*((i-2)>>1)+(j>>1)-1)*(g.max-1)+k-1)
+local inline size_t map(int i, int j, int k) {
+    return k - 1 + ((size_t)((i - 1) >> 1) * ((i - 2) >> 1) + (j >> 1) - 1) *
+                   (g.max - 1);
+}
 
 // Free allocated space. Uses globals code, num, and done.
 local void cleanup(void) {
@@ -218,7 +222,7 @@ local big_t count(int syms, int len, int left) {
     assert(syms > left && left > 0 && len < g.max);
 
     // see if we've done this one already
-    index = INDEX(syms, left, len);
+    index = map(syms, left, len);
     got = g.num[index];
     if (got)
         return got;         // we have -- return the saved result
@@ -264,7 +268,7 @@ local int beenhere(int syms, int len, int left, int mem, int rem) {
     char *vector;       // new or enlarged bit vector
 
     // point to vector for (syms,left,len), bit in vector for (mem,rem)
-    index = INDEX(syms, left, len);
+    index = map(syms, left, len);
     mem -= 1 << g.root;
     offset = (mem >> 3) + rem;
     offset = ((offset * (offset + 1)) >> 1) + rem;
@@ -416,7 +420,7 @@ local void enough(int syms) {
             for (left = 2; left < n; left += 2) {
                 // look at all reachable (root + 1) bit nodes, and the
                 // resulting codes (complete at root + 2 or more)
-                index = INDEX(n, left, g.root + 1);
+                index = map(n, left, g.root + 1);
                 if (g.root + 1 < g.max && g.num[index]) // reachable node
                     examine(n, g.root + 1, left, 1 << g.root, 0);
 
