@@ -1,5 +1,5 @@
 /* enough.c -- determine the maximum size of inflate's Huffman code tables over
- * all possible valid and complete Huffman codes, subject to a length limit.
+ * all possible valid and complete prefix codes, subject to a length limit.
  * Copyright (C) 2007, 2008, 2012, 2018 Mark Adler
  * Version 1.5  1 August 2018  Mark Adler
  */
@@ -17,14 +17,14 @@
    1.4  18 Aug 2012  Avoid shifts more than bits in type (caused endless loop!)
                      Clean up comparisons of different types
                      Clean up code indentation
-   1.5   1 Aug 2018  Clean up code style and formatting
+   1.5   1 Aug 2018  Clean up code style, formatting, and comments
                      Use inline function instead of macro for index
  */
 
 /*
-   Examine all possible Huffman codes for a given number of symbols and a
+   Examine all possible prefix codes for a given number of symbols and a
    maximum code length in bits to determine the maximum table size for zlib's
-   inflate. Only complete Huffman codes are counted.
+   inflate. Only complete prefix codes are counted.
 
    Two codes are considered distinct if the vectors of the number of codes per
    length are not identical. So permutations of the symbol assignments result
@@ -71,7 +71,7 @@
    the maximum code length in bits. However this is a very small price to pay
    for the vast speedup.
 
-   First, all of the possible Huffman codes are counted, and reachable
+   First, all of the possible prefix codes are counted, and reachable
    intermediate states are noted by a non-zero count in a saved-results array.
    Second, the intermediate states that lead to (root + 1) bit or longer codes
    are used to look at all sub-codes from those junctures for their inflate
@@ -83,7 +83,7 @@
    identifying the reachable nodes, accounts for about six of the orders of
    magnitude of improvement for the default arguments. About another four
    orders of magnitude come from not revisiting previous states. Out of
-   approximately 2x10^16 possible Huffman codes, only about 2x10^6 sub-codes
+   approximately 2x10^16 possible prefix codes, only about 2x10^6 sub-codes
    need to be examined to cover all of the possible table memory usage cases
    for the default arguments of 286 symbols limited to 15-bit codes.
 
@@ -113,7 +113,7 @@ typedef unsigned long long big_t;   // type for code counting
 #define PRIbig "llu"                // printf format for big_t
 typedef unsigned long long code_t;  // type for bit pattern counting
 struct tab {                        // type for been here check
-    size_t len;         // length of bit vector in char's
+    size_t len;         // length of bit vector in octets
     char *vec;          // allocated bit vector
 };
 
@@ -146,7 +146,7 @@ struct tab {                        // type for been here check
    For the deflate example of 286 symbols limited to 15-bit codes, the array
    has 284,284 entries, taking up 2.17 MB for an 8-byte big_t. More than half
    of the space allocated for saved results is actually used -- not all
-   possible triplets are reached in the generation of valid Huffman codes.
+   possible triplets are reached in the generation of valid prefix codes.
  */
 
 /* The array for tracking visited states, done[], is itself indexed identically
@@ -201,11 +201,11 @@ local void cleanup(void) {
         free(g.code);
 }
 
-// Return the number of possible Huffman codes using bit patterns of lengths
-// len through max inclusive, coding syms symbols, with left bit patterns of
-// length len unused -- return -1 if there is an overflow in the counting. Keep
-// a record of previous results in num to prevent repeating the same
-// calculation. Uses the globals max and num.
+// Return the number of possible prefix codes using bit patterns of lengths len
+// through max inclusive, coding syms symbols, with left bit patterns of length
+// len unused -- return -1 if there is an overflow in the counting. Keep a
+// record of previous results in num to prevent repeating the same calculation.
+// Uses the globals max and num.
 local big_t count(int syms, int len, int left) {
     big_t sum;          // number of possible codes from this juncture
     big_t got;          // value returned from count()
@@ -435,7 +435,7 @@ local void enough(int syms) {
     printf("done: maximum of %d table entries\n", g.large);
 }
 
-// Examine and show the total number of possible Huffman codes for a given
+// Examine and show the total number of possible prefix codes for a given
 // maximum number of symbols, initial root table size, and maximum code length
 // in bits -- those are the command arguments in that order. The default values
 // are 286, 9, and 15 respectively, for the deflate literal/length code. The
@@ -445,7 +445,7 @@ local void enough(int syms) {
 // all possible codes. Each new maximum number of table entries and the
 // associated sub-code (starting at root + 1 == 10 bits) is shown.
 //
-// To count and examine Huffman codes that are not length-limited, provide a
+// To count and examine prefix codes that are not length-limited, provide a
 // maximum length equal to the number of symbols minus one.
 //
 // For the deflate literal/length code, use "enough". For the deflate distance
