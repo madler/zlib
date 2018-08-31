@@ -87,6 +87,7 @@ build64=0
 gcc=0
 warn=0
 debug=0
+build_fuzzers=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 OBJC='$(OBJZ) $(OBJG)'
@@ -114,6 +115,7 @@ case "$1" in
       echo '  configure [--const] [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
       echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
+      echo '    [--build-fuzzers] Build test/fuzz (disabled by default)' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -137,6 +139,7 @@ case "$1" in
     -c* | --const) zconst=1; shift ;;
     -w* | --warn) warn=1; shift ;;
     -d* | --debug) debug=1; shift ;;
+    --build-fuzzers) build_fuzzers=1; shift ;;
     *)
       echo "unknown option: $1" | tee -a configure.log
       echo "$0 --help for help" | tee -a configure.log
@@ -401,6 +404,42 @@ fi
 
 echo >> configure.log
 
+if test $build_fuzzers -eq 1; then
+    echo -n "Checking for sanitizers ASan/UBSan... " | tee -a configure.log
+    sanitizers=""
+    for san in bool address array-bounds float-divide-by-zero function integer-divide-by-zero return shift signed-integer-overflow undefined unsigned-integer-overflow vla-bound vptr; do
+        if try $CC -c $CFLAGS $test.c -fsanitize=$san ; then
+            if test -n "$sanitizers"; then
+                sanitizers="$sanitizers,$san"
+            else
+                sanitizers="$san"
+            fi
+        fi
+    done
+
+    SANITIZERS_CFLAGS=""
+    if test -n "$sanitizers"; then
+        echo "-fsanitize=$sanitizers" | tee -a configure.log
+        SANITIZERS_CFLAGS="-fsanitize=$sanitizers"
+    else
+        echo No | tee -a configure.log
+    fi
+
+    echo >> configure.log
+
+    echo -n "Checking for MSan... " | tee -a configure.log
+    if try $CC -c $CFLAGS $test.c -fsanitize=memory ; then
+        echo "-fsanitize=memory" | tee -a configure.log
+        MSAN_CFLAGS="-fsanitize=memory"
+    else
+        echo No | tee -a configure.log
+        MSAN_CFLAGS=""
+    fi
+
+    echo >> configure.log
+fi
+
+
 # see if shared library build supported
 cat > $test.c <<EOF
 extern int getchar();
@@ -432,6 +471,8 @@ else
   ALL="static shared"
   TEST="all teststatic testshared"
 fi
+
+TEST="$TEST run_fuzzers"
 
 # check for underscores in external names for use by assembler code
 CPP=${CPP-"$CC -E"}
@@ -863,6 +904,9 @@ echo uname = $uname >> configure.log
 sed < ${SRCDIR}Makefile.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
+/^BUILD_FUZZERS *=/s#=.*#=$build_fuzzers#
+/^SANITIZERS_CFLAGS *=/s#=.*#=$SANITIZERS_CFLAGS#
+/^MSAN_CFLAGS *=/s#=.*#=$MSAN_CFLAGS#
 /^SFLAGS *=/s#=.*#=$SFLAGS#
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#

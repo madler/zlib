@@ -24,6 +24,10 @@ CFLAGS=-O
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
+BUILD_FUZZERS=
+SANITIZERS_CFLAGS=
+MSAN_CFLAGS=
+
 SFLAGS=-O
 LDFLAGS=
 TEST_LDFLAGS=-L. libz.a
@@ -34,7 +38,9 @@ STATICLIB=libz.a
 SHAREDLIB=libz.so
 SHAREDLIBV=libz.so.1.2.11
 SHAREDLIBM=libz.so.1
-LIBS=$(STATICLIB) $(SHAREDLIBV)
+SANITIZED_LIB=$(LIBNAME1).sanitized.a
+MSAN_LIB=$(LIBNAME1).msan.a
+LIBS=$(STATICLIB) $(SHAREDLIBV) $(SANITIZED_LIB) $(MSAN_LIB)
 
 AR=ar
 ARFLAGS=rc
@@ -71,11 +77,13 @@ PIC_OBJA =
 
 OBJS = $(OBJC) $(OBJA)
 
+SANITIZED_OBJS = $(OBJS:%.o=%.san.o)
+MSAN_OBJS = $(OBJS:%.o=%.msan.o)
 PIC_OBJS = $(PIC_OBJC) $(PIC_OBJA)
 
 all: static shared
 
-static: example$(EXE) minigzip$(EXE)
+static: example$(EXE) minigzip$(EXE) fuzzers
 
 shared: examplesh$(EXE) minigzipsh$(EXE)
 
@@ -83,7 +91,7 @@ all64: example64$(EXE) minigzip64$(EXE)
 
 check: test
 
-test: all teststatic testshared
+test: all teststatic testshared run_fuzzers
 
 teststatic: static
 	@TMPST=tmpst_$$; \
@@ -115,6 +123,138 @@ test64: all64
 	  echo '		*** zlib 64-bit test FAILED ***'; false; \
 	fi; \
 	rm -f $$TMP64
+
+# By default, use our own standalone_fuzz_target_runner.
+# This runner does no fuzzing, but simply executes the inputs
+# provided via parameters.
+# Run e.g. "make all LIB_FUZZING_ENGINE=/path/to/libFuzzer.a"
+# to link the fuzzer(s) against a real fuzzing engine.
+ifeq (,$(LIB_FUZZING_ENGINE))
+LIB_FUZZING_ENGINE = standalone_fuzz_target_runner.o
+ALL_SRC_FILES := $(wildcard ./*)
+  ifeq (0,$(BUILD_FUZZERS))
+fuzzers:
+run_fuzzers:
+  else
+    ifeq (,$(MSAN_CFLAGS))
+fuzzers: checksum_fuzzer$(EXE) compress_fuzzer$(EXE) example_small_fuzzer$(EXE) example_large_fuzzer$(EXE) example_flush_fuzzer$(EXE) example_dict_fuzzer$(EXE) minigzip_fuzzer$(EXE)
+run_fuzzers:
+	@echo 'Running fuzzers'; \
+	./checksum_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./compress_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_small_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_large_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_flush_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_dict_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./minigzip_fuzzer$(EXE) $(ALL_SRC_FILES)
+    else
+fuzzers: checksum_fuzzer$(EXE) compress_fuzzer$(EXE) example_small_fuzzer$(EXE) example_large_fuzzer$(EXE) example_flush_fuzzer$(EXE) example_dict_fuzzer$(EXE) minigzip_fuzzer$(EXE) checksum_fuzzer.msan$(EXE) compress_fuzzer.msan$(EXE) example_small_fuzzer.msan$(EXE) example_large_fuzzer.msan$(EXE) example_flush_fuzzer.msan$(EXE) example_dict_fuzzer.msan$(EXE) minigzip_fuzzer.msan$(EXE)
+run_fuzzers:
+	@echo 'Running fuzzers'; \
+	./checksum_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./compress_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_small_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_large_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_flush_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./example_dict_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./minigzip_fuzzer$(EXE) $(ALL_SRC_FILES) ; \
+	./checksum_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./compress_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./example_small_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./example_large_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./example_flush_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./example_dict_fuzzer.msan$(EXE) $(ALL_SRC_FILES) ; \
+	./minigzip_fuzzer.msan$(EXE) $(ALL_SRC_FILES)
+    endif
+  endif
+else
+# OSS-Fuzz will define its own value for LIB_FUZZING_ENGINE.
+# Reset fuzzers' CFLAGS as OSS-Fuzz will set CFLAGS with sanitizers flags.
+SANITIZERS_CFLAGS = ""
+MSAN_CFLAGS = ""
+fuzzers: checksum_fuzzer$(EXE) compress_fuzzer$(EXE) example_small_fuzzer$(EXE) example_large_fuzzer$(EXE) example_flush_fuzzer$(EXE) example_dict_fuzzer$(EXE) minigzip_fuzzer$(EXE)
+run_fuzzers:
+endif
+
+# The standalone fuzz target runner.
+standalone_fuzz_target_runner.o: $(SRCDIR)test/fuzz/standalone_fuzz_target_runner.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+checksum_fuzzer.o: $(SRCDIR)test/fuzz/checksum_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+compress_fuzzer.o: $(SRCDIR)test/fuzz/compress_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_small_fuzzer.o: $(SRCDIR)test/fuzz/example_small_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_large_fuzzer.o: $(SRCDIR)test/fuzz/example_large_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_flush_fuzzer.o: $(SRCDIR)test/fuzz/example_flush_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_dict_fuzzer.o: $(SRCDIR)test/fuzz/example_dict_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+minigzip_fuzzer.o: $(SRCDIR)test/fuzz/minigzip_fuzzer.c
+	$(CC) $(CFLAGS) $(SANITIZERS_CFLAGS) $(ZINCOUT) -c -o $@ $<
+checksum_fuzzer$(EXE): checksum_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) checksum_fuzzer.o $(SANITIZED_LIB) -lpthread
+compress_fuzzer$(EXE): compress_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) compress_fuzzer.o $(SANITIZED_LIB) -lpthread
+example_small_fuzzer$(EXE): example_small_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) example_small_fuzzer.o $(SANITIZED_LIB) -lpthread
+example_large_fuzzer$(EXE): example_large_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) example_large_fuzzer.o $(SANITIZED_LIB) -lpthread
+example_flush_fuzzer$(EXE): example_flush_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) example_flush_fuzzer.o $(SANITIZED_LIB) -lpthread
+example_dict_fuzzer$(EXE): example_dict_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) example_dict_fuzzer.o $(SANITIZED_LIB) -lpthread
+minigzip_fuzzer$(EXE): minigzip_fuzzer.o standalone_fuzz_target_runner.o $(SANITIZED_LIB)
+	$(CC) $(LDFLAGS) $(SANITIZERS_CFLAGS) -o $@ $(LIB_FUZZING_ENGINE) minigzip_fuzzer.o $(SANITIZED_LIB) -lpthread
+
+# Only build MSan fuzzers in standalone mode.
+ifeq ($(LIB_FUZZING_ENGINE),standalone_fuzz_target_runner.o)
+standalone_fuzz_target_runner.msan.o: $(SRCDIR)test/fuzz/standalone_fuzz_target_runner.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+checksum_fuzzer.msan.o: $(SRCDIR)test/fuzz/checksum_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+compress_fuzzer.msan.o: $(SRCDIR)test/fuzz/compress_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_small_fuzzer.msan.o: $(SRCDIR)test/fuzz/example_small_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_large_fuzzer.msan.o: $(SRCDIR)test/fuzz/example_large_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_flush_fuzzer.msan.o: $(SRCDIR)test/fuzz/example_flush_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+example_dict_fuzzer.msan.o: $(SRCDIR)test/fuzz/example_dict_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+minigzip_fuzzer.msan.o: $(SRCDIR)test/fuzz/minigzip_fuzzer.c
+	$(CC) $(CFLAGS) $(MSAN_CFLAGS) $(ZINCOUT) -c -o $@ $<
+checksum_fuzzer.msan$(EXE): checksum_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o checksum_fuzzer.msan.o $(MSAN_LIB) -lpthread
+compress_fuzzer.msan$(EXE): compress_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o compress_fuzzer.msan.o $(MSAN_LIB) -lpthread
+example_small_fuzzer.msan$(EXE): example_small_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o example_small_fuzzer.msan.o $(MSAN_LIB) -lpthread
+example_large_fuzzer.msan$(EXE): example_large_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o example_large_fuzzer.msan.o $(MSAN_LIB) -lpthread
+example_flush_fuzzer.msan$(EXE): example_flush_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o example_flush_fuzzer.msan.o $(MSAN_LIB) -lpthread
+example_dict_fuzzer.msan$(EXE): example_dict_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o example_dict_fuzzer.msan.o $(MSAN_LIB) -lpthread
+minigzip_fuzzer.msan$(EXE): minigzip_fuzzer.msan.o standalone_fuzz_target_runner.msan.o $(MSAN_LIB)
+	$(CC) $(LDFLAGS) $(MSAN_CFLAGS) -o $@ standalone_fuzz_target_runner.msan.o minigzip_fuzzer.msan.o $(MSAN_LIB) -lpthread
+endif
+
+%.san.o: $(SRCDIR)%.c
+	$(CC) $(CFLAGS) $(ZINCOUT) $(SANITIZERS_CFLAGS) -c -o $@ $<
+
+%.msan.o: $(SRCDIR)%.c
+	$(CC) $(CFLAGS) $(ZINCOUT) $(MSAN_CFLAGS) -c -o $@ $<
+
+$(SANITIZED_LIB): $(SANITIZED_OBJS)
+	$(AR) $(ARFLAGS) $@ $(SANITIZED_OBJS)
+	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
+
+$(MSAN_LIB): $(MSAN_OBJS)
+	$(AR) $(ARFLAGS) $@ $(MSAN_OBJS)
+	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
 
 infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(ZINCOUT) -c -o $@ $(SRCDIR)test/infcover.c
@@ -368,6 +508,12 @@ clean:
 	rm -f *.o *.lo *~ \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) \
+	   checksum_fuzzer$(EXE) compress_fuzzer$(EXE) example_small_fuzzer$(EXE) example_large_fuzzer$(EXE) \
+	   example_flush_fuzzer$(EXE) example_dict_fuzzer$(EXE) minigzip_fuzzer$(EXE) \
+	   checksum_fuzzer.msan$(EXE) compress_fuzzer.msan$(EXE) example_small_fuzzer.msan$(EXE) \
+	   example_large_fuzzer.msan$(EXE) minigzip_fuzzer.msan$(EXE) \
+	   example_flush_fuzzer.msan$(EXE) example_dict_fuzzer.msan$(EXE) \
+	   $(SANITIZED_LIB) $(MSAN_LIB) \
 	   infcover \
 	   libz.* foo.gz so_locations \
 	   _match.s maketree contrib/infback9/*.o
@@ -408,3 +554,23 @@ infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftree
 inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
 inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
+
+adler32.san.o zutil.san.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+gzclose.san.o gzlib.san.o gzread.san.o gzwrite.san.o: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
+compress.san.o example.san.o minigzip.san.o uncompr.san.o: $(SRCDIR)zlib.h zconf.h
+crc32.san.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
+deflate.san.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+infback.san.o inflate.san.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h
+inffast.san.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
+inftrees.san.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
+trees.san.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
+
+adler32.msan.o zutil.msan.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+gzclose.msan.o gzlib.msan.o gzread.msan.o gzwrite.msan.o: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
+compress.msan.o example.msan.o minigzip.msan.o uncompr.msan.o: $(SRCDIR)zlib.h zconf.h
+crc32.msan.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
+deflate.msan.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+infback.msan.o inflate.msan.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h
+inffast.msan.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
+inftrees.msan.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
+trees.msan.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
