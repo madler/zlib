@@ -999,8 +999,10 @@ int flush;
                         state->mode = BAD;
                         break;
                     }
-                    while (copy--)
+                    while (copy) {
+                        --copy;
                         state->lens[state->have++] = (unsigned short)len;
+                    }
                 }
             }
 
