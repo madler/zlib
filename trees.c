@@ -553,7 +553,8 @@ local void gen_bitlen(s, desc)
             if (m > max_code) continue;
             if ((unsigned) tree[m].Len != (unsigned) bits) {
                 Tracev((stderr,"code %d bits %d->%d\n", m, tree[m].Len, bits));
-                s->opt_len += ((ulg)bits - tree[m].Len) * tree[m].Freq;
+                s->opt_len += (ulg)bits * tree[m].Freq;
+                s->opt_len -= (ulg)tree[m].Len * tree[m].Freq;
                 tree[m].Len = (ush)bits;
             }
             n--;
