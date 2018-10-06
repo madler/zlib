@@ -34,6 +34,10 @@ gzlog.h
       and deflateSetDictionary()
     - illustrates use of a gzip header extra field
 
+gznorm.c
+    normalize a gzip file by combining members into a single member
+    - demonstrates how to concatenate deflate streams using Z_BLOCK
+
 zlib_how.html
     painfully comprehensive description of zpipe.c (see below)
     - describes in excruciating detail the use of deflate() and inflate()
