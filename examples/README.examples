@@ -48,6 +48,7 @@ zpipe.c
     - deeply commented in zlib_how.html (see above)
 
 zran.c
+zran.h
     index a zlib or gzip stream and randomly access it
     - illustrates the use of Z_BLOCK, inflatePrime(), and
       inflateSetDictionary() to provide random access
