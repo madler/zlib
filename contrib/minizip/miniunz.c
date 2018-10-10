@@ -52,6 +52,9 @@
 #else
 # include <unistd.h>
 # include <utime.h>
+// includes for mkdir()
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 
