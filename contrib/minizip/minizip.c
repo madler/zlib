@@ -395,7 +395,7 @@ int main(argc,argv)
                    ((argv[i][1]>='0') || (argv[i][1]<='9'))) &&
                   (strlen(argv[i]) == 2)))
             {
-                FILE * fin;
+                FILE * fin = NULL;
                 int size_read;
                 const char* filenameinzip = argv[i];
                 const char *savefilenameinzip;
