@@ -50,6 +50,7 @@
 #define GF2_DIM 32      /* dimension of GF(2) vectors (length of CRC) */
 local z_crc_t gf2_matrix_times OF((const z_crc_t *mat, z_crc_t vec));
 local uLong crc32_combine_ OF((uLong crc1, uLong crc2, z_off64_t len2));
+local void crc32_combine_gen_ OF((z_crc_t *op, z_off64_t len2));
 
 /* ========================================================================= */
 local z_crc_t gf2_matrix_times(mat, vec)
@@ -451,4 +452,78 @@ uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
     z_off64_t len2;
 {
     return crc32_combine_(crc1, crc2, len2);
+}
+
+/* ========================================================================= */
+local void crc32_combine_gen_(op, len2)
+    z_crc_t *op;
+    z_off64_t len2;
+{
+    z_crc_t row;
+    int j;
+    unsigned i;
+
+#ifdef DYNAMIC_CRC_TABLE
+    if (crc_table_empty)
+        make_crc_table();
+#endif /* DYNAMIC_CRC_TABLE */
+
+    /* if len2 is zero or negative, return the identity matrix */
+    if (len2 <= 0) {
+        row = 1;
+        for (j = 0; j < GF2_DIM; j++) {
+            op[j] = row;
+            row <<= 1;
+        }
+        return;
+    }
+
+    /* at least one bit in len2 is set -- find it, and copy the operator
+       corresponding to that position into op */
+    i = 0;
+    for (;;) {
+        if (len2 & 1) {
+            for (j = 0; j < GF2_DIM; j++)
+                op[j] = crc_comb[i][j];
+            break;
+        }
+        len2 >>= 1;
+        i = (i + 1) % GF2_DIM;
+    }
+
+    /* for each remaining bit set in len2 (if any), multiply op by the operator
+       corresponding to that position */
+    for (;;) {
+        len2 >>= 1;
+        i = (i + 1) % GF2_DIM;
+        if (len2 == 0)
+            break;
+        if (len2 & 1)
+            for (j = 0; j < GF2_DIM; j++)
+                op[j] = gf2_matrix_times(crc_comb[i], op[j]);
+    }
+}
+
+/* ========================================================================= */
+void ZEXPORT crc32_combine_gen(op, len2)
+    z_crc_t *op;
+    z_off_t len2;
+{
+    crc32_combine_gen_(op, len2);
+}
+
+void ZEXPORT crc32_combine_gen64(op, len2)
+    z_crc_t *op;
+    z_off64_t len2;
+{
+    crc32_combine_gen_(op, len2);
+}
+
+/* ========================================================================= */
+uLong crc32_combine_op(crc1, crc2, op)
+    uLong crc1;
+    uLong crc2;
+    const z_crc_t *op;
+{
+    return gf2_matrix_times(op, crc1) ^ crc2;
 }
