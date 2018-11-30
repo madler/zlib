@@ -47,12 +47,13 @@ EXE=
 
 prefix = /usr/local
 exec_prefix = ${prefix}
-libdir = ${exec_prefix}/lib
-sharedlibdir = ${libdir}
+staticlibdir = ${exec_prefix}/lib
+sharedlibdir = ${exec_prefix}/lib
 includedir = ${prefix}/include
 mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
-pkgconfigdir = ${libdir}/pkgconfig
+staticpkgconfigdir = ${staticlibdir}/pkgconfig
+sharedpkgconfigdir = ${sharedlibdir}/pkgconfig
 SRCDIR=
 ZINC=
 ZINCOUT=-I.
@@ -305,14 +306,15 @@ minigzip64$(EXE): minigzip64.o $(STATICLIB)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
-	-@if [ ! -d $(DESTDIR)$(libdir)       ]; then mkdir -p $(DESTDIR)$(libdir); fi
+	-@if [ ! -d $(DESTDIR)$(staticlibdir) ]; then mkdir -p $(DESTDIR)$(staticlibdir); fi
 	-@if [ ! -d $(DESTDIR)$(sharedlibdir) ]; then mkdir -p $(DESTDIR)$(sharedlibdir); fi
 	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
-	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
-	rm -f $(DESTDIR)$(libdir)/$(STATICLIB)
-	cp $(STATICLIB) $(DESTDIR)$(libdir)
-	chmod 644 $(DESTDIR)$(libdir)/$(STATICLIB)
-	-@($(RANLIB) $(DESTDIR)$(libdir)/libz.a || true) >/dev/null 2>&1
+	-@if [ ! -d $(DESTDIR)$(staticpkgconfigdir) ]; then mkdir -p $(DESTDIR)$(staticpkgconfigdir); fi
+	-@if [ ! -d $(DESTDIR)$(sharedpkgconfigdir) ]; then mkdir -p $(DESTDIR)$(sharedpkgconfigdir); fi
+	rm -f $(DESTDIR)$(staticlibdir)/$(STATICLIB)
+	cp $(STATICLIB) $(DESTDIR)$(staticlibdir)
+	chmod 644 $(DESTDIR)$(staticlibdir)/$(STATICLIB)
+	-@($(RANLIB) $(DESTDIR)$(staticlibdir)/libz.a || true) >/dev/null 2>&1
 	-@if test -n "$(SHAREDLIBV)"; then \
 	  rm -f $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV); \
 	  cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir); \
@@ -327,9 +329,12 @@ install-libs: $(LIBS)
 	rm -f $(DESTDIR)$(man3dir)/zlib.3
 	cp $(SRCDIR)zlib.3 $(DESTDIR)$(man3dir)
 	chmod 644 $(DESTDIR)$(man3dir)/zlib.3
-	rm -f $(DESTDIR)$(pkgconfigdir)/zlib.pc
-	cp zlib.pc $(DESTDIR)$(pkgconfigdir)
-	chmod 644 $(DESTDIR)$(pkgconfigdir)/zlib.pc
+	rm -f $(DESTDIR)$(staticpkgconfigdir)/zlib.pc
+	cp zlib.pc.static $(DESTDIR)$(staticpkgconfigdir)
+	chmod 644 $(DESTDIR)$(staticpkgconfigdir)/zlib.pc
+	rm -f $(DESTDIR)$(sharedpkgconfigdir)/zlib.pc
+	cp zlib.pc.shared $(DESTDIR)$(sharedpkgconfigdir)
+	chmod 644 $(DESTDIR)$(sharedpkgconfigdir)/zlib.pc
 # The ranlib in install is needed on NeXTSTEP which checks file times
 # ldconfig is for Linux
 
@@ -341,12 +346,13 @@ install: install-libs
 
 uninstall:
 	cd $(DESTDIR)$(includedir) && rm -f zlib.h zconf.h
-	cd $(DESTDIR)$(libdir) && rm -f libz.a; \
+	cd $(DESTDIR)$(staticlibdir) && rm -f libz.a; \
 	if test -n "$(SHAREDLIBV)" -a -f $(SHAREDLIBV); then \
 	  rm -f $(SHAREDLIBV) $(SHAREDLIB) $(SHAREDLIBM); \
 	fi
 	cd $(DESTDIR)$(man3dir) && rm -f zlib.3
-	cd $(DESTDIR)$(pkgconfigdir) && rm -f zlib.pc
+	cd $(DESTDIR)$(staticpkgconfigdir) && rm -f zlib.pc
+	cd $(DESTDIR)$(sharedpkgconfigdir) && rm -f zlib.pc
 
 docs: zlib.3.pdf
 
@@ -377,7 +383,7 @@ clean:
 
 maintainer-clean: distclean
 distclean: clean zconf zconf.h.cmakein docs
-	rm -f Makefile zlib.pc configure.log
+	rm -f Makefile zlib.pc.static zlib.pc.shared configure.log
 	-@rm -f .DS_Store
 	@if [ -f Makefile.in ]; then \
 	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile ; \

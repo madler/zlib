@@ -2,7 +2,7 @@
 # configure script for zlib.
 #
 # Normally configure builds both a static and a shared library.
-# If you want to build just a static library, use: ./configure --static
+# If you want to build just a static library, use: ./configure --disabled-shared
 #
 # To impose specific compiler or flags or install directory, use for example:
 #    prefix=$HOME CC=cc CFLAGS="-O4" ./configure
@@ -74,11 +74,11 @@ ARCHS=
 prefix=${prefix-/usr/local}
 exec_prefix=${exec_prefix-'${prefix}'}
 libdir=${libdir-'${exec_prefix}/lib'}
-sharedlibdir=${sharedlibdir-'${libdir}'}
 includedir=${includedir-'${prefix}/include'}
 mandir=${mandir-'${prefix}/share/man'}
 shared_ext='.so'
 shared=1
+static=1
 solo=0
 cover=0
 zprefix=0
@@ -112,12 +112,15 @@ case "$1" in
     -h* | --help)
       echo 'usage:' | tee -a configure.log
       echo '  configure [--const] [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
-      echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
+      echo '    [--64] [--libdir=LIBDIR]' | tee -a configure.log
+      echo '    [--[enable-|disable-|]static] [--staticlibdir=LIBDIR]' | tee -a configure.log
+      echo '    [--[enable-|disable-|]shared] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -l*=* | --libdir=*) libdir=`echo $1 | sed 's/.*=//'`; shift ;;
+    --staticlibdir=*) staticlibdir=`echo $1 | sed 's/.*=//'`; shift ;;
     --sharedlibdir=*) sharedlibdir=`echo $1 | sed 's/.*=//'`; shift ;;
     -i*=* | --includedir=*) includedir=`echo $1 | sed 's/.*=//'`;shift ;;
     -u*=* | --uname=*) uname=`echo $1 | sed 's/.*=//'`;shift ;;
@@ -125,8 +128,12 @@ case "$1" in
     -e* | --eprefix) exec_prefix="$2"; shift; shift ;;
     -l* | --libdir) libdir="$2"; shift; shift ;;
     -i* | --includedir) includedir="$2"; shift; shift ;;
-    -s* | --shared | --enable-shared) shared=1; shift ;;
-    -t | --static) shared=0; shift ;;
+    -t  | --static) shared=0; static=1; shift ;; # propbably should deprecate
+    --disable-static) static=0; shift ;;
+    --enable-static) static=1; shift ;;
+    -s* | --shared) shared=1; shift ;; # probably should deprecate
+    --disable-shared) shared=0; shift ;;
+    --enable-shared) shared=1; shift ;;
     --solo) solo=1; shift ;;
     --cover) cover=1; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
@@ -143,6 +150,10 @@ case "$1" in
       leave 1;;
     esac
 done
+
+# Process these after since their default is influenced by other flags
+staticlibdir=${staticlibdir-'${libdir}'}
+sharedlibdir=${sharedlibdir-'${libdir}'}
 
 # temporary file name
 test=ztest$$
@@ -240,7 +251,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
              SHAREDLIB=libz$shared_ext
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
+             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $sharedlibdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
              if libtool -V 2>&1 | grep Apple > /dev/null; then
                  AR="libtool"
              else
@@ -276,7 +287,7 @@ else
   OSF1\ V4*) SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
              LDFLAGS="${LDFLAGS} -Wl,-rpath,."
-             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,libz.so -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"} ;;
+             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,libz.so -Wl,-msym -Wl,-rpath,$(shardlibdir) -Wl,-set_version,${VER}:1.0"} ;;
   OSF1*)     SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
              LDSHARED=${LDSHARED-"cc -shared -Wl,-soname,libz.so.1"} ;;
@@ -853,9 +864,9 @@ echo Z_U4 = $Z_U4 >> configure.log
 echo SRCDIR = $SRCDIR >> configure.log
 echo exec_prefix = $exec_prefix >> configure.log
 echo includedir = $includedir >> configure.log
-echo libdir = $libdir >> configure.log
 echo mandir = $mandir >> configure.log
 echo prefix = $prefix >> configure.log
+echo staticlibdir = $staticlibdir >> configure.log
 echo sharedlibdir = $sharedlibdir >> configure.log
 echo uname = $uname >> configure.log
 
@@ -882,7 +893,7 @@ sed < ${SRCDIR}Makefile.in "
 /^ZINCOUT *=/s#=.*#=$ZINCOUT#
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
-/^libdir *=/s#=.*#=$libdir#
+/^staticlibdir *=/s#=.*#=$staticlibdir#
 /^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#
@@ -893,29 +904,37 @@ sed < ${SRCDIR}Makefile.in "
 " > Makefile
 
 # create zlib.pc with the configure results
-sed < ${SRCDIR}zlib.pc.in "
-/^CC *=/s#=.*#=$CC#
-/^CFLAGS *=/s#=.*#=$CFLAGS#
-/^CPP *=/s#=.*#=$CPP#
-/^LDSHARED *=/s#=.*#=$LDSHARED#
-/^STATICLIB *=/s#=.*#=$STATICLIB#
-/^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
-/^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
-/^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
-/^AR *=/s#=.*#=$AR#
-/^ARFLAGS *=/s#=.*#=$ARFLAGS#
-/^RANLIB *=/s#=.*#=$RANLIB#
-/^EXE *=/s#=.*#=$EXE#
-/^prefix *=/s#=.*#=$prefix#
-/^exec_prefix *=/s#=.*#=$exec_prefix#
-/^libdir *=/s#=.*#=$libdir#
-/^sharedlibdir *=/s#=.*#=$sharedlibdir#
-/^includedir *=/s#=.*#=$includedir#
-/^mandir *=/s#=.*#=$mandir#
-/^LDFLAGS *=/s#=.*#=$LDFLAGS#
-" | sed -e "
-s/\@VERSION\@/$VER/g;
-" > zlib.pc
+function mkPkgConfig() {
+  libdir=$1
+  outfile=$2
+  sed < ${SRCDIR}zlib.pc.in "
+  /^CC *=/s#=.*#=$CC#
+  /^CFLAGS *=/s#=.*#=$CFLAGS#
+  /^CPP *=/s#=.*#=$CPP#
+  /^LDSHARED *=/s#=.*#=$LDSHARED#
+  /^STATICLIB *=/s#=.*#=$STATICLIB#
+  /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
+  /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
+  /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
+  /^AR *=/s#=.*#=$AR#
+  /^ARFLAGS *=/s#=.*#=$ARFLAGS#
+  /^RANLIB *=/s#=.*#=$RANLIB#
+  /^EXE *=/s#=.*#=$EXE#
+  /^prefix *=/s#=.*#=$prefix#
+  /^exec_prefix *=/s#=.*#=$exec_prefix#
+  /^libdir *=/s#=.*#=$libdir#
+  /^includedir *=/s#=.*#=$includedir#
+  /^mandir *=/s#=.*#=$mandir#
+  /^LDFLAGS *=/s#=.*#=$LDFLAGS#
+  " | sed -e "
+  s/\@VERSION\@/$VER/g;
+  " > "$outfile"
+}
+
+# If the two directories are the same, these will be installed on top of each
+# other. But they'll also have the same content, so all will be well.
+mkPkgConfig "$sharedlibdir" zlib.pc.shared
+mkPkgConfig "$staticlibdir" zlib.pc.static
 
 # done
 leave 0
