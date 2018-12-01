@@ -2,7 +2,7 @@
 # configure script for zlib.
 #
 # Normally configure builds both a static and a shared library.
-# If you want to build just a static library, use: ./configure --disabled-shared
+# If you want to build just a static library, use: ./configure --disable-shared
 #
 # To impose specific compiler or flags or install directory, use for example:
 #    prefix=$HOME CC=cc CFLAGS="-O4" ./configure
