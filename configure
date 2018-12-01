@@ -128,7 +128,7 @@ case "$1" in
     -e* | --eprefix) exec_prefix="$2"; shift; shift ;;
     -l* | --libdir) libdir="$2"; shift; shift ;;
     -i* | --includedir) includedir="$2"; shift; shift ;;
-    -t  | --static) shared=0; static=1; shift ;; # propbably should deprecate
+    -t  | --static) shared=0; static=1; shift ;; # probably should deprecate
     --disable-static) static=0; shift ;;
     --enable-static) static=1; shift ;;
     -s* | --shared) shared=1; shift ;; # probably should deprecate
