@@ -367,8 +367,11 @@ else
   try()
   {
     show $*
-    ( $* ) >> configure.log 2>&1
+    got=`( $* ) 2>&1`
     ret=$?
+    if test "$got" != ""; then
+      printf "%s\n" "$got" >> configure.log
+    fi
     if test $ret -ne 0; then
       echo "(exit code "$ret")" >> configure.log
     fi
@@ -381,8 +384,11 @@ tryboth()
   show $*
   got=`( $* ) 2>&1`
   ret=$?
-  printf %s "$got" >> configure.log
+  if test "$got" != ""; then
+    printf "%s\n" "$got" >> configure.log
+  fi
   if test $ret -ne 0; then
+    echo "(exit code "$ret")" >> configure.log
     return $ret
   fi
   test "$got" = ""
@@ -457,17 +463,11 @@ size_t dummy = 0;
 EOF
 if try $CC -c $CFLAGS $test.c; then
   echo "Checking for size_t... Yes." | tee -a configure.log
-  need_sizet=0
 else
   echo "Checking for size_t... No." | tee -a configure.log
-  need_sizet=1
-fi
-
-echo >> configure.log
-
-# find the size_t integer type, if needed
-if test $need_sizet -eq 1; then
-  cat > $test.c <<EOF
+  # find a size_t integer type
+  # check for long long
+  cat > $test.c << EOF
 long long dummy = 0;
 EOF
   if try $CC -c $CFLAGS $test.c; then
@@ -495,15 +495,11 @@ EOF
   if try $CC $CFLAGS -o $test $test.c; then
     sizet=`./$test`
     echo "Checking for a pointer-size integer type..." $sizet"." | tee -a configure.log
+    CFLAGS="${CFLAGS} -DNO_SIZE_T=${sizet}"
+    SFLAGS="${SFLAGS} -DNO_SIZE_T=${sizet}"
   else
-    echo "Failed to find a pointer-size integer type." | tee -a configure.log
-    leave 1
+    echo "Checking for a pointer-size integer type... not found." | tee -a configure.log
   fi
-fi
-
-if test $need_sizet -eq 1; then
-  CFLAGS="${CFLAGS} -DNO_SIZE_T=${sizet}"
-  SFLAGS="${SFLAGS} -DNO_SIZE_T=${sizet}"
 fi
 
 echo >> configure.log
@@ -849,7 +845,6 @@ echo SHAREDLIBV = $SHAREDLIBV >> configure.log
 echo STATICLIB = $STATICLIB >> configure.log
 echo TEST = $TEST >> configure.log
 echo VER = $VER >> configure.log
-echo Z_U4 = $Z_U4 >> configure.log
 echo SRCDIR = $SRCDIR >> configure.log
 echo exec_prefix = $exec_prefix >> configure.log
 echo includedir = $includedir >> configure.log
