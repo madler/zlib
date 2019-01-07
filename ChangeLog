@@ -973,7 +973,7 @@ Changes in 1.2.0.1 (17 March 2003)
     - Include additional header file on VMS for off_t typedef
 - Try to use _vsnprintf where it supplants vsprintf [Vollant]
 - Add some casts in inffast.c
-- Enchance comments in zlib.h on what happens if gzprintf() tries to
+- Enhance comments in zlib.h on what happens if gzprintf() tries to
   write more than 4095 bytes before compression
 - Remove unused state from inflateBackEnd()
 - Remove exit(0) from minigzip.c, example.c
