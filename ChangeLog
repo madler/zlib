@@ -1151,7 +1151,7 @@ Changes in 1.0.9 (17 Feb 1998)
 - Avoid gcc 2.8.0 comparison bug a little differently than zlib 1.0.8
 - in inftrees.c, avoid cc -O bug on HP (Farshid Elahi)
 - in zconf.h move the ZLIB_DLL stuff earlier to avoid problems with
-  the declaration of FAR (Gilles VOllant)
+  the declaration of FAR (Gilles Vollant)
 - install libz.so* with mode 755 (executable) instead of 644 (Marc Lehmann)
 - read_buf buf parameter of type Bytef* instead of charf*
 - zmemcpy parameters are of type Bytef*, not charf* (Joseph Strout)
