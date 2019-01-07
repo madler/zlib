@@ -33,7 +33,7 @@
  *                      - Add L to constants in lseek() calls
  *                      - Remove some debugging information in error messages
  *                      - Use new data_type definition for zlib 1.2.1
- *                      - Simplfy and unify file operations
+ *                      - Simplify and unify file operations
  *                      - Finish off gzip file in gztack()
  *                      - Use deflatePrime() instead of adding empty blocks
  *                      - Keep gzip file clean on appended file read errors
