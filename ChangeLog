@@ -299,7 +299,7 @@ Changes in 1.2.5.1 (10 Sep 2011)
 - Use u4 type for crc_table to avoid conversion warnings
 - Apply casts in zlib.h to avoid conversion warnings
 - Add OF to prototypes for adler32_combine_ and crc32_combine_ [Miller]
-- Improve inflateSync() documentation to note indeterminancy
+- Improve inflateSync() documentation to note indeterminacy
 - Add deflatePending() function to return the amount of pending output
 - Correct the spelling of "specification" in FAQ [Randers-Pehrson]
 - Add a check in configure for stdarg.h, use for gzprintf()
