@@ -1355,7 +1355,7 @@ Changes in 0.99 (27 Jan 96)
 - deflate is finally (?) fully deterministic (no matches beyond end of input)
 - Document Z_SYNC_FLUSH
 - add uninstall in Makefile
-- Check for __cpluplus in zlib.h
+- Check for __cplusplus in zlib.h
 - Better test in ct_align for partial flush
 - avoid harmless warnings for Borland C++
 - initialize hash_head in deflate.c
