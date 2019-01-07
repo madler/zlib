@@ -54,7 +54,7 @@
    block boundary to facilitate locating and modifying the last block bit at
    the start of the final deflate block.  Also whether using Z_BLOCK or not,
    another required feature of zlib 1.2.x is that inflate() now provides the
-   number of unusued bits in the last input byte used.  gzappend will not work
+   number of unused bits in the last input byte used.  gzappend will not work
    with versions of zlib earlier than 1.2.1.
 
    gzappend first decompresses the gzip file internally, discarding all but
