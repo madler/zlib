@@ -660,7 +660,7 @@ ZEXTERN int ZEXPORT deflateGetDictionary OF((z_streamp strm,
    to dictionary.  dictionary must have enough space, where 32768 bytes is
    always enough.  If deflateGetDictionary() is called with dictionary equal to
    Z_NULL, then only the dictionary length is returned, and nothing is copied.
-   Similary, if dictLength is Z_NULL, then it is not set.
+   Similarly, if dictLength is Z_NULL, then it is not set.
 
      deflateGetDictionary() may return a length less than the window size, even
    when more than the window size in input has been provided. It may return up
@@ -915,7 +915,7 @@ ZEXTERN int ZEXPORT inflateGetDictionary OF((z_streamp strm,
    to dictionary.  dictionary must have enough space, where 32768 bytes is
    always enough.  If inflateGetDictionary() is called with dictionary equal to
    Z_NULL, then only the dictionary length is returned, and nothing is copied.
-   Similary, if dictLength is Z_NULL, then it is not set.
+   Similarly, if dictLength is Z_NULL, then it is not set.
 
      inflateGetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
    stream state is inconsistent.
