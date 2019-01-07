@@ -535,7 +535,7 @@ local void copymeta(char *from, char *to)
     (void)utime(to, &when);
 }
 
-/* Decompress the file inname to the file outnname, of if test is true, just
+/* Decompress the file inname to the file outnname, or if test is true, just
    decompress without writing and check the gzip trailer for integrity.  If
    inname is NULL or an empty string, read from stdin.  If outname is NULL or
    an empty string, write to stdout.  strm is a pre-initialized inflateBack
