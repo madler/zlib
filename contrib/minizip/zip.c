@@ -908,6 +908,7 @@ extern zipFile ZEXPORT zipOpen3 (const void *pathname, int append, zipcharpc* gl
         TRYFREE(ziinit.globalcomment);
 #    endif /* !NO_ADDFILEINEXISTINGZIP*/
         TRYFREE(zi);
+        ZCLOSE64(ziinit.z_filefunc, ziinit.filestream);
         return NULL;
     }
     else
