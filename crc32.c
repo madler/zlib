@@ -530,7 +530,8 @@ local z_crc_t multmodp(a, b)
 }
 
 /*
-  Return x^(n+k) modulo p(x). Requires that x2n_table[] has been initialized.
+  Return x^(n * 2^k) modulo p(x). Requires that x2n_table[] has been
+  initialized.
  */
 local z_crc_t x2nmodp(n, k)
     z_off64_t n;
