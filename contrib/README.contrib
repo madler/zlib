@@ -67,6 +67,9 @@ puff/       by Mark Adler <madler@alumni.caltech.edu>
         Small, low memory usage inflate.  Also serves to provide an
         unambiguous description of the deflate format.
 
+tests/      by Chris Blume <cblume@google.com>
+        Build targets for OSS-Fuzz.
+
 testzlib/   by Gilles Vollant <info@winimage.com>
         Example of the use of zlib
 
