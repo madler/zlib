@@ -1,9 +1,6 @@
 </sys/src/ape/config
 
-CC=pcc -I.
-CFLAGS=-c -D_POSIX_SOURCE -D_BSD_EXTENSION -DHAVE_UNISTD_H -DHAVE_STDARG_H
-
-LD=pcc
+CFLAGS=-I. -c -D_POSIX_SOURCE -D_BSD_EXTENSION -DHAVE_UNISTD_H -DHAVE_STDARG_H
 
 OFILES=\
 	adler32.$O\
@@ -24,7 +21,7 @@ OFILES=\
 
 HFILES=`{ls *.h}
 
-LIB=libz.a
+LIB=/$objtype/lib/ape/libz.a
 
 TESTOFILES=\
 	test/example.$O\
@@ -47,3 +44,7 @@ test/$O.%: test/%.$O $LIB
 test:V: $TESTPROGS
 	echo hello world | ./test/$O.minigzip | ./test/$O.minigzip -d
 	./test/$O.example tmpst_$pid
+
+install:VQ: $LIB
+	~ $LIBDIR '.' || cp $LIB $LIBDIR/$LIB
+	cp zlib.h zconf.h /sys/include/ape
