@@ -618,11 +618,15 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 }
 
 /* =========================================================================
- * Use ARM machine instructions if requested. This will compute the CRC about
+ * Use ARM machine instructions if available. This will compute the CRC about
  * ten times faster than the braided calculation. This code does not check for
- * the presence of the CRC instruction. Compile with care.
+ * the presence of the CRC instruction at run time. __ARM_FEATURE_CRC32 will
+ * only be defined if the compilation specifies an ARM processor architecture
+ * that has the instructions. For example, compiling with -march=armv8.1-a or
+ * -march=armv8-a+crc, or -march=native if the compile machine has the crc32
+ * instructions.
  */
-#if defined(Z_ARM_CRC32) && defined(__aarch64__) && W == 8
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && W == 8
 
 /*
    Constants empirically determined to maximize speed. These values are from
