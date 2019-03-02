@@ -26,8 +26,10 @@
 #  include <limits.h>
 #endif
 
-#ifndef _POSIX_SOURCE
-#  define _POSIX_SOURCE
+#ifndef _MSC_VER
+#  ifndef _POSIX_SOURCE
+#    define _POSIX_SOURCE
+#  endif
 #endif
 #include <fcntl.h>
 
@@ -39,7 +41,7 @@
 #  include <io.h>
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(_WIN32)
 #  define WIDECHAR
 #endif
 

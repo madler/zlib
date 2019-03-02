@@ -194,9 +194,9 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   fi
   if test "$warn" -eq 1; then
     if test "$zconst" -eq 1; then
-      CFLAGS="${CFLAGS} -Wall -Wextra -Wcast-qual -pedantic -DZLIB_CONST"
+      CFLAGS="${CFLAGS} -Wall -Wextra -Wcast-qual -pedantic -DZLIB_CONST -fsanitize=address"
     else
-      CFLAGS="${CFLAGS} -Wall -Wextra -pedantic"
+      CFLAGS="${CFLAGS} -Wall -Wextra -pedantic -fsanitize=address"
     fi
   fi
   if test $debug -eq 1; then

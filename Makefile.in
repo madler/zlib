@@ -32,7 +32,7 @@ CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.2.11
+SHAREDLIBV=libz.so.1.2.11.1
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIBV)
 
@@ -91,8 +91,8 @@ teststatic: static
 	  echo '		*** zlib test OK ***'; \
 	else \
 	  echo '		*** zlib test FAILED ***'; false; \
-	fi; \
-	rm -f $$TMPST
+	fi
+	@rm -f tmpst_$$
 
 testshared: shared
 	@LD_LIBRARY_PATH=`pwd`:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
@@ -104,8 +104,8 @@ testshared: shared
 	  echo '		*** zlib shared test OK ***'; \
 	else \
 	  echo '		*** zlib shared test FAILED ***'; false; \
-	fi; \
-	rm -f $$TMPSH
+	fi
+	@rm -f tmpsh_$$
 
 test64: all64
 	@TMP64=tmp64_$$; \
@@ -113,8 +113,8 @@ test64: all64
 	  echo '		*** zlib 64-bit test OK ***'; \
 	else \
 	  echo '		*** zlib 64-bit test FAILED ***'; false; \
-	fi; \
-	rm -f $$TMP64
+	fi
+	@rm -f tmp64_$$
 
 infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(ZINCOUT) -c -o $@ $(SRCDIR)test/infcover.c
