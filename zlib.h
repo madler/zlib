@@ -1606,8 +1606,9 @@ ZEXTERN void ZEXPORT gzclearerr(gzFile file);
 ZEXTERN uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len);
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
-   return the updated checksum.  If buf is Z_NULL, this function returns the
-   required initial value for the checksum.
+   return the updated checksum. An Adler-32 value is in the range of a 32-bit
+   unsigned integer. If buf is Z_NULL, this function returns the required
+   initial value for the checksum.
 
      An Adler-32 checksum is almost as reliable as a CRC32 but can be computed
    much faster.
@@ -1637,9 +1638,10 @@ ZEXTERN uLong ZEXPORT adler32_combine(uLong adler1, uLong adler2,
 ZEXTERN uLong ZEXPORT crc32  (uLong crc, const Bytef *buf, uInt len);
 /*
      Update a running CRC-32 with the bytes buf[0..len-1] and return the
-   updated CRC-32.  If buf is Z_NULL, this function returns the required
-   initial value for the crc.  Pre- and post-conditioning (one's complement) is
-   performed within this function so it shouldn't be done by the application.
+   updated CRC-32. A CRC-32 value is in the range of a 32-bit unsigned integer.
+   If buf is Z_NULL, this function returns the required initial value for the
+   crc. Pre- and post-conditioning (one's complement) is performed within this
+   function so it shouldn't be done by the application.
 
    Usage example:
 
