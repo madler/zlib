@@ -117,21 +117,21 @@ extern zipFile ZEXPORT zipOpen OF((const char *pathname, int append));
 extern zipFile ZEXPORT zipOpen64 OF((const void *pathname, int append));
 /*
   Create a zipfile.
-     pathname contain on Windows XP a filename like "c:\\zlib\\zlib113.zip" or on
+     pathname contains on Windows XP a filename like "c:\\zlib\\zlib113.zip" or on
        an Unix computer "zlib/zlib113.zip".
-     if the file pathname exist and append==APPEND_STATUS_CREATEAFTER, the zip
+     if the file pathname exists and append==APPEND_STATUS_CREATEAFTER, the zip
        will be created at the end of the file.
          (useful if the file contain a self extractor code)
-     if the file pathname exist and append==APPEND_STATUS_ADDINZIP, we will
+     if the file pathname exists and append==APPEND_STATUS_ADDINZIP, we will
        add files in existing zip (be sure you don't add file that doesn't exist)
      If the zipfile cannot be opened, the return value is NULL.
      Else, the return value is a zipFile Handle, usable with other function
        of this zip package.
 */
 
-/* Note : there is no delete function into a zipfile.
-   If you want delete file into a zipfile, you must open a zipfile, and create another
-   Of couse, you can use RAW reading and writing to copy the file you did not want delte
+/* Note : there is no delete function in a zipfile.
+   If you want to delete a file in a zipfile, you must open a zipfile, and create another
+   Of couse, you can use RAW reading and writing to copy the file you did not want to be deleted
 */
 
 extern zipFile ZEXPORT zipOpen2 OF((const char *pathname,
@@ -170,14 +170,14 @@ extern int ZEXPORT zipOpenNewFileInZip64 OF((zipFile file,
 /*
   Open a file in the ZIP for writing.
   filename : the filename in zip (if NULL, '-' without quote will be used
-  *zipfi contain supplemental information
+  *zipfi contains supplemental information
   if extrafield_local!=NULL and size_extrafield_local>0, extrafield_local
-    contains the extrafield data the the local header
+    contains the extrafield data of the local header
   if extrafield_global!=NULL and size_extrafield_global>0, extrafield_global
-    contains the extrafield data the the local header
-  if comment != NULL, comment contain the comment string
-  method contain the compression method (0 for store, Z_DEFLATED for deflate)
-  level contain the level of compression (can be Z_DEFAULT_COMPRESSION)
+    contains the extrafield data of the global header
+  if comment != NULL, comment contains the comment string
+  method contains the compression method (0 for store, Z_DEFLATED for deflate)
+  level contains the level of compression (can be Z_DEFAULT_COMPRESSION)
   zip64 is set to 1 if a zip64 extended information block should be added to the local file header.
                     this MUST be '1' if the uncompressed size is >= 0xffffffff.
 
@@ -210,7 +210,7 @@ extern int ZEXPORT zipOpenNewFileInZip2_64 OF((zipFile file,
                                             int raw,
                                             int zip64));
 /*
-  Same than zipOpenNewFileInZip, except if raw=1, we write raw file
+  Same as zipOpenNewFileInZip, except if raw=1, we write raw file
  */
 
 extern int ZEXPORT zipOpenNewFileInZip3 OF((zipFile file,
@@ -250,7 +250,7 @@ extern int ZEXPORT zipOpenNewFileInZip3_64 OF((zipFile file,
                                             ));
 
 /*
-  Same than zipOpenNewFileInZip2, except
+  Same as zipOpenNewFileInZip2, except
     windowBits,memLevel,,strategy : see parameter strategy in deflateInit2
     password : crypting password (NULL for no crypting)
     crcForCrypting : crc of file to compress (needed for crypting)
@@ -298,7 +298,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 OF((zipFile file,
                                             int zip64
                                             ));
 /*
-  Same than zipOpenNewFileInZip4, except
+  Same as zipOpenNewFileInZip4, except
     versionMadeBy : value for Version made by field
     flag : value for flag field (compression level info will be added)
  */
@@ -341,7 +341,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock OF((char* pData, int* dataLen, short 
 /*
   zipRemoveExtraInfoBlock -  Added by Mathias Svensson
 
-  Remove extra information block from a extra information data for the local file header or central directory header
+  Remove extra information block from an extra information data for the local file header or central directory header
 
   It is needed to remove ZIP64 extra information blocks when before data is written if using RAW mode.
 
