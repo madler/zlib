@@ -237,6 +237,8 @@
 #  define z_const
 #endif
 
+#include <stddef.h>
+
 #ifdef Z_SOLO
    typedef unsigned long z_size_t;
 #else
@@ -244,7 +246,6 @@
 #  if defined(NO_SIZE_T)
      typedef unsigned NO_SIZE_T z_size_t;
 #  elif defined(STDC)
-#    include <stddef.h>
      typedef size_t z_size_t;
 #  else
      typedef unsigned long z_size_t;
@@ -451,11 +452,7 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
-#ifdef _WIN32
-#  ifndef Z_SOLO
-#    include <stddef.h>         /* for wchar_t */
-#  endif
-#endif
+#include <stddef.h>
 
 /* a little trick to accommodate both "#define _LARGEFILE64_SOURCE" and
  * "#define _LARGEFILE64_SOURCE 1" as requesting 64-bit operations, (even

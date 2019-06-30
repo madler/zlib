@@ -28,9 +28,9 @@
 #include <time.h>
 #include "zlib.h"
 #include "zip.h"
+#include <stddef.h>
 
 #ifdef STDC
-#  include <stddef.h>
 #  include <string.h>
 #  include <stdlib.h>
 #endif
