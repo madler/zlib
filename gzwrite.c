@@ -3,6 +3,10 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#if defined(__APPLE__) || defined(__linux__) || defined(__EMSCRIPTEN__)
+# include <unistd.h>  // just to avoid implicit-declaration warnings --jaf
+#endif
+
 #include "gzguts.h"
 
 /* Local functions */
