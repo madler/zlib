@@ -74,6 +74,7 @@ unsigned int CRC32_FUNCTION(unsigned int crc, const unsigned char *p,
 	unsigned int prealign;
 	unsigned int tail;
 
+	if (p == (const unsigned char *) 0x0) return 0;
 #ifdef CRC_XOR
 	crc ^= 0xffffffff;
 #endif
