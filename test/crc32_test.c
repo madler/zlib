@@ -40,7 +40,12 @@ void test_crc32(crc, buf, len, chk, line)
 static const crc32_test tests[] = {
   {__LINE__, 0x0, 0x0, 0, 0x0},
   {__LINE__, 0xffffffff, 0x0, 0, 0x0},
-  {__LINE__, 0x0, 0x0, 100, 0x0}, /*  BZ 174799.  */
+  {__LINE__, 0x0, 0x0, 255, 0x0}, /*  BZ 174799.  */
+  {__LINE__, 0x0, 0x0, 256, 0x0},
+  {__LINE__, 0x0, 0x0, 257, 0x0},
+  {__LINE__, 0x0, 0x0, 32767, 0x0},
+  {__LINE__, 0x0, 0x0, 32768, 0x0},
+  {__LINE__, 0x0, 0x0, 32769, 0x0},
   {__LINE__, 0x0, "", 0, 0x0},
   {__LINE__, 0xffffffff, "", 0, 0xffffffff},
   {__LINE__, 0x0, "abacus", 6, 0xc3d7115b},
@@ -178,7 +183,13 @@ static const crc32_test tests[] = {
   {__LINE__, 0xf67222df, "_{$*,}(&,@.)):=!/%(&(,,-?$}}}!", 30, 0x626c17a},
   {__LINE__, 0x74b34fd3, "e$98KNzqaV)Y:2X?]77].{gKRD4G5{mHZk,Z)SpU%L3FSgv!Wb8MLAFdi{+fp)c,@8m6v)yXg@]HBDFk?.4&}g5_udE*JHCiH=aL", 100, 0xccf98060},
   {__LINE__, 0x351fd770, "r*Fd}ef+5RJQ;+W=4jTR9)R*p!B;]Ed7tkrLi;88U7g@3v!5pk2X6D)vt,.@N8c]@yyEcKi[vwUu@.Ppm@C6%Mv*3Nw}Y,58_aH)", 100, 0xd8b95312},
-  {__LINE__, 0xc45aef77, "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&", 100, 0xbb1c9912}
+  {__LINE__, 0xc45aef77, "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&", 100, 0xbb1c9912},
+  {__LINE__, 0xc45aef77, "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&"
+                         "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&"
+                         "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&"
+                         "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&"
+                         "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&"
+                         "h{bcmdC+a;t+Cf{6Y_dFq-{X4Yu&7uNfVDh?q&_u.UWJU],-GiH7ADzb7-V.Q%4=+v!$L9W+T=bP]$_:]Vyg}A.ygD.r;h-D]m%&", 600, 0x888AFA5B}
 };
 
 static const int test_size = sizeof(tests) / sizeof(tests[0]);
