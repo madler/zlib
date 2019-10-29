@@ -888,8 +888,8 @@ if tryboth $CC -c $CFLAGS $test.c; then
 
   if tryboth $CC -c $CFLAGS -mcpu=power9 $test.c; then
     POWER9="-DZ_POWER9"
-    PIC_OBJC="${PIC_OBJC}"
-    OBJC="${OBJC}"
+    PIC_OBJC="$PIC_OBJC longest_match_power9.lo"
+    OBJC="$OBJC longest_match_power9.o"
     echo "Checking for -mcpu=power9 support... Yes." | tee -a configure.log
   else
     echo "Checking for -mcpu=power9 support... No." | tee -a configure.log

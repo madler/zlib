@@ -196,7 +196,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
             if(POWER9)
                 add_definitions(-DZ_POWER9)
-                set(ZLIB_POWER9 )
+                set(ZLIB_POWER9
+                    contrib/power/longest_match_power9.c)
 
                 set_source_files_properties(
                     ${ZLIB_POWER9}
