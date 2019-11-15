@@ -57,7 +57,7 @@ Abstract
 
 Deutsch                      Informational                      [Page 1]
 
-RFC 1951      DEFLATE Compressed Data Format Specification      May 1996
+RFC 1951      Compressed Data Format Specification      May 1996
 
 
 Table of Contents
