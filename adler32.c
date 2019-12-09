@@ -131,6 +131,12 @@ uLong ZEXPORT adler32_z(adler, buf, len)
 }
 
 /* ========================================================================= */
+
+#ifdef Z_POWER_OPT
+/* Rename the default function to avoid naming conflicts */
+#define adler32 adler32_default
+#endif /* Z_POWER_OPT */
+
 uLong ZEXPORT adler32(adler, buf, len)
     uLong adler;
     const Bytef *buf;
@@ -138,6 +144,11 @@ uLong ZEXPORT adler32(adler, buf, len)
 {
     return adler32_z(adler, buf, len);
 }
+
+#ifdef Z_POWER_OPT
+#undef adler32
+#include "contrib/power/adler32_resolver.c"
+#endif /* Z_POWER_OPT */
 
 /* ========================================================================= */
 local uLong adler32_combine_(adler1, adler2, len2)

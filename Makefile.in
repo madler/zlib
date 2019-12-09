@@ -159,6 +159,9 @@ minigzip64.o: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h zconf.h
 adler32.o: $(SRCDIR)adler32.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)adler32.c
 
+adler32_power8.o: $(SRCDIR)contrib/power/adler32_power8.c
+	$(CC) $(CFLAGS) -mcpu=power8 $(ZINC) -c -o $@ $(SRCDIR)contrib/power/adler32_power8.c
+
 crc32.o: $(SRCDIR)crc32.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)crc32.c
 
@@ -206,6 +209,11 @@ adler32.lo: $(SRCDIR)adler32.c
 	-@mkdir objs 2>/dev/null || test -d objs
 	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/adler32.o $(SRCDIR)adler32.c
 	-@mv objs/adler32.o $@
+
+adler32_power8.lo: $(SRCDIR)contrib/power/adler32_power8.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) -mcpu=power8 $(ZINC) -DPIC -c -o objs/adler32_power8.o $(SRCDIR)contrib/power/adler32_power8.c
+	-@mv objs/adler32_power8.o $@
 
 crc32.lo: $(SRCDIR)crc32.c
 	-@mkdir objs 2>/dev/null || test -d objs

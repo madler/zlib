@@ -184,7 +184,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
             if(POWER8)
                 add_definitions(-DZ_POWER8)
-                set(ZLIB_POWER8 )
+                set(ZLIB_POWER8 contrib/power/adler32_power8.c)
 
                 set_source_files_properties(
                     ${ZLIB_POWER8}
