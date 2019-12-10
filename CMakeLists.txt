@@ -297,6 +297,10 @@ endif()
 # Example binaries
 #============================================================================
 
+add_executable(adler32_test test/adler32_test.c)
+target_link_libraries(adler32_test zlib)
+add_test(adler32_test adler32_test)
+
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
@@ -305,6 +309,12 @@ add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
 
 if(HAVE_OFF64_T)
+
+    add_executable(adler32_test64 test/adler32_test.c)
+    target_link_libraries(adler32_test64 zlib)
+    set_target_properties(adler32_test64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    add_test(adler32_test64 adler32_test64)
+
     add_executable(example64 test/example.c)
     target_link_libraries(example64 zlib)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
