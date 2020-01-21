@@ -50,6 +50,7 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
+#include "cpu_features.h"
 
 const char deflate_copyright[] =
    " deflate 1.2.11.1 Copyright 1995-2017 Jean-loup Gailly and Mark Adler ";
@@ -254,6 +255,14 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     deflate_state *s;
     int wrap = 1;
     static const char my_version[] = ZLIB_VERSION;
+
+    // Needed to activate optimized insert_string() that helps compression
+    // for all wrapper formats (e.g. RAW, ZLIB, GZIP).
+    // Feature detection is not triggered while using RAW mode (i.e. we never
+    // call crc32() with a NULL buffer).
+#if defined(CRC32_ARMV8_CRC32) || defined(CRC32_SIMD_SSE42_PCLMUL)
+    cpu_check_features();
+#endif
 
     if (version == Z_NULL || version[0] != my_version[0] ||
         stream_size != sizeof(z_stream)) {

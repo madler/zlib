@@ -27,6 +27,7 @@
 #  endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
+#include "cpu_features.h"
 #include "zutil.h"      /* for Z_U4, Z_U8, z_crc_t, and FAR definitions */
 
  /*
@@ -620,13 +621,13 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 /* =========================================================================
  * Use ARM machine instructions if available. This will compute the CRC about
  * ten times faster than the braided calculation. This code does not check for
- * the presence of the CRC instruction at run time. __ARM_FEATURE_CRC32 will
+ * the presence of the CRC instruction at run time. CRC32_ARMV8_CRC32 will
  * only be defined if the compilation specifies an ARM processor architecture
  * that has the instructions. For example, compiling with -march=armv8.1-a or
  * -march=armv8-a+crc, or -march=native if the compile machine has the crc32
  * instructions.
  */
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && W == 8
+#if defined(__aarch64__) && defined(CRC32_ARMV8_CRC32) && W == 8
 
 /*
    Constants empirically determined to maximize speed. These values are from
@@ -636,7 +637,7 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #define Z_BATCH_ZEROS 0xa10d3d0c    /* computed from Z_BATCH = 3990 */
 #define Z_BATCH_MIN 800             /* fewest words in a final batch */
 
-unsigned long ZEXPORT crc32_z(crc, buf, len)
+unsigned long ZEXPORT armv8_crc32_z(crc, buf, len)
     unsigned long crc;
     const unsigned char FAR *buf;
     z_size_t len;
@@ -648,15 +649,7 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
     z_size_t last, last2, i;
     z_size_t num;
 
-    /* Return initial CRC, if requested. */
-    if (buf == Z_NULL) return 0;
-
-#ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
-#endif /* DYNAMIC_CRC_TABLE */
-
-    /* Pre-condition the CRC */
-    crc ^= 0xffffffff;
+    /* Initial setup is done in crc32_z() i.e. handling Z_NULL, etc. */
 
     /* Compute the CRC up to a word boundary. */
     while (len && ((z_size_t)buf & 7) != 0) {
@@ -731,7 +724,7 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
     return crc ^ 0xffffffff;
 }
 
-#else
+#endif
 
 /* ========================================================================= */
 unsigned long ZEXPORT crc32_z(crc, buf, len)
@@ -740,7 +733,14 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
     z_size_t len;
 {
     /* Return initial CRC, if requested. */
-    if (buf == Z_NULL) return 0;
+    if (buf == Z_NULL) {
+        /* Assume user is calling 'crc32(0, NULL, 0)', so we cache CPU features
+         * detection early (and infrequently) on.
+         */
+        if (!len)
+            cpu_check_features();
+        return 0;
+    }
 
 #ifdef DYNAMIC_CRC_TABLE
     once(&made, make_crc_table);
@@ -748,6 +748,12 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
 
     /* Pre-condition the CRC */
     crc ^= 0xffffffff;
+
+#if defined(CRC32_ARMV8_CRC32)
+    /* If we don't have required CPU features, fallback to portable implementation. */
+    if (arm_cpu_enable_crc32) /* TODO: add x86 optimized CRC32. */
+        return armv8_crc32_z(crc, buf, len);
+#endif
 
 #ifdef W
 
@@ -1054,8 +1060,6 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
     /* Return the CRC, post-conditioned. */
     return crc ^ 0xffffffff;
 }
-
-#endif
 
 /* ========================================================================= */
 unsigned long ZEXPORT crc32(crc, buf, len)
