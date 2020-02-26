@@ -21,6 +21,13 @@
   DYNAMIC_CRC_TABLE and MAKECRCH can be #defined to write out crc32.h.
  */
 
+#ifdef HAS_PCLMUL
+ #include "crc32_simd.h"
+ #ifndef _MSC_VER
+  #include <cpuid.h>
+ #endif
+#endif
+
 #ifdef __aarch64__
 
 #include <arm_neon.h>
@@ -268,18 +275,48 @@ local unsigned long crc32_generic(crc, buf, len)
     return crc ^ 0xffffffffUL;
 }
 
+
 #ifdef HAS_PCLMUL
 
 #define PCLMUL_MIN_LEN 64
 #define PCLMUL_ALIGN 16
 #define PCLMUL_ALIGN_MASK 15
 
-/* Function stolen from linux kernel 3.14. It computes the CRC over the given
- * buffer with initial CRC value <crc32>. The buffer is <len> byte in length,
- * and must be 16-byte aligned.
- */
-extern uint crc32_pclmul_le_16(unsigned char const *buffer,
-                               size_t len, uInt crc32);
+#if defined(__GNUC__)
+    #if  __GNUC__ < 5 
+        int cpu_has_pclmul = -1; //e.g. gcc 4.8.4 https://stackoverflow.com/questions/20326604/stdatomic-h-in-gcc-4-8
+    #else
+        _Atomic int cpu_has_pclmul = -1; //global: will be 0 or 1 after first test
+    #endif
+#else
+    #ifdef _MSC_VER
+        int cpu_has_pclmul = -1; //e.g. gcc 4.8.4 https://stackoverflow.com/questions/20326604/stdatomic-h-in-gcc-4-8
+    #else
+        _Atomic int cpu_has_pclmul = -1; //global: will be 0 or 1 after first test
+    #endif
+#endif
+
+int has_pclmul(void) {
+    if (cpu_has_pclmul >= 0)
+        return cpu_has_pclmul;
+    cpu_has_pclmul = 0;
+    int leaf = 1;
+    uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
+    /* %ecx */
+    #define crc_bit_PCLMUL (1 << 1)
+    #ifdef _MSC_VER
+    uint32_t regs[4]; // output: eax, ebx, ecx, edx
+    __cpuid( regs, leaf );
+    if (leaf == 1) {
+        ecx = regs[2];
+    #else
+    if (__get_cpuid(leaf, &eax, &ebx, &ecx, &edx)) {
+    #endif
+        if ((ecx & crc_bit_PCLMUL) != 0)
+            cpu_has_pclmul = 1;
+    }
+    return cpu_has_pclmul;
+}
 
 uLong crc32(crc, buf, len)
     uLong crc;
@@ -288,7 +325,10 @@ uLong crc32(crc, buf, len)
 {
     if (len < PCLMUL_MIN_LEN + PCLMUL_ALIGN  - 1)
       return crc32_generic(crc, buf, len);
-
+    #ifndef SKIP_CPUID_CHECK
+    if (!has_pclmul())
+      return crc32_generic(crc, buf, len);
+    #endif
     /* Handle the leading patial chunk */
     uInt misalign = PCLMUL_ALIGN_MASK & ((unsigned long)buf);
     uInt sz = (PCLMUL_ALIGN - misalign) % PCLMUL_ALIGN;
@@ -299,8 +339,7 @@ uLong crc32(crc, buf, len)
     }
 
     /* Go over 16-byte chunks */
-    crc = crc32_pclmul_le_16(buf, (len & ~PCLMUL_ALIGN_MASK),
-                             crc ^ 0xffffffffUL);
+    crc = crc32_sse42_simd_(buf, (len & ~PCLMUL_ALIGN_MASK), crc ^ 0xffffffffUL);
     crc = crc ^ 0xffffffffUL;
 
     /* Handle the trailing partial chunk */

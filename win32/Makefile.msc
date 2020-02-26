@@ -1,5 +1,5 @@
 # Makefile for zlib using Microsoft (Visual) C
-# zlib is copyright (C) 1995-2006 Jean-loup Gailly and Mark Adler
+# zlib is copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
 #
 # Usage:
 #   nmake -f win32/Makefile.msc                          (standard build)
@@ -27,13 +27,13 @@ LD = link
 AR = lib
 RC = rc
 CFLAGS  = -nologo -MD -W3 -O2 -Oy- -Zi -Fd"zlib" $(LOC)
-WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
+WFLAGS  =  -DHAS_PCLMUL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
 ASFLAGS = -coff -Zi $(LOC)
 LDFLAGS = -nologo -debug -incremental:no -opt:ref
 ARFLAGS = -nologo
 RCFLAGS = /dWIN32 /r
 
-OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzlib.obj gzread.obj \
+OBJS = adler32.obj compress.obj crc32_simd.obj crc32.obj deflate.obj gzclose.obj gzlib.obj gzread.obj \
        gzwrite.obj infback.obj inflate.obj inftrees.obj inffast.obj trees.obj uncompr.obj zutil.obj
 OBJA =
 

@@ -762,15 +762,18 @@ EOF
     echo "CRC and SSE4.2 support is required" | tee -a configure.log
     leave 1
   fi
-
-  # Check for PCLMUL support
+#Project copied from zlib-ng:
+# Check for PCLMUL support
 cat > $test.c << EOF
 #include <immintrin.h>
-void foo(void) {
-  _mm_clmulepi64_si128(_mm_set1_epi16(1), _mm_set1_epi16(2), 0);
+int main(void) {
+    __m128i a = _mm_setzero_si128();
+    __m128i b = _mm_setzero_si128();
+    __m128i c = _mm_clmulepi64_si128(a, b, 0x10);
+    (void)c;
+    return 0;
 }
 EOF
-
   if try $CC -c -mpclmul $CFLAGS $test.c ; then
     CFLAGS="-DHAS_PCLMUL -mpclmul $CFLAGS"
     SFLAGS="-DHAS_PCLMUL -mpclmul $SFLAGS"
