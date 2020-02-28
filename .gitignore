@@ -43,3 +43,6 @@
 /contrib/vstudio/vc15/.vs/zlibvc/v15/Solution.VC.db-wal
 /contrib/vstudio/vc15/*.user
 /contrib/vstudio/vc15/zlibvc.VC.db
+/contrib/vstudio/vc14/zlibvc.vcxproj.user
+/contrib/vstudio/vc14/ia64
+/contrib/vstudio/vc14/zlibstat.vcxproj.user
