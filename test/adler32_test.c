@@ -17,7 +17,7 @@ int main           OF((void));
 typedef struct {
     int line;
     uLong adler;
-    Byte* buf;
+    char* buf;
     int len;
     uLong expect;
 } adler32_test;
@@ -332,7 +332,7 @@ int main(void)
 {
     int i;
     for (i = 0; i < test_size; i++) {
-        test_adler32(tests[i].adler, tests[i].buf, tests[i].len,
+        test_adler32(tests[i].adler, (Byte*) tests[i].buf, tests[i].len,
                    tests[i].expect, tests[i].line);
     }
     return 0;
