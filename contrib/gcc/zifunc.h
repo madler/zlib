@@ -8,9 +8,28 @@
 
 /* Helpers for arch optimizations */
 
+#if defined(__clang__)
+#if __has_feature(coverage_sanitizer)
+#define Z_IFUNC_NO_SANCOV __attribute__((no_sanitize("coverage")))
+#else /* __has_feature(coverage_sanitizer) */
+#define Z_IFUNC_NO_SANCOV
+#endif /* __has_feature(coverage_sanitizer) */
+#else /* __clang__ */
+#define Z_IFUNC_NO_SANCOV
+#endif /* __clang__ */
+
+#ifdef __s390__
+#define Z_IFUNC_PARAMS unsigned long hwcap
+#define Z_IFUNC_ATTRS Z_IFUNC_NO_SANCOV
+#else /* __s390__ */
+#define Z_IFUNC_PARAMS void
+#define Z_IFUNC_ATTRS
+#endif /* __s390__ */
+
 #define Z_IFUNC(fname) \
     typeof(fname) fname __attribute__ ((ifunc (#fname "_resolver"))); \
-    local typeof(fname) *fname##_resolver(void)
+    Z_IFUNC_ATTRS \
+    local typeof(fname) *fname##_resolver(Z_IFUNC_PARAMS)
 /* This is a helper macro to declare a resolver for an indirect function
  * (ifunc). Let's say you have function
  *

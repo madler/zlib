@@ -903,6 +903,32 @@ else
   echo "Checking for Power optimizations support... No." | tee -a configure.log
 fi
 
+# check if we are compiling for s390 and binutils support vector extensions
+VGFMAFLAG=-march=z13
+cat > $test.c <<EOF
+#ifndef __s390__
+#error
+#endif
+EOF
+if try $CC -c $CFLAGS $VGFMAFLAG $test.c; then
+  CFLAGS="$CFLAGS -DHAVE_S390X_VX"
+  SFLAGS="$SFLAGS -DHAVE_S390X_VX"
+  OBJC="$OBJC crc32-vx.o"
+  PIC_OBJC="$PIC_OBJC crc32-vx.lo"
+  echo "Checking for s390 vector extensions... Yes." | tee -a configure.log
+
+  for flag in -mzarch -fzvector; do
+    if try $CC -c $CFLAGS $VGFMAFLAG $flag $test.c; then
+      VGFMAFLAG="$VGFMAFLAG $flag"
+      echo "Checking for $flag... Yes." | tee -a configure.log
+    else
+      echo "Checking for $flag... No." | tee -a configure.log
+    fi
+  done
+else
+  echo "Checking for s390 vector extensions... No." | tee -a configure.log
+fi
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -934,6 +960,7 @@ echo mandir = $mandir >> configure.log
 echo prefix = $prefix >> configure.log
 echo sharedlibdir = $sharedlibdir >> configure.log
 echo uname = $uname >> configure.log
+echo VGFMAFLAG = $VGFMAFLAG >> configure.log
 
 # update Makefile with the configure results
 sed < ${SRCDIR}Makefile.in "
@@ -943,6 +970,7 @@ sed < ${SRCDIR}Makefile.in "
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^CPP *=/s#=.*#=$CPP#
+/^VGFMAFLAG *=/s#=.*#=$VGFMAFLAG#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
