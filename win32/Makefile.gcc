@@ -81,10 +81,10 @@ testdll: example_d.exe minigzip_d.exe
 	./example_d
 	echo hello world | ./minigzip_d | ./minigzip_d -d
 
-.c.o:
+%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-.S.o:
+%.o: %.S
 	$(AS) $(ASFLAGS) -c -o $@ $<
 
 $(STATICLIB): $(OBJS) $(OBJA)
