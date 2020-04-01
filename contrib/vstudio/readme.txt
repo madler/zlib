@@ -43,6 +43,17 @@ Build instructions for Visual Studio 2015 (32 bits or 64 bits)
 - Decompress current zlib, including all contrib/* files
 - Open contrib\vstudio\vc14\zlibvc.sln with Microsoft Visual C++ 2015
 
+Install and build instructions via vcpkg
+----------------------------------------
+You can download and install minizip using the vcpkg(https://github.com/Microsoft/vcpkg) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    vcpkg install minizip
+
+The minizip port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please create an issue or pull request(https://github.com/Microsoft/vcpkg) on the vcpkg repository.
 
 Important
 ---------
