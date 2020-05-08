@@ -15,7 +15,7 @@
 
 /* @(#) $Id$ */
 
-#include "zlib.h"
+#include "..\zlib.h"
 #include <stdio.h>
 
 #ifdef STDC
