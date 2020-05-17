@@ -47,17 +47,7 @@ char string_buffer[STRING_BUFFER_SIZE];
     } \
 }
 
-#define RETURN_WITH_MESSAGE(_message) { \
-    { \
-        test_result result; \
-        result.result = FAILED_WITHOUT_ERROR_CODE; \
-        result.line_number = __LINE__; \
-        result.message = _message; \
-        return result; \
-    } \
-}
-
-#define RETURN_WITH_EXTENDED_MESSAGE(_message, _extended_message) { \
+#define RETURN_WITH_MESSAGE(_message, _extended_message) { \
     { \
         test_result result; \
         result.result = FAILED_WITHOUT_ERROR_CODE; \
@@ -189,7 +179,7 @@ test_result test_compress(compr, comprLen, uncompr, uncomprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "uncompress");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad uncompress\n");
+        RETURN_WITH_MESSAGE("bad uncompress\n", NULL);
     } else {
         test_result result;
         result.result = SUCCESSFUL;
@@ -220,29 +210,29 @@ test_result test_gzio(fname, uncompr, uncomprLen)
 
     file = gzopen(fname, "wb");
     if (file == NULL) {
-        RETURN_WITH_MESSAGE("gzopen error");
+        RETURN_WITH_MESSAGE("gzopen error", NULL);
     }
     gzputc(file, 'h');
     if (gzputs(file, "ello") != 4) {
-        RETURN_WITH_EXTENDED_MESSAGE("gzputs err: ", gzerror(file, &err));
+        RETURN_WITH_MESSAGE("gzputs err: ", gzerror(file, &err));
     }
     if (gzprintf(file, ", %s!", "hello") != 8) {
-        RETURN_WITH_EXTENDED_MESSAGE("gzprintf err: ", gzerror(file, &err));
+        RETURN_WITH_MESSAGE("gzprintf err: ", gzerror(file, &err));
     }
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
     file = gzopen(fname, "rb");
     if (file == NULL) {
-        RETURN_WITH_MESSAGE("gzopen error");
+        RETURN_WITH_MESSAGE("gzopen error", NULL);
     }
     strcpy((char*)uncompr, "garbage");
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
-        RETURN_WITH_EXTENDED_MESSAGE("gzread err: ", gzerror(file, &err));
+        RETURN_WITH_MESSAGE("gzread err: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_EXTENDED_MESSAGE("bad gzread: ", (char*)uncompr);
+        RETURN_WITH_MESSAGE("bad gzread: ", (char*)uncompr);
     } else {
         printf("gzread(): %s\n", (char*)uncompr);
     }
@@ -259,19 +249,19 @@ test_result test_gzio(fname, uncompr, uncomprLen)
     }
 
     if (gzgetc(file) != ' ') {
-        RETURN_WITH_MESSAGE("gzgetc error");
+        RETURN_WITH_MESSAGE("gzgetc error", NULL);
     }
 
     if (gzungetc(' ', file) != ' ') {
-        RETURN_WITH_MESSAGE("gzungetc error");
+        RETURN_WITH_MESSAGE("gzungetc error", NULL);
     }
 
     gzgets(file, (char*)uncompr, (int)uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
-        RETURN_WITH_EXTENDED_MESSAGE("gzgets err after gzseek: ", gzerror(file, &err));
+        RETURN_WITH_MESSAGE("gzgets err after gzseek: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello + 6)) {
-        RETURN_WITH_MESSAGE("bad gzgets after gzseek");
+        RETURN_WITH_MESSAGE("bad gzgets after gzseek", NULL);
     } else {
         printf("gzgets() after gzseek: %s\n", (char*)uncompr);
     }
@@ -368,7 +358,7 @@ test_result test_inflate(compr, comprLen, uncompr, uncomprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad inflate\n");
+        RETURN_WITH_MESSAGE("bad inflate\n", NULL);
     } else {
         test_result result;
         result.result = SUCCESSFUL;
@@ -406,7 +396,7 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     err = deflate(&c_stream, Z_NO_FLUSH);
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
     if (c_stream.avail_in != 0) {
-        RETURN_WITH_MESSAGE("deflate not greedy\n");
+        RETURN_WITH_MESSAGE("deflate not greedy\n", NULL);
     }
 
     /* Feed in already compressed data and switch to no compression: */
@@ -425,7 +415,7 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n");
+        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
@@ -566,7 +556,7 @@ test_result test_sync(compr, comprLen, uncompr, uncomprLen)
 
     err = inflate(&d_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("inflate should report Z_STREAM_END\n");
+        RETURN_WITH_MESSAGE("inflate should report Z_STREAM_END\n", NULL);
     }
     err = inflateEnd(&d_stream);
     RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
@@ -610,7 +600,7 @@ test_result test_dict_deflate(compr, comprLen)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n");
+        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
@@ -666,7 +656,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad inflate with dict\n");
+        RETURN_WITH_MESSAGE("bad inflate with dict\n", NULL);
     } else {
         test_result result;
         result.result = SUCCESSFUL;
