@@ -24,13 +24,13 @@
 #define FAILED_WITHOUT_ERROR_CODE -1
 
 typedef struct test_result_s {
-    int           result; /* One of: SUCCESSFUL,
-                          FAILED_WITH_ERROR_CODE, or
-                          FAILED_WITHOUT_ERROR_CODE*/
-    int           error_code; /* error code if success is FAILED_WITH_ERROR_CODE */
-    int           line_number;
-    z_const char* message;
-    z_const char* extended_message;
+    int         result; /* One of: SUCCESSFUL,
+                           FAILED_WITH_ERROR_CODE, or
+                           FAILED_WITHOUT_ERROR_CODE*/
+    int         error_code; /* error code if success is FAILED_WITH_ERROR_CODE */
+    int         line_number;
+    const char* message;
+    const char* extended_message;
 } test_result;
 
 #define STRING_BUFFER_SIZE 100
