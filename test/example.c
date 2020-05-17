@@ -64,7 +64,15 @@ char string_buffer[STRING_BUFFER_SIZE];
     return result; \
 }
 
-void handle_test_results(FILE* output, test_result result, z_const char* testcase_name, int is_junit_output, int* failed_test_count) {
+void handle_test_results OF((FILE* output, test_result result, z_const char* testcase_name, int is_junit_output, int* failed_test_count));
+
+void handle_test_results(output, result, testcase_name, is_junit_output, failed_test_count)
+    FILE* output;
+    test_result result;
+    z_const char* testcase_name;
+    int is_junit_output;
+    int* failed_test_count;
+{
     if (is_junit_output) {
         fprintf(output, "\t\t<testcase name=\"%s\">", testcase_name);
     }
