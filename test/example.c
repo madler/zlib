@@ -48,24 +48,20 @@ char string_buffer[STRING_BUFFER_SIZE];
 }
 
 #define RETURN_WITH_MESSAGE(_message, _extended_message) { \
-    { \
-        test_result result; \
-        result.result = FAILED_WITHOUT_ERROR_CODE; \
-        result.line_number = __LINE__; \
-        result.message = _message; \
-        result.extended_message = _extended_message; \
-        return result; \
-    } \
+    test_result result; \
+    result.result = FAILED_WITHOUT_ERROR_CODE; \
+    result.line_number = __LINE__; \
+    result.message = _message; \
+    result.extended_message = _extended_message; \
+    return result; \
 }
 
 #define RETURN_SUCCESS(_message, _extended_message) { \
-    { \
-        test_result result; \
-        result.result = SUCCESSFUL; \
-        result.message = _message; \
-        result.extended_message = _extended_message; \
-        return result; \
-    } \
+    test_result result; \
+    result.result = SUCCESSFUL; \
+    result.message = _message; \
+    result.extended_message = _extended_message; \
+    return result; \
 }
 
 void handle_test_results(FILE* output, test_result result, z_const char* testcase_name, int is_junit_output, int* failed_test_count) {
