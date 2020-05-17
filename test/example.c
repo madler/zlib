@@ -36,7 +36,7 @@ typedef struct test_result_s {
 #define STRING_BUFFER_SIZE 100
 char string_buffer[STRING_BUFFER_SIZE];
 
-#define RETURN_ON_ERROR_WITH_MESSAGE(_error_code, _message) { \
+#define CHECK_ERR(_error_code, _message) { \
     if (_error_code != Z_OK) { \
         test_result result; \
         result.result = FAILED_WITH_ERROR_CODE; \
@@ -47,7 +47,7 @@ char string_buffer[STRING_BUFFER_SIZE];
     } \
 }
 
-#define RETURN_WITH_MESSAGE(_message, _extended_message) { \
+#define RETURN_FAILURE(_message, _extended_message) { \
     test_result result; \
     result.result = FAILED_WITHOUT_ERROR_CODE; \
     result.line_number = __LINE__; \
@@ -177,15 +177,15 @@ test_result test_compress(compr, comprLen, uncompr, uncomprLen)
     uLong len = (uLong)strlen(hello)+1;
 
     err = compress(compr, &comprLen, (const Bytef*)hello, len);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "compress");
+    CHECK_ERR(err, "compress");
 
     strcpy((char*)uncompr, "garbage");
 
     err = uncompress(uncompr, &uncomprLen, compr, comprLen);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "uncompress");
+    CHECK_ERR(err, "uncompress");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad uncompress\n", NULL);
+        RETURN_FAILURE("bad uncompress\n", NULL);
     } else {
         RETURN_SUCCESS("uncompress(): ", (char*)uncompr);
     }
@@ -200,7 +200,7 @@ test_result test_gzio(fname, uncompr, uncomprLen)
     uLong uncomprLen;
 {
 #ifdef NO_GZCOMPRESS
-    RETURN_WITH_MESSAGE("NO_GZCOMPRESS -- gz* functions cannot compress", NULL);
+    RETURN_FAILURE("NO_GZCOMPRESS -- gz* functions cannot compress", NULL);
 #else
     int err;
     int len = (int)strlen(hello)+1;
@@ -209,29 +209,29 @@ test_result test_gzio(fname, uncompr, uncomprLen)
 
     file = gzopen(fname, "wb");
     if (file == NULL) {
-        RETURN_WITH_MESSAGE("gzopen error", NULL);
+        RETURN_FAILURE("gzopen error", NULL);
     }
     gzputc(file, 'h');
     if (gzputs(file, "ello") != 4) {
-        RETURN_WITH_MESSAGE("gzputs err: ", gzerror(file, &err));
+        RETURN_FAILURE("gzputs err: ", gzerror(file, &err));
     }
     if (gzprintf(file, ", %s!", "hello") != 8) {
-        RETURN_WITH_MESSAGE("gzprintf err: ", gzerror(file, &err));
+        RETURN_FAILURE("gzprintf err: ", gzerror(file, &err));
     }
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
     file = gzopen(fname, "rb");
     if (file == NULL) {
-        RETURN_WITH_MESSAGE("gzopen error", NULL);
+        RETURN_FAILURE("gzopen error", NULL);
     }
     strcpy((char*)uncompr, "garbage");
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
-        RETURN_WITH_MESSAGE("gzread err: ", gzerror(file, &err));
+        RETURN_FAILURE("gzread err: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad gzread: ", (char*)uncompr);
+        RETURN_FAILURE("bad gzread: ", (char*)uncompr);
     } else {
         printf("gzread(): %s\n", (char*)uncompr);
     }
@@ -248,19 +248,19 @@ test_result test_gzio(fname, uncompr, uncomprLen)
     }
 
     if (gzgetc(file) != ' ') {
-        RETURN_WITH_MESSAGE("gzgetc error", NULL);
+        RETURN_FAILURE("gzgetc error", NULL);
     }
 
     if (gzungetc(' ', file) != ' ') {
-        RETURN_WITH_MESSAGE("gzungetc error", NULL);
+        RETURN_FAILURE("gzungetc error", NULL);
     }
 
     gzgets(file, (char*)uncompr, (int)uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
-        RETURN_WITH_MESSAGE("gzgets err after gzseek: ", gzerror(file, &err));
+        RETURN_FAILURE("gzgets err after gzseek: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello + 6)) {
-        RETURN_WITH_MESSAGE("bad gzgets after gzseek", NULL);
+        RETURN_FAILURE("bad gzgets after gzseek", NULL);
     } else {
         printf("gzgets() after gzseek: %s\n", (char*)uncompr);
     }
@@ -291,7 +291,7 @@ test_result test_deflate(compr, comprLen)
     c_stream.opaque = (voidpf)0;
 
     err = deflateInit(&c_stream, Z_DEFAULT_COMPRESSION);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateInit");
+    CHECK_ERR(err, "deflateInit");
 
     c_stream.next_in  = (z_const unsigned char *)hello;
     c_stream.next_out = compr;
@@ -299,18 +299,18 @@ test_result test_deflate(compr, comprLen)
     while (c_stream.total_in != len && c_stream.total_out < comprLen) {
         c_stream.avail_in = c_stream.avail_out = 1; /* force small buffers */
         err = deflate(&c_stream, Z_NO_FLUSH);
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+        CHECK_ERR(err, "deflate");
     }
     /* Finish the stream, still forcing small buffers: */
     for (;;) {
         c_stream.avail_out = 1;
         err = deflate(&c_stream, Z_FINISH);
         if (err == Z_STREAM_END) break;
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+        CHECK_ERR(err, "deflate");
     }
 
     err = deflateEnd(&c_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
+    CHECK_ERR(err, "deflateEnd");
 
 	{
         RETURN_SUCCESS(NULL, NULL);
@@ -338,20 +338,20 @@ test_result test_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.next_out = uncompr;
 
     err = inflateInit(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateInit");
+    CHECK_ERR(err, "inflateInit");
 
     while (d_stream.total_out < uncomprLen && d_stream.total_in < comprLen) {
         d_stream.avail_in = d_stream.avail_out = 1; /* force small buffers */
         err = inflate(&d_stream, Z_NO_FLUSH);
         if (err == Z_STREAM_END) break;
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "inflate");
+        CHECK_ERR(err, "inflate");
     }
 
     err = inflateEnd(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
+    CHECK_ERR(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad inflate\n", NULL);
+        RETURN_FAILURE("bad inflate\n", NULL);
     } else {
         RETURN_SUCCESS("inflate(): ", (char*)uncompr);
     }
@@ -372,7 +372,7 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     c_stream.opaque = (voidpf)0;
 
     err = deflateInit(&c_stream, Z_BEST_SPEED);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateInit");
+    CHECK_ERR(err, "deflateInit");
 
     c_stream.next_out = compr;
     c_stream.avail_out = (uInt)comprLen;
@@ -383,9 +383,9 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     c_stream.next_in = uncompr;
     c_stream.avail_in = (uInt)uncomprLen;
     err = deflate(&c_stream, Z_NO_FLUSH);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+    CHECK_ERR(err, "deflate");
     if (c_stream.avail_in != 0) {
-        RETURN_WITH_MESSAGE("deflate not greedy\n", NULL);
+        RETURN_FAILURE("deflate not greedy\n", NULL);
     }
 
     /* Feed in already compressed data and switch to no compression: */
@@ -393,21 +393,21 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     c_stream.next_in = compr;
     c_stream.avail_in = (uInt)comprLen/2;
     err = deflate(&c_stream, Z_NO_FLUSH);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+    CHECK_ERR(err, "deflate");
 
     /* Switch back to compressing mode: */
     deflateParams(&c_stream, Z_BEST_COMPRESSION, Z_FILTERED);
     c_stream.next_in = uncompr;
     c_stream.avail_in = (uInt)uncomprLen;
     err = deflate(&c_stream, Z_NO_FLUSH);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+    CHECK_ERR(err, "deflate");
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n", NULL);
+        RETURN_FAILURE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
+    CHECK_ERR(err, "deflateEnd");
 
 	{
         RETURN_SUCCESS(NULL, NULL);
@@ -434,18 +434,18 @@ test_result test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.avail_in = (uInt)comprLen;
 
     err = inflateInit(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateInit");
+    CHECK_ERR(err, "inflateInit");
 
     for (;;) {
         d_stream.next_out = uncompr;            /* discard the output */
         d_stream.avail_out = (uInt)uncomprLen;
         err = inflate(&d_stream, Z_NO_FLUSH);
         if (err == Z_STREAM_END) break;
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "large inflate");
+        CHECK_ERR(err, "large inflate");
     }
 
     err = inflateEnd(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
+    CHECK_ERR(err, "inflateEnd");
 
     if (d_stream.total_out != 2*uncomprLen + comprLen/2) {
         test_result result;
@@ -475,24 +475,24 @@ test_result test_flush(compr, comprLen)
     c_stream.opaque = (voidpf)0;
 
     err = deflateInit(&c_stream, Z_DEFAULT_COMPRESSION);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateInit");
+    CHECK_ERR(err, "deflateInit");
 
     c_stream.next_in  = (z_const unsigned char *)hello;
     c_stream.next_out = compr;
     c_stream.avail_in = 3;
     c_stream.avail_out = (uInt)*comprLen;
     err = deflate(&c_stream, Z_FULL_FLUSH);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+    CHECK_ERR(err, "deflate");
 
     compr[3]++; /* force an error in first compressed block */
     c_stream.avail_in = len - 3;
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "deflate");
+        CHECK_ERR(err, "deflate");
     }
     err = deflateEnd(&c_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
+    CHECK_ERR(err, "deflateEnd");
 
     *comprLen = c_stream.total_out;
 
@@ -521,24 +521,24 @@ test_result test_sync(compr, comprLen, uncompr, uncomprLen)
     d_stream.avail_in = 2; /* just read the zlib header */
 
     err = inflateInit(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateInit");
+    CHECK_ERR(err, "inflateInit");
 
     d_stream.next_out = uncompr;
     d_stream.avail_out = (uInt)uncomprLen;
 
     err = inflate(&d_stream, Z_NO_FLUSH);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflate");
+    CHECK_ERR(err, "inflate");
 
     d_stream.avail_in = (uInt)comprLen-2;   /* read all compressed data */
     err = inflateSync(&d_stream);           /* but skip the damaged part */
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateSync");
+    CHECK_ERR(err, "inflateSync");
 
     err = inflate(&d_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("inflate should report Z_STREAM_END\n", NULL);
+        RETURN_FAILURE("inflate should report Z_STREAM_END\n", NULL);
     }
     err = inflateEnd(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
+    CHECK_ERR(err, "inflateEnd");
 
 	{
         RETURN_SUCCESS("after inflateSync(): hel", (char*)uncompr);
@@ -560,11 +560,11 @@ test_result test_dict_deflate(compr, comprLen)
     c_stream.opaque = (voidpf)0;
 
     err = deflateInit(&c_stream, Z_BEST_COMPRESSION);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateInit");
+    CHECK_ERR(err, "deflateInit");
 
     err = deflateSetDictionary(&c_stream,
                 (const Bytef*)dictionary, (int)sizeof(dictionary));
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateSetDictionary");
+    CHECK_ERR(err, "deflateSetDictionary");
 
     dictId = c_stream.adler;
     c_stream.next_out = compr;
@@ -575,10 +575,10 @@ test_result test_dict_deflate(compr, comprLen)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        RETURN_WITH_MESSAGE("deflate should report Z_STREAM_END\n", NULL);
+        RETURN_FAILURE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
+    CHECK_ERR(err, "deflateEnd");
 
 	{
         RETURN_SUCCESS(NULL, NULL);
@@ -605,7 +605,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     d_stream.avail_in = (uInt)comprLen;
 
     err = inflateInit(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateInit");
+    CHECK_ERR(err, "inflateInit");
 
     d_stream.next_out = uncompr;
     d_stream.avail_out = (uInt)uncomprLen;
@@ -621,14 +621,14 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
             err = inflateSetDictionary(&d_stream, (const Bytef*)dictionary,
                                        (int)sizeof(dictionary));
         }
-        RETURN_ON_ERROR_WITH_MESSAGE(err, "inflate with dict");
+        CHECK_ERR(err, "inflate with dict");
     }
 
     err = inflateEnd(&d_stream);
-    RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
+    CHECK_ERR(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        RETURN_WITH_MESSAGE("bad inflate with dict\n", NULL);
+        RETURN_FAILURE("bad inflate with dict\n", NULL);
     } else {
         RETURN_SUCCESS("inflate with dictionary: ", (char*)uncompr);
     }
