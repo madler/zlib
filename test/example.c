@@ -37,15 +37,13 @@ typedef struct test_result_s {
 char string_buffer[STRING_BUFFER_SIZE];
 
 #define RETURN_ON_ERROR_WITH_MESSAGE(_error_code, _message) { \
-    { \
+    if (_error_code != Z_OK) { \
         test_result result; \
-        if (_error_code != Z_OK) { \
-            result.result = FAILED_WITH_ERROR_CODE; \
-            result.error_code = _error_code; \
-            result.line_number = __LINE__; \
-            result.message = _message; \
-            return result; \
-        } \
+        result.result = FAILED_WITH_ERROR_CODE; \
+        result.error_code = _error_code; \
+        result.line_number = __LINE__; \
+        result.message = _message; \
+        return result; \
     } \
 }
 
