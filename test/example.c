@@ -58,6 +58,16 @@ char string_buffer[STRING_BUFFER_SIZE];
     } \
 }
 
+#define RETURN_SUCCESS(_message, _extended_message) { \
+    { \
+        test_result result; \
+        result.result = SUCCESSFUL; \
+        result.message = _message; \
+        result.extended_message = _extended_message; \
+        return result; \
+    } \
+}
+
 void handle_test_results(FILE* output, test_result result, z_const char* testcase_name, int is_junit_output, int* failed_test_count) {
     if (is_junit_output) {
         fprintf(output, "\t\t<testcase name=\"%s\">", testcase_name);
@@ -181,11 +191,7 @@ test_result test_compress(compr, comprLen, uncompr, uncomprLen)
     if (strcmp((char*)uncompr, hello)) {
         RETURN_WITH_MESSAGE("bad uncompress\n", NULL);
     } else {
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = "uncompress(): ";
-        result.extended_message = (char*)uncompr;
-        return result;
+        RETURN_SUCCESS("uncompress(): ", (char*)uncompr);
     }
 }
 
@@ -269,10 +275,7 @@ test_result test_gzio(fname, uncompr, uncomprLen)
     gzclose(file);
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = NULL;
-        return result;
+        RETURN_SUCCESS(NULL, NULL);
 	}
 #endif
 }
@@ -317,10 +320,7 @@ test_result test_deflate(compr, comprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = NULL;
-        return result;
+        RETURN_SUCCESS(NULL, NULL);
 	}
 }
 
@@ -360,11 +360,7 @@ test_result test_inflate(compr, comprLen, uncompr, uncomprLen)
     if (strcmp((char*)uncompr, hello)) {
         RETURN_WITH_MESSAGE("bad inflate\n", NULL);
     } else {
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = "inflate(): ";
-        result.extended_message = (char*)uncompr;
-        return result;
+        RETURN_SUCCESS("inflate(): ", (char*)uncompr);
     }
 }
 
@@ -421,10 +417,7 @@ test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = NULL;
-        return result;
+        RETURN_SUCCESS(NULL, NULL);
 	}
 }
 
@@ -469,11 +462,7 @@ test_result test_large_inflate(compr, comprLen, uncompr, uncomprLen)
         result.message = string_buffer;
         return result;
     } else {
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = "large_inflate(): OK\n";
-        result.extended_message = NULL;
-        return result;
+        RETURN_SUCCESS("large_inflate(): OK\n", NULL);
     }
 }
 
@@ -515,10 +504,7 @@ test_result test_flush(compr, comprLen)
     *comprLen = c_stream.total_out;
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = NULL;
-        return result;
+        RETURN_SUCCESS(NULL, NULL);
 	}
 }
 
@@ -562,11 +548,7 @@ test_result test_sync(compr, comprLen, uncompr, uncomprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "inflateEnd");
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = "after inflateSync(): hel";
-        result.extended_message = (char*)uncompr;
-        return result;
+        RETURN_SUCCESS("after inflateSync(): hel", (char*)uncompr);
 	}
 }
 
@@ -606,10 +588,7 @@ test_result test_dict_deflate(compr, comprLen)
     RETURN_ON_ERROR_WITH_MESSAGE(err, "deflateEnd");
 
 	{
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = NULL;
-        return result;
+        RETURN_SUCCESS(NULL, NULL);
 	}
 }
 
@@ -658,11 +637,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     if (strcmp((char*)uncompr, hello)) {
         RETURN_WITH_MESSAGE("bad inflate with dict\n", NULL);
     } else {
-        test_result result;
-        result.result = SUCCESSFUL;
-        result.message = "inflate with dictionary: ";
-        result.extended_message = (char*)uncompr;
-        return result;
+        RETURN_SUCCESS("inflate with dictionary: ", (char*)uncompr);
     }
 }
 
