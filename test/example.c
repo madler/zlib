@@ -204,10 +204,7 @@ test_result test_gzio(fname, uncompr, uncomprLen)
     uLong uncomprLen;
 {
 #ifdef NO_GZCOMPRESS
-    test_result result;
-    result.success = FAILED_WITHOUT_ERROR_CODE;
-    result.message = "NO_GZCOMPRESS -- gz* functions cannot compress";
-    return result;
+    RETURN_WITH_MESSAGE("NO_GZCOMPRESS -- gz* functions cannot compress", NULL);
 #else
     int err;
     int len = (int)strlen(hello)+1;
