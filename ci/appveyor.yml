@@ -1,0 +1,34 @@
+version: 1.2.11.1.{build}
+
+pull_requests:
+  do_not_increment_build_number: true
+
+shallow_clone: true
+
+image:
+  - Visual Studio 2019
+
+before_build:
+  - cmd: cmake .
+
+build:
+  project: "zlib.sln"
+
+platform:
+  - x64
+configuration:
+  - Debug
+  - Release
+
+#      &"$($env:APPVEYOR_BUILD_FOLDER)\$($env:CONFIGURATION)\example.exe"
+test_script:
+  - ps: |
+      $env:ZLIB_JUNIT_OUTPUT_FILE = "$($env:APPVEYOR_BUILD_FOLDER)\$($env:CONFIGURATION)\junit-results.xml"
+      &"ctest"
+      $testError = $LastExitCode
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path "$($env:ZLIB_JUNIT_OUTPUT_FILE)"))
+      if ($testError -ne 0)
+      {
+        throw $testError
+      }
