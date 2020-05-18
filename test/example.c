@@ -25,6 +25,7 @@
 
 const char *g_junit_ofname;
 FILE *g_junit_output;
+int g_fail_fast;
 int g_failed_test_count;
 
 typedef struct test_result_s {
@@ -90,7 +91,8 @@ void handle_test_results(result, testcase_name)
             fprintf(output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s error: %d</failure>\n\t\t", __FILE__, result.line_number, result.message, result.error_code);
         } else {
             fprintf(stderr, "%s error: %d\n", result.message, result.error_code);
-            exit(1);
+            if (g_fail_fast)
+                exit(1);
         }
     } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
         g_failed_test_count++;
@@ -106,7 +108,8 @@ void handle_test_results(result, testcase_name)
                 fprintf(stderr, "%s", result.extended_message);
             }
             fprintf(stderr, "\n");
-            exit(1);
+            if (g_fail_fast)
+                exit(1);
         }
     } else {
         if (!is_junit_output) {
@@ -654,7 +657,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
 }
 
 /* ===========================================================================
- * Usage:  example [--junit results.xml] [output.gz]
+ * Usage:  example [--fail_fast][--junit results.xml] [output.gz]
  */
 
 int main(argc, argv)
@@ -692,6 +695,7 @@ int main(argc, argv)
      * a flag, the latter takes precedence.
      */
     g_junit_ofname = getenv("ZLIBTEST_JUNIT");
+    g_fail_fast = getenv("ZLIBTEST_FAIL_FAST") && atoi(getenv("ZLIBTEST_FAIL_FAST"));
     while (next_argv_index < argc && !strncmp(argv[next_argv_index], "--", 2)) {
         if (strcmp(argv[next_argv_index], "--junit") == 0) {
             next_argv_index++;
@@ -700,6 +704,9 @@ int main(argc, argv)
                 exit(1);
             }
             g_junit_ofname = argv[next_argv_index];
+            next_argv_index++;
+        } else if (strcmp(argv[next_argv_index], "--fail_fast") == 0) {
+            g_fail_fast = 1;
             next_argv_index++;
         } else {
             fprintf(stderr, "Unrecognized option %s\n", argv[next_argv_index]);
