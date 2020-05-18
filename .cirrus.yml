@@ -1,0 +1,68 @@
+check_ubu1804_task:
+  container:
+    dockerfile: tooling/cirrus/ubu1804/Dockerfile
+  test_script:
+    - cc --version
+    - mkdir btmp; cd btmp; cmake -G Ninja .. && ninja && ctest -V
+  always:
+    junit_artifacts:
+      path: "btmp/*-results.xml"
+      type: text/xml
+      format: junit
+
+check_ubu2004_task:
+  container:
+    dockerfile: tooling/cirrus/ubu2004/Dockerfile
+  test_script:
+    - cc --version
+    - mkdir btmp; cd btmp; cmake -G Ninja .. && ninja && ctest -V
+  always:
+    junit_artifacts:
+      path: "btmp/*-results.xml"
+      type: text/xml
+      format: junit
+
+check_mac_task:
+  osx_instance:
+    image: catalina-xcode
+  install_script:
+    - brew install ninja
+  test_script:
+    - cc --version
+    - ninja --version
+    - mkdir btmp; cd btmp; cmake -G Ninja .. && cmake --build . && ctest -V
+  always:
+    junit_artifacts:
+      path: "btmp/*-results.xml"
+      type: text/xml
+      format: junit
+
+check_bsd_task:
+  freebsd_instance:
+    image_family: freebsd-12-1
+  install_script:
+    - pkg install -y gcc cmake ninja
+  test_script:
+    - cc --version
+    - mkdir btmp; cd btmp; cmake -G Ninja .. && ninja && ctest -V
+  always:
+    junit_artifacts:
+      path: "btmp/*-results.xml"
+      type: text/xml
+      format: junit
+
+check_win_task:
+  windows_container:
+    image: cirrusci/windowsservercore:cmake
+  install_script:
+    - choco install -y --no-progress ninja
+  test_script:
+    - cmake --version
+    - ninja --version
+    - echo "Setting compiler to MSVC rather than the default (GCC from chocolatey)"
+    - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && where cl && set CC=cl && mkdir btmp && cd btmp && cmake -G Ninja .. && ninja && ctest -V
+  always:
+    junit_artifacts:
+      path: "btmp/*-results.xml"
+      type: text/xml
+      format: junit
