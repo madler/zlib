@@ -43,6 +43,7 @@ char string_buffer[STRING_BUFFER_SIZE];
         result.error_code = _error_code; \
         result.line_number = __LINE__; \
         result.message = _message; \
+        result.extended_message = NULL; \
         return result; \
     } \
 }
@@ -50,6 +51,7 @@ char string_buffer[STRING_BUFFER_SIZE];
 #define RETURN_FAILURE(_message, _extended_message) { \
     test_result result; \
     result.result = FAILED_WITHOUT_ERROR_CODE; \
+    result.error_code = Z_OK; \
     result.line_number = __LINE__; \
     result.message = _message; \
     result.extended_message = _extended_message; \
@@ -59,6 +61,7 @@ char string_buffer[STRING_BUFFER_SIZE];
 #define RETURN_SUCCESS(_message, _extended_message) { \
     test_result result; \
     result.result = SUCCESSFUL; \
+    result.error_code = Z_OK; \
     result.message = _message; \
     result.extended_message = _extended_message; \
     return result; \
@@ -250,8 +253,10 @@ test_result test_gzio(fname, uncompr, uncomprLen)
         sprintf(string_buffer, "gzseek error, pos=%ld, gztell=%ld\n",
                 (long)pos, (long)gztell(file));
         result.result = FAILED_WITHOUT_ERROR_CODE;
+        result.error_code = Z_OK;
         result.line_number = __LINE__;
         result.message = string_buffer;
+        result.extended_message = NULL;
         return result;
     }
 
@@ -459,8 +464,10 @@ test_result test_large_inflate(compr, comprLen, uncompr, uncomprLen)
         test_result result;
         sprintf(string_buffer, "bad large inflate: %ld\n", d_stream.total_out);
         result.result = FAILED_WITHOUT_ERROR_CODE;
+        result.error_code = Z_OK;
         result.line_number = __LINE__;
         result.message = string_buffer;
+        result.extended_message = NULL;
         return result;
     } else {
         RETURN_SUCCESS("large_inflate(): OK\n", NULL);
