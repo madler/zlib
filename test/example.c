@@ -105,7 +105,7 @@ void handle_test_results(output, result, testcase_name, is_junit_output, failed_
         if (!is_junit_output) {
             if (result.message != NULL) {
                 if (result.extended_message != NULL) {
-                    fprintf(output, "%s%s\n", result.message, result.extended_message);
+                    fprintf(stderr, "%s%s\n", result.message, result.extended_message);
                 } else {
                     fprintf(stderr, "%s", result.message);
                 }
