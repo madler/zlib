@@ -79,53 +79,43 @@ void handle_test_results(result, testcase_name)
     test_result result;
     z_const char* testcase_name;
 {
-    int is_junit_output = (g_junit_output != NULL);
-    FILE *output = g_junit_output;
-
-    if (is_junit_output) {
-        fprintf(output, "\t\t<testcase name=\"%s\">", testcase_name);
+    /* XML output */
+    if (g_junit_output != NULL) {
+        fprintf(g_junit_output, "\t\t<testcase name=\"%s\">", testcase_name);
+        if (result.result == FAILED_WITH_ERROR_CODE) {
+            fprintf(g_junit_output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s error: %d</failure>\n\t\t", __FILE__, result.line_number, result.message, result.error_code);
+        } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
+            fprintf(g_junit_output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s", __FILE__, result.line_number, result.message);
+            if (result.extended_message != NULL)
+                fprintf(g_junit_output, "%s", result.extended_message);
+            fprintf(g_junit_output, "</failure>\n\t\t");
+        }
+        fprintf(g_junit_output, "</testcase>\n");
     }
 
+    /* Human-readable output */
     if (result.result == FAILED_WITH_ERROR_CODE) {
-        g_failed_test_count++;
-        if (is_junit_output) {
-            fprintf(output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s error: %d</failure>\n\t\t", __FILE__, result.line_number, result.message, result.error_code);
-        } else {
-            fprintf(stderr, "%s error: %d\n", result.message, result.error_code);
-            if (g_fail_fast)
-                exit(1);
-        }
+        fprintf(stderr, "%s error: %d\n", result.message, result.error_code);
     } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
-        g_failed_test_count++;
-        if (is_junit_output) {
-            fprintf(output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s", __FILE__, result.line_number, result.message);
-            if (result.extended_message != NULL) {
-                fprintf(output, "%s", result.extended_message);
-            }
-            fprintf(output, "</failure>\n\t\t");
-        } else {
-            fprintf(stderr, "%s", result.message);
-            if (result.extended_message != NULL) {
-                fprintf(stderr, "%s", result.extended_message);
-            }
-            fprintf(stderr, "\n");
-            if (g_fail_fast)
-                exit(1);
-        }
+        fprintf(stderr, "%s", result.message);
+        if (result.extended_message != NULL)
+            fprintf(stderr, "%s", result.extended_message);
+        fprintf(stderr, "\n");
     } else {
-        if (!is_junit_output) {
-            if (result.message != NULL) {
-                if (result.extended_message != NULL) {
-                    fprintf(stderr, "%s%s\n", result.message, result.extended_message);
-                } else {
-                    fprintf(stderr, "%s", result.message);
-                }
+        if (result.message != NULL) {
+            if (result.extended_message != NULL) {
+                fprintf(stderr, "%s%s\n", result.message, result.extended_message);
+            } else {
+                fprintf(stderr, "%s", result.message);
             }
         }
     }
 
-    if (is_junit_output) {
-        fprintf(output, "</testcase>\n");
+    /* State update */
+    if (result.result == FAILED_WITH_ERROR_CODE || result.result == FAILED_WITHOUT_ERROR_CODE) {
+        g_failed_test_count++;
+        if (g_fail_fast)
+            exit(1);
     }
 }
 
