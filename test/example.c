@@ -654,7 +654,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
 }
 
 /* ===========================================================================
- * Usage:  example [--junit results.xml] [output.gz  [input.gz]]
+ * Usage:  example [--junit results.xml] [output.gz]
  */
 
 int main(argc, argv)
@@ -717,10 +717,7 @@ int main(argc, argv)
         fprintf(g_junit_output, "\t<testsuite name=\"zlib example suite\">\n");
     }
 
-#ifdef Z_SOLO
-    (void)argc;
-    (void)argv;
-#else
+#ifndef Z_SOLO
     result = test_compress(compr, comprLen, uncompr, uncomprLen);
     handle_test_results(result, "compress");
 	
