@@ -73,6 +73,16 @@ char string_buffer[STRING_BUFFER_SIZE];
     return result; \
 }
 
+/* github needs 'classname' or it will not annotate.  Use executable filename;
+ * that lets us distinguish results from example and example64.
+ * FIXME: don't hardcode.
+ */
+#if _FILE_OFFSET_BITS == 64
+#define TEST_EXENAME "example64"
+#else
+#define TEST_EXENAME "example"
+#endif
+
 void handle_test_results OF((test_result result, z_const char* testcase_name));
 
 void handle_test_results(result, testcase_name)
@@ -81,14 +91,17 @@ void handle_test_results(result, testcase_name)
 {
     /* XML output */
     if (g_junit_output != NULL) {
-        fprintf(g_junit_output, "\t\t<testcase name=\"%s\">", testcase_name);
         if (result.result == FAILED_WITH_ERROR_CODE) {
-            fprintf(g_junit_output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s error: %d</failure>\n\t\t", __FILE__, result.line_number, result.message, result.error_code);
+            fprintf(g_junit_output, "\t\t<testcase name=\"%s\" file=\"%s\" line=\"%d\">", testcase_name, __FILE__, result.line_number);
+            fprintf(g_junit_output, "\n\t\t\t<failure>%s error: %d</failure>\n\t\t", result.message, result.error_code);
         } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
-            fprintf(g_junit_output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s", __FILE__, result.line_number, result.message);
+            fprintf(g_junit_output, "\t\t<testcase name=\"%s\" file=\"%s\" line=\"%d\">", testcase_name, __FILE__, result.line_number);
+            fprintf(g_junit_output, "\n\t\t\t<failure>%s", result.message);
             if (result.extended_message != NULL)
                 fprintf(g_junit_output, "%s", result.extended_message);
             fprintf(g_junit_output, "</failure>\n\t\t");
+        } else {
+            fprintf(g_junit_output, "\t\t<testcase name=\"%s\">", testcase_name);
         }
         fprintf(g_junit_output, "</testcase>\n");
     }
