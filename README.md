@@ -1,6 +1,6 @@
 ZLIB DATA COMPRESSION LIBRARY
 
-[![AppVeyor CI status][appveyor-shield]][appveyor-link]
+[![AppVeyor CI status][appveyor-shield]][appveyor-link][![Cirrus CI status][cirrus-shield]][cirrus-link]
 
 zlib 1.2.11.1 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
@@ -118,5 +118,8 @@ If you redistribute modified sources, we would appreciate that you include in
 the file ChangeLog history information documenting your changes.  Please read
 the FAQ for more information on the distribution of modified source versions.
 
-[appveyor-shield]: https://ci.appveyor.com/api/projects/status/8m7p0nbuy8tvkqv6/branch/add-appveyor?svg=true
-[appveyor-link]: https://ci.appveyor.com/project/ProgramMax/zlib/branch/develop
+<!-- fix following four lines when merging -->
+[appveyor-shield]: https://ci.appveyor.com/api/projects/status/h80iqyhbe09p29n0/branch/develop?svg=true
+[appveyor-link]: https://ci.appveyor.com/project/dankegel/zlib/branch/develop
+[cirrus-shield]: https://api.cirrus-ci.com/github/dankegel/zlib.svg?branch=develop
+[cirrus-link]: https://cirrus-ci.com/github/dankegel/zlib/develop
