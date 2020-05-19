@@ -232,7 +232,8 @@ endif()
 
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
-add_test(example example)
+# Note: would like to put it in $<CONFIG> subdir, but generator expressions are not expanded as one would expect?
+add_test(example example --junit "${CMAKE_CURRENT_BINARY_DIR}/example-results.xml")
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
@@ -241,7 +242,7 @@ if(HAVE_OFF64_T)
     add_executable(example64 test/example.c)
     target_link_libraries(example64 zlib)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+    add_test(example64 example64 --junit "${CMAKE_CURRENT_BINARY_DIR}/example64-results.xml")
 
     add_executable(minigzip64 test/minigzip.c)
     target_link_libraries(minigzip64 zlib)
