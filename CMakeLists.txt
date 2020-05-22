@@ -3,6 +3,11 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
+# parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
+string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
+    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
+# FIXME: parse VERSION from ZLIB_FULL_VERSION
 set(VERSION "1.2.11.1")
 
 option(ASM686 "Enable building i686 assembly implementation")
@@ -12,7 +17,16 @@ set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation direc
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
-set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+set(INSTALL_PKGCONFIG_DIR "${INSTALL_LIB_DIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+
+# Set a default build type if none was specified
+set(default_build_type "Release")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -21,8 +35,35 @@ include(CheckCSourceCompiles)
 enable_testing()
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
+check_include_file(stdarg.h    HAVE_STDARG_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
 check_include_file(stddef.h    HAVE_STDDEF_H)
+check_include_file(unistd.h    HAVE_UNISTD_H)
+
+#
+# Match configure's zconf.h exactly
+#
+if (HAVE_STDARG_H)
+  SET(ZCONF_STDARG_LINE "#if 1    /* was set to #if 1 by ./configure */")
+else()
+  SET(ZCONF_STDARG_LINE "#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */")
+endif()
+if (HAVE_UNISTD_H)
+  SET(ZCONF_UNISTD_LINE "#if 1    /* was set to #if 1 by ./configure */")
+else()
+  SET(ZCONF_UNISTD_LINE "#ifdef HAVE_UNISTD_H    /* may be set to #if 1 by ./configure */")
+endif()
+
+#
+# Check to see if compiler supports __attribute__((visibility ("hidden")))
+#
+check_c_source_compiles(
+    "int __attribute__((visibility (\"hidden\"))) foo; int main() { return foo; }"
+    HAVE_HIDDEN
+)
+if(HAVE_HIDDEN)
+    add_definitions(-DHAVE_HIDDEN)
+endif()
 
 #
 # Check to see if we have large file support
@@ -57,7 +98,7 @@ endif()
 #
 # Check for unistd.h
 #
-check_include_file(unistd.h Z_HAVE_UNISTD_H)
+check_include_file(unistd.h HAVE_UNISTD_H)
 
 if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
@@ -76,6 +117,19 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
         message(STATUS "but CMake generates it automatically in the build directory.")
         file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
   endif()
+endif()
+
+# Refer to prefix symbolically to ease relocation by end user,
+# and match Makefile-generate .pc file exactly.
+if(INSTALL_INC_DIR STREQUAL "${CMAKE_INSTALL_PREFIX}/include")
+  set(PC_INSTALL_INC_DIR "\${prefix}/include")
+else()
+  set(PC_INSTALL_INC_DIR "${INSTALL_INC_DIR}")
+endif()
+if(INSTALL_LIB_DIR STREQUAL "${CMAKE_INSTALL_PREFIX}/lib")
+  set(PC_INSTALL_LIB_DIR "\${exec_prefix}/lib")
+else()
+  set(PC_INSTALL_LIB_DIR "${INSTALL_LIB_DIR}")
 endif()
 
 set(ZLIB_PC ${CMAKE_CURRENT_BINARY_DIR}/zlib.pc)
@@ -105,22 +159,27 @@ set(ZLIB_PRIVATE_HDRS
     trees.h
     zutil.h
 )
+
+# Note: keep these in the same order as in Makefile.in
+# This allows libz.so to be identical between the two build systems.
 set(ZLIB_SRCS
+    # Makefile.in: PIC_OBJZ
     adler32.c
-    compress.c
     crc32.c
     deflate.c
+    infback.c
+    inffast.c
+    inflate.c
+    inftrees.c
+    trees.c
+    zutil.c
+    # Makefile.in: PIC_OBJG
+    compress.c
+    uncompr.c
     gzclose.c
     gzlib.c
     gzread.c
     gzwrite.c
-    inflate.c
-    infback.c
-    inftrees.c
-    inffast.c
-    trees.c
-    uncompr.c
-    zutil.c
 )
 
 if(NOT MINGW)
@@ -162,11 +221,6 @@ if(MSVC)
 	endif()
 endif()
 
-# parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
-string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
-    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
-
 if(MINGW)
     # This gets us DLL resource information when compiling on MinGW.
     if(NOT CMAKE_RC_COMPILER)
@@ -204,6 +258,9 @@ if(UNIX)
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
      set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
+     # Makefile.in uses -lc...
+     set(LDSHAREDLIBC -lc)
+     target_link_libraries(zlib ${LDSHAREDLIBC})
    endif()
 elseif(BUILD_SHARED_LIBS AND WIN32)
     # Creates zlib1.dll when building shared library version
