@@ -66,6 +66,12 @@ if "${CROSS_PREFIX}nm" --version >/dev/null 2>/dev/null || test $? -lt 126; then
 else
     NM=${NM-"nm"}
 fi
+if "${CROSS_PREFIX}libtool" --version >/dev/null 2>/dev/null || test $? -lt 126; then
+    LIBTOOL=${LIBTOOL-"${CROSS_PREFIX}libtool"}
+    test -n "${CROSS_PREFIX}" && echo Using ${LIBTOOL} | tee -a configure.log
+else
+    LIBTOOL=${LIBTOOL-"libtool"}
+fi
 
 # set defaults before processing command line options
 LDCONFIG=${LDCONFIG-"ldconfig"}
@@ -241,8 +247,8 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
              SHAREDLIBV=libz.$VER$shared_ext
              SHAREDLIBM=libz.$VER1$shared_ext
              LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
-             if libtool -V 2>&1 | grep Apple > /dev/null; then
-                 AR="libtool"
+             if ${LIBTOOL} -V 2>&1 | grep Apple > /dev/null; then
+                 AR="${LIBTOOL}"
              else
                  AR="/usr/bin/libtool"
              fi
