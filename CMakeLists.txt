@@ -14,6 +14,15 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
 set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
+# Set a default build type if none was specified
+set(default_build_type "Release")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -23,6 +32,17 @@ enable_testing()
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
 check_include_file(stddef.h    HAVE_STDDEF_H)
+
+#
+# Check to see if compiler supports __attribute__((visibility ("hidden")))
+#
+check_c_source_compiles(
+    "int __attribute__((visibility (\"hidden\"))) foo; int main() { return foo; }"
+    HAVE_HIDDEN
+)
+if(HAVE_HIDDEN)
+    add_definitions(-DHAVE_HIDDEN)
+endif()
 
 #
 # Check to see if we have large file support
@@ -105,22 +125,27 @@ set(ZLIB_PRIVATE_HDRS
     trees.h
     zutil.h
 )
+
+# Note: keep these in the same order as in Makefile.in
+# This allows libz.so to be identical between the two build systems.
 set(ZLIB_SRCS
+    # Makefile.in: PIC_OBJZ
     adler32.c
-    compress.c
     crc32.c
     deflate.c
+    infback.c
+    inffast.c
+    inflate.c
+    inftrees.c
+    trees.c
+    zutil.c
+    # Makefile.in: PIC_OBJG
+    compress.c
+    uncompr.c
     gzclose.c
     gzlib.c
     gzread.c
     gzwrite.c
-    inflate.c
-    infback.c
-    inftrees.c
-    inffast.c
-    trees.c
-    uncompr.c
-    zutil.c
 )
 
 if(NOT MINGW)
@@ -204,6 +229,9 @@ if(UNIX)
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
      set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
+     # Makefile.in uses -lc...
+     set(LDSHAREDLIBC -lc)
+     target_link_libraries(zlib ${LDSHAREDLIBC})
    endif()
 elseif(BUILD_SHARED_LIBS AND WIN32)
     # Creates zlib1.dll when building shared library version
