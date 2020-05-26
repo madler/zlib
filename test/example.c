@@ -35,6 +35,7 @@ typedef struct test_result_s {
 
 #define STRING_BUFFER_SIZE 100
 char string_buffer[STRING_BUFFER_SIZE];
+int g_fail_fast;
 
 #define CHECK_ERR(_error_code, _message) { \
     if (_error_code != Z_OK) { \
@@ -123,12 +124,12 @@ void handle_test_results(output, result, testcase_name, is_junit_output, failed_
 {
     if (is_junit_output) {
         handle_junit_test_results(output, result, testcase_name);
-    } else {
-        handle_stdout_test_results(result, testcase_name);
     }
+    handle_stdout_test_results(result, testcase_name);
     if (result.result == FAILED_WITH_ERROR_CODE || result.result == FAILED_WITHOUT_ERROR_CODE) {
         (*failed_test_count)++;
-        exit(1);
+        if (g_fail_fast)
+            exit(1);
     }
 }
 
@@ -664,7 +665,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
 }
 
 /* ===========================================================================
- * Usage:  example [--force_fail][--junit results.xml] [output.gz  [input.gz]]
+ * Usage:  example [--fail_fast][--force_fail][--junit results.xml] [output.gz [input.gz]]
  */
 
 int main(argc, argv)
@@ -709,6 +710,7 @@ int main(argc, argv)
 #else
     output_file_path = getenv("ZLIB_JUNIT_OUTPUT_FILE");
     force_fail = getenv("ZLIB_FORCE_FAIL") && atoi(getenv("ZLIB_FORCE_FAIL"));
+    g_fail_fast = getenv("ZLIB_FAIL_FAST") && atoi(getenv("ZLIB_FAIL_FAST"));
     while (next_argv_index < argc && !strncmp(argv[next_argv_index], "--", 2)) {
         if (strcmp(argv[next_argv_index], "--junit") == 0) {
             next_argv_index++;
@@ -717,6 +719,9 @@ int main(argc, argv)
                 exit(1);
             }
             output_file_path = argv[next_argv_index];
+            next_argv_index++;
+        } else if (strcmp(argv[next_argv_index], "--fail_fast") == 0) {
+            g_fail_fast = 1;
             next_argv_index++;
         } else if (strcmp(argv[next_argv_index], "--force_fail") == 0) {
             force_fail = 1;
