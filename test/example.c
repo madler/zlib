@@ -187,6 +187,7 @@ test_result test_compress      OF((Byte *compr, uLong comprLen,
                                    Byte *uncompr, uLong uncomprLen));
 test_result test_gzio          OF((const char *fname,
                                    Byte *uncompr, uLong uncomprLen));
+test_result test_force_fail    OF((int force_fail));
 
 /* ===========================================================================
  * Test compress() and uncompress()
@@ -293,6 +294,20 @@ test_result test_gzio(fname, uncompr, uncomprLen)
 
     RETURN_SUCCESS(NULL, NULL);
 #endif
+}
+
+/* ===========================================================================
+ * Optionally test fault injection.
+ */
+test_result test_force_fail(force_fail)
+    int force_fail;
+{
+    int err = Z_OK;
+    if (force_fail)
+        err = 54321;
+    CHECK_ERR(err, "forced");
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 #endif /* Z_SOLO */
@@ -649,7 +664,7 @@ test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
 }
 
 /* ===========================================================================
- * Usage:  example [--junit results.xml] [output.gz  [input.gz]]
+ * Usage:  example [--force_fail][--junit results.xml] [output.gz  [input.gz]]
  */
 
 int main(argc, argv)
@@ -666,6 +681,7 @@ int main(argc, argv)
     FILE* output = stdout;
     int next_argv_index = 1;
     int failed_test_count = 0;
+    int force_fail = 0;
 
     if (zlibVersion()[0] != myVersion[0]) {
         fprintf(stderr, "incompatible zlib version\n");
@@ -692,6 +708,7 @@ int main(argc, argv)
     (void)argv;
 #else
     output_file_path = getenv("ZLIB_JUNIT_OUTPUT_FILE");
+    force_fail = getenv("ZLIB_FORCE_FAIL") && atoi(getenv("ZLIB_FORCE_FAIL"));
     while (next_argv_index < argc && !strncmp(argv[next_argv_index], "--", 2)) {
         if (strcmp(argv[next_argv_index], "--junit") == 0) {
             next_argv_index++;
@@ -700,6 +717,9 @@ int main(argc, argv)
                 exit(1);
             }
             output_file_path = argv[next_argv_index];
+            next_argv_index++;
+        } else if (strcmp(argv[next_argv_index], "--force_fail") == 0) {
+            force_fail = 1;
             next_argv_index++;
         } else {
             fprintf(stderr, "Unrecognized option %s\n", argv[next_argv_index]);
@@ -725,6 +745,9 @@ int main(argc, argv)
     result = test_gzio((argc > next_argv_index ? argv[next_argv_index++] : TESTFILE),
                        uncompr, uncomprLen);
     handle_test_results(output, result, "gzio", is_junit_output, &failed_test_count);
+
+    result = test_force_fail(force_fail);
+    handle_test_results(output, result, "force fail", is_junit_output, &failed_test_count);
 #endif
 
     result = test_deflate(compr, comprLen);
