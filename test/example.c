@@ -708,7 +708,7 @@ int main(argc, argv)
         is_junit_output = 1;
         output = fopen(output_file_path, "w+");
         if (!output) {
-            fprintf(stderr, "Could not open junit file");
+            fprintf(stderr, "Could not open junit file %s\n", output_file_path);
             exit(1);
         }
         fprintf(output, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
