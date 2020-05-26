@@ -36,6 +36,7 @@ typedef struct test_result_s {
 #define STRING_BUFFER_SIZE 100
 char string_buffer[STRING_BUFFER_SIZE];
 int g_fail_fast;
+char g_test_class[STRING_BUFFER_SIZE] = "default";
 
 #define CHECK_ERR(_error_code, _message) { \
     if (_error_code != Z_OK) { \
@@ -100,19 +101,27 @@ void handle_junit_test_results(output, result, testcase_name)
     test_result result;
     const char* testcase_name;
 {
-    fprintf(output, "\t\t<testcase name=\"%s\">", testcase_name);
-
+    /* github.com/cirruslabs/cirrus-ci-annotations/blob/master/testdata/junit/PythonXMLRunner.xml
+     * suggests how to encode classname, file, and line to get
+     * annotations to appear properly on github.
+     */
     if (result.result == FAILED_WITH_ERROR_CODE) {
-        fprintf(output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s error: %d</failure>\n\t\t", __FILE__, result.line_number, result.message, result.error_code);
+        fprintf(output,
+            "\t\t<testcase classname=\"%s\" name=\"%s\" file=\"%s\" line=\"%d\">\n"
+            "\t\t\t<failure>%s: error %d</failure>\n"
+            "\t\t</testcase>\n",
+            g_test_class, testcase_name, __FILE__, result.line_number, result.message,
+            result.error_code);
     } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
-        fprintf(output, "\n\t\t\t<failure file=\"%s\" line=\"%d\">%s", __FILE__, result.line_number, result.message);
-        if (result.extended_message != NULL) {
-            fprintf(output, "%s", result.extended_message);
-        }
-        fprintf(output, "</failure>\n\t\t");
+        fprintf(output,
+            "\t\t<testcase classname=\"%s\" name=\"%s\" file=\"%s\" line=\"%d\">\n"
+            "\t\t\t<failure>%s%s</failure>\n"
+            "\t\t</testcase>\n",
+            g_test_class, testcase_name, __FILE__, result.line_number, result.message,
+            (result.extended_message ? result.extended_message : ""));
+    } else {
+        fprintf(output, "\t\t<testcase name=\"%s\"></testcase>\n", testcase_name);
     }
-
-    fprintf(output, "</testcase>\n");
 }
 
 void handle_test_results(output, result, testcase_name, is_junit_output, failed_test_count)
@@ -738,6 +747,21 @@ int main(argc, argv)
         if (!output) {
             fprintf(stderr, "Could not open junit file %s\n", output_file_path);
             exit(1);
+        } else {
+            /* If run by CMakeLists.txt's JUNIT option, path is FOO/$exe-junit.xml.
+             * Extract $exe and pass to handle_junit_test_results so github error
+             * annotations show the name of the executable causing each error.
+             */
+            const char *p = strrchr(output_file_path, '/');
+            if (p) {
+                p++;   /* skip past slash */
+                const char *q = strrchr(p, '-');
+                int len = q - p;
+                if (!strcmp(q, "-junit.xml") && (len < sizeof(g_test_class))) {
+                    strncpy(g_test_class, p, len);
+                    g_test_class[len] = 0;
+                }
+            }
         }
         fprintf(output, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
         fprintf(output, "<testsuites>\n");
