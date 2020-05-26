@@ -692,15 +692,18 @@ int main(argc, argv)
     (void)argv;
 #else
     output_file_path = getenv("ZLIB_JUNIT_OUTPUT_FILE");
-    if (argc > 1) {
-        if (strcmp(argv[1], "--junit") == 0) {
-            if (argc <= 2) {
+    while (next_argv_index < argc && !strncmp(argv[next_argv_index], "--", 2)) {
+        if (strcmp(argv[next_argv_index], "--junit") == 0) {
+            next_argv_index++;
+            if (argc <= next_argv_index) {
                 fprintf(stderr, "--junit flag requires an output file parameter, like --junit output.xml");
                 exit(1);
             }
-            next_argv_index += 2;
-
-            output_file_path = argv[2];
+            output_file_path = argv[next_argv_index];
+            next_argv_index++;
+        } else {
+            fprintf(stderr, "Unrecognized option %s\n", argv[next_argv_index]);
+            exit(1);
         }
     }
     if (output_file_path) {
