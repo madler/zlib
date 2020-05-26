@@ -9,7 +9,7 @@ image:
   - Visual Studio 2019
 
 before_build:
-  - cmd: cmake .
+  - cmd: cmake -DJUNIT=ON .
 
 build:
   project: "zlib.sln"
@@ -20,14 +20,13 @@ configuration:
   - Debug
   - Release
 
-#      &"$($env:APPVEYOR_BUILD_FOLDER)\$($env:CONFIGURATION)\example.exe"
 test_script:
   - ps: |
-      $env:ZLIB_JUNIT_OUTPUT_FILE = "$($env:APPVEYOR_BUILD_FOLDER)\$($env:CONFIGURATION)\junit-results.xml"
-      &"ctest"
+      &"ctest" -V
       $testError = $LastExitCode
       $wc = New-Object 'System.Net.WebClient'
-      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path "$($env:ZLIB_JUNIT_OUTPUT_FILE)"))
+      $jurl = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
+      $wc.UploadFile($jurl, (Resolve-Path "$($env:APPVEYOR_BUILD_FOLDER)\example-junit.xml"))
       if ($testError -ne 0)
       {
         throw $testError

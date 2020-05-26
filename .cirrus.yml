@@ -1,7 +1,7 @@
 upload_junit_template: &UPLOAD_JUNIT
    always:
      junit_artifacts:
-       path: "btmp/*-results.xml"
+       path: "btmp/*-junit.xml"
        type: text/xml
        format: junit
 
