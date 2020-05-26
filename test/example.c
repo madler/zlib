@@ -77,14 +77,12 @@ void handle_stdout_test_results(result, testcase_name)
 {
     if (result.result == FAILED_WITH_ERROR_CODE) {
         fprintf(stderr, "%s error: %d\n", result.message, result.error_code);
-        exit(1);
     } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
         fprintf(stderr, "%s", result.message);
         if (result.extended_message != NULL) {
             fprintf(stderr, "%s", result.extended_message);
         }
         fprintf(stderr, "\n");
-        exit(1);
     } else {
         if (result.message != NULL) {
             if (result.extended_message != NULL) {
@@ -123,14 +121,14 @@ void handle_test_results(output, result, testcase_name, is_junit_output, failed_
     int is_junit_output;
     int* failed_test_count;
 {
-    if (result.result == FAILED_WITH_ERROR_CODE || result.result == FAILED_WITHOUT_ERROR_CODE) {
-        (*failed_test_count)++;
-    }
-
     if (is_junit_output) {
         handle_junit_test_results(output, result, testcase_name);
     } else {
         handle_stdout_test_results(result, testcase_name);
+    }
+    if (result.result == FAILED_WITH_ERROR_CODE || result.result == FAILED_WITHOUT_ERROR_CODE) {
+        (*failed_test_count)++;
+        exit(1);
     }
 }
 
