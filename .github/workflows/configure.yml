@@ -1,0 +1,54 @@
+name: CI Configure
+on: [push, pull_request]
+jobs:
+  ci-configure:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          Ubuntu GCC,
+          Ubuntu GCC OSB,
+          macOS GCC
+        ]
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            compiler: gcc
+            configure-args: --warn
+
+          - name: Ubuntu GCC OSB
+            os: ubuntu-latest
+            compiler: gcc
+            configure-args: --warn
+            build-dir: ../build
+            build-src-dir: ../zlib
+
+          - name: macOS GCC
+            os: macOS-latest
+            compiler: gcc
+            configure-args: --warn
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v1
+
+    - name: Generate project files
+      run: |
+        mkdir ${{ matrix.build-dir || '.not-used' }}
+        cd ${{ matrix.build-dir || '.' }}
+        ${{ matrix.build-src-dir || '.' }}/configure ${{ matrix.configure-args }}
+      env:
+        CC: ${{ matrix.compiler }}
+        CI: true
+
+    - name: Compile source code
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        make -j2
+
+    - name: Run test cases
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        make test

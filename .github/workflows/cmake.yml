@@ -1,0 +1,81 @@
+name: CI CMake
+on: [push, pull_request]
+jobs:
+  ci-cmake:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          Ubuntu GCC,
+          Ubuntu GCC OSB,
+          Ubuntu Clang,
+          Ubuntu Clang Debug,
+          Windows MSVC Win32,
+          Windows MSVC Win64,
+          macOS Clang,
+          macOS GCC
+        ]
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            compiler: gcc
+
+          - name: Ubuntu GCC OSB
+            os: ubuntu-latest
+            compiler: gcc
+            build-dir: ../build
+            build-src-dir: ../zlib
+
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            compiler: clang
+
+          - name: Ubuntu Clang Debug
+            os: ubuntu-latest
+            compiler: clang
+            build-config: Debug
+
+          - name: Windows MSVC Win32
+            os: windows-latest
+            compiler: cl
+            cmake-args: -A Win32
+
+          - name: Windows MSVC Win64
+            os: windows-latest
+            compiler: cl
+            cmake-args: -A x64
+
+          - name: macOS Clang
+            os: macOS-latest
+            compiler: clang
+
+          - name: macOS GCC
+            os: macOS-latest
+            compiler: gcc
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v1
+
+    - name: Generate project files
+      run: |
+        mkdir ${{ matrix.build-dir || '.not-used' }}
+        cd ${{ matrix.build-dir || '.' }}
+        cmake ${{ matrix.build-src-dir || '.' }} ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
+      env:
+        CC: ${{ matrix.compiler }}
+        CFLAGS: ${{ matrix.cflags }}
+        LDFLAGS: ${{ matrix.ldflags }}
+        CI: true
+
+    - name: Compile source code
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        cmake --build . --config ${{ matrix.build-config || 'Release' }}
+
+    - name: Run test cases
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        ctest -C Release --output-on-failure --max-width 120
