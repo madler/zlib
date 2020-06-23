@@ -110,16 +110,15 @@ uLong ZLIB_INTERNAL _adler32_power8 (uLong adler, const Bytef* buf, uInt len)
            6, 5, 4, 3, 2, 1};
       const vector unsigned char vsh = vec_splat_u8(4);
       const vector unsigned int vmask = {0xffffffff, 0x0, 0x0, 0x0};
-      vector unsigned int vs1 = vec_xl(0, &s1);
-      vector unsigned int vs2 = vec_xl(0, &s2);
+      vector unsigned int vs1 = { 0 };
+      vector unsigned int vs2 = { 0 };
       vector unsigned int vs1_save = { 0 };
       vector unsigned int vsum1, vsum2;
       vector unsigned char vbuf;
       int n;
 
-      /* Zeros the undefined values of vectors vs1, vs2.  */
-      vs1 = vec_and(vs1, vmask);
-      vs2 = vec_and(vs2, vmask);
+      vs1[0] = s1;
+      vs2[0] = s2;
 
       /* Do length bigger than NMAX in blocks of NMAX size.  */
       while (len >= NMAX) {
