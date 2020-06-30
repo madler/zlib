@@ -1,8 +1,35 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.11.1 (xx Jan 2017)
-- 
+Changes in 1.2.11.1 (xx Jul 2020)
+- Cygwin does not have _wopen(), so do not create gzopen_w() there
+- Permit a deflateParams() parameter change as soon as possible
+- Permit a deflateParams() parameter change as soon as possible
+- Limit hash table inserts after switch from stored deflate
+- Fix bug when window full in deflate_stored()
+- Fix CLEAR_HASH macro to be usable as a single statement
+- Avoid a conversion error in gzseek when off_t type too small
+- Avoid some conversion warnings in gzread.c and gzwrite.c
+- Update use of errno for newer Windows CE versions
+- Small speedup to inflate [psumbera]
+- Return an error if the gzputs string length can't fit in an int
+- Don't compute check value for raw inflate if asked to validate
+- Avoid the use of ptrdiff_t
+- Avoid an undefined behavior of memcpy() in gzappend(), gz*printf(),
+    _tr_stored_block()
+- Remove old assembler code in which bugs have manifested
+- Fix deflateEnd() to not report an error at start of raw deflate
+- Fix a bug that can crash deflate on some input when using Z_FIXED
+- Assure that the number of bits for deflatePrime() is valid
+- Use a structure to make globals in enough.c evident
+- Fix the zran.c example to work on a multiple-member gzip file
+- Add tables for crc32_combine(), to speed it up by a factor of 200
+- Add crc32_combine_gen() and crc32_combine_op() for fast combines
+- Don't bother computing check value after successful inflateSync()
+- Add use of the ARMv8 crc32 instructions when requested
+- Avoid adding empty gzip member after gzflush with Z_FINISH
+- Fix memory leak on error in gzlog.c
+- Fix error in comment on the polynomial representation of a byte
 
 Changes in 1.2.11 (15 Jan 2017)
 - Fix deflate stored bug when pulling last block from window
