@@ -85,7 +85,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #define MAX_MATCH  258
 /* The minimum and maximum match lengths */
 
-#define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
+#define PRESET_DICT 0x20u /* preset dictionary flag in zlib header */
 
         /* target dependencies */
 
@@ -241,12 +241,12 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  include <stdio.h>
    extern int ZLIB_INTERNAL z_verbose;
    extern void ZLIB_INTERNAL z_error OF((char *m));
-#  define Assert(cond,msg) {if(!(cond)) z_error(msg);}
-#  define Trace(x) {if (z_verbose>=0) fprintf x ;}
-#  define Tracev(x) {if (z_verbose>0) fprintf x ;}
-#  define Tracevv(x) {if (z_verbose>1) fprintf x ;}
-#  define Tracec(c,x) {if (z_verbose>0 && (c)) fprintf x ;}
-#  define Tracecv(c,x) {if (z_verbose>1 && (c)) fprintf x ;}
+#  define Assert(cond,msg) do {if(!(cond)) z_error(msg);} while(0)
+#  define Trace(x) do {if (z_verbose>=0) fprintf x ;} while(0)
+#  define Tracev(x) do {if (z_verbose>0) fprintf x ;} while(0)
+#  define Tracevv(x) do {if (z_verbose>1) fprintf x ;} while(0)
+#  define Tracec(c,x) do {if (z_verbose>0 && (c)) fprintf x ;} while(0)
+#  define Tracecv(c,x) do {if (z_verbose>1 && (c)) fprintf x ;} while(0)
 #else
 #  define Assert(cond,msg)
 #  define Trace(x)
@@ -265,7 +265,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #define ZALLOC(strm, items, size) \
            (*((strm)->zalloc))((strm)->opaque, (items), (size))
 #define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (voidpf)(addr))
-#define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
+#define TRY_FREE(s, p) do {if (p) ZFREE(s, p);} while(0)
 
 /* Reverse the bytes in a 32-bit value */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
