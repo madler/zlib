@@ -126,7 +126,7 @@ z_streamp strm;
     strm->total_in = strm->total_out = state->total = 0;
     strm->msg = Z_NULL;
     if (state->wrap)        /* to support ill-conceived Java test suite */
-        strm->adler = state->wrap & 1;
+        strm->adler = (unsigned)state->wrap & 1u;
     state->mode = HEAD;
     state->last = 0;
     state->havedict = 0;
@@ -459,16 +459,16 @@ unsigned copy;
 #  define CRC2(check, word) \
     do { \
         hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
+        hbuf[1] = (unsigned char)((word) >> 8u); \
         check = crc32(check, hbuf, 2); \
     } while (0)
 
 #  define CRC4(check, word) \
     do { \
         hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
-        hbuf[2] = (unsigned char)((word) >> 16); \
-        hbuf[3] = (unsigned char)((word) >> 24); \
+        hbuf[1] = (unsigned char)((word) >> 8u); \
+        hbuf[2] = (unsigned char)((word) >> 16u); \
+        hbuf[3] = (unsigned char)((word) >> 24u); \
         check = crc32(check, hbuf, 4); \
     } while (0)
 #endif
@@ -522,20 +522,20 @@ unsigned copy;
 
 /* Return the low n bits of the bit accumulator (n < 16) */
 #define BITS(n) \
-    ((unsigned)hold & ((1U << (n)) - 1))
+    ((unsigned)hold & ((1U << (unsigned)(n)) - 1))
 
 /* Remove n bits from the bit accumulator */
 #define DROPBITS(n) \
     do { \
-        hold >>= (n); \
+        hold >>= (unsigned)(n); \
         bits -= (unsigned)(n); \
     } while (0)
 
 /* Remove zero to seven bits as needed to go to a byte boundary */
 #define BYTEBITS() \
     do { \
-        hold >>= bits & 7; \
-        bits -= bits & 7; \
+        hold >>= bits & 7u; \
+        bits -= bits & 7u; \
     } while (0)
 
 /*
@@ -662,7 +662,7 @@ int flush;
             }
             NEEDBITS(16);
 #ifdef GUNZIP
-            if ((state->wrap & 2) && hold == 0x8b1f) {  /* gzip header */
+            if (((unsigned)state->wrap & 2u) && hold == 0x8b1f) {  /* gzip header */
                 if (state->wbits == 0)
                     state->wbits = 15;
                 state->check = crc32(0L, Z_NULL, 0);
@@ -673,11 +673,11 @@ int flush;
             }
             if (state->head != Z_NULL)
                 state->head->done = -1;
-            if (!(state->wrap & 1) ||   /* check if zlib header allowed */
+            if (!((unsigned)state->wrap & 1u) ||   /* check if zlib header allowed */
 #else
             if (
 #endif
-                ((BITS(8) << 8) + (hold >> 8)) % 31) {
+                ((BITS(8) << 8u) + (hold >> 8u)) % 31) {
                 strm->msg = (char *)"incorrect header check";
                 state->mode = BAD;
                 break;
@@ -700,26 +700,26 @@ int flush;
             state->flags = 0;               /* indicate zlib header */
             Tracev((stderr, "inflate:   zlib header ok\n"));
             strm->adler = state->check = adler32(0L, Z_NULL, 0);
-            state->mode = hold & 0x200 ? DICTID : TYPE;
+            state->mode = hold & 0x200u ? DICTID : TYPE;
             INITBITS();
             break;
 #ifdef GUNZIP
         case FLAGS:
             NEEDBITS(16);
             state->flags = (int)(hold);
-            if ((state->flags & 0xff) != Z_DEFLATED) {
+            if (((unsigned)state->flags & 0xffu) != Z_DEFLATED) {
                 strm->msg = (char *)"unknown compression method";
                 state->mode = BAD;
                 break;
             }
-            if (state->flags & 0xe000) {
+            if ((unsigned)state->flags & 0xe000u) {
                 strm->msg = (char *)"unknown header flags set";
                 state->mode = BAD;
                 break;
             }
             if (state->head != Z_NULL)
-                state->head->text = (int)((hold >> 8) & 1);
-            if ((state->flags & 0x0200) && (state->wrap & 4))
+                state->head->text = (int)((hold >> 8u) & 1u);
+            if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                 CRC2(state->check, hold);
             INITBITS();
             state->mode = TIME;
@@ -727,27 +727,27 @@ int flush;
             NEEDBITS(32);
             if (state->head != Z_NULL)
                 state->head->time = hold;
-            if ((state->flags & 0x0200) && (state->wrap & 4))
+            if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                 CRC4(state->check, hold);
             INITBITS();
             state->mode = OS;
         case OS:
             NEEDBITS(16);
             if (state->head != Z_NULL) {
-                state->head->xflags = (int)(hold & 0xff);
-                state->head->os = (int)(hold >> 8);
+                state->head->xflags = (int)(hold & 0xffu);
+                state->head->os = (int)(hold >> 8u);
             }
-            if ((state->flags & 0x0200) && (state->wrap & 4))
+            if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                 CRC2(state->check, hold);
             INITBITS();
             state->mode = EXLEN;
         case EXLEN:
-            if (state->flags & 0x0400) {
+            if ((unsigned)state->flags & 0x0400u) {
                 NEEDBITS(16);
                 state->length = (unsigned)(hold);
                 if (state->head != Z_NULL)
                     state->head->extra_len = (unsigned)hold;
-                if ((state->flags & 0x0200) && (state->wrap & 4))
+                if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                     CRC2(state->check, hold);
                 INITBITS();
             }
@@ -755,7 +755,7 @@ int flush;
                 state->head->extra = Z_NULL;
             state->mode = EXTRA;
         case EXTRA:
-            if (state->flags & 0x0400) {
+            if ((unsigned )state->flags & 0x0400u) {
                 copy = state->length;
                 if (copy > have) copy = have;
                 if (copy) {
@@ -766,7 +766,7 @@ int flush;
                                 len + copy > state->head->extra_max ?
                                 state->head->extra_max - len : copy);
                     }
-                    if ((state->flags & 0x0200) && (state->wrap & 4))
+                    if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                         state->check = crc32(state->check, next, copy);
                     have -= copy;
                     next += copy;
@@ -777,7 +777,7 @@ int flush;
             state->length = 0;
             state->mode = NAME;
         case NAME:
-            if (state->flags & 0x0800) {
+            if ((unsigned)state->flags & 0x0800u) {
                 if (have == 0) goto inf_leave;
                 copy = 0;
                 do {
@@ -787,7 +787,7 @@ int flush;
                             state->length < state->head->name_max)
                         state->head->name[state->length++] = (Bytef)len;
                 } while (len && copy < have);
-                if ((state->flags & 0x0200) && (state->wrap & 4))
+                if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                     state->check = crc32(state->check, next, copy);
                 have -= copy;
                 next += copy;
@@ -798,7 +798,7 @@ int flush;
             state->length = 0;
             state->mode = COMMENT;
         case COMMENT:
-            if (state->flags & 0x1000) {
+            if ((unsigned)state->flags & 0x1000u) {
                 if (have == 0) goto inf_leave;
                 copy = 0;
                 do {
@@ -808,7 +808,7 @@ int flush;
                             state->length < state->head->comm_max)
                         state->head->comment[state->length++] = (Bytef)len;
                 } while (len && copy < have);
-                if ((state->flags & 0x0200) && (state->wrap & 4))
+                if (((unsigned)state->flags & 0x0200u) && ((unsigned)state->wrap & 4u))
                     state->check = crc32(state->check, next, copy);
                 have -= copy;
                 next += copy;
@@ -818,9 +818,9 @@ int flush;
                 state->head->comment = Z_NULL;
             state->mode = HCRC;
         case HCRC:
-            if (state->flags & 0x0200) {
+            if ((unsigned)state->flags & 0x0200u) {
                 NEEDBITS(16);
-                if ((state->wrap & 4) && hold != (state->check & 0xffff)) {
+                if (((unsigned)state->wrap & 4u) && hold != (state->check & 0xffffu)) {
                     strm->msg = (char *)"header crc mismatch";
                     state->mode = BAD;
                     break;
@@ -828,7 +828,7 @@ int flush;
                 INITBITS();
             }
             if (state->head != Z_NULL) {
-                state->head->hcrc = (int)((state->flags >> 9) & 1);
+                state->head->hcrc = (int)(((unsigned)state->flags >> 9u) & 1u);
                 state->head->done = 1;
             }
             strm->adler = state->check = crc32(0L, Z_NULL, 0);
@@ -888,12 +888,12 @@ int flush;
         case STORED:
             BYTEBITS();                         /* go to byte boundary */
             NEEDBITS(32);
-            if ((hold & 0xffff) != ((hold >> 16) ^ 0xffff)) {
+            if ((hold & 0xffffu) != ((hold >> 16u) ^ 0xffffu)) {
                 strm->msg = (char *)"invalid stored block lengths";
                 state->mode = BAD;
                 break;
             }
-            state->length = (unsigned)hold & 0xffff;
+            state->length = (unsigned)hold & 0xffffu;
             Tracev((stderr, "inflate:       stored length %u\n",
                     state->length));
             INITBITS();
@@ -1057,7 +1057,7 @@ int flush;
                 if ((unsigned)(here.bits) <= bits) break;
                 PULLBYTE();
             }
-            if (here.op && (here.op & 0xf0) == 0) {
+            if (here.op && (here.op & 0xf0u) == 0) {
                 last = here;
                 for (;;) {
                     here = state->lencode[last.val +
@@ -1078,18 +1078,18 @@ int flush;
                 state->mode = LIT;
                 break;
             }
-            if (here.op & 32) {
+            if (here.op & 32u) {
                 Tracevv((stderr, "inflate:         end of block\n"));
                 state->back = -1;
                 state->mode = TYPE;
                 break;
             }
-            if (here.op & 64) {
+            if (here.op & 64u) {
                 strm->msg = (char *)"invalid literal/length code";
                 state->mode = BAD;
                 break;
             }
-            state->extra = (unsigned)(here.op) & 15;
+            state->extra = (unsigned)(here.op) & 15u;
             state->mode = LENEXT;
         case LENEXT:
             if (state->extra) {
@@ -1107,7 +1107,7 @@ int flush;
                 if ((unsigned)(here.bits) <= bits) break;
                 PULLBYTE();
             }
-            if ((here.op & 0xf0) == 0) {
+            if ((here.op & 0xf0u) == 0) {
                 last = here;
                 for (;;) {
                     here = state->distcode[last.val +
@@ -1120,13 +1120,13 @@ int flush;
             }
             DROPBITS(here.bits);
             state->back += here.bits;
-            if (here.op & 64) {
+            if (here.op & 64u) {
                 strm->msg = (char *)"invalid distance code";
                 state->mode = BAD;
                 break;
             }
             state->offset = (unsigned)here.val;
-            state->extra = (unsigned)(here.op) & 15;
+            state->extra = (unsigned)(here.op) & 15u;
             state->mode = DISTEXT;
         case DISTEXT:
             if (state->extra) {
@@ -1201,11 +1201,11 @@ int flush;
                 out -= left;
                 strm->total_out += out;
                 state->total += out;
-                if ((state->wrap & 4) && out)
+                if (((unsigned)state->wrap & 4u) && out)
                     strm->adler = state->check =
                         UPDATE(state->check, put - out, out);
                 out = left;
-                if ((state->wrap & 4) && (
+                if (((unsigned)state->wrap & 4u) && (
 #ifdef GUNZIP
                      state->flags ? hold :
 #endif
@@ -1222,7 +1222,7 @@ int flush;
         case LENGTH:
             if (state->wrap && state->flags) {
                 NEEDBITS(32);
-                if ((state->wrap & 4) && hold != (state->total & 0xffffffff)) {
+                if (((unsigned)state->wrap & 4u) && hold != (state->total & 0xffffffff)) {
                     strm->msg = (char *)"incorrect length check";
                     state->mode = BAD;
                     break;
@@ -1264,7 +1264,7 @@ int flush;
     strm->total_in += in;
     strm->total_out += out;
     state->total += out;
-    if ((state->wrap & 4) && out)
+    if (((unsigned)state->wrap & 4u) && out)
         strm->adler = state->check =
             UPDATE(state->check, strm->next_out - out, out);
     strm->data_type = (int)state->bits + (state->last ? 64 : 0) +
@@ -1356,7 +1356,7 @@ gz_headerp head;
     /* check state */
     if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
-    if ((state->wrap & 2) == 0) return Z_STREAM_ERROR;
+    if (((unsigned)state->wrap & 2u) == 0) return Z_STREAM_ERROR;
 
     /* save header structure */
     state->head = head;
@@ -1415,12 +1415,12 @@ z_streamp strm;
     /* if first time, start search in bit buffer */
     if (state->mode != SYNC) {
         state->mode = SYNC;
-        state->hold <<= state->bits & 7;
-        state->bits -= state->bits & 7;
+        state->hold <<= state->bits & 7u;
+        state->bits -= state->bits & 7u;
         len = 0;
         while (state->bits >= 8) {
             buf[len++] = (unsigned char)(state->hold);
-            state->hold >>= 8;
+            state->hold >>= 8u;
             state->bits -= 8;
         }
         state->have = 0;
@@ -1554,7 +1554,7 @@ z_streamp strm;
     if (inflateStateCheck(strm))
         return -(1L << 16);
     state = (struct inflate_state FAR *)strm->state;
-    return (long)(((unsigned long)((long)state->back)) << 16) +
+    return (long)(((unsigned long)((long)state->back)) << 16u) +
         (state->mode == COPY ? state->length :
             (state->mode == MATCH ? state->was - state->length : 0));
 }

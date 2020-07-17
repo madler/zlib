@@ -268,7 +268,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #define TRY_FREE(s, p) do {if (p) ZFREE(s, p);} while(0)
 
 /* Reverse the bytes in a 32-bit value */
-#define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
-                    (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
+#define ZSWAP32(q) ((((q) >> 24u) & 0xffu) + (((q) >> 8u) & 0xff00u) + \
+                    (((q) & 0xff00u) << 8u) + (((q) & 0xffu) << 24u))
 
 #endif /* ZUTIL_H */
