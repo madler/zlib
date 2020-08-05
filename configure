@@ -795,8 +795,8 @@ void foo(void) {
 EOF
 
   if try $CC -march=armv8-a+crc $CFLAGS $test.c -c $test; then
-    CFLAGS="-march=armv8-a+crc $CFLAGS"
-    SFLAGS="-march=armv8-a+crc $SFLAGS"
+    CFLAGS="-march=armv8-a+crc -DADLER32_SIMD_NEON $CFLAGS"
+    SFLAGS="-march=armv8-a+crc -DADLER32_SIMD_NEON $SFLAGS"
     echo "Checking for CRC and NEON support ... Yes" | tee -a configure.log
   else
     echo "Checking for CRC and NEON support ... No" | tee -a configure.log

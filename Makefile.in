@@ -52,10 +52,10 @@ mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 
-OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
+OBJZ = adler32.o adler32_simd.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
 OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
 
-PIC_OBJZ = adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
+PIC_OBJZ = adler32.lo adler32_simd.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
 PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
 	
 ifneq ($(findstring -DHAS_PCLMUL, $(CFLAGS)),)
@@ -272,6 +272,7 @@ depend:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 adler32.o zutil.o: zutil.h zlib.h zconf.h
+adler32_simd.o: zlib.h
 gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h
 crc32.o: zutil.h zlib.h zconf.h crc32.h
@@ -282,6 +283,7 @@ inftrees.o: zutil.h zlib.h zconf.h inftrees.h
 trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
 
 adler32.lo zutil.lo: zutil.h zlib.h zconf.h
+adler32_simd.o: zlib.h
 gzclose.lo gzlib.lo gzread.lo gzwrite.lo: zlib.h zconf.h gzguts.h
 compress.lo example.lo minigzip.lo uncompr.lo: zlib.h zconf.h
 crc32.lo: zutil.h zlib.h zconf.h crc32.h
