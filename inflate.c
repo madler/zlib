@@ -445,6 +445,10 @@ unsigned copy;
 
 /* Macros for inflate(): */
 
+/* UPDATE maybe already defined in some distributions, such as VxWorks */
+#ifdef UPDATE
+#  undef UPDATE
+#endif
 /* check function to use adler32() for zlib or crc32() for gzip */
 #ifdef GUNZIP
 #  define UPDATE(check, buf, len) \
