@@ -57,7 +57,12 @@ OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
 
 PIC_OBJZ = adler32.lo adler32_simd.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
 PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
-	
+
+ifneq ($(findstring -DINFLATE_CHUNK_SIMD_NEON, $(CFLAGS)),)
+        OBJZ += inffast_chunk.o
+        PIC_OBJZ += inffast_chunk.lo
+endif
+
 ifneq ($(findstring -DHAS_PCLMUL, $(CFLAGS)),)
 	OBJZ += crc32_simd.o
 	PIC_OBJZ += crc32_simd.lo
@@ -277,8 +282,9 @@ gzclose.o gzlib.o gzread.o gzwrite.o: zlib.h zconf.h gzguts.h
 compress.o example.o minigzip.o uncompr.o: zlib.h zconf.h
 crc32.o: zutil.h zlib.h zconf.h crc32.h
 deflate.o: deflate.h zutil.h zlib.h zconf.h
-infback.o inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h
+infback.o inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h inffast_chunk.h chunkcopy.h
 inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inffast_chunk.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast_chunk.h chunkcopy.h
 inftrees.o: zutil.h zlib.h zconf.h inftrees.h
 trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
 
@@ -288,7 +294,8 @@ gzclose.lo gzlib.lo gzread.lo gzwrite.lo: zlib.h zconf.h gzguts.h
 compress.lo example.lo minigzip.lo uncompr.lo: zlib.h zconf.h
 crc32.lo: zutil.h zlib.h zconf.h crc32.h
 deflate.lo: deflate.h zutil.h zlib.h zconf.h
-infback.lo inflate.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h
+infback.lo inflate.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h inffixed.h inffast_chunk.h chunkcopy.h
 inffast.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inffast_chunk.lo: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast_chunk.h chunkcopy.h
 inftrees.lo: zutil.h zlib.h zconf.h inftrees.h
 trees.lo: deflate.h zutil.h zlib.h zconf.h trees.h

@@ -1,33 +1,39 @@
-/* inffast.c -- fast decoding
- * Copyright (C) 1995-2008, 2010, 2013 Mark Adler
+/* inffast_chunk.c -- fast decoding
+ *
+ * (C) 1995-2013 Jean-loup Gailly and Mark Adler
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ * Jean-loup Gailly        Mark Adler
+ * jloup@gzip.org          madler@alumni.caltech.edu
+ *
+ * Copyright (C) 1995-2017 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
-#include "inffast.h"
+#include "inffast_chunk.h"
+#include "chunkcopy.h"
 
-#ifndef ASMINF
-
-/* Allow machine dependent optimization for post-increment or pre-increment.
-   Based on testing to date,
-   Pre-increment preferred for:
-   - PowerPC G3 (Adler)
-   - MIPS R5000 (Randers-Pehrson)
-   Post-increment preferred for:
-   - none
-   No measurable difference:
-   - Pentium III (Anderson)
-   - M68060 (Nikl)
- */
-#ifdef POSTINC
-#  define OFF 0
-#  define PUP(a) *(a)++
+#ifdef ASMINF
+#  pragma message("Assembler code may have bugs -- use at your own risk")
 #else
-#  define OFF 1
-#  define PUP(a) *++(a)
-#endif
 
 /*
    Decode literal, length, and distance codes and write out the resulting
@@ -35,15 +41,19 @@
    available, an end-of-block is encountered, or a data error is encountered.
    When large enough input and output buffers are supplied to inflate(), for
    example, a 16K input buffer and a 64K output buffer, more than 95% of the
-   inflate execution time is spent in this routine.
+   inflate() execution time is spent in this routine.
 
    Entry assumptions:
 
         state->mode == LEN
-        strm->avail_in >= INFLATE_FAST_MIN_INPUT
-        strm->avail_out >= INFLATE_FAST_MIN_OUTPUT
+        strm->avail_in >= INFLATE_FAST_MIN_INPUT (6 or 8 bytes)
+        strm->avail_out >= INFLATE_FAST_MIN_OUTPUT (258 bytes)
         start >= strm->avail_out
         state->bits < 8
+        strm->next_out[0..strm->avail_out] does not overlap with
+              strm->next_in[0..strm->avail_in]
+        strm->state->window is allocated with an additional
+              CHUNKCOPY_CHUNK_SIZE-1 bytes of padding beyond strm->state->wsize
 
    On return, state->mode is one of:
 
@@ -53,18 +63,35 @@
 
    Notes:
 
+    INFLATE_FAST_MIN_INPUT: 6 or 8 bytes
+
     - The maximum input bits used by a length/distance pair is 15 bits for the
       length code, 5 bits for the length extra, 15 bits for the distance code,
       and 13 bits for the distance extra.  This totals 48 bits, or six bytes.
       Therefore if strm->avail_in >= 6, then there is enough input to avoid
       checking for available input while decoding.
 
+    - The wide input data reading option reads 64 input bits at a time. Thus,
+      if strm->avail_in >= 8, then there is enough input to avoid checking for
+      available input while decoding. Reading consumes the input with:
+
+          hold |= read64le(in) << bits;
+          in += 6;
+          bits += 48;
+
+      reporting 6 bytes of new input because |bits| is 0..15 (2 bytes rounded
+      up, worst case) and 6 bytes is enough to decode as noted above. At exit,
+      hold &= (1U << bits) - 1 drops excess input to keep the invariant:
+
+          (state->hold >> state->bits) == 0
+
+    INFLATE_FAST_MIN_OUTPUT: 258 bytes
     - The maximum bytes that a single length/distance pair can output is 258
       bytes, which is the maximum length that can be coded.  inflate_fast()
       requires strm->avail_out >= 258 for each loop to avoid checking for
-      output space.
+      available output space while decoding.
  */
-void ZLIB_INTERNAL inflate_fast(strm, start)
+void ZLIB_INTERNAL inflate_fast_chunk_(strm, start)
 z_streamp strm;
 unsigned start;         /* inflate()'s starting value for strm->avail_out */
 {
@@ -74,6 +101,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned char FAR *out;     /* local strm->next_out */
     unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
     unsigned char FAR *end;     /* while out < end, enough space available */
+    unsigned char FAR *limit;   /* safety limit for chunky copies */
 #ifdef INFLATE_STRICT
     unsigned dmax;              /* maximum distance from zlib header */
 #endif
@@ -81,7 +109,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-    unsigned long hold;         /* local strm->hold */
+    inflate_holder_t hold;      /* local strm->hold */
     unsigned bits;              /* local strm->bits */
     code const FAR *lcode;      /* local strm->lencode */
     code const FAR *dcode;      /* local strm->distcode */
@@ -96,17 +124,18 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
 
     /* copy state to local variables */
     state = (struct inflate_state FAR *)strm->state;
-    in = strm->next_in - OFF;
+    in = strm->next_in;
     last = in + (strm->avail_in - (INFLATE_FAST_MIN_INPUT - 1));
-    out = strm->next_out - OFF;
+    out = strm->next_out;
     beg = out - (start - strm->avail_out);
     end = out + (strm->avail_out - (INFLATE_FAST_MIN_OUTPUT - 1));
+    limit = out + strm->avail_out;
 #ifdef INFLATE_STRICT
     dmax = state->dmax;
 #endif
     wsize = state->wsize;
     whave = state->whave;
-    wnext = state->wnext;
+    wnext = (state->wnext == 0 && whave >= wsize) ? wsize : state->wnext;
     window = state->window;
     hold = state->hold;
     bits = state->bits;
@@ -119,10 +148,16 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
        input data or output space */
     do {
         if (bits < 15) {
-            hold += (unsigned long)(PUP(in)) << bits;
+#ifdef INFLATE_CHUNK_READ_64LE
+            hold |= read64le(in) << bits;
+            in += 6;
+            bits += 48;
+#else
+            hold += (unsigned long)(*in++) << bits;
             bits += 8;
-            hold += (unsigned long)(PUP(in)) << bits;
+            hold += (unsigned long)(*in++) << bits;
             bits += 8;
+#endif
         }
         here = lcode[hold & lmask];
       dolen:
@@ -134,15 +169,21 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             Tracevv((stderr, here.val >= 0x20 && here.val < 0x7f ?
                     "inflate:         literal '%c'\n" :
                     "inflate:         literal 0x%02x\n", here.val));
-            PUP(out) = (unsigned char)(here.val);
+            *out++ = (unsigned char)(here.val);
         }
         else if (op & 16) {                     /* length base */
             len = (unsigned)(here.val);
             op &= 15;                           /* number of extra bits */
             if (op) {
                 if (bits < op) {
-                    hold += (unsigned long)(PUP(in)) << bits;
+#ifdef INFLATE_CHUNK_READ_64LE
+                    hold |= read64le(in) << bits;
+                    in += 6;
+                    bits += 48;
+#else
+                    hold += (unsigned long)(*in++) << bits;
                     bits += 8;
+#endif
                 }
                 len += (unsigned)hold & ((1U << op) - 1);
                 hold >>= op;
@@ -150,10 +191,16 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             }
             Tracevv((stderr, "inflate:         length %u\n", len));
             if (bits < 15) {
-                hold += (unsigned long)(PUP(in)) << bits;
+#ifdef INFLATE_CHUNK_READ_64LE
+                hold |= read64le(in) << bits;
+                in += 6;
+                bits += 48;
+#else
+                hold += (unsigned long)(*in++) << bits;
                 bits += 8;
-                hold += (unsigned long)(PUP(in)) << bits;
+                hold += (unsigned long)(*in++) << bits;
                 bits += 8;
+#endif
             }
             here = dcode[hold & dmask];
           dodist:
@@ -165,12 +212,18 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                 dist = (unsigned)(here.val);
                 op &= 15;                       /* number of extra bits */
                 if (bits < op) {
-                    hold += (unsigned long)(PUP(in)) << bits;
+#ifdef INFLATE_CHUNK_READ_64LE
+                    hold |= read64le(in) << bits;
+                    in += 6;
+                    bits += 48;
+#else
+                    hold += (unsigned long)(*in++) << bits;
                     bits += 8;
                     if (bits < op) {
-                        hold += (unsigned long)(PUP(in)) << bits;
+                        hold += (unsigned long)(*in++) << bits;
                         bits += 8;
                     }
+#endif
                 }
                 dist += (unsigned)hold & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
@@ -196,88 +249,69 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
 #ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
                         if (len <= op - whave) {
                             do {
-                                PUP(out) = 0;
+                                *out++ = 0;
                             } while (--len);
                             continue;
                         }
                         len -= op - whave;
                         do {
-                            PUP(out) = 0;
+                            *out++ = 0;
                         } while (--op > whave);
                         if (op == 0) {
                             from = out - dist;
                             do {
-                                PUP(out) = PUP(from);
+                                *out++ = *from++;
                             } while (--len);
                             continue;
                         }
 #endif
                     }
-                    from = window - OFF;
-                    if (wnext == 0) {           /* very common case */
-                        from += wsize - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                PUP(out) = PUP(from);
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
+                    from = window;
+                    if (wnext >= op) {          /* contiguous in window */
+                        from += wnext - op;
                     }
-                    else if (wnext < op) {      /* wrap around window */
-                        from += wsize + wnext - op;
+                    else {                      /* wrap around window */
                         op -= wnext;
+                        from += wsize - op;
                         if (op < len) {         /* some from end of window */
                             len -= op;
-                            do {
-                                PUP(out) = PUP(from);
-                            } while (--op);
-                            from = window - OFF;
-                            if (wnext < len) {  /* some from start of window */
-                                op = wnext;
-                                len -= op;
-                                do {
-                                    PUP(out) = PUP(from);
-                                } while (--op);
-                                from = out - dist;      /* rest from output */
-                            }
+                            out = chunkcopy_safe(out, from, op, limit);
+                            from = window;      /* more from start of window */
+                            op = wnext;
+                            /* This (rare) case can create a situation where
+                               the first chunkcopy below must be checked.
+                             */
                         }
                     }
-                    else {                      /* contiguous in window */
-                        from += wnext - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                PUP(out) = PUP(from);
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
-                    }
-                    while (len > 2) {
-                        PUP(out) = PUP(from);
-                        PUP(out) = PUP(from);
-                        PUP(out) = PUP(from);
-                        len -= 3;
-                    }
-                    if (len) {
-                        PUP(out) = PUP(from);
-                        if (len > 1)
-                            PUP(out) = PUP(from);
+                    if (op < len) {             /* still need some from output */
+                        out = chunkcopy_safe(out, from, op, limit);
+                        len -= op;
+                        /* When dist is small the amount of data that can be
+                           copied from the window is also small, and progress
+                           towards the dangerous end of the output buffer is
+                           also small.  This means that for trivial memsets and
+                           for chunkunroll_relaxed() a safety check is
+                           unnecessary.  However, these conditions may not be
+                           entered at all, and in that case it's possible that
+                           the main copy is near the end.
+                          */
+                        out = chunkunroll_relaxed(out, &dist, &len);
+                        out = chunkcopy_safe(out, out - dist, len, limit);
+                    } else {
+                        /* from points to window, so there is no risk of
+                           overlapping pointers requiring memset-like behaviour
+                         */
+                        out = chunkcopy_safe(out, from, len, limit);
                     }
                 }
                 else {
-                    from = out - dist;          /* copy direct from output */
-                    do {                        /* minimum length is three */
-                        PUP(out) = PUP(from);
-                        PUP(out) = PUP(from);
-                        PUP(out) = PUP(from);
-                        len -= 3;
-                    } while (len > 2);
-                    if (len) {
-                        PUP(out) = PUP(from);
-                        if (len > 1)
-                            PUP(out) = PUP(from);
-                    }
+                    /* Whole reference is in range of current output.  No
+                       range checks are necessary because we start with room
+                       for at least 258 bytes of output, so unroll and roundoff
+                       operations can write beyond `out+len` so long as they
+                       stay within 258 bytes of `out`.
+                     */
+                    out = chunkcopy_lapped_relaxed(out, dist, len);
                 }
             }
             else if ((op & 64) == 0) {          /* 2nd level distance code */
@@ -313,8 +347,8 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     hold &= (1U << bits) - 1;
 
     /* update state and return */
-    strm->next_in = in + OFF;
-    strm->next_out = out + OFF;
+    strm->next_in = in;
+    strm->next_out = out;
     strm->avail_in = (unsigned)(in < last ?
         (INFLATE_FAST_MIN_INPUT - 1) + (last - in) :
         (INFLATE_FAST_MIN_INPUT - 1) - (in - last));
@@ -323,6 +357,8 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
         (INFLATE_FAST_MIN_OUTPUT - 1) - (out - end));
     state->hold = hold;
     state->bits = bits;
+
+    Assert((state->hold >> state->bits) == 0, "invalid input data state");
     return;
 }
 
