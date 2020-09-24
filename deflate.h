@@ -48,7 +48,7 @@
 #define MAX_BITS 15
 /* All codes must not exceed MAX_BITS bits */
 
-#define Buf_size 16
+#define Buf_size 16u
 /* size of bit buffer in bi_buf */
 
 #define INIT_STATE    42    /* zlib header -> BUSY_STATE */
@@ -273,7 +273,7 @@ typedef struct internal_state {
 /* Output a byte on the stream.
  * IN assertion: there is enough room in pending_buf.
  */
-#define put_byte(s, c) {s->pending_buf[s->pending++] = (Bytef)(c);}
+#define put_byte(s, c) do {s->pending_buf[s->pending++] = (Bytef)(c);} while(0)
 
 
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
