@@ -94,7 +94,7 @@ typedef uint64_t ZPOS64_T;
 /* Maximum unsigned 32-bit value used as placeholder for zip64 */
 #define MAXU32 0xffffffff
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
+#if defined(_MSC_VER) || defined(__BORLANDC__) && !defined(__clang__)
 typedef unsigned __int64 ZPOS64_T;
 #else
 typedef unsigned long long int ZPOS64_T;
