@@ -745,6 +745,39 @@ fi
 # Check for AMD64 hardware support.
 if [ x$TGT_ARCH = "xx86_64" -o x$TGT_ARCH = "xamd64" ] ; then
 
+cat > $test.c << EOF
+#include <emmintrin.h>
+void foo(void) {
+  __m64 a, b;
+  _mm_add_si64(a, b);
+}
+EOF
+  if try $CC -msse2 $CFLAGS $test.c -c $test; then
+    CFLAGS="-DINFLATE_CHUNK_SIMD_SSE2 -msse2 -DINFLATE_CHUNK_READ_64LE $CLFAGS"
+    SFLAGS="-DINFLATE_CHUNK_SIMD_SSE2 -msse2 -DINFLATE_CHUNK_READ_64LE $SFLAGS"
+    echo "Checking for SSE2 support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for SSE2 support ... No" | tee -a configure.log
+    leave 1
+  fi
+
+# Check for SSSE3 support
+cat > $test.c << EOF
+#include <tmmintrin.h>
+void foo(void) {
+  __m128i a;
+  _mm_abs_epi8(a);
+}
+EOF
+  if try $CC -mssse3 $CFLAGS $test.c -c $test; then
+    CFLAGS="-DADLER32_SIMD_SSSE3 -mssse3 $CFLAGS"
+    SFLAGS="-DADLER32_SIMD_SSSE3 -mssse3 $SFLAGS"
+    echo "Checking for SSSE3 support ... Yes" | tee -a configure.log
+  else
+    echo "Checking for SSSE3 support ... No" | tee -a configure.log
+    leave 1
+  fi
+
   # Check for SSE4.2 and CRC support
 cat > $test.c << EOF
 #include <immintrin.h>

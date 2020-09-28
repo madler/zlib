@@ -84,7 +84,7 @@
 #include "inftrees.h"
 #include "inflate.h"
 
-#ifdef INFLATE_CHUNK_SIMD_NEON
+#if defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2)
 #include "inffast_chunk.h"
 #include "chunkcopy.h"
 #else
@@ -411,7 +411,7 @@ unsigned copy;
 
     /* if it hasn't been done already, allocate space for the window */
     if (state->window == Z_NULL) {
-#ifdef INFLATE_CHUNK_SIMD_NEON
+#if defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2)
 	unsigned wsize = 1U << state->wbits;
 	state->window = (unsigned char FAR *)
 			ZALLOC(strm, wsize + CHUNKCOPY_CHUNK_SIZE,
@@ -431,7 +431,7 @@ unsigned copy;
                         ZALLOC(strm, 1U << state->wbits,
                                sizeof(unsigned char));
         if (state->window == Z_NULL) return 1;
-#endif /* INFLATE_CHUNK_SIMD_NEON */
+#endif /* INFLATE_CHUNK_SIMD */
     }
 
     /* if window not in use yet, initialize */
@@ -1066,7 +1066,7 @@ int flush;
             if (have >= INFLATE_FAST_MIN_INPUT &&
                 left >= INFLATE_FAST_MIN_OUTPUT) {
                 RESTORE();
-#ifdef INFLATE_CHUNK_SIMD_NEON
+#if defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2)
                 inflate_fast_chunk_(strm, out);
 #else
                 inflate_fast(strm, out);
@@ -1201,7 +1201,7 @@ int flush;
                 else
                     from = state->window + (state->wnext - copy);
                 if (copy > state->length) copy = state->length;
-#ifdef INFLATE_CHUNK_SIMD_NEON
+#if defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2)
                 if (copy > left) copy = left;
                 put = chunkcopy_safe(put, from, copy, put + left);
             }
@@ -1290,7 +1290,7 @@ int flush;
        Note: a memory error from inflate() is non-recoverable.
      */
   inf_leave:
-#ifdef INFLATE_CHUNK_SIMD_NEON
+#if defined(INFLATE_CHUNK_SIMD_NEON) || defined(INFLATE_CHUNK_SIMD_SSE2)
     /* We write a defined value in the unused space to help mark
      * where the stream has ended. We don't use zeros as that can
      * mislead clients relying on undefined behavior (i.e. assuming

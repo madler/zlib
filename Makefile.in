@@ -63,6 +63,11 @@ ifneq ($(findstring -DINFLATE_CHUNK_SIMD_NEON, $(CFLAGS)),)
         PIC_OBJZ += inffast_chunk.lo
 endif
 
+ifneq ($(findstring -DINFLATE_CHUNK_SIMD_SSE2, $(CFLAGS)),)
+	OBJZ += inffast_chunk.o
+	PIC_OBJZ += inffast_chunk.lo
+endif
+
 ifneq ($(findstring -DHAS_PCLMUL, $(CFLAGS)),)
 	OBJZ += crc32_simd.o
 	PIC_OBJZ += crc32_simd.lo
