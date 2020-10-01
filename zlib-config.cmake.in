@@ -1,0 +1,10 @@
+set(zlib_VERSION "@VERSION@")
+
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/zlib-export.cmake")
+
+set(zlib_DEFINITIONS "")
+set(zlib_INCLUDE_DIRS "")
+set(zlib_LIBRARY_DIRS "")
+set(zlib_LIBRARIES "zlib::zlib")
