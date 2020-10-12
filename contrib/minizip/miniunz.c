@@ -54,6 +54,9 @@
 # include <utime.h>
 #endif
 
+#ifdef unix
+#include <sys/stat.h>
+#endif
 
 #include "unzip.h"
 
@@ -96,8 +99,7 @@ void change_file_date(filename,dosdate,tmu_date)
   LocalFileTimeToFileTime(&ftLocal,&ftm);
   SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
   CloseHandle(hFile);
-#else
-#ifdef unix || __APPLE__
+#elif defined(unix) || defined(__APPLE__)
   struct utimbuf ut;
   struct tm newdate;
   newdate.tm_sec = tmu_date.tm_sec;
@@ -114,7 +116,6 @@ void change_file_date(filename,dosdate,tmu_date)
   ut.actime=ut.modtime=mktime(&newdate);
   utime(filename,&ut);
 #endif
-#endif
 }
 
 
@@ -127,9 +128,7 @@ int mymkdir(dirname)
     int ret=0;
 #ifdef _WIN32
     ret = _mkdir(dirname);
-#elif unix
-    ret = mkdir (dirname,0775);
-#elif __APPLE__
+#elif defined(unix) || defined(__APPLE__)
     ret = mkdir (dirname,0775);
 #endif
     return ret;
