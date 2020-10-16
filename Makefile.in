@@ -165,6 +165,9 @@ crc32.o: $(SRCDIR)crc32.c
 deflate.o: $(SRCDIR)deflate.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)deflate.c
 
+longest_match_power9.o: $(SRCDIR)contrib/power/longest_match_power9.c
+	$(CC) $(CFLAGS) -mcpu=power9 $(ZINC) -c -o $@ $(SRCDIR)contrib/power/longest_match_power9.c
+
 infback.o: $(SRCDIR)infback.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)infback.c
 
@@ -216,6 +219,11 @@ deflate.lo: $(SRCDIR)deflate.c
 	-@mkdir objs 2>/dev/null || test -d objs
 	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/deflate.o $(SRCDIR)deflate.c
 	-@mv objs/deflate.o $@
+
+longest_match_power9.lo: $(SRCDIR)contrib/power/longest_match_power9.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) -mcpu=power9 $(ZINC) -DPIC -c -o objs/longest_match_power9.o $(SRCDIR)contrib/power/longest_match_power9.c
+	-@mv objs/longest_match_power9.o $@
 
 infback.lo: $(SRCDIR)infback.c
 	-@mkdir objs 2>/dev/null || test -d objs

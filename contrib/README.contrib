@@ -11,6 +11,10 @@ ada/        by Dmitriy Anisimkov <anisimkov@yahoo.com>
 blast/      by Mark Adler <madler@alumni.caltech.edu>
         Decompressor for output of PKWare Data Compression Library (DCL)
 
+gcc/        by Matheus Castanho <msc@linux.ibm.com>
+            and Rogerio Alves <rcardoso@linux.ibm.com>
+        Optimization helpers using GCC-specific extensions
+
 delphi/     by Cosmin Truta <cosmint@cs.ubbcluj.ro>
         Support for Delphi and C++ Builder
 
@@ -41,6 +45,10 @@ minizip/    by Gilles Vollant <info@winimage.com>
 
 pascal/     by Bob Dellaca <bobdl@xtra.co.nz> et al.
         Support for Pascal
+
+power/      by Matheus Castanho <msc@linux.ibm.com>
+            and Rogerio Alves <rcardoso@linux.ibm.com>
+        Optimized functions for Power processors
 
 puff/       by Mark Adler <madler@alumni.caltech.edu>
         Small, low memory usage inflate.  Also serves to provide an
