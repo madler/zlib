@@ -76,6 +76,10 @@ EXPORTS
     crc32_z
     adler32_combine
     crc32_combine
+; v1.2.11.1 symbols
+    crc32_combine_gen64
+    crc32_combine_gen
+    crc32_combine_op
 ; various hacks, don't look :)
     deflateInit_
     deflateInit2_
