@@ -196,6 +196,13 @@ local const config configuration_table[10] = {
                  (unsigned)(s->hash_size-1)*sizeof(*s->head)); \
     } while (0)
 
+#ifdef Z_POWER_OPT
+/* Rename function so resolver can use its symbol. The default version will be
+ * returned by the resolver if the host has no support for an optimized version.
+ */
+#define slide_hash slide_hash_default
+#endif /* Z_POWER_OPT */
+
 /* ===========================================================================
  * Slide the hash table when sliding the window down (could be avoided with 32
  * bit values at the expense of memory usage). We slide even when level == 0 to
@@ -226,6 +233,11 @@ local void slide_hash(s)
     } while (--n);
 #endif
 }
+
+#ifdef Z_POWER_OPT
+#undef slide_hash
+#include "contrib/power/slide_hash_resolver.c"
+#endif /* Z_POWER_OPT */
 
 /* ========================================================================= */
 int ZEXPORT deflateInit_(strm, level, version, stream_size)
