@@ -130,6 +130,7 @@
 #    define uncompress2           z_uncompress2
 #  endif
 #  define zError                z_zError
+#  define z_errmsg              z_z_errmsg
 #  ifndef Z_SOLO
 #    define zcalloc               z_zcalloc
 #    define zcfree                z_zcfree
