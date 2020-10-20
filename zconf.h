@@ -9,6 +9,13 @@
 #define ZCONF_H
 
 /*
+ * Defining custom Z_PREFIX_ implies using Z_PREFIX.
+ */
+#if defined(Z_PREFIX_) && !defined(Z_PREFIX)
+#  define Z_PREFIX 1
+#endif
+
+/*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
  * Even better than compiling with -DZ_PREFIX would be to use configure to set
@@ -17,152 +24,173 @@
 #ifdef Z_PREFIX     /* may be set to #if 1 by ./configure */
 #  define Z_PREFIX_SET
 
+#define ZLIB_CONCAT2(x, y) x ## y
+#define ZLIB_CONCAT(x, y) ZLIB_CONCAT2(x, y)
+
+/*
+ * If a custom prefix is defined, use it. Otherwise use the default "z_".
+ */
+#ifdef Z_PREFIX_
+#  define Z_ADD_PREFIX(name) ZLIB_CONCAT(Z_PREFIX_, name)
+#else
+#  define Z_ADD_PREFIX(name) ZLIB_CONCAT(z_, name)
+#endif
+
+/*
+ * For macros the standard prefix is always used, as we can't define them
+ * using names constructed using arbitrary Z_PREFIX_ value -- but luckily this
+ * doesn't matter anyhow, because we can't have link-time conflicts for macros.
+ */
+#define Z_ADD_PREFIX_STD(name) ZLIB_CONCAT(z_, name)
+
 /* all linked symbols and init macros */
-#  define _dist_code            z__dist_code
-#  define _length_code          z__length_code
-#  define _tr_align             z__tr_align
-#  define _tr_flush_bits        z__tr_flush_bits
-#  define _tr_flush_block       z__tr_flush_block
-#  define _tr_init              z__tr_init
-#  define _tr_stored_block      z__tr_stored_block
-#  define _tr_tally             z__tr_tally
-#  define adler32               z_adler32
-#  define adler32_combine       z_adler32_combine
-#  define adler32_combine64     z_adler32_combine64
-#  define adler32_z             z_adler32_z
+#  define _dist_code            Z_ADD_PREFIX(_dist_code)
+#  define _length_code          Z_ADD_PREFIX(_length_code)
+#  define _tr_align             Z_ADD_PREFIX(_tr_align)
+#  define _tr_flush_bits        Z_ADD_PREFIX(_tr_flush_bits)
+#  define _tr_flush_block       Z_ADD_PREFIX(_tr_flush_block)
+#  define _tr_init              Z_ADD_PREFIX(_tr_init)
+#  define _tr_stored_block      Z_ADD_PREFIX(_tr_stored_block)
+#  define _tr_tally             Z_ADD_PREFIX(_tr_tally)
+#  define adler32               Z_ADD_PREFIX(adler32)
+#  define adler32_combine       Z_ADD_PREFIX(adler32_combine)
+#  define adler32_combine64     Z_ADD_PREFIX(adler32_combine64)
+#  define adler32_z             Z_ADD_PREFIX(adler32_z)
 #  ifndef Z_SOLO
-#    define compress              z_compress
-#    define compress2             z_compress2
-#    define compressBound         z_compressBound
+#    define compress              Z_ADD_PREFIX(compress)
+#    define compress2             Z_ADD_PREFIX(compress2)
+#    define compressBound         Z_ADD_PREFIX(compressBound)
 #  endif
-#  define crc32                 z_crc32
-#  define crc32_combine         z_crc32_combine
-#  define crc32_combine64       z_crc32_combine64
-#  define crc32_z               z_crc32_z
-#  define deflate               z_deflate
-#  define deflateBound          z_deflateBound
-#  define deflateCopy           z_deflateCopy
-#  define deflateEnd            z_deflateEnd
-#  define deflateGetDictionary  z_deflateGetDictionary
-#  define deflateInit           z_deflateInit
-#  define deflateInit2          z_deflateInit2
-#  define deflateInit2_         z_deflateInit2_
-#  define deflateInit_          z_deflateInit_
-#  define deflateParams         z_deflateParams
-#  define deflatePending        z_deflatePending
-#  define deflatePrime          z_deflatePrime
-#  define deflateReset          z_deflateReset
-#  define deflateResetKeep      z_deflateResetKeep
-#  define deflateSetDictionary  z_deflateSetDictionary
-#  define deflateSetHeader      z_deflateSetHeader
-#  define deflateTune           z_deflateTune
-#  define deflate_copyright     z_deflate_copyright
-#  define get_crc_table         z_get_crc_table
+#  define crc32                 Z_ADD_PREFIX(crc32)
+#  define crc32_combine         Z_ADD_PREFIX(crc32_combine)
+#  define crc32_combine64       Z_ADD_PREFIX(crc32_combine64)
+#  define crc32_z               Z_ADD_PREFIX(crc32_z)
+#  define deflate               Z_ADD_PREFIX(deflate)
+#  define deflateBound          Z_ADD_PREFIX(deflateBound)
+#  define deflateCopy           Z_ADD_PREFIX(deflateCopy)
+#  define deflateEnd            Z_ADD_PREFIX(deflateEnd)
+#  define deflateGetDictionary  Z_ADD_PREFIX(deflateGetDictionary)
+#  define deflateInit           Z_ADD_PREFIX_STD(deflateInit)
+#  define deflateInit2          Z_ADD_PREFIX_STD(deflateInit2)
+#  define deflateInit2_         Z_ADD_PREFIX(deflateInit2_)
+#  define deflateInit_          Z_ADD_PREFIX(deflateInit_)
+#  define deflateParams         Z_ADD_PREFIX(deflateParams)
+#  define deflatePending        Z_ADD_PREFIX(deflatePending)
+#  define deflatePrime          Z_ADD_PREFIX(deflatePrime)
+#  define deflateReset          Z_ADD_PREFIX(deflateReset)
+#  define deflateResetKeep      Z_ADD_PREFIX(deflateResetKeep)
+#  define deflateSetDictionary  Z_ADD_PREFIX(deflateSetDictionary)
+#  define deflateSetHeader      Z_ADD_PREFIX(deflateSetHeader)
+#  define deflateTune           Z_ADD_PREFIX(deflateTune)
+#  define deflate_copyright     Z_ADD_PREFIX(deflate_copyright)
+#  define get_crc_table         Z_ADD_PREFIX(get_crc_table)
 #  ifndef Z_SOLO
-#    define gz_error              z_gz_error
-#    define gz_intmax             z_gz_intmax
-#    define gz_strwinerror        z_gz_strwinerror
-#    define gzbuffer              z_gzbuffer
-#    define gzclearerr            z_gzclearerr
-#    define gzclose               z_gzclose
-#    define gzclose_r             z_gzclose_r
-#    define gzclose_w             z_gzclose_w
-#    define gzdirect              z_gzdirect
-#    define gzdopen               z_gzdopen
-#    define gzeof                 z_gzeof
-#    define gzerror               z_gzerror
-#    define gzflush               z_gzflush
-#    define gzfread               z_gzfread
-#    define gzfwrite              z_gzfwrite
-#    define gzgetc                z_gzgetc
-#    define gzgetc_               z_gzgetc_
-#    define gzgets                z_gzgets
-#    define gzoffset              z_gzoffset
-#    define gzoffset64            z_gzoffset64
-#    define gzopen                z_gzopen
-#    define gzopen64              z_gzopen64
+#    define gz_error              Z_ADD_PREFIX(gz_error)
+#    define gz_intmax             Z_ADD_PREFIX(gz_intmax)
+#    define gz_strwinerror        Z_ADD_PREFIX(gz_strwinerror)
+#    define gzbuffer              Z_ADD_PREFIX(gzbuffer)
+#    define gzclearerr            Z_ADD_PREFIX(gzclearerr)
+#    define gzclose               Z_ADD_PREFIX(gzclose)
+#    define gzclose_r             Z_ADD_PREFIX(gzclose_r)
+#    define gzclose_w             Z_ADD_PREFIX(gzclose_w)
+#    define gzdirect              Z_ADD_PREFIX(gzdirect)
+#    define gzdopen               Z_ADD_PREFIX(gzdopen)
+#    define gzeof                 Z_ADD_PREFIX(gzeof)
+#    define gzerror               Z_ADD_PREFIX(gzerror)
+#    define gzflush               Z_ADD_PREFIX(gzflush)
+#    define gzfread               Z_ADD_PREFIX(gzfread)
+#    define gzfwrite              Z_ADD_PREFIX(gzfwrite)
+#    define gzgetc                Z_ADD_PREFIX(gzgetc)
+#    define gzgetc_               Z_ADD_PREFIX(gzgetc_)
+#    define gzgets                Z_ADD_PREFIX(gzgets)
+#    define gzoffset              Z_ADD_PREFIX(gzoffset)
+#    define gzoffset64            Z_ADD_PREFIX(gzoffset64)
+#    define gzopen                Z_ADD_PREFIX(gzopen)
+#    define gzopen64              Z_ADD_PREFIX(gzopen64)
 #    ifdef _WIN32
-#      define gzopen_w              z_gzopen_w
+#      define gzopen_w              Z_ADD_PREFIX(gzopen_w)
 #    endif
-#    define gzprintf              z_gzprintf
-#    define gzputc                z_gzputc
-#    define gzputs                z_gzputs
-#    define gzread                z_gzread
-#    define gzrewind              z_gzrewind
-#    define gzseek                z_gzseek
-#    define gzseek64              z_gzseek64
-#    define gzsetparams           z_gzsetparams
-#    define gztell                z_gztell
-#    define gztell64              z_gztell64
-#    define gzungetc              z_gzungetc
-#    define gzvprintf             z_gzvprintf
-#    define gzwrite               z_gzwrite
+#    define gzprintf              Z_ADD_PREFIX(gzprintf)
+#    define gzputc                Z_ADD_PREFIX(gzputc)
+#    define gzputs                Z_ADD_PREFIX(gzputs)
+#    define gzread                Z_ADD_PREFIX(gzread)
+#    define gzrewind              Z_ADD_PREFIX(gzrewind)
+#    define gzseek                Z_ADD_PREFIX(gzseek)
+#    define gzseek64              Z_ADD_PREFIX(gzseek64)
+#    define gzsetparams           Z_ADD_PREFIX(gzsetparams)
+#    define gztell                Z_ADD_PREFIX(gztell)
+#    define gztell64              Z_ADD_PREFIX(gztell64)
+#    define gzungetc              Z_ADD_PREFIX(gzungetc)
+#    define gzvprintf             Z_ADD_PREFIX(gzvprintf)
+#    define gzwrite               Z_ADD_PREFIX(gzwrite)
 #  endif
-#  define inflate               z_inflate
-#  define inflateBack           z_inflateBack
-#  define inflateBackEnd        z_inflateBackEnd
-#  define inflateBackInit       z_inflateBackInit
-#  define inflateBackInit_      z_inflateBackInit_
-#  define inflateCodesUsed      z_inflateCodesUsed
-#  define inflateCopy           z_inflateCopy
-#  define inflateEnd            z_inflateEnd
-#  define inflateGetDictionary  z_inflateGetDictionary
-#  define inflateGetHeader      z_inflateGetHeader
-#  define inflateInit           z_inflateInit
-#  define inflateInit2          z_inflateInit2
-#  define inflateInit2_         z_inflateInit2_
-#  define inflateInit_          z_inflateInit_
-#  define inflateMark           z_inflateMark
-#  define inflatePrime          z_inflatePrime
-#  define inflateReset          z_inflateReset
-#  define inflateReset2         z_inflateReset2
-#  define inflateResetKeep      z_inflateResetKeep
-#  define inflateSetDictionary  z_inflateSetDictionary
-#  define inflateSync           z_inflateSync
-#  define inflateSyncPoint      z_inflateSyncPoint
-#  define inflateUndermine      z_inflateUndermine
-#  define inflateValidate       z_inflateValidate
-#  define inflate_copyright     z_inflate_copyright
-#  define inflate_fast          z_inflate_fast
-#  define inflate_table         z_inflate_table
+#  define inflate               Z_ADD_PREFIX(inflate)
+#  define inflateBack           Z_ADD_PREFIX(inflateBack)
+#  define inflateBackEnd        Z_ADD_PREFIX(inflateBackEnd)
+#  define inflateBackInit       Z_ADD_PREFIX_STD(inflateBackInit)
+#  define inflateBackInit_      Z_ADD_PREFIX(inflateBackInit_)
+#  define inflateCodesUsed      Z_ADD_PREFIX(inflateCodesUsed)
+#  define inflateCopy           Z_ADD_PREFIX(inflateCopy)
+#  define inflateEnd            Z_ADD_PREFIX(inflateEnd)
+#  define inflateGetDictionary  Z_ADD_PREFIX(inflateGetDictionary)
+#  define inflateGetHeader      Z_ADD_PREFIX(inflateGetHeader)
+#  define inflateInit           Z_ADD_PREFIX_STD(inflateInit)
+#  define inflateInit2          Z_ADD_PREFIX_STD(inflateInit2)
+#  define inflateInit2_         Z_ADD_PREFIX(inflateInit2_)
+#  define inflateInit_          Z_ADD_PREFIX(inflateInit_)
+#  define inflateMark           Z_ADD_PREFIX(inflateMark)
+#  define inflatePrime          Z_ADD_PREFIX(inflatePrime)
+#  define inflateReset          Z_ADD_PREFIX(inflateReset)
+#  define inflateReset2         Z_ADD_PREFIX(inflateReset2)
+#  define inflateResetKeep      Z_ADD_PREFIX(inflateResetKeep)
+#  define inflateSetDictionary  Z_ADD_PREFIX(inflateSetDictionary)
+#  define inflateSync           Z_ADD_PREFIX(inflateSync)
+#  define inflateSyncPoint      Z_ADD_PREFIX(inflateSyncPoint)
+#  define inflateUndermine      Z_ADD_PREFIX(inflateUndermine)
+#  define inflateValidate       Z_ADD_PREFIX(inflateValidate)
+#  define inflate_copyright     Z_ADD_PREFIX(inflate_copyright)
+#  define inflate_fast          Z_ADD_PREFIX(inflate_fast)
+#  define inflate_table         Z_ADD_PREFIX(inflate_table)
 #  ifndef Z_SOLO
-#    define uncompress            z_uncompress
-#    define uncompress2           z_uncompress2
+#    define uncompress            Z_ADD_PREFIX(uncompress)
+#    define uncompress2           Z_ADD_PREFIX(uncompress2)
 #  endif
-#  define zError                z_zError
+#  define zError                Z_ADD_PREFIX(zError)
 #  ifndef Z_SOLO
-#    define zcalloc               z_zcalloc
-#    define zcfree                z_zcfree
+#    define zcalloc               Z_ADD_PREFIX(zcalloc)
+#    define zcfree                Z_ADD_PREFIX(zcfree)
 #  endif
-#  define zlibCompileFlags      z_zlibCompileFlags
-#  define zlibVersion           z_zlibVersion
+#  define zlibCompileFlags      Z_ADD_PREFIX(zlibCompileFlags)
+#  define zlibVersion           Z_ADD_PREFIX(zlibVersion)
 
 /* all zlib typedefs in zlib.h and zconf.h */
-#  define Byte                  z_Byte
-#  define Bytef                 z_Bytef
-#  define alloc_func            z_alloc_func
-#  define charf                 z_charf
-#  define free_func             z_free_func
+#  define Byte                  Z_ADD_PREFIX(Byte)
+#  define Bytef                 Z_ADD_PREFIX(Bytef)
+#  define alloc_func            Z_ADD_PREFIX(alloc_func)
+#  define charf                 Z_ADD_PREFIX(charf)
+#  define free_func             Z_ADD_PREFIX(free_func)
 #  ifndef Z_SOLO
-#    define gzFile                z_gzFile
+#    define gzFile                Z_ADD_PREFIX(gzFile)
 #  endif
-#  define gz_header             z_gz_header
-#  define gz_headerp            z_gz_headerp
-#  define in_func               z_in_func
-#  define intf                  z_intf
-#  define out_func              z_out_func
-#  define uInt                  z_uInt
-#  define uIntf                 z_uIntf
-#  define uLong                 z_uLong
-#  define uLongf                z_uLongf
-#  define voidp                 z_voidp
-#  define voidpc                z_voidpc
-#  define voidpf                z_voidpf
+#  define gz_header             Z_ADD_PREFIX(gz_header)
+#  define gz_headerp            Z_ADD_PREFIX(gz_headerp)
+#  define in_func               Z_ADD_PREFIX(in_func)
+#  define intf                  Z_ADD_PREFIX(intf)
+#  define out_func              Z_ADD_PREFIX(out_func)
+#  define uInt                  Z_ADD_PREFIX(uInt)
+#  define uIntf                 Z_ADD_PREFIX(uIntf)
+#  define uLong                 Z_ADD_PREFIX(uLong)
+#  define uLongf                Z_ADD_PREFIX(uLongf)
+#  define voidp                 Z_ADD_PREFIX(voidp)
+#  define voidpc                Z_ADD_PREFIX(voidpc)
+#  define voidpf                Z_ADD_PREFIX(voidpf)
 
 /* all zlib structs in zlib.h and zconf.h */
-#  define gz_header_s           z_gz_header_s
-#  define internal_state        z_internal_state
+#  define gz_header_s           Z_ADD_PREFIX(gz_header_s)
+#  define internal_state        Z_ADD_PREFIX(internal_state)
 
+/* variable from zutil.h */
+#  define z_errmsg              Z_ADD_PREFIX(z_errmsg)
 #endif
 
 #if defined(__MSDOS__) && !defined(MSDOS)
@@ -492,6 +520,29 @@ typedef uLong FAR uLongf;
 
 #if defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS-0 == 64 && defined(Z_LFS64)
 #  define Z_WANT64
+#endif
+
+#if !defined(ZLIB_INTERNAL) && defined(Z_WANT64) && defined(Z_PREFIX_)
+/*
+ * It turns out that some of the functions defined above using custom prefix
+ * will actually be macros in this library build, so they must use standard
+ * prefix instead. Ugly, but we need to redefine them as we couldn't define
+ * them correctly from the beginning as Z_WANT64 wasn't available then yet.
+ */
+#  undef adler32_combine
+#  define adler32_combine       Z_ADD_PREFIX_STD(adler32_combine)
+#  undef crc32_combine
+#  define crc32_combine         Z_ADD_PREFIX_STD(crc32_combine)
+#  ifndef Z_SOLO
+#    undef gzoffset
+#    define gzoffset              Z_ADD_PREFIX_STD(gzoffset)
+#    undef gzopen
+#    define gzopen                Z_ADD_PREFIX_STD(gzopen)
+#    undef gzseek
+#    define gzseek                Z_ADD_PREFIX_STD(gzseek)
+#    undef gztell
+#    define gztell                Z_ADD_PREFIX_STD(gztell)
+#  endif
 #endif
 
 #if !defined(SEEK_SET) && !defined(Z_SOLO)
