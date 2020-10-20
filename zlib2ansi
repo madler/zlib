@@ -39,7 +39,7 @@ while (s/^
 
                 ( (?: $dList )+ ) # $5
 
-                $sp ^ {        # literal "{" at start of line
+                $sp ^ \{        # literal "{" at start of line
             )                  # Remember to $1
         //xsom
       )
