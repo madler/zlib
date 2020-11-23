@@ -46,6 +46,10 @@ puff/       by Mark Adler <madler@alumni.caltech.edu>
         Small, low memory usage inflate.  Also serves to provide an
         unambiguous description of the deflate format.
 
+s390/       by Ilya Leoshkevich <iii@linux.ibm.com>
+        Hardware-accelerated deflate on IBM Z with DEFLATE CONVERSION CALL
+        instruction.
+
 testzlib/   by Gilles Vollant <info@winimage.com>
         Example of the use of zlib
 

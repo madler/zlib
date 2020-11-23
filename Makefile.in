@@ -143,6 +143,14 @@ match.lo: match.S
 	mv _match.o match.lo
 	rm -f _match.s
 
+dfltcc.o: $(SRCDIR)contrib/s390/dfltcc.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)contrib/s390/dfltcc.c
+
+dfltcc.lo: $(SRCDIR)contrib/s390/dfltcc.c $(SRCDIR)zlib.h zconf.h
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/dfltcc.o $(SRCDIR)contrib/s390/dfltcc.c
+	-@mv objs/dfltcc.o $@
+
 example.o: $(SRCDIR)test/example.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(ZINCOUT) -c -o $@ $(SRCDIR)test/example.c
 

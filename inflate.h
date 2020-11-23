@@ -124,3 +124,5 @@ struct inflate_state {
     int back;                   /* bits back of last unprocessed length/lit */
     unsigned was;               /* initial length of match */
 };
+
+int ZLIB_INTERNAL inflate_ensure_window OF((struct inflate_state *state));

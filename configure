@@ -114,6 +114,7 @@ case "$1" in
       echo '  configure [--const] [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
       echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
+      echo '    [--dfltcc] [--dfltcc-level-mask=MASK]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -137,6 +138,16 @@ case "$1" in
     -c* | --const) zconst=1; shift ;;
     -w* | --warn) warn=1; shift ;;
     -d* | --debug) debug=1; shift ;;
+    --dfltcc)
+      CFLAGS="$CFLAGS -DDFLTCC"
+      OBJC="$OBJC dfltcc.o"
+      PIC_OBJC="$PIC_OBJC dfltcc.lo"
+      shift
+      ;;
+    --dfltcc-level-mask=*)
+      CFLAGS="$CFLAGS -DDFLTCC_LEVEL_MASK=`echo $1 | sed 's/.*=//'`"
+      shift
+      ;;
     *)
       echo "unknown option: $1" | tee -a configure.log
       echo "$0 --help for help" | tee -a configure.log
@@ -820,6 +831,19 @@ EOF
   else
     echo "Checking for attribute(visibility) support... No." | tee -a configure.log
   fi
+fi
+
+# Check whether sys/sdt.h is available
+cat > $test.c << EOF
+#include <sys/sdt.h>
+int main() { return 0; }
+EOF
+if try $CC -c $CFLAGS $test.c; then
+    echo "Checking for sys/sdt.h ... Yes." | tee -a configure.log
+    CFLAGS="$CFLAGS -DHAVE_SYS_SDT_H"
+    SFLAGS="$SFLAGS -DHAVE_SYS_SDT_H"
+else
+    echo "Checking for sys/sdt.h ... No." | tee -a configure.log
 fi
 
 # show the results in the log

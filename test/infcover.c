@@ -373,7 +373,7 @@ local void cover_support(void)
     mem_setup(&strm);
     strm.avail_in = 0;
     strm.next_in = Z_NULL;
-    ret = inflateInit_(&strm, ZLIB_VERSION - 1, (int)sizeof(z_stream));
+    ret = inflateInit_(&strm, &ZLIB_VERSION[1], (int)sizeof(z_stream));
                                                 assert(ret == Z_VERSION_ERROR);
     mem_done(&strm, "wrong version");
 
@@ -444,7 +444,7 @@ local void cover_wrap(void)
 }
 
 /* input and output functions for inflateBack() */
-local unsigned pull(void *desc, unsigned char **buf)
+local unsigned pull(void *desc, z_const unsigned char **buf)
 {
     static unsigned int next = 0;
     static unsigned char dat[] = {0x63, 0, 2, 0};

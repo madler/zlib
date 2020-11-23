@@ -153,7 +153,11 @@
 
 /* default i/o buffer size -- double this for output when reading (this and
    twice this must be able to fit in an unsigned type) */
+#ifdef DFLTCC
+#define GZBUFSIZE 131072
+#else
 #define GZBUFSIZE 8192
+#endif
 
 /* gzip modes, also provide a little integrity check on the passed structure */
 #define GZ_NONE 0

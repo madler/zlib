@@ -149,8 +149,6 @@ local void send_all_trees OF((deflate_state *s, int lcodes, int dcodes,
 local void compress_block OF((deflate_state *s, const ct_data *ltree,
                               const ct_data *dtree));
 local int  detect_data_type OF((deflate_state *s));
-local unsigned bi_reverse OF((unsigned code, int len));
-local void bi_windup      OF((deflate_state *s));
 local void bi_flush       OF((deflate_state *s));
 
 #ifdef GEN_TREES_H
@@ -223,6 +221,13 @@ local void send_bits(s, value, length)
 }
 #endif /* ZLIB_DEBUG */
 
+void ZLIB_INTERNAL _tr_send_bits(s, value, length)
+    deflate_state *s;
+    int value;
+    int length;
+{
+    send_bits(s, value, length);
+}
 
 /* the arguments must not have side effects */
 
@@ -1134,7 +1139,7 @@ local int detect_data_type(s)
  * method would use a table)
  * IN assertion: 1 <= len <= 15
  */
-local unsigned bi_reverse(code, len)
+unsigned ZLIB_INTERNAL bi_reverse(code, len)
     unsigned code; /* the value to invert */
     int len;       /* its bit length */
 {
@@ -1166,7 +1171,7 @@ local void bi_flush(s)
 /* ===========================================================================
  * Flush the bit buffer and align the output on a byte boundary
  */
-local void bi_windup(s)
+void ZLIB_INTERNAL bi_windup(s)
     deflate_state *s;
 {
     if (s->bi_valid > 8) {
