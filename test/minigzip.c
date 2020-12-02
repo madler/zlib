@@ -597,7 +597,7 @@ int main(argc, argv)
       else if (strcmp(*argv, "-h") == 0)
         outmode[3] = 'h';
       else if (strcmp(*argv, "-k") == 0)
-        keep = 1;       
+        keep = 1;
       else if (strcmp(*argv, "-r") == 0)
         outmode[3] = 'R';
       else if ((*argv)[0] == '-' && (*argv)[1] >= '1' && (*argv)[1] <= '9' &&
