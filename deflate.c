@@ -1068,7 +1068,7 @@ int ZEXPORT deflate (strm, flush)
     /* If avail_out is zero, the application will call deflate again
      * to flush the rest.
      */
-    if (s->wrap > 0) s->wrap = -s->wrap; /* write the trailer only once! */
+    s->wrap = -s->wrap; /* write the trailer only once! */
     return s->pending != 0 ? Z_OK : Z_STREAM_END;
 }
 
