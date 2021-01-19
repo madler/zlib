@@ -24,3 +24,8 @@
 /configure.log
 
 .DS_Store
+
+.vs/
+.history/
+build/
+CMakeUserPresets.json
