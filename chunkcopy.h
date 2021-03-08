@@ -427,6 +427,26 @@ static inline unsigned char FAR* chunkcopy_lapped_safe(
   return chunkcopy_lapped_relaxed(out, dist, len);
 }
 
+/* TODO(cavalcanti): see crbug.com/1110083. */
+static inline unsigned char FAR* chunkcopy_safe_ugly(unsigned char FAR* out,
+                                                     unsigned dist,
+                                                     unsigned len,
+                                                     unsigned char FAR* limit) {
+#if defined(__GNUC__) && !defined(__clang__)
+  /* Speed is the same as using chunkcopy_safe
+     w/ GCC on ARM (tested gcc 6.3 and 7.5) and avoids
+     undefined behavior.
+  */
+  return chunkcopy_core_safe(out, out - dist, len, limit);
+#elif defined(__clang__) && !defined(__aarch64__)
+  /* Seems to perform better on 32bit (i.e. Android). */
+  return chunkcopy_core_safe(out, out - dist, len, limit);
+#else
+  /* Seems to perform better on 64-bit. */
+  return chunkcopy_lapped_safe(out, dist, len, limit);
+#endif
+}
+
 /*
  * The chunk-copy code above deals with writing the decoded DEFLATE data to
  * the output with SIMD methods to increase decode speed. Reading the input
