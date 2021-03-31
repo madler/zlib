@@ -286,6 +286,14 @@ uLong* bytesRecovered;
     }
   } else {
     err = Z_STREAM_ERROR;
+    if(fpZip != NULL)
+      fclose(fpZip);
+
+    if(fpOut != NULL)
+      fclose(fpOut);
+
+    if(fpOutCD != NULL)
+      fclose(fpOutCD);
   }
   return err;
 }
