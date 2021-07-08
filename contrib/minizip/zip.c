@@ -1963,6 +1963,9 @@ extern int ZEXPORT zipRemoveExtraInfoBlock (char* pData, int* dataLen, short sHe
     return ZIP_PARAMERROR;
 
   pNewHeader = (char*)ALLOC(*dataLen);
+  if (pNewHeader == NULL)
+    return ZIP_INTERNALERROR;
+
   pTmp = pNewHeader;
 
   while(p < (pData + *dataLen))
