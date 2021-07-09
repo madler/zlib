@@ -19,11 +19,127 @@
 #  define TESTFILE "foo.gz"
 #endif
 
-#define CHECK_ERR(err, msg) { \
-    if (err != Z_OK) { \
-        fprintf(stderr, "%s error: %d\n", msg, err); \
-        exit(1); \
+#define SUCCESSFUL                 1
+#define FAILED_WITH_ERROR_CODE     0
+#define FAILED_WITHOUT_ERROR_CODE -1
+
+typedef struct test_result_s {
+    int         result; /* One of: SUCCESSFUL,
+                           FAILED_WITH_ERROR_CODE, or
+                           FAILED_WITHOUT_ERROR_CODE*/
+    int         error_code; /* error code if success is FAILED_WITH_ERROR_CODE */
+    int         line_number;
+    const char* message;
+    const char* extended_message;
+} test_result;
+
+#define STRING_BUFFER_SIZE 100
+char string_buffer[STRING_BUFFER_SIZE];
+int g_fail_fast;
+char g_test_class[STRING_BUFFER_SIZE] = "default";
+
+#define CHECK_ERR(_error_code, _message) { \
+    if (_error_code != Z_OK) { \
+        test_result result; \
+        result.result = FAILED_WITH_ERROR_CODE; \
+        result.error_code = _error_code; \
+        result.line_number = __LINE__; \
+        result.message = _message; \
+        result.extended_message = NULL; \
+        return result; \
     } \
+}
+
+#define RETURN_FAILURE(_message, _extended_message) { \
+    test_result result; \
+    result.result = FAILED_WITHOUT_ERROR_CODE; \
+    result.error_code = Z_OK; \
+    result.line_number = __LINE__; \
+    result.message = _message; \
+    result.extended_message = _extended_message; \
+    return result; \
+}
+
+#define RETURN_SUCCESS(_message, _extended_message) { \
+    test_result result; \
+    result.result = SUCCESSFUL; \
+    result.error_code = Z_OK; \
+    result.message = _message; \
+    result.extended_message = _extended_message; \
+    return result; \
+}
+
+void handle_stdout_test_results OF((test_result result, const char* testcase_name));
+void handle_junit_test_results OF((FILE* output, test_result result, const char* testcase_name));
+void handle_test_results OF((FILE* output, test_result result, const char* testcase_name, int is_junit_output, int* failed_test_count));
+
+void handle_stdout_test_results(result, testcase_name)
+    test_result result;
+    const char* testcase_name;
+{
+    if (result.result == FAILED_WITH_ERROR_CODE) {
+        fprintf(stderr, "%s error: %d\n", result.message, result.error_code);
+    } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
+        fprintf(stderr, "%s", result.message);
+        if (result.extended_message != NULL) {
+            fprintf(stderr, "%s", result.extended_message);
+        }
+        fprintf(stderr, "\n");
+    } else {
+        if (result.message != NULL) {
+            if (result.extended_message != NULL) {
+                fprintf(stderr, "%s%s\n", result.message, result.extended_message);
+            } else {
+                fprintf(stderr, "%s", result.message);
+            }
+        }
+    }
+}
+
+void handle_junit_test_results(output, result, testcase_name)
+    FILE* output;
+    test_result result;
+    const char* testcase_name;
+{
+    /* github.com/cirruslabs/cirrus-ci-annotations/blob/master/testdata/junit/PythonXMLRunner.xml
+     * suggests how to encode classname, file, and line to get
+     * annotations to appear properly on github.
+     */
+    if (result.result == FAILED_WITH_ERROR_CODE) {
+        fprintf(output,
+            "\t\t<testcase classname=\"%s\" name=\"%s\" file=\"%s\" line=\"%d\">\n"
+            "\t\t\t<failure>%s: error %d</failure>\n"
+            "\t\t</testcase>\n",
+            g_test_class, testcase_name, __FILE__, result.line_number, result.message,
+            result.error_code);
+    } else if (result.result == FAILED_WITHOUT_ERROR_CODE) {
+        fprintf(output,
+            "\t\t<testcase classname=\"%s\" name=\"%s\" file=\"%s\" line=\"%d\">\n"
+            "\t\t\t<failure>%s%s</failure>\n"
+            "\t\t</testcase>\n",
+            g_test_class, testcase_name, __FILE__, result.line_number, result.message,
+            (result.extended_message ? result.extended_message : ""));
+    } else {
+        fprintf(output, "\t\t<testcase name=\"%s\"></testcase>\n", testcase_name);
+    }
+}
+
+void handle_test_results(output, result, testcase_name, is_junit_output, failed_test_count)
+    FILE* output;
+    test_result result;
+    const char* testcase_name;
+    int is_junit_output;
+    int* failed_test_count;
+{
+    if (is_junit_output) {
+        handle_junit_test_results(output, result, testcase_name);
+    }
+    handle_stdout_test_results(result, testcase_name);
+    if (result.result == FAILED_WITH_ERROR_CODE || result.result == FAILED_WITHOUT_ERROR_CODE) {
+        (*failed_test_count)++;
+        if (g_fail_fast)
+            exit(1);
+    }
 }
 
 static z_const char hello[] = "hello, hello!";
@@ -34,20 +150,20 @@ static z_const char hello[] = "hello, hello!";
 static const char dictionary[] = "hello";
 static uLong dictId;    /* Adler32 value of the dictionary */
 
-void test_deflate       OF((Byte *compr, uLong comprLen));
-void test_inflate       OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_large_deflate OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_large_inflate OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_flush         OF((Byte *compr, uLong *comprLen));
-void test_sync          OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_dict_deflate  OF((Byte *compr, uLong comprLen));
-void test_dict_inflate  OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-int  main               OF((int argc, char *argv[]));
+test_result test_deflate       OF((Byte *compr, uLong comprLen));
+test_result test_inflate       OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_large_deflate OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_large_inflate OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_flush         OF((Byte *compr, uLong *comprLen));
+test_result test_sync          OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_dict_deflate  OF((Byte *compr, uLong comprLen));
+test_result test_dict_inflate  OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+int  main                      OF((int argc, char *argv[]));
 
 
 #ifdef Z_SOLO
@@ -77,15 +193,16 @@ static free_func zfree = myfree;
 static alloc_func zalloc = (alloc_func)0;
 static free_func zfree = (free_func)0;
 
-void test_compress      OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_gzio          OF((const char *fname,
-                            Byte *uncompr, uLong uncomprLen));
+test_result test_compress      OF((Byte *compr, uLong comprLen,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_gzio          OF((const char *fname,
+                                   Byte *uncompr, uLong uncomprLen));
+test_result test_force_fail    OF((int force_fail));
 
 /* ===========================================================================
  * Test compress() and uncompress()
  */
-void test_compress(compr, comprLen, uncompr, uncomprLen)
+test_result test_compress(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -101,23 +218,22 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
     CHECK_ERR(err, "uncompress");
 
     if (strcmp((char*)uncompr, hello)) {
-        fprintf(stderr, "bad uncompress\n");
-        exit(1);
+        RETURN_FAILURE("bad uncompress\n", NULL);
     } else {
-        printf("uncompress(): %s\n", (char *)uncompr);
+        RETURN_SUCCESS("uncompress(): ", (char*)uncompr);
     }
 }
 
 /* ===========================================================================
  * Test read/write of .gz files
  */
-void test_gzio(fname, uncompr, uncomprLen)
+test_result test_gzio(fname, uncompr, uncomprLen)
     const char *fname; /* compressed file name */
     Byte *uncompr;
     uLong uncomprLen;
 {
 #ifdef NO_GZCOMPRESS
-    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+    RETURN_FAILURE("NO_GZCOMPRESS -- gz* functions cannot compress", NULL);
 #else
     int err;
     int len = (int)strlen(hello)+1;
@@ -126,70 +242,82 @@ void test_gzio(fname, uncompr, uncomprLen)
 
     file = gzopen(fname, "wb");
     if (file == NULL) {
-        fprintf(stderr, "gzopen error\n");
-        exit(1);
+        RETURN_FAILURE("gzopen error", NULL);
     }
     gzputc(file, 'h');
     if (gzputs(file, "ello") != 4) {
-        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
-        exit(1);
+        RETURN_FAILURE("gzputs err: ", gzerror(file, &err));
     }
     if (gzprintf(file, ", %s!", "hello") != 8) {
-        fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
-        exit(1);
+        RETURN_FAILURE("gzprintf err: ", gzerror(file, &err));
     }
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
     file = gzopen(fname, "rb");
     if (file == NULL) {
-        fprintf(stderr, "gzopen error\n");
-        exit(1);
+        RETURN_FAILURE("gzopen error", NULL);
     }
     strcpy((char*)uncompr, "garbage");
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
-        fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
-        exit(1);
+        RETURN_FAILURE("gzread err: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello)) {
-        fprintf(stderr, "bad gzread: %s\n", (char*)uncompr);
-        exit(1);
+        RETURN_FAILURE("bad gzread: ", (char*)uncompr);
     } else {
         printf("gzread(): %s\n", (char*)uncompr);
     }
 
     pos = gzseek(file, -8L, SEEK_CUR);
     if (pos != 6 || gztell(file) != pos) {
-        fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
+        test_result result;
+        sprintf(string_buffer, "gzseek error, pos=%ld, gztell=%ld\n",
                 (long)pos, (long)gztell(file));
-        exit(1);
+        result.result = FAILED_WITHOUT_ERROR_CODE;
+        result.error_code = Z_OK;
+        result.line_number = __LINE__;
+        result.message = string_buffer;
+        result.extended_message = NULL;
+        return result;
     }
 
     if (gzgetc(file) != ' ') {
-        fprintf(stderr, "gzgetc error\n");
-        exit(1);
+        RETURN_FAILURE("gzgetc error", NULL);
     }
 
     if (gzungetc(' ', file) != ' ') {
-        fprintf(stderr, "gzungetc error\n");
-        exit(1);
+        RETURN_FAILURE("gzungetc error", NULL);
     }
 
     gzgets(file, (char*)uncompr, (int)uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
-        fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
-        exit(1);
+        RETURN_FAILURE("gzgets err after gzseek: ", gzerror(file, &err));
     }
     if (strcmp((char*)uncompr, hello + 6)) {
-        fprintf(stderr, "bad gzgets after gzseek\n");
-        exit(1);
+        RETURN_FAILURE("bad gzgets after gzseek", NULL);
     } else {
         printf("gzgets() after gzseek: %s\n", (char*)uncompr);
     }
 
     gzclose(file);
+
+    RETURN_SUCCESS(NULL, NULL);
 #endif
+}
+
+/* ===========================================================================
+ * Optionally test fault injection.
+ */
+test_result test_force_fail(force_fail)
+    int force_fail;
+{
+    int err = Z_OK;
+    if (force_fail)
+        err = 54321;
+    CHECK_ERR(err, "forced");
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 #endif /* Z_SOLO */
@@ -197,7 +325,7 @@ void test_gzio(fname, uncompr, uncomprLen)
 /* ===========================================================================
  * Test deflate() with small buffers
  */
-void test_deflate(compr, comprLen)
+test_result test_deflate(compr, comprLen)
     Byte *compr;
     uLong comprLen;
 {
@@ -230,12 +358,14 @@ void test_deflate(compr, comprLen)
 
     err = deflateEnd(&c_stream);
     CHECK_ERR(err, "deflateEnd");
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 /* ===========================================================================
  * Test inflate() with small buffers
  */
-void test_inflate(compr, comprLen, uncompr, uncomprLen)
+test_result test_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -266,17 +396,16 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
     CHECK_ERR(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        fprintf(stderr, "bad inflate\n");
-        exit(1);
+        RETURN_FAILURE("bad inflate\n", NULL);
     } else {
-        printf("inflate(): %s\n", (char *)uncompr);
+        RETURN_SUCCESS("inflate(): ", (char*)uncompr);
     }
 }
 
 /* ===========================================================================
  * Test deflate() with large buffers and dynamic change of compression level
  */
-void test_large_deflate(compr, comprLen, uncompr, uncomprLen)
+test_result test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -301,8 +430,7 @@ void test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     err = deflate(&c_stream, Z_NO_FLUSH);
     CHECK_ERR(err, "deflate");
     if (c_stream.avail_in != 0) {
-        fprintf(stderr, "deflate not greedy\n");
-        exit(1);
+        RETURN_FAILURE("deflate not greedy\n", NULL);
     }
 
     /* Feed in already compressed data and switch to no compression: */
@@ -321,17 +449,18 @@ void test_large_deflate(compr, comprLen, uncompr, uncomprLen)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        fprintf(stderr, "deflate should report Z_STREAM_END\n");
-        exit(1);
+        RETURN_FAILURE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
     CHECK_ERR(err, "deflateEnd");
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 /* ===========================================================================
  * Test inflate() with large buffers
  */
-void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
+test_result test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -362,17 +491,23 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     CHECK_ERR(err, "inflateEnd");
 
     if (d_stream.total_out != 2*uncomprLen + comprLen/2) {
-        fprintf(stderr, "bad large inflate: %ld\n", d_stream.total_out);
-        exit(1);
+        test_result result;
+        sprintf(string_buffer, "bad large inflate: %ld\n", d_stream.total_out);
+        result.result = FAILED_WITHOUT_ERROR_CODE;
+        result.error_code = Z_OK;
+        result.line_number = __LINE__;
+        result.message = string_buffer;
+        result.extended_message = NULL;
+        return result;
     } else {
-        printf("large_inflate(): OK\n");
+        RETURN_SUCCESS("large_inflate(): OK\n", NULL);
     }
 }
 
 /* ===========================================================================
  * Test deflate() with full flush
  */
-void test_flush(compr, comprLen)
+test_result test_flush(compr, comprLen)
     Byte *compr;
     uLong *comprLen;
 {
@@ -405,12 +540,14 @@ void test_flush(compr, comprLen)
     CHECK_ERR(err, "deflateEnd");
 
     *comprLen = c_stream.total_out;
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 /* ===========================================================================
  * Test inflateSync()
  */
-void test_sync(compr, comprLen, uncompr, uncomprLen)
+test_result test_sync(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -441,19 +578,18 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
 
     err = inflate(&d_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        fprintf(stderr, "inflate should report Z_STREAM_END\n");
-        exit(1);
+        RETURN_FAILURE("inflate should report Z_STREAM_END\n", NULL);
     }
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    printf("after inflateSync(): hel%s\n", (char *)uncompr);
+    RETURN_SUCCESS("after inflateSync(): hel", (char*)uncompr);
 }
 
 /* ===========================================================================
  * Test deflate() with preset dictionary
  */
-void test_dict_deflate(compr, comprLen)
+test_result test_dict_deflate(compr, comprLen)
     Byte *compr;
     uLong comprLen;
 {
@@ -480,17 +616,18 @@ void test_dict_deflate(compr, comprLen)
 
     err = deflate(&c_stream, Z_FINISH);
     if (err != Z_STREAM_END) {
-        fprintf(stderr, "deflate should report Z_STREAM_END\n");
-        exit(1);
+        RETURN_FAILURE("deflate should report Z_STREAM_END\n", NULL);
     }
     err = deflateEnd(&c_stream);
     CHECK_ERR(err, "deflateEnd");
+
+    RETURN_SUCCESS(NULL, NULL);
 }
 
 /* ===========================================================================
  * Test inflate() with a preset dictionary
  */
-void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
+test_result test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
@@ -530,15 +667,14 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     CHECK_ERR(err, "inflateEnd");
 
     if (strcmp((char*)uncompr, hello)) {
-        fprintf(stderr, "bad inflate with dict\n");
-        exit(1);
+        RETURN_FAILURE("bad inflate with dict\n", NULL);
     } else {
-        printf("inflate with dictionary: %s\n", (char *)uncompr);
+        RETURN_SUCCESS("inflate with dictionary: ", (char*)uncompr);
     }
 }
 
 /* ===========================================================================
- * Usage:  example [output.gz  [input.gz]]
+ * Usage:  example [--fail_fast][--force_fail][--junit results.xml] [output.gz [input.gz]]
  */
 
 int main(argc, argv)
@@ -549,11 +685,17 @@ int main(argc, argv)
     uLong comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
     uLong uncomprLen = comprLen;
     static const char* myVersion = ZLIB_VERSION;
+    test_result result;
+    int is_junit_output = 0;
+    const char* output_file_path = NULL;
+    FILE* output = stdout;
+    int next_argv_index = 1;
+    int failed_test_count = 0;
+    int force_fail = 0;
 
     if (zlibVersion()[0] != myVersion[0]) {
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);
-
     } else if (strcmp(zlibVersion(), ZLIB_VERSION) != 0) {
         fprintf(stderr, "warning: different zlib version\n");
     }
@@ -575,27 +717,99 @@ int main(argc, argv)
     (void)argc;
     (void)argv;
 #else
-    test_compress(compr, comprLen, uncompr, uncomprLen);
+    output_file_path = getenv("ZLIB_JUNIT_OUTPUT_FILE");
+    force_fail = getenv("ZLIB_FORCE_FAIL") && atoi(getenv("ZLIB_FORCE_FAIL"));
+    g_fail_fast = getenv("ZLIB_FAIL_FAST") && atoi(getenv("ZLIB_FAIL_FAST"));
+    while (next_argv_index < argc && !strncmp(argv[next_argv_index], "--", 2)) {
+        if (strcmp(argv[next_argv_index], "--junit") == 0) {
+            next_argv_index++;
+            if (argc <= next_argv_index) {
+                fprintf(stderr, "--junit flag requires an output file parameter, like --junit output.xml");
+                exit(1);
+            }
+            output_file_path = argv[next_argv_index];
+            next_argv_index++;
+        } else if (strcmp(argv[next_argv_index], "--fail_fast") == 0) {
+            g_fail_fast = 1;
+            next_argv_index++;
+        } else if (strcmp(argv[next_argv_index], "--force_fail") == 0) {
+            force_fail = 1;
+            next_argv_index++;
+        } else {
+            fprintf(stderr, "Unrecognized option %s\n", argv[next_argv_index]);
+            exit(1);
+        }
+    }
+    if (output_file_path) {
+        fprintf(stdout, "output path is %s", output_file_path);
+        is_junit_output = 1;
+        output = fopen(output_file_path, "w+");
+        if (!output) {
+            fprintf(stderr, "Could not open junit file %s\n", output_file_path);
+            exit(1);
+        } else {
+            /* If run by CMakeLists.txt's JUNIT option, path is FOO/$exe-junit.xml.
+             * Extract $exe and pass to handle_junit_test_results so github error
+             * annotations show the name of the executable causing each error.
+             */
+            const char *p = strrchr(output_file_path, '/');
+            if (p) {
+                p++;   /* skip past slash */
+                const char *q = strrchr(p, '-');
+                int len = q - p;
+                if (!strcmp(q, "-junit.xml") && (len < sizeof(g_test_class))) {
+                    strncpy(g_test_class, p, len);
+                    g_test_class[len] = 0;
+                }
+            }
+        }
+        fprintf(output, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+        fprintf(output, "<testsuites>\n");
+        fprintf(output, "\t<testsuite name=\"zlib example suite\">\n");
+    }
 
-    test_gzio((argc > 1 ? argv[1] : TESTFILE),
-              uncompr, uncomprLen);
+    result = test_compress(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "compress", is_junit_output, &failed_test_count);
+	
+    result = test_gzio((argc > next_argv_index ? argv[next_argv_index++] : TESTFILE),
+                       uncompr, uncomprLen);
+    handle_test_results(output, result, "gzio", is_junit_output, &failed_test_count);
+
+    result = test_force_fail(force_fail);
+    handle_test_results(output, result, "force fail", is_junit_output, &failed_test_count);
 #endif
 
-    test_deflate(compr, comprLen);
-    test_inflate(compr, comprLen, uncompr, uncomprLen);
+    result = test_deflate(compr, comprLen);
+    handle_test_results(output, result, "deflate", is_junit_output, &failed_test_count);
+    result = test_inflate(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "inflate", is_junit_output, &failed_test_count);
 
-    test_large_deflate(compr, comprLen, uncompr, uncomprLen);
-    test_large_inflate(compr, comprLen, uncompr, uncomprLen);
+    result = test_large_deflate(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "large deflate", is_junit_output, &failed_test_count);
+    result = test_large_inflate(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "large inflate", is_junit_output, &failed_test_count);
 
-    test_flush(compr, &comprLen);
-    test_sync(compr, comprLen, uncompr, uncomprLen);
+    result = test_flush(compr, &comprLen);
+    handle_test_results(output, result, "flush", is_junit_output, &failed_test_count);
+    result = test_sync(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "sync", is_junit_output, &failed_test_count);
     comprLen = uncomprLen;
 
-    test_dict_deflate(compr, comprLen);
-    test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
+    result = test_dict_deflate(compr, comprLen);
+    handle_test_results(output, result, "dict deflate", is_junit_output, &failed_test_count);
+    result = test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
+    handle_test_results(output, result, "dict inflate", is_junit_output, &failed_test_count);
 
+    if (is_junit_output) {
+        fprintf(output, "\t</testsuite>\n");
+        fprintf(output, "</testsuites>");
+        fclose(output);
+    }
     free(compr);
     free(uncompr);
 
+    if (failed_test_count) {
+        return 1;
+    }
     return 0;
 }

@@ -1,0 +1,72 @@
+upload_junit_template: &UPLOAD_JUNIT
+   always:
+     junit_artifacts:
+       path: "btmp/*-junit.xml"
+       type: text/xml
+       format: junit
+
+check_docker_task:
+  matrix:
+    - name: "ubu1404"
+      container:
+        dockerfile: ci/cirrus/ubu1404/Dockerfile   # remove 2022/4
+    - name: "ubu1604"
+      container:
+        dockerfile: ci/cirrus/ubu1604/Dockerfile   # remove 2024/4
+    - name: "ubu1804"
+      container:
+        dockerfile: ci/cirrus/ubu1804/Dockerfile   # remove 2028/4
+    - name: "ubu2004"
+      container:
+        dockerfile: ci/cirrus/ubu2004/Dockerfile
+    - name: "ubu2010"
+      container:
+        dockerfile: ci/cirrus/ubu2010/Dockerfile   # remove 2021/7
+    - name: "debian8"
+      container:
+        dockerfile: ci/cirrus/debian8/Dockerfile   # remove 2020/7
+    - name: "debian9"
+      container:
+        dockerfile: ci/cirrus/debian9/Dockerfile   # remove 2022/7
+    - name: "debian10"
+      container:
+        dockerfile: ci/cirrus/debian10/Dockerfile
+    - name: "fedora31"
+      container:
+        dockerfile: ci/cirrus/fedora31/Dockerfile  # remove 2020/11
+    - name: "fedora32"
+      container:
+        dockerfile: ci/cirrus/fedora32/Dockerfile  # remove 2021/5
+  test_script:
+    - sh ci/test-cmake.sh && sh ci/pkgcheck.sh
+  << : *UPLOAD_JUNIT
+
+check_mac_task:
+  osx_instance:
+    image: catalina-xcode
+  install_script:
+    - brew install ninja
+  test_script:
+    - sh ci/test-cmake.sh && sh ci/pkgcheck.sh
+  << : *UPLOAD_JUNIT
+
+check_bsd_task:
+  freebsd_instance:
+    image_family: freebsd-12-1
+  install_script:
+    - pkg install -y gcc cmake ninja
+  test_script:
+    - sh ci/test-cmake.sh && sh ci/pkgcheck.sh
+  << : *UPLOAD_JUNIT
+
+check_win_task:
+  windows_container:
+    image: cirrusci/windowsservercore:cmake
+  install_script:
+    - choco install -y --no-progress ninja
+  test_script:
+    - cmake --version
+    - ninja --version
+    - echo "Setting compiler to MSVC rather than the default (GCC from chocolatey)"
+    - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && where cl && set CC=cl && mkdir btmp && cd btmp && cmake -G Ninja .. && ninja && ctest -V
+  << : *UPLOAD_JUNIT
