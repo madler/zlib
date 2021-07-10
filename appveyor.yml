@@ -1,0 +1,63 @@
+version: 1.2.8.{build}
+image: Visual Studio 2015
+
+
+environment:
+  matrix:
+  - PlatformToolset: v140_xp
+  - PlatformToolset: v120_xp
+  - PlatformToolset: mingw-w64
+
+platform:
+    - x64
+    - Win32
+
+configuration:
+    - Release
+    - Debug
+
+install:
+    - if "%platform%"=="x64" set archi=amd64
+    - if "%platform%"=="Win32" set archi=x86
+    - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
+
+    - ps: |
+        if ($env:PLATFORMTOOLSET -match "mingw-w64") {
+          $env:Path += ";C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin"
+          $env:Path = $env:Path.Replace('C:\Program Files\Git\usr\bin;','')
+          g++ --version
+        }
+
+build:
+    parallel: true                  # enable MSBuild parallel builds
+    verbosity: minimal
+
+before_build:
+- ps: |
+    Write-Output "Configuration: $env:CONFIGURATION"
+    Write-Output "Platform: $env:PLATFORM"
+    $generator = switch ($env:PLATFORMTOOLSET)
+    {
+        "v140_xp" {"Visual Studio 14 2015"}
+        "v120_xp" {"Visual Studio 12 2013"}
+        "mingw-w64" { "MinGW Makefiles"}
+    }
+    #not applicable with MinGW Makefiles generator
+    if ($env:PLATFORM -eq "x64" -and $env:PLATFORMTOOLSET -notmatch "mingw-w64")
+    {
+        $generator = "$generator Win64"
+    }
+
+build_script:
+- ps: |
+    md _build -Force | Out-Null
+    cd _build
+    & cmake -G "$generator" ..
+    if ($LastExitCode -ne 0) {
+        throw "Exec: $ErrorMessage"
+    }
+    & cmake --build . --config $env:CONFIGURATION
+    if ($LastExitCode -ne 0) {
+        throw "Exec: $ErrorMessage"
+    }
+
