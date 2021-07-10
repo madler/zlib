@@ -66,7 +66,8 @@ if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
-if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+option(RENAME_ZCONF "Rename the zconf when building out of source" ON)
+if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR AND RENAME_ZCONF)
     # If we're doing an out of source build and the user has a zconf.h
     # in their source tree...
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h)
