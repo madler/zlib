@@ -1,5 +1,7 @@
 ZLIB DATA COMPRESSION LIBRARY
 
+[![AppVeyor CI status][appveyor-shield]][appveyor-link]
+
 zlib 1.2.11.1 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
 (Request for Comments) 1950 to 1952 in the files
@@ -102,8 +104,7 @@ Copyright notice:
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
-  Jean-loup Gailly        Mark Adler
-  jloup@gzip.org          madler@alumni.caltech.edu
+  Jean-loup Gailly (jloup@gzip.org) & Mark Adler (madler@alumni.caltech.edu)
 
 If you use the zlib library in a product, we would appreciate *not* receiving
 lengthy legal documents to sign.  The sources are provided for free but without
@@ -116,3 +117,6 @@ any third parties.
 If you redistribute modified sources, we would appreciate that you include in
 the file ChangeLog history information documenting your changes.  Please read
 the FAQ for more information on the distribution of modified source versions.
+
+[appveyor-shield]: https://ci.appveyor.com/api/projects/status/8m7p0nbuy8tvkqv6/branch/add-appveyor?svg=true
+[appveyor-link]: https://ci.appveyor.com/project/ProgramMax/zlib/branch/develop
