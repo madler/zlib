@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 2.6)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
@@ -96,6 +96,7 @@ set(ZLIB_PUBLIC_HDRS
 )
 set(ZLIB_PRIVATE_HDRS
     crc32.h
+    cpu_features.h
     deflate.h
     gzguts.h
     inffast.h
@@ -108,6 +109,7 @@ set(ZLIB_PRIVATE_HDRS
 set(ZLIB_SRCS
     adler32.c
     compress.c
+    cpu_features.c
     crc32.c
     deflate.c
     gzclose.c
@@ -135,6 +137,12 @@ if(CMAKE_COMPILER_IS_GNUCC)
     elseif (AMD64)
         set(ZLIB_ASMS contrib/amd64/amd64-match.S)
     endif ()
+
+    # NEON is mandatory in ARMv8, but 'crypto extensions' are optional.
+    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+      set_source_files_properties(${ZLIB_SRCS} PROPERTIES LANGUAGE C COMPILE_FLAGS -march=armv8-a+crc)
+      add_definitions(-DCRC32_ARMV8_CRC32)
+    endif()
 
 	if(ZLIB_ASMS)
 		add_definitions(-DASMV)
@@ -200,6 +208,19 @@ if(NOT CYGWIN)
 endif()
 
 if(UNIX)
+    # CPU features detection in a multithreaded context (e.g. Chromium) can
+    # be racy and requires proper handling.
+   find_package (Threads REQUIRED)
+   target_link_libraries(zlib ${CMAKE_THREAD_LIBS_INIT})
+   target_link_libraries(zlibstatic ${CMAKE_THREAD_LIBS_INIT})
+
+   # This is limited, basically we assume either Arm or Intel.
+   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+      add_definitions(-DARMV8_OS_LINUX)
+   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+      add_definitions(-DX86_NOT_WINDOWS)
+   endif()
+
     # On unix-like platforms the library is almost always called libz
    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
