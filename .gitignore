@@ -13,6 +13,9 @@
 *.gcno
 *.gcov
 
+/crc32_test
+/crc32_test64
+/crc32_testsh
 /example
 /example64
 /examplesh
