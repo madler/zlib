@@ -69,3 +69,4 @@
 /contrib/vstudio/vc16/zlibvc.vcxproj.user
 build
 src
+/zconf.h.included
