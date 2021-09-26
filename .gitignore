@@ -67,3 +67,5 @@
 /contrib/vstudio/vc16/testzlibdll.vcxproj.user
 /contrib/vstudio/vc16/zlibstat.vcxproj.user
 /contrib/vstudio/vc16/zlibvc.vcxproj.user
+build
+src
