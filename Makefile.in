@@ -122,10 +122,17 @@ infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h
 infcover: infcover.o libz.a
 	$(CC) $(CFLAGS) -o $@ infcover.o libz.a
 
-cover: infcover
+defcover.o: $(SRCDIR)test/defcover.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(ZINCOUT) -c -o $@ $(SRCDIR)test/defcover.c
+
+defcover: defcover.o libz.a
+	$(CC) $(CFLAGS) -o $@ defcover.o libz.a
+
+cover: infcover defcover
 	rm -f *.gcda
 	./infcover
-	gcov inf*.c
+	./defcover
+	gcov inf*.c deflate.c trees.c
 
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
