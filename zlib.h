@@ -31,11 +31,17 @@
 #ifndef ZLIB_H
 #define ZLIB_H
 
+/* Almost all content is uninteresting (or harmful) for the VS resource compiler. */
+#ifndef RC_INVOKED
+
 #include "zconf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Only the following few lines are interesting for the VS resource compiler. */
+#endif  /* RC_INVOKED */
 
 #define ZLIB_VERSION "1.2.11"
 #define ZLIB_VERNUM 0x12b0
@@ -43,6 +49,9 @@ extern "C" {
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 11
 #define ZLIB_VER_SUBREVISION 0
+
+/* The rest of this file is again uninteresting for the VS resource compiler. */
+#ifndef RC_INVOKED
 
 /*
     The 'zlib' compression library provides in-memory compression and
@@ -1908,5 +1917,7 @@ ZEXTERN int            ZEXPORTVA gzvprintf Z_ARG((gzFile file,
 #ifdef __cplusplus
 }
 #endif
+
+#endif  /* RC_INVOKED */
 
 #endif /* ZLIB_H */
