@@ -198,8 +198,8 @@ typedef struct
 #endif
 
 /* ===========================================================================
-     Read a byte from a gz_stream; update next_in and avail_in. Return EOF
-   for end of file.
+   Read a byte from a gz_stream; update next_in and avail_in. Return EOF
+     for end of file.
    IN assertion: the stream s has been successfully opened for reading.
 */
 
@@ -379,12 +379,12 @@ local int strcmpcasenosensitive_internal (const char* fileName1, const char* fil
 #endif
 
 /*
-   Compare two filename (fileName1,fileName2).
-   If iCaseSenisivity = 1, comparision is case sensitivity (like strcmp)
-   If iCaseSenisivity = 2, comparision is not case sensitivity (like strcmpi
+   Compare two filenames (fileName1,fileName2).
+   If iCaseSensitivity = 1, comparison is case sensitive (like strcmp)
+   If iCaseSensitivity = 2, comparison is not case sensitive (like strcmpi
                                                                 or strcasecmp)
-   If iCaseSenisivity = 0, case sensitivity is defaut of your operating system
-        (like 1 on Unix, 2 on Windows)
+   If iCaseSensitivity = 0, case sensitivity is the default from your 
+     operating system (like 1 on Unix, 2 on Windows)
 
 */
 extern int ZEXPORT unzStringFileNameCompare (const char*  fileName1,
