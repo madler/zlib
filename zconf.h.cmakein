@@ -7,8 +7,9 @@
 
 #ifndef ZCONF_H
 #define ZCONF_H
+
 #cmakedefine Z_PREFIX
-#cmakedefine Z_HAVE_UNISTD_H
+#cmakedefine Z_SOLO
 
 /*
  * If you *really* need a unique prefix for all types and library functions,
@@ -189,6 +190,28 @@
 #  endif
 #endif
 
+#cmakedefine HAVE_STDDEF_H
+#cmakedefine HAVE_STDINT_H
+#cmakedefine HAVE_STDARG_H
+#cmakedefine HAVE_SYS_TYPES_H
+#cmakedefine HAVE_UNISTD_H
+
+#ifdef HAVE_SYS_TYPES_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_SYS_TYPES_H
+#endif
+#ifdef HAVE_STDDEF_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_STDDEF_H
+#endif
+#ifdef HAVE_STDINT_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_STDINT_H
+#endif
+#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_STDARG_H
+#endif
+#ifdef HAVE_UNISTD_H    /* may be set to #if 1 by ./configure */
+#  define Z_HAVE_UNISTD_H
+#endif
+
 /*
  * Compile with -DMAXSEG_64K if the alloc function cannot allocate more
  * than 64k bytes at a time (needed on systems with 16-bit int).
@@ -222,7 +245,6 @@
 #if !defined(STDC) && (defined(OS2) || defined(__HOS_AIX__))
 #  define STDC
 #endif
-
 #if defined(__OS400__) && !defined(STDC)    /* iSeries (formerly AS/400). */
 #  define STDC
 #endif
@@ -233,6 +255,7 @@
 #  endif
 #endif
 
+#cmakedefine ZLIB_CONST
 #if defined(ZLIB_CONST) && !defined(z_const)
 #  define z_const const
 #else
@@ -245,7 +268,7 @@
 #  define z_longlong long long
 #  if defined(NO_SIZE_T)
      typedef unsigned NO_SIZE_T z_size_t;
-#  elif defined(STDC)
+#  elif defined(STDC) || defined(Z_HAVE_STDDEF_H)
 #    include <stddef.h>
      typedef size_t z_size_t;
 #  else
@@ -347,6 +370,7 @@
     * define ZLIB_WINAPI.
     * Caution: the standard ZLIB1.DLL is NOT compiled using ZLIB_WINAPI.
     */
+#  cmakedefine ZLIB_WINAPI
 #  ifdef ZLIB_WINAPI
 #    ifdef FAR
 #      undef FAR
@@ -433,15 +457,7 @@ typedef uLong FAR uLongf;
    typedef unsigned long z_crc_t;
 #endif
 
-#ifdef HAVE_UNISTD_H    /* may be set to #if 1 by ./configure */
-#  define Z_HAVE_UNISTD_H
-#endif
-
-#ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */
-#  define Z_HAVE_STDARG_H
-#endif
-
-#ifdef STDC
+#if defined(STDC) || defined(Z_HAVE_SYS_TYPES_H)
 #  ifndef Z_SOLO
 #    include <sys/types.h>      /* for off_t */
 #  endif
@@ -453,7 +469,14 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
-#ifdef _WIN32
+#if defined(STDC) || defined(Z_HAVE_STDDEF_H)
+#  ifndef Z_SOLO
+#    include <stddef.h>
+#  endif
+#endif
+
+/* MSVC defined _NATIVE_WCHAR_T_DEFINED when wchar_t is a built-in type like int/long */
+#if !defined(_NATIVE_WCHAR_T_DEFINED) && (defined(WIN32) || defined(Z_HAVE_STDDEF_H))
 #  ifndef Z_SOLO
 #    include <stddef.h>         /* for wchar_t */
 #  endif

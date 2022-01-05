@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 15,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "configure_common",
+      "hidden": true,
+      "generator": "Ninja",
+      "warnings": {
+        "dev": false,
+        "unusedCli": false,
+        "uninitialized": false,
+        "systemVars": true
+      },
+      "errors": {
+        "deprecated": true
+      }
+    },
+    {
+      "name": "configure_debug",
+      "displayName": "zlib Debug",
+      "description": "Debug build of zlib",
+      "inherits": "configure_common",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "Debug"
+        }
+      }
+    },
+    {
+      "name": "configure_release",
+      "displayName": "zlib Release",
+      "description": "Release build of zlib",
+      "inherits": "configure_common",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "Release"
+        }
+      }
+    }
+  ]
+}
