@@ -517,5 +517,5 @@ int main(argc,argv)
     }
 
     free(buf);
-    return 0;
+    return err;
 }
