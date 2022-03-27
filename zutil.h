@@ -44,11 +44,11 @@ typedef unsigned long  ulg;
 
 #if !defined(Z_U8) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
-#  if (ULONG_MAX == 0xffffffffffffffffULL)
+#  if (ULONG_MAX == 0xffffffffffffffff)
 #    define Z_U8 unsigned long
-#  elif (ULLONG_MAX == 0xffffffffffffffffULL)
+#  elif (ULLONG_MAX == 0xffffffffffffffff)
 #    define Z_U8 unsigned long long
-#  elif (UINT_MAX == 0xffffffffffffffffULL)
+#  elif (UINT_MAX == 0xffffffffffffffff)
 #    define Z_U8 unsigned
 #  endif
 #endif
