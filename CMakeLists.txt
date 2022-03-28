@@ -7,6 +7,7 @@ set(VERSION "1.2.12")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
+option(COMPILE_EXAMPLES "Compile the Examples included with zlib" ON)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -230,6 +231,8 @@ endif()
 # Example binaries
 #============================================================================
 
+if(COMPILE_EXAMPLES) 
+
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
@@ -247,3 +250,5 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+endif(COMPILE_EXAMPLES)
