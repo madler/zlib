@@ -74,7 +74,7 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
         message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
         message(STATUS "to 'zconf.h.included' because this file is included with zlib")
         message(STATUS "but CMake generates it automatically in the build directory.")
-        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
+		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_BINARY_DIR}/zconf.h.included COPYONLY)
   endif()
 endif()
 
@@ -183,8 +183,15 @@ if(MINGW)
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif(MINGW)
 
-add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+
+option(ZLIB_STATIC_ONLY "Skip building shared library.")
+if(ZLIB_STATIC_ONLY)
+    add_library(zlib ALIAS zlibstatic)
+    return()
+endif()
+
+add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
 
@@ -230,6 +237,7 @@ endif()
 # Example binaries
 #============================================================================
 
+if(NOT SKIP_EXAMPLES)
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
@@ -247,3 +255,4 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+endif(NOT SKIP_EXAMPLES)
