@@ -329,9 +329,9 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
 # define _tr_tally_dist(s, distance, length, flush) \
   { uch len = (uch)(length); \
     ush dist = (ush)(distance); \
-    s->sym_buf[s->sym_next++] = dist; \
-    s->sym_buf[s->sym_next++] = dist >> 8; \
-    s->sym_buf[s->sym_next++] = len; \
+    s->sym_buf[s->sym_next++] = (uchf)dist; \
+    s->sym_buf[s->sym_next++] = (uchf)(dist >> 8); \
+    s->sym_buf[s->sym_next++] = (uchf)len; \
     dist--; \
     s->dyn_ltree[_length_code[len]+LITERALS+1].Freq++; \
     s->dyn_dtree[d_code(dist)].Freq++; \
