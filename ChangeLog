@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.12.1 (xx Mar 2022)
+- 
+
 Changes in 1.2.12 (27 Mar 2022)
 - Cygwin does not have _wopen(), so do not create gzopen_w() there
 - Permit a deflateParams() parameter change as soon as possible
