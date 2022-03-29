@@ -174,7 +174,10 @@ if test -z "$CC"; then
   else
     cc=${CROSS_PREFIX}cc
   fi
+else
+  cc=${CC}
 fi
+
 cflags=${CFLAGS-"-O3"}
 # to force the asm version use: CFLAGS="-O3 -DASMV" ./configure
 case "$cc" in
