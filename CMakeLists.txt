@@ -7,6 +7,7 @@ set(VERSION "1.2.12")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
+option(ENABLE_STATIC_CRT "Build zlib against the MS LIBCMT[d]")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -160,6 +161,15 @@ if(MSVC)
 	if(ZLIB_ASMS)
 		add_definitions(-DASMV -DASMINF)
 	endif()
+endif()
+
+if(ENABLE_STATIC_CRT)
+  foreach(lang C CXX)
+    foreach(suffix "" _DEBUG _MINSIZEREL _RELEASE _RELWITHDEBINFO)
+      set(var "CMAKE_${lang}_FLAGS${suffix}")
+      string(REPLACE "/MD" "/MT" ${var} "${${var}}")
+    endforeach()
+  endforeach()
 endif()
 
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
