@@ -7,6 +7,7 @@ set(VERSION "1.2.12")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
+option(ARM_NEON "Enable building ARM NEON intrinsics implementation")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -136,6 +137,21 @@ if(CMAKE_COMPILER_IS_GNUCC)
         set(ZLIB_ASMS contrib/amd64/amd64-match.S)
     endif ()
 
+    if(ARM_NEON)
+        list(REMOVE_ITEM ZLIB_SRCS inflate.c)
+        set(ZLIB_ARM_NEON_HDRS contrib/arm/chunkcopy.h contrib/arm/inffast_chunk.h)
+        set(ZLIB_ARM_NEON contrib/arm/inflate.c contrib/arm/inffast_chunk.c)
+        add_definitions(-DARM_NEON)
+        set(COMPILER ${CMAKE_C_COMPILER})
+        # NEON is mandatory in ARMv8.
+        if(${COMPILER} MATCHES "aarch64")
+          set_source_files_properties(${ZLIB_ARM_NEON} PROPERTIES LANGUAGE C COMPILE_FLAGS -march=armv8-a)
+          # But it was optional for ARMv7.
+        elseif(${COMPILER} MATCHES "arm")
+          set_source_files_properties(${ZLIB_ARM_NEON} PROPERTIES LANGUAGE C COMPILE_FLAGS -mfpu=neon)
+        endif()
+    endif()
+
 	if(ZLIB_ASMS)
 		add_definitions(-DASMV)
 		set_source_files_properties(${ZLIB_ASMS} PROPERTIES LANGUAGE C COMPILE_FLAGS -DNO_UNDERLINE)
@@ -183,8 +199,8 @@ if(MINGW)
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif(MINGW)
 
-add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
-add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_ARM_NEON} ${ZLIB_ARM_NEON_HDRS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_ARM_NEON} ${ZLIB_ARM_NEON_HDRS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
 
