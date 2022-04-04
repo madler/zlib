@@ -32,7 +32,8 @@ fi
 
 # set command prefix for cross-compilation
 if [ -n "${CHOST}" ]; then
-    uname="`echo "${CHOST}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/'`"
+    TRIPLET=`${SRCDIR:-./}config.sub ${CHOST}`
+    uname="`echo "${TRIPLET}" | sed -e 's/^[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)$/\1/' -e 's/^[^-]*-[^-]*-\([^-]*\)-.*$/\1/'`"
     CROSS_PREFIX="${CHOST}-"
 fi
 
