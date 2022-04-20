@@ -63,6 +63,9 @@
 #  endif
 #  define crc32                 Z_ADD_PREFIX(crc32)
 #  define crc32_combine         Z_ADD_PREFIX(crc32_combine)
+#  define crc32_combine_gen     Z_ADD_PREFIX(crc32_combine_gen)
+#  define crc32_combine_gen64   Z_ADD_PREFIX(crc32_combine_gen64)
+#  define crc32_combine_op      Z_ADD_PREFIX(crc32_combine_op)
 #  define crc32_combine64       Z_ADD_PREFIX(crc32_combine64)
 #  define crc32_z               Z_ADD_PREFIX(crc32_z)
 #  define deflate               Z_ADD_PREFIX(deflate)
