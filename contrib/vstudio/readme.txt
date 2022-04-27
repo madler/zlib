@@ -43,6 +43,32 @@ Build instructions for Visual Studio 2015 (32 bits or 64 bits)
 - Decompress current zlib, including all contrib/* files
 - Open contrib\vstudio\vc14\zlibvc.sln with Microsoft Visual C++ 2015
 
+Build instructions for Visual Studio 2022 (32 bits or 64 bits)
+--------------------------------------------------------------
+- Open contrib\vstudio\vc14\zlibvc.sln with Microsoft Visual C++ 2022 and
+  build any of the available outputs.
+  
+- The build outputs are:
+   zlib.lib - static link library
+   zlib1.dll - DLL
+   zdll.lib - link library for zlib1.dll
+   minizip.exe - Mini zip program
+   miniunz.exe - Mini unzip program
+   testzlib.exe - test program for static and DLL library
+   
+- Link libraries are placed in a folder named: zlib/lib/<platform>/<configuration>
+  Example:
+    64-bit debug static library is: zlib/lib/x64/debug/zlib.lib
+    32-bit release DLL import library is: zlib/lib/x86/DLL_release/zdll.lib
+    
+- Programs and DLLs are placed in a folder named: zlib/exe/<platform>/<configuration>
+  Example:
+    32-bit release DLL is: zlib/exe/x86/DLL_release/zlib1.dll
+    64-bit debug static lib test program is: zlib/exe/x64/debug/testzlib.exe
+    
+- zlib1.dll created from this build is fully compatible with zlib1.dll
+  created using Makefile.msc in win32 folder.
+  
 
 Important
 ---------
@@ -76,3 +102,6 @@ info@winimage.com
 
 Visual Studio 2013 and 2015 Projects from Sean Hunt
 seandhunt_7@yahoo.com
+
+Visual Studio 2022 from Mircea Neacsu
+mircea@neacsu.net
