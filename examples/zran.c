@@ -55,11 +55,21 @@
    index in a file.
  */
 
+#ifdef _MSC_VER
+#define fseeko(F, O, M) _fseeki64 ((F), (__int64)(O), (M))
+#define _OFF_T_DEFINED
+typedef unsigned long long off_t;
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "zlib.h"
 #include "zran.h"
+
+
+ /* Compile main() function*/
+#define TEST
 
 #define WINSIZE 32768U      /* sliding window size */
 #define CHUNK 16384         /* file input buffer size */

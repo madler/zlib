@@ -115,11 +115,11 @@ local int gzip_normalize(FILE *in, FILE *out, char **err) {
     int more;                       // true if not at the end of the input
     do {
         // State inside this loop.
-        unsigned char *put;         // next input buffer location to process
+        const Byte *put;            // next input buffer location to process
         int prev;                   // number of bits from previous block in
                                     // the bit buffer, or -1 if not at the
                                     // start of a block
-        unsigned long long memb;    // uncompressed length of member
+        unsigned long long memb = 0;    // uncompressed length of member
         size_t tail;                // number of trailer bytes read (0..8)
         unsigned long part;         // accumulated trailer component
 
@@ -306,7 +306,7 @@ local int gzip_normalize(FILE *in, FILE *out, char **err) {
                     // stream. Copy the data after shifting in num bits from
                     // buf in front of it, leaving num bits from the end of the
                     // compressed data in buf when done.
-                    unsigned char *end = strm.next_in - mix;
+                    const Byte *end = strm.next_in - mix;
                     if (put < end) {
                         if (num)
                             // Insert num bits from buf before the data being
@@ -389,7 +389,7 @@ local int gzip_normalize(FILE *in, FILE *out, char **err) {
                         tail++;
                         if (tail == 4) {
                             // Update the total CRC.
-                            z_off_t len2 = memb;
+                            z_off_t len2 = (z_off_t) memb;
                             if (len2 < 0 || (unsigned long long)len2 != memb)
                                 BYE("overflow error");
                             crc = crc ? crc32_combine(crc, part, len2) : part;

@@ -228,12 +228,17 @@
 #include <stdlib.h>     /* malloc, free */
 #include <string.h>     /* strlen, strrchr, strcpy, strncpy, strcmp */
 #include <fcntl.h>      /* open */
+#ifdef _MSC_VER
+#include <io.h>
+#include <sys/utime.h>
+#else
 #include <unistd.h>     /* lseek, read, write, close, unlink, sleep, */
                         /* ftruncate, fsync */
+#include <sys/time.h>   /* utimes */
+#endif
 #include <errno.h>      /* errno */
 #include <time.h>       /* time, ctime */
 #include <sys/stat.h>   /* stat */
-#include <sys/time.h>   /* utimes */
 #include "zlib.h"       /* crc32 */
 
 #include "gzlog.h"      /* header for external access */

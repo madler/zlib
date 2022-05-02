@@ -81,8 +81,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 #include "zlib.h"
+
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#define OUT_O_FLAGS (_O_RDWR | _O_BINARY)
+#else
+#define IN_O_FLAGS O_RDONLY
+#define OUT_O_FLAGS O_RDWR
+#endif
 
 #define local static
 #define LGCHUNK 14
@@ -267,7 +279,7 @@ local int gzscan(char *name, z_stream *strm, int level)
 
     /* open gzip file */
     gz.name = name;
-    gz.fd = open(name, O_RDWR, 0);
+    gz.fd = open(name, OUT_O_FLAGS, 0);
     if (gz.fd == -1) bye("cannot open ", name);
     gz.buf = malloc(CHUNK);
     if (gz.buf == NULL) bye("out of memory", "");
@@ -394,10 +406,13 @@ local void gztack(char *name, int gd, z_stream *strm, int last)
     /* open file to compress and append */
     fd = 0;
     if (name != NULL) {
-        fd = open(name, O_RDONLY, 0);
+        fd = open(name, IN_O_FLAGS, 0);
         if (fd == -1)
+        {
             fprintf(stderr, "gzappend warning: %s not found, skipping ...\n",
                     name);
+          return;
+        }
     }
 
     /* allocate buffers */

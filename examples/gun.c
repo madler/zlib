@@ -62,10 +62,15 @@
 #include <string.h>         /* strerror(), strcmp(), strlen(), memcpy() */
 #include <errno.h>          /* errno */
 #include <fcntl.h>          /* open() */
-#include <unistd.h>         /* read(), write(), close(), chown(), unlink() */
 #include <sys/types.h>
 #include <sys/stat.h>       /* stat(), chmod() */
+#ifdef _MSC_VER
+#include <sys/utime.h>
+#include <io.h>
+#else
+#include <unistd.h>         /* read(), write(), close(), chown(), unlink() */
 #include <utime.h>          /* utime() */
+#endif
 #include "zlib.h"           /* inflateBackInit(), inflateBack(), */
                             /* inflateBackEnd(), crc32() */
 
@@ -75,6 +80,15 @@
 /* buffer constants */
 #define SIZE 32768U         /* input and output buffer sizes */
 #define PIECE 16384         /* limits i/o chunks for 16-bit int case */
+
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#define OUT_O_FLAGS (O_CREAT | O_TRUNC | O_WRONLY | _O_BINARY)
+#else
+#define IN_O_FLAGS _O_RDONLY
+#define OUT_O_FLAGS (O_CREAT | O_TRUNC | O_WRONLY)
+#endif
+
 
 /* structure for infback() to pass to input function in() -- it maintains the
    input file and a buffer of size SIZE */
@@ -91,8 +105,7 @@ local unsigned in(void *in_desc, z_const unsigned char **buf)
     int ret;
     unsigned len;
     unsigned char *next;
-    struct ind *me = (struct ind *)in_desc;
-
+    const struct ind* me = (const struct ind*)in_desc;
     next = me->inbuf;
     *buf = next;
     len = 0;
@@ -526,9 +539,10 @@ local void copymeta(char *from, char *to)
     /* set to's mode bits, ignore errors */
     (void)chmod(to, was.st_mode & 07777);
 
+#ifndef _MSC_VER
     /* copy owner's user and group, ignore errors */
     (void)chown(to, was.st_uid, was.st_gid);
-
+#endif
     /* copy access and modify times, ignore errors */
     when.actime = was.st_atime;
     when.modtime = was.st_mtime;
@@ -556,7 +570,7 @@ local int gunzip(z_stream *strm, char *inname, char *outname, int test)
         infile = 0;     /* stdin */
     }
     else {
-        infile = open(inname, O_RDONLY, 0);
+        infile = open(inname, IN_O_FLAGS, 0);
         if (infile == -1) {
             fprintf(stderr, "gun cannot open %s\n", inname);
             return 0;
@@ -569,7 +583,7 @@ local int gunzip(z_stream *strm, char *inname, char *outname, int test)
         outfile = 1;    /* stdout */
     }
     else {
-        outfile = open(outname, O_CREAT | O_TRUNC | O_WRONLY, 0666);
+        outfile = open(outname, OUT_O_FLAGS, 0666);
         if (outfile == -1) {
             close(infile);
             fprintf(stderr, "gun cannot create %s\n", outname);
