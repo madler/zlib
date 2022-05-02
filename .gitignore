@@ -24,3 +24,10 @@
 /configure.log
 
 .DS_Store
+exe/
+.vs/
+o/
+lib/
+*.suo
+*.user
+*.aps

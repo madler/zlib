@@ -56,11 +56,21 @@
 #include <stdio.h>      /* fputs(), fprintf(), fwrite(), putc() */
 #include <stdlib.h>     /* exit(), malloc(), free() */
 #include <fcntl.h>      /* open() */
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>     /* close(), read(), lseek() */
+#endif
 #include "zlib.h"
     /* crc32(), crc32_combine(), inflateInit2(), inflate(), inflateEnd() */
 
 #define local static
+
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#else
+#define IN_O_FLAGS O_RDONLY
+#endif
 
 /* exit with an error (return a value to allow use in an expression) */
 local int bail(char *why1, char *why2)
@@ -105,7 +115,7 @@ local bin *bopen(char *name)
     if (in == NULL)
         return NULL;
     in->buf = malloc(CHUNK);
-    in->fd = open(name, O_RDONLY, 0);
+    in->fd = open(name, IN_O_FLAGS, 0);
     if (in->buf == NULL || in->fd == -1) {
         bclose(in);
         return NULL;
@@ -438,6 +448,10 @@ int main(int argc, char **argv)
               stderr);
         return 0;
     }
+
+#ifdef _MSC_VER
+    setmode (fileno (stdout), O_BINARY);
+#endif
 
     /* join gzip files on command line and write to stdout */
     gzinit(&crc, &tot, stdout);
