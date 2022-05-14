@@ -308,11 +308,11 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
     s->wrap = wrap;
     s->gzhead = Z_NULL;
     s->w_bits = (uInt)windowBits;
-    s->w_size = 1 << s->w_bits;
+    s->w_size = 1u << s->w_bits;
     s->w_mask = s->w_size - 1;
 
     s->hash_bits = (uInt)memLevel + 7;
-    s->hash_size = 1 << s->hash_bits;
+    s->hash_size = 1u << s->hash_bits;
     s->hash_mask = s->hash_size - 1;
     s->hash_shift =  ((s->hash_bits+MIN_MATCH-1)/MIN_MATCH);
 
@@ -322,7 +322,7 @@ int ZEXPORT deflateInit2_(strm, level, method, windowBits, memLevel, strategy,
 
     s->high_water = 0;      /* nothing written to s->window yet */
 
-    s->lit_bufsize = 1 << (memLevel + 6); /* 16K elements by default */
+    s->lit_bufsize = 1u << (memLevel + 6); /* 16K elements by default */
 
     /* We overlay pending_buf and sym_buf. This works since the average size
      * for length/distance pairs over any compressed block is assured to be 31
@@ -590,7 +590,7 @@ int ZEXPORT deflatePrime (strm, bits, value)
     if (deflateStateCheck(strm)) return Z_STREAM_ERROR;
     s = strm->state;
     if (bits < 0 || bits > 16 ||
-        s->sym_buf < s->pending_out + ((Buf_size + 7) >> 3))
+        s->sym_buf < s->pending_out + ((Buf_size + 7) >> 3u))
         return Z_BUF_ERROR;
     do {
         put = Buf_size - s->bi_valid;
@@ -699,7 +699,7 @@ uLong ZEXPORT deflateBound(strm, sourceLen)
 
     /* conservative upper bound for compressed data */
     complen = sourceLen +
-              ((sourceLen + 7) >> 3) + ((sourceLen + 63) >> 6) + 5;
+              ((sourceLen + 7) >> 3u) + ((sourceLen + 63) >> 6u) + 5;
 
     /* if can't get parameters, return conservative bound plus zlib wrapper */
     if (deflateStateCheck(strm))
@@ -745,8 +745,8 @@ uLong ZEXPORT deflateBound(strm, sourceLen)
         return complen + wraplen;
 
     /* default settings: return tight bound for that case */
-    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
-           (sourceLen >> 25) + 13 - 6 + wraplen;
+    return sourceLen + (sourceLen >> 12u) + (sourceLen >> 14u) +
+           (sourceLen >> 25u) + 13 - 6 + wraplen;
 }
 
 /* =========================================================================
@@ -758,8 +758,8 @@ local void putShortMSB (s, b)
     deflate_state *s;
     uInt b;
 {
-    put_byte(s, (Byte)(b >> 8));
-    put_byte(s, (Byte)(b & 0xff));
+    put_byte(s, (Byte)(b >> 8u));
+    put_byte(s, (Byte)(b & 0xffu));
 }
 
 /* =========================================================================
@@ -856,7 +856,7 @@ int ZEXPORT deflate (strm, flush)
         s->status = BUSY_STATE;
     if (s->status == INIT_STATE) {
         /* zlib header */
-        uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
+        uInt header = (Z_DEFLATED + ((s->w_bits-8)<<4u)) << 8u;
         uInt level_flags;
 
         if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
@@ -867,7 +867,7 @@ int ZEXPORT deflate (strm, flush)
             level_flags = 2;
         else
             level_flags = 3;
-        header |= (level_flags << 6);
+        header |= (level_flags << 6u);
         if (s->strstart != 0) header |= PRESET_DICT;
         header += 31 - (header % 31);
 
@@ -875,8 +875,8 @@ int ZEXPORT deflate (strm, flush)
 
         /* Save the adler32 of the preset dictionary: */
         if (s->strstart != 0) {
-            putShortMSB(s, (uInt)(strm->adler >> 16));
-            putShortMSB(s, (uInt)(strm->adler & 0xffff));
+            putShortMSB(s, (uInt)(strm->adler >> 16u));
+            putShortMSB(s, (uInt)(strm->adler & 0xffffu));
         }
         strm->adler = adler32(0L, Z_NULL, 0);
         s->status = BUSY_STATE;
@@ -921,17 +921,17 @@ int ZEXPORT deflate (strm, flush)
                      (s->gzhead->name == Z_NULL ? 0 : 8) +
                      (s->gzhead->comment == Z_NULL ? 0 : 16)
                      );
-            put_byte(s, (Byte)(s->gzhead->time & 0xff));
-            put_byte(s, (Byte)((s->gzhead->time >> 8) & 0xff));
-            put_byte(s, (Byte)((s->gzhead->time >> 16) & 0xff));
-            put_byte(s, (Byte)((s->gzhead->time >> 24) & 0xff));
+            put_byte(s, (Byte)(s->gzhead->time & 0xffu));
+            put_byte(s, (Byte)((s->gzhead->time >> 8u) & 0xffu));
+            put_byte(s, (Byte)((s->gzhead->time >> 16u) & 0xffu));
+            put_byte(s, (Byte)((s->gzhead->time >> 24u) & 0xffu));
             put_byte(s, s->level == 9 ? 2 :
                      (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2 ?
                       4 : 0));
-            put_byte(s, s->gzhead->os & 0xff);
+            put_byte(s, (Byte)s->gzhead->os & 0xffu);
             if (s->gzhead->extra != Z_NULL) {
-                put_byte(s, s->gzhead->extra_len & 0xff);
-                put_byte(s, (s->gzhead->extra_len >> 8) & 0xff);
+                put_byte(s, s->gzhead->extra_len & 0xffu);
+                put_byte(s, (s->gzhead->extra_len >> 8u) & 0xffu);
             }
             if (s->gzhead->hcrc)
                 strm->adler = crc32(strm->adler, s->pending_buf,
@@ -943,7 +943,7 @@ int ZEXPORT deflate (strm, flush)
     if (s->status == EXTRA_STATE) {
         if (s->gzhead->extra != Z_NULL) {
             ulg beg = s->pending;   /* start of bytes to update crc */
-            uInt left = (s->gzhead->extra_len & 0xffff) - s->gzindex;
+            uInt left = (s->gzhead->extra_len & 0xffffu) - s->gzindex;
             while (s->pending + left > s->pending_buf_size) {
                 uInt copy = s->pending_buf_size - s->pending;
                 zmemcpy(s->pending_buf + s->pending,
@@ -1019,8 +1019,8 @@ int ZEXPORT deflate (strm, flush)
                     return Z_OK;
                 }
             }
-            put_byte(s, (Byte)(strm->adler & 0xff));
-            put_byte(s, (Byte)((strm->adler >> 8) & 0xff));
+            put_byte(s, (Byte)(strm->adler & 0xffu));
+            put_byte(s, (Byte)((strm->adler >> 8u) & 0xffu));
             strm->adler = crc32(0L, Z_NULL, 0);
         }
         s->status = BUSY_STATE;
@@ -1092,20 +1092,20 @@ int ZEXPORT deflate (strm, flush)
     /* Write the trailer */
 #ifdef GZIP
     if (s->wrap == 2) {
-        put_byte(s, (Byte)(strm->adler & 0xff));
-        put_byte(s, (Byte)((strm->adler >> 8) & 0xff));
-        put_byte(s, (Byte)((strm->adler >> 16) & 0xff));
-        put_byte(s, (Byte)((strm->adler >> 24) & 0xff));
-        put_byte(s, (Byte)(strm->total_in & 0xff));
-        put_byte(s, (Byte)((strm->total_in >> 8) & 0xff));
-        put_byte(s, (Byte)((strm->total_in >> 16) & 0xff));
-        put_byte(s, (Byte)((strm->total_in >> 24) & 0xff));
+        put_byte(s, (Byte)(strm->adler & 0xffu));
+        put_byte(s, (Byte)((strm->adler >> 8u) & 0xffu));
+        put_byte(s, (Byte)((strm->adler >> 16u) & 0xffu));
+        put_byte(s, (Byte)((strm->adler >> 24u) & 0xffu));
+        put_byte(s, (Byte)(strm->total_in & 0xffu));
+        put_byte(s, (Byte)((strm->total_in >> 8u) & 0xffu));
+        put_byte(s, (Byte)((strm->total_in >> 16u) & 0xffu));
+        put_byte(s, (Byte)((strm->total_in >> 24u) & 0xffu));
     }
     else
 #endif
     {
-        putShortMSB(s, (uInt)(strm->adler >> 16));
-        putShortMSB(s, (uInt)(strm->adler & 0xffff));
+        putShortMSB(s, (uInt)(strm->adler >> 16u));
+        putShortMSB(s, (uInt)(strm->adler & 0xffffu));
     }
     flush_pending(strm);
     /* If avail_out is zero, the application will call deflate again
@@ -1311,7 +1311,7 @@ local uInt longest_match(s, cur_match)
 
     /* Do not waste too much time if we already have a good match: */
     if (s->prev_length >= s->good_match) {
-        chain_length >>= 2;
+        chain_length >>= 2u;
     }
     /* Do not look for matches beyond the end of the input. This is necessary
      * to make deflate deterministic.
@@ -1644,7 +1644,7 @@ local void fill_window(s)
  * Flush the current block, with given end-of-file flag.
  * IN assertion: strstart is set to the end of the current match.
  */
-#define FLUSH_BLOCK_ONLY(s, last) { \
+#define FLUSH_BLOCK_ONLY(s, last) do { \
    _tr_flush_block(s, (s->block_start >= 0L ? \
                    (charf *)&s->window[(unsigned)s->block_start] : \
                    (charf *)Z_NULL), \
@@ -1653,13 +1653,13 @@ local void fill_window(s)
    s->block_start = s->strstart; \
    flush_pending(s->strm); \
    Tracev((stderr,"[FLUSH]")); \
-}
+} while(0)
 
 /* Same but force premature exit if necessary. */
-#define FLUSH_BLOCK(s, last) { \
+#define FLUSH_BLOCK(s, last) do { \
    FLUSH_BLOCK_ONLY(s, last); \
    if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
-}
+} while(0)
 
 /* Maximum stored block length in deflate format (not including header). */
 #define MAX_STORED 65535
@@ -1704,7 +1704,7 @@ local block_state deflate_stored(s, flush)
          * would be copied from what's left in the window.
          */
         len = MAX_STORED;       /* maximum deflate stored block length */
-        have = (s->bi_valid + 42) >> 3;         /* number of header bytes */
+        have = (s->bi_valid + 42) >> 3u;         /* number of header bytes */
         if (s->strm->avail_out < have)          /* need room for header */
             break;
             /* maximum stored block length that will fit in avail_out: */
@@ -1733,17 +1733,17 @@ local block_state deflate_stored(s, flush)
 
         /* Replace the lengths in the dummy stored block with len. */
         s->pending_buf[s->pending - 4] = len;
-        s->pending_buf[s->pending - 3] = len >> 8;
+        s->pending_buf[s->pending - 3] = len >> 8u;
         s->pending_buf[s->pending - 2] = ~len;
-        s->pending_buf[s->pending - 1] = ~len >> 8;
+        s->pending_buf[s->pending - 1] = ~len >> 8u;
 
         /* Write the stored block header bytes. */
         flush_pending(s->strm);
 
 #ifdef ZLIB_DEBUG
         /* Update debugging counts for the data about to be copied. */
-        s->compressed_len += len << 3;
-        s->bits_sent += len << 3;
+        s->compressed_len += len << 3u;
+        s->bits_sent += len << 3u;
 #endif
 
         /* Copy uncompressed bytes from the window to next_out. */
@@ -1842,7 +1842,7 @@ local block_state deflate_stored(s, flush)
      * have enough input for a worthy block, or if flushing and there is enough
      * room for the remaining input as a stored block in the pending buffer.
      */
-    have = (s->bi_valid + 42) >> 3;         /* number of header bytes */
+    have = (s->bi_valid + 42) >> 3u;         /* number of header bytes */
         /* maximum stored block length that will fit in pending: */
     have = MIN(s->pending_buf_size - have, MAX_STORED);
     min_block = MIN(have, s->w_size);
