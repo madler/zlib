@@ -26,6 +26,10 @@
     } \
 }
 
+#ifndef OF
+#define OF(x) x
+#endif
+
 static z_const char hello[] = "hello, hello!";
 /* "hello world" would be more standard, but the repeated "hello"
  * stresses the compression code better, sorry...
