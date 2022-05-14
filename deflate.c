@@ -201,8 +201,13 @@ local const config configuration_table[10] = {
  * bit values at the expense of memory usage). We slide even when level == 0 to
  * keep the hash table consistent if we switch back to level > 0 later.
  */
+#ifdef STDC
+local void slide_hash(
+    deflate_state *s)
+#else
 local void slide_hash(s)
     deflate_state *s;
+#endif
 {
     unsigned n, m;
     Posf *p;
@@ -228,11 +233,19 @@ local void slide_hash(s)
 }
 
 /* ========================================================================= */
+#ifdef STDC
+int ZEXPORT deflateInit_(
+    z_streamp strm,
+    int level,
+    const char *version,
+    int stream_size)
+#else
 int ZEXPORT deflateInit_(strm, level, version, stream_size)
     z_streamp strm;
     int level;
     const char *version;
     int stream_size;
+#endif
 {
     return deflateInit2_(strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL,
                          Z_DEFAULT_STRATEGY, version, stream_size);
@@ -2175,9 +2188,15 @@ local block_state deflate_rle(s, flush)
  * For Z_HUFFMAN_ONLY, do not look for matches.  Do not maintain a hash table.
  * (It will be regenerated if this run of deflate switches away from Huffman.)
  */
+#ifdef STDC
+local block_state deflate_huff(
+    deflate_state *s,
+    int flush)
+#else
 local block_state deflate_huff(s, flush)
     deflate_state *s;
     int flush;
+#endif
 {
     int bflush;             /* set if current block must be flushed */
 
