@@ -83,7 +83,7 @@ local char *aprintf(char *fmt, ...) {
 // and assures that gzip_normalize applied a second time will not change the
 // input. The pad bits after stored block headers and after the final deflate
 // block are all forced to zeros.
-local int gzip_normalize(FILE *in, FILE *out, char **err) {
+local void gzip_normalize(FILE *in, FILE *out, char **err) {
     // initialize the inflate engine to process a gzip member
     z_stream strm;
     strm.zalloc = Z_NULL;
@@ -451,7 +451,6 @@ local int gzip_normalize(FILE *in, FILE *out, char **err) {
 
     // All good!
     *err = NULL;
-    return 0;
 }
 
 // Normalize the gzip stream on stdin, writing the result to stdout.
@@ -462,9 +461,8 @@ int main(void) {
 
     // Normalize from stdin to stdout, returning 1 on error, 0 if ok.
     char *err;
-    int ret = gzip_normalize(stdin, stdout, &err);
-    if (ret)
-        fprintf(stderr, "gznorm error: %s\n", err);
+    gzip_normalize(stdin, stdout, &err);
     free(err);
-    return ret;
+
+    return 0;
 }
