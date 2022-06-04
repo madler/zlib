@@ -1107,7 +1107,7 @@ uLong ZEXPORT crc32_combine_gen(len2)
 }
 
 /* ========================================================================= */
-uLong crc32_combine_op(crc1, crc2, op)
+uLong ZEXPORT crc32_combine_op(crc1, crc2, op)
     uLong crc1;
     uLong crc2;
     uLong op;
