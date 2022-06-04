@@ -1086,7 +1086,7 @@ uLong ZEXPORT crc32_combine(crc1, crc2, len2)
     uLong crc2;
     z_off_t len2;
 {
-    return crc32_combine64(crc1, crc2, len2);
+    return crc32_combine64(crc1, crc2, (z_off64_t)len2);
 }
 
 /* ========================================================================= */
@@ -1103,7 +1103,7 @@ uLong ZEXPORT crc32_combine_gen64(len2)
 uLong ZEXPORT crc32_combine_gen(len2)
     z_off_t len2;
 {
-    return crc32_combine_gen64(len2);
+    return crc32_combine_gen64((z_off64_t)len2);
 }
 
 /* ========================================================================= */
