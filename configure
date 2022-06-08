@@ -85,6 +85,7 @@ zprefix=0
 zconst=0
 build64=0
 gcc=0
+check_cc_version=0
 warn=0
 debug=0
 sanitize=0
@@ -180,11 +181,15 @@ cflags=${CFLAGS-"-O3"}
 case "$cc" in
   *gcc*) gcc=1 ;;
   *clang*) gcc=1 ;;
+  *xlc*) ;; # xlc -v yield the manpage that mention gcc, and xlc is then handled as gcc
+  *) check_cc_version=1 ;;
 esac
-case `$cc -v 2>&1` in
-  *gcc*) gcc=1 ;;
-  *clang*) gcc=1 ;;
-esac
+if test "$check_cc_version" -eq 1; then
+    case `$cc -v 2>&1` in
+      *gcc*) gcc=1 ;;
+      *clang*) gcc=1 ;;
+    esac
+fi
 
 show $cc -c $test.c
 if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
