@@ -1,7 +1,7 @@
-ZLIB DATA COMPRESSION LIBRARY
+# ZLIB DATA COMPRESSION LIBRARY
 
-zlib 1.2.12 is a general purpose data compression library.  All the code is
-thread safe.  The data format used by the zlib library is described by RFCs
+Zlib 1.2.12 is a general purpose data compression library.  All the code is
+thread safe. The data format used by the zlib library is described by RFCs
 (Request for Comments) 1950 to 1952 in the files
 http://tools.ietf.org/html/rfc1950 (zlib format), rfc1951 (deflate format) and
 rfc1952 (gzip format).
@@ -20,15 +20,14 @@ one of the special makefiles in win32/ or contrib/vstudio/ .  For VMS, use
 make_vms.com.
 
 Questions about zlib should be sent to <zlib@gzip.org>, or to Gilles Vollant
-<info@winimage.com> for the Windows DLL version.  The zlib home page is
-http://zlib.net/ .  Before reporting a problem, please check this site to
+<info@winimage.com> for the Windows DLL version. [The zlib home page](http://zlib.net/). Before reporting a problem, please check this site to
 verify that you have the latest version of zlib; otherwise get the latest
 version and check whether the problem still exists or not.
 
-PLEASE read the zlib FAQ http://zlib.net/zlib_faq.html before asking for help.
+PLEASE read the zlib [FAQ](http://zlib.net/zlib_faq.html) before asking for help.
 
-Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan.  1997
-issue of Dr.  Dobb's Journal; a copy of the article is available at
+Mark Nelson (markn@ieee.org) wrote an article about zlib for the Jan. 1997
+issue of Dr. Dobb's Journal; a copy of the article is available at
 http://marknelson.us/1997/01/01/zlib-engine/ .
 
 The changes made in version 1.2.12 are documented in the file ChangeLog.
@@ -38,7 +37,7 @@ Unsupported third party contributions are provided in directory contrib/ .
 zlib is available in Java using the java.util.zip package, documented at
 http://java.sun.com/developer/technicalArticles/Programming/compression/ .
 
-A Perl interface to zlib written by Paul Marquess <pmqs@cpan.org> is available
+A Perl interface to zlib written by Paul Marquess (pmqs@cpan.org) is available
 at CPAN (Comprehensive Perl Archive Network) sites, including
 http://search.cpan.org/~pmqs/IO-Compress-Zlib/ .
 
