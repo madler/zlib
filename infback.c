@@ -66,6 +66,7 @@ int stream_size;
     state->window = window;
     state->wnext = 0;
     state->whave = 0;
+    state->sane = 1;
     return Z_OK;
 }
 
