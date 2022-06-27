@@ -62,6 +62,7 @@ int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
     state->window = window;
     state->wnext = 0;
     state->whave = 0;
+    state->sane = 1;
     return Z_OK;
 }
 
