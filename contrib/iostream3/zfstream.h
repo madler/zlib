@@ -413,7 +413,7 @@ template<typename T1, typename T2>
   class gzomanip2
   {
   public:
-    // Allows insertor to peek at internals
+    // Allows inserter to peek at internals
     template <typename Ta, typename Tb>
       friend gzofstream&
       operator<<(gzofstream&,

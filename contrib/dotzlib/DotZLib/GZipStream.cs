@@ -45,7 +45,7 @@ namespace DotZLib
 
         #region Constructors
         /// <summary>
-        /// Creates a new file as a writeable GZipStream
+        /// Creates a new file as a writable GZipStream
         /// </summary>
         /// <param name="fileName">The name of the compressed file to create</param>
         /// <param name="level">The compression level to use when adding data</param>
@@ -98,7 +98,7 @@ namespace DotZLib
         }
 
         /// <summary>
-        /// Returns true if this tsream is writeable, false otherwise
+        /// Returns true if this tsream is writable, false otherwise
         /// </summary>
         public override bool CanWrite
         {
@@ -194,7 +194,7 @@ namespace DotZLib
         /// <exception cref="ArgumentNullException">If <c>buffer</c> is null</exception>
         /// <exception cref="ArgumentOutOfRangeException">If <c>count</c> or <c>offset</c> are negative</exception>
         /// <exception cref="ArgumentException">If <c>offset</c>  + <c>count</c> is &gt; buffer.Length</exception>
-        /// <exception cref="NotSupportedException">If this stream is not writeable.</exception>
+        /// <exception cref="NotSupportedException">If this stream is not writable.</exception>
         /// <exception cref="ObjectDisposedException">If this stream has been disposed.</exception>
         public override void Write(byte[] buffer, int offset, int count)
         {
@@ -221,7 +221,7 @@ namespace DotZLib
         /// Writes a single byte to the stream
         /// </summary>
         /// <param name="value">The byte to add to the stream.</param>
-        /// <exception cref="NotSupportedException">If this stream is not writeable.</exception>
+        /// <exception cref="NotSupportedException">If this stream is not writable.</exception>
         /// <exception cref="ObjectDisposedException">If this stream has been disposed.</exception>
         public override void WriteByte(byte value)
         {
@@ -246,7 +246,7 @@ namespace DotZLib
         }
 
         /// <summary>
-        ///  Not suppported.
+        ///  Not supported.
         /// </summary>
         /// <param name="offset"></param>
         /// <param name="origin"></param>
@@ -268,7 +268,7 @@ namespace DotZLib
         }
 
         /// <summary>
-        /// Gets/sets the current position in the <c>GZipStream</c>. Not suppported.
+        /// Gets/sets the current position in the <c>GZipStream</c>. Not supported.
         /// </summary>
         /// <remarks>In this implementation this property is not supported</remarks>
         /// <exception cref="NotSupportedException">Always thrown</exception>
@@ -285,7 +285,7 @@ namespace DotZLib
         }
 
         /// <summary>
-        /// Gets the size of the stream. Not suppported.
+        /// Gets the size of the stream. Not supported.
         /// </summary>
         /// <remarks>In this implementation this property is not supported</remarks>
         /// <exception cref="NotSupportedException">Always thrown</exception>
