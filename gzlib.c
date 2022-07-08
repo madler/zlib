@@ -196,7 +196,11 @@ local gzFile gz_open(path, fd, mode)
     /* save the path name for error messages */
 #ifdef WIDECHAR
     if (fd == -2) {
+#if __STDC_WANT_SECURE_LIB__
         wcstombs_s(&len, NULL, 0, path, 0);
+#else
+        len = wcstombs(NULL, path, 0);
+#endif
         if (len == (z_size_t)-1)
             len = 0;
     }
@@ -211,7 +215,11 @@ local gzFile gz_open(path, fd, mode)
 #ifdef WIDECHAR
     if (fd == -2)
         if (len)
+#if __STDC_WANT_SECURE_LIB__
             wcstombs_s(NULL, state->path, len + 1, path, _TRUNCATE);
+#else
+            wcstombs(state->path, path, len + 1);
+#endif
         else
             *(state->path) = 0;
     else
