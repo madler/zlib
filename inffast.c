@@ -8,10 +8,6 @@
 #include "inflate.h"
 #include "inffast.h"
 
-#ifdef ASMINF
-#  pragma message("Assembler code may have bugs -- use at your own risk")
-#else
-
 /*
    Decode literal, length, and distance codes and write out the resulting
    literal and match bytes until either not enough input or output is
@@ -319,5 +315,3 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
    - Larger unrolled copy loops (three is about right)
    - Moving len -= 3 statement into middle of loop
  */
-
-#endif /* !ASMINF */
