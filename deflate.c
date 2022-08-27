@@ -1273,6 +1273,14 @@ local void lm_init (s)
 /* For 80x86 and 680x0, an optimized version will be provided in match.asm or
  * match.S. The code will be functionally equivalent.
  */
+
+#ifdef Z_POWER_OPT
+/* Rename function so resolver can use its symbol. The default version will be
+ * returned by the resolver if the host has no support for an optimized version.
+ */
+#define longest_match longest_match_default
+#endif /* Z_POWER_OPT */
+
 local uInt longest_match(s, cur_match)
     deflate_state *s;
     IPos cur_match;                             /* current match */
@@ -1416,6 +1424,11 @@ local uInt longest_match(s, cur_match)
     return s->lookahead;
 }
 #endif /* ASMV */
+
+#ifdef Z_POWER_OPT
+#undef longest_match
+#include "contrib/power/longest_match_resolver.c"
+#endif /* Z_POWER_OPT */
 
 #else /* FASTEST */
 
