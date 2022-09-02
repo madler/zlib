@@ -6,7 +6,7 @@ project(zlib C)
 set(VERSION "1.2.12")
 
 option(ASM686 "Enable building i686 assembly implementation")
-option(AMD64 "Enable building amd64 assembly implementation")
+option(ASM064 "Enable building amd64 assembly implementation")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -132,7 +132,7 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
     if(ASM686)
         set(ZLIB_ASMS contrib/asm686/match.S)
-    elseif (AMD64)
+    elseif (ASM064)
         set(ZLIB_ASMS contrib/amd64/amd64-match.S)
     endif ()
 
@@ -149,7 +149,7 @@ if(MSVC)
             contrib/masmx86/inffas32.asm
             contrib/masmx86/match686.asm
         )
-    elseif (AMD64)
+    elseif (ASM064)
         ENABLE_LANGUAGE(ASM_MASM)
         set(ZLIB_ASMS
             contrib/masmx64/gvmat64.asm
