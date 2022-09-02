@@ -5,7 +5,7 @@ project(zlib C)
 
 set(VERSION "1.2.12")
 
-option(ASM686 "Enable building i686 assembly implementation")
+option(ASM032 "Enable building i686 assembly implementation")
 option(ASM064 "Enable building amd64 assembly implementation")
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
@@ -130,7 +130,7 @@ if(NOT MINGW)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
-    if(ASM686)
+    if(ASM032)
         set(ZLIB_ASMS contrib/asm686/match.S)
     elseif (ASM064)
         set(ZLIB_ASMS contrib/amd64/amd64-match.S)
@@ -143,7 +143,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 if(MSVC)
-    if(ASM686)
+    if(ASM032)
         ENABLE_LANGUAGE(ASM_MASM)
         set(ZLIB_ASMS
             contrib/masmx86/inffas32.asm
