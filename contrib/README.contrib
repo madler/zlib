@@ -34,6 +34,16 @@ iostream3/  by Ludwig Schwardt <schwardt@sun.ac.za>
             and Kevin Ruland <kevin@rodin.wustl.edu>
         Yet another C++ I/O streams interface
 
+masmx64/    by Gilles Vollant <info@winimage.com>
+        x86 64-bit (AMD64 and Intel EM64t) code for x64 assembler to
+        replace longest_match() and inflate_fast(),  also masm x86
+        64-bits translation of Chris Anderson inflate_fast()
+
+masmx86/    by Gilles Vollant <info@winimage.com>
+        x86 asm code to replace longest_match() and inflate_fast(),
+        for Visual C++ and MASM (32 bits).
+        Based on Brian Raiter (asm686) and Chris Anderson (inflate86)
+
 minizip/    by Gilles Vollant <info@winimage.com>
         Mini zip and unzip based on zlib
         Includes Zip64 support by Mathias Svensson <mathias@result42.com>
