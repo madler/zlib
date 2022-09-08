@@ -138,7 +138,7 @@ static int filetime(f, tmzip, dt)
   return ret;
 }
 #else
-uLong filetime(f, tmzip, dt)
+static int filetime(f, tmzip, dt)
     const char *f;          /* name of file to get info on */
     tm_zip *tmzip;             /* return value: access, modific. and creation times */
     uLong *dt;             /* dostime */
