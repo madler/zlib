@@ -136,7 +136,7 @@ static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
 #else
 /* f: name of file to get info on, tmzip: return value: access,
    modification and creation times, dt: dostime */
-uLong filetime(const char *f, tm_zip *tmzip, uLong *dt) {
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
     (void)f;
     (void)tmzip;
     (void)dt;
