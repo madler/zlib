@@ -13,6 +13,7 @@
 *.gcno
 *.gcov
 
+/build
 /example
 /example64
 /examplesh
