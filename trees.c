@@ -950,7 +950,10 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
                 opt_lenb, s->opt_len, static_lenb, s->static_len, stored_len,
                 s->sym_next / 3));
 
-        if (static_lenb <= opt_lenb) opt_lenb = static_lenb;
+#ifndef FORCE_STATIC
+        if (static_lenb <= opt_lenb || s->strategy == Z_FIXED)
+#endif
+            opt_lenb = static_lenb;
 
     } else {
         Assert(buf != (char*)0, "lost buf");
@@ -971,11 +974,7 @@ void ZLIB_INTERNAL _tr_flush_block(s, buf, stored_len, last)
          */
         _tr_stored_block(s, buf, stored_len, last);
 
-#ifdef FORCE_STATIC
-    } else if (static_lenb >= 0) { /* force static trees */
-#else
-    } else if (s->strategy == Z_FIXED || static_lenb == opt_lenb) {
-#endif
+    } else if (static_lenb == opt_lenb) {
         send_bits(s, (STATIC_TREES<<1)+last, 3);
         compress_block(s, (const ct_data *)static_ltree,
                        (const ct_data *)static_dtree);
