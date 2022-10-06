@@ -224,6 +224,8 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 
     if (windowBits < 0) { /* suppress zlib wrapper */
         wrap = 0;
+        if (windowBits < -15)
+            return Z_STREAM_ERROR;
         windowBits = -windowBits;
     }
     else if (windowBits > 15) {
