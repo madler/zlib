@@ -179,7 +179,6 @@ else
 fi
 
 cflags=${CFLAGS-"-O3"}
-# to force the asm version use: CFLAGS="-O3 -DASMV" ./configure
 case "$cc" in
   *gcc*) gcc=1 ;;
   *clang*) gcc=1 ;;
@@ -452,20 +451,6 @@ else
   ALL="static shared"
   TEST="all teststatic testshared"
 fi
-
-# check for underscores in external names for use by assembler code
-CPP=${CPP-"$CC -E"}
-case $CFLAGS in
-  *ASMV*)
-    echo >> configure.log
-    show "$NM $test.o | grep _hello"
-    if test "`$NM $test.o | grep _hello | tee -a configure.log`" = ""; then
-      CPP="$CPP -DNO_UNDERLINE"
-      echo Checking for underline in external names... No. | tee -a configure.log
-    else
-      echo Checking for underline in external names... Yes. | tee -a configure.log
-    fi ;;
-esac
 
 echo >> configure.log
 

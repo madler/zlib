@@ -7,10 +7,6 @@
 # Normally configure builds both a static and a shared library.
 # If you want to build just a static library, use: ./configure --static
 
-# To use the asm code, type:
-#    cp contrib/asm?86/match.S ./match.S
-#    make LOC=-DASMV OBJA=match.o
-
 # To install /usr/local/lib/libz.* and /usr/local/include/zlib.h, type:
 #    make install
 # To install in $HOME instead of /usr/local, use:
