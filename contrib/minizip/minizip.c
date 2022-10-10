@@ -190,7 +190,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
 
    unsigned long size_read = 0;
-   unsigned long total_read = 0;
+   /* unsigned long total_read = 0; */
    if (fin==NULL)
    {
        err = ZIP_ERRNO;
@@ -210,7 +210,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
 
             if (size_read>0)
                 calculate_crc = crc32_z(calculate_crc,buf,size_read);
-            total_read += size_read;
+            /* total_read += size_read; */
 
         } while ((err == ZIP_OK) && (size_read>0));
 
