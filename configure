@@ -239,34 +239,35 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         LDSHARED=${LDSHARED-"$cc -shared"}
         LDSHAREDLIBC=""
         EXE='.exe' ;;
-  QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
-         # (alain.bonnefoy@icbt.com)
-                 LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"} ;;
+  QNX*) # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
+        # (alain.bonnefoy@icbt.com)
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"} ;;
   HP-UX*)
-         LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
-         case `(uname -m || echo unknown) 2>/dev/null` in
-         ia64)
-                 shared_ext='.so'
-                 SHAREDLIB='libz.so' ;;
-         *)
-                 shared_ext='.sl'
-                 SHAREDLIB='libz.sl' ;;
-         esac ;;
+        LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
+        case `(uname -m || echo unknown) 2>/dev/null` in
+        ia64)
+            shared_ext='.so'
+            SHAREDLIB='libz.so' ;;
+        *)
+            shared_ext='.sl'
+            SHAREDLIB='libz.sl' ;;
+        esac ;;
   AIX*)
         LDFLAGS="${LDFLAGS} -Wl,-brtl" ;;
   Darwin* | darwin* | *-darwin*)
-             shared_ext='.dylib'
-             SHAREDLIB=libz$shared_ext
-             SHAREDLIBV=libz.$VER$shared_ext
-             SHAREDLIBM=libz.$VER1$shared_ext
-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
-             if libtool -V 2>&1 | grep Apple > /dev/null; then
-                 AR="libtool"
-             else
-                 AR="/usr/bin/libtool"
-             fi
-             ARFLAGS="-o" ;;
-  *)             LDSHARED=${LDSHARED-"$cc -shared"} ;;
+        shared_ext='.dylib'
+        SHAREDLIB=libz$shared_ext
+        SHAREDLIBV=libz.$VER$shared_ext
+        SHAREDLIBM=libz.$VER1$shared_ext
+        LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
+        if libtool -V 2>&1 | grep Apple > /dev/null; then
+            AR="libtool"
+        else
+            AR="/usr/bin/libtool"
+        fi
+        ARFLAGS="-o" ;;
+  *)
+        LDSHARED=${LDSHARED-"$cc -shared"} ;;
   esac
 else
   # find system name and corresponding cc options
