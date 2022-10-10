@@ -252,6 +252,8 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
                  shared_ext='.sl'
                  SHAREDLIB='libz.sl' ;;
          esac ;;
+  AIX*)
+        LDFLAGS="${LDFLAGS} -Wl,-brtl" ;;
   Darwin* | darwin* | *-darwin*)
              shared_ext='.dylib'
              SHAREDLIB=libz$shared_ext
