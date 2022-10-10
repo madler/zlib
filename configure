@@ -33,7 +33,10 @@ fi
 # set command prefix for cross-compilation
 if [ -n "${CHOST}" ]; then
     uname=${CHOST}
+    mname=${CHOST}
     CROSS_PREFIX="${CHOST}-"
+else
+    mname=`(uname -a || echo unknown) 2>/dev/null`
 fi
 
 # destination name for static library
@@ -220,6 +223,10 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   fi
   case "$uname" in
   Linux* | linux* | *-linux* | GNU | GNU/* | solaris*)
+        case "$mname" in
+        *sparc*)
+            LDFLAGS="${LDFLAGS} -Wl,--no-warn-rwx-segments" ;;
+        esac
         LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"} ;;
   *BSD | *bsd* | DragonFly)
         LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"}
