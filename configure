@@ -178,7 +178,6 @@ else
   cc=${CC}
 fi
 
-cflags=${CFLAGS-"-O3"}
 case "$cc" in
   *gcc*) gcc=1 ;;
   *clang*) gcc=1 ;;
