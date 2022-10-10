@@ -1,0 +1,43 @@
+@PACKAGE_INIT@
+
+
+
+FUNCTION(__GET_TARGETS_CONFIGS files_var)
+	SET(files_to_include)
+	FILE(GLOB files "${CMAKE_CURRENT_LIST_DIR}/*.cmake")
+	IF(files)
+		SET(config_types ${CMAKE_CONFIGURATION_TYPES})
+		IF(NOT CMAKE_CONFIGURATION_TYPES)
+			IF(CMAKE_BUILD_TYPE)
+				SET(config_types ${CMAKE_BUILD_TYPE})
+			ELSE()
+				SET(config_types DEBUG RELEASE)
+			ENDIF()
+		ENDIF()
+		SET(build_type_regex_list)
+		FOREACH(build_type IN LISTS config_types)
+			STRING(TOLOWER "${build_type}" build_type_lower)
+			LIST(APPEND build_type_regex_list "(-${build_type_lower}.cmake)")
+		ENDFOREACH()
+		LIST(JOIN build_type_regex_list "|" _build_type_regex)
+		SET(build_type_regex "(${_build_type_regex})$")
+		FOREACH(file IN LISTS files)
+			STRING(REGEX MATCH "${build_type_regex}" match_ok "${file}")
+			IF(match_ok)
+				STRING(REGEX REPLACE "${build_type_regex}" ".cmake" target_config "${file}")
+				LIST(APPEND files_to_include ${target_config})
+			ENDIF()
+		ENDFOREACH()
+		LIST(REMOVE_DUPLICATES files_to_include)
+	ENDIF()
+	SET(${files_var} ${files_to_include} PARENT_SCOPE)
+ENDFUNCTION()
+
+__GET_TARGETS_CONFIGS(files)
+
+FOREACH(file IN LISTS files)
+	INCLUDE(${file})
+ENDFOREACH()
+
+SET_AND_CHECK(config_version_file "${CMAKE_CURRENT_LIST_DIR}/${PACKAGE_FIND_NAME}ConfigVersion.cmake")
+INCLUDE("${config_version_file}")

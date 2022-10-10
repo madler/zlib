@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.6.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
@@ -212,6 +212,7 @@ endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlib zlibstatic
+        EXPORT zlib
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
@@ -224,6 +225,27 @@ if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
 endif()
 if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
     install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+endif()
+if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL AND NOT SKIP_PACKAGE)
+    SET(package_config_file "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake")
+    SET(package_version_file "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake")
+
+    INCLUDE(CMakePackageConfigHelpers)
+    CONFIGURE_PACKAGE_CONFIG_FILE(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_package_template.cmake.in"
+        "${package_config_file}"
+        INSTALL_DESTINATION "cmake/"
+    )
+    WRITE_BASIC_PACKAGE_VERSION_FILE(
+        "${package_version_file}"
+        VERSION "${VERSION}"
+        COMPATIBILITY SameMajorVersion
+    )
+    INSTALL(FILES "${package_config_file}" "${package_version_file}"
+        DESTINATION "cmake/"
+    )
+    install(EXPORT zlib
+        DESTINATION "cmake/")
 endif()
 
 #============================================================================
