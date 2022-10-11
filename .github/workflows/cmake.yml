@@ -61,3 +61,13 @@ jobs:
     - name: Run test cases
       run: ctest -C Release --output-on-failure --max-width 120
       working-directory: ${{ matrix.build-dir || '.' }}
+
+    - name: Upload build errors
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: ${{ matrix.name }} (cmake)
+        path: |
+          **/CMakeFiles/CMakeOutput.log
+          **/CMakeFiles/CMakeError.log
+        retention-days: 7
