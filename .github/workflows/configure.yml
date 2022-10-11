@@ -13,12 +13,13 @@ jobs:
             compiler: gcc
             configure-args: --warn
 
-          - name: Ubuntu GCC ISB
+          # Test out of source builds
+          - name: Ubuntu GCC OSB
             os: ubuntu-latest
             compiler: gcc
             configure-args: --warn
-            build-dir: "."
-            src-dir: "."
+            build-dir: ../build
+            src-dir: ../zlib
 
           - name: macOS GCC
             os: macos-latest
@@ -31,9 +32,9 @@ jobs:
 
     - name: Generate project files
       run: |
-        [ -d ${{ matrix.build-dir || '../build' }} ] || mkdir ${{ matrix.build-dir || '../build' }}
-        cd ${{ matrix.build-dir || '../build' }}
-        ${{ matrix.src-dir || '../zlib' }}/configure ${{ matrix.configure-args }}
+        [ -d ${{ matrix.build-dir || '.' }} ] || mkdir ${{ matrix.build-dir || '.' }}
+        cd ${{ matrix.build-dir || '.' }}
+        ${{ matrix.src-dir || '.' }}/configure ${{ matrix.configure-args }}
       env:
         CC: ${{ matrix.compiler }}
 
