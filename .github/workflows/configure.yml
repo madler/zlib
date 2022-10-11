@@ -78,6 +78,11 @@ jobs:
             compiler: gcc-9
             configure-args: --warn
 
+          - name: macOS Clang
+            os: macos-latest
+            compiler: clang
+            configure-args: --warn
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
