@@ -43,7 +43,9 @@ jobs:
       working-directory: ${{ matrix.build-dir }}
 
     - name: Run test cases
-      run: make test
+      run: |
+        make test
+        make cover
       working-directory: ${{ matrix.build-dir }}
 
     - name: Upload build errors
