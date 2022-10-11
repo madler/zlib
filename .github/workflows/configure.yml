@@ -73,6 +73,16 @@ jobs:
             packages: qemu qemu-user gcc-powerpc64le-linux-gnu libc-dev-ppc64el-cross
             qemu-run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu
 
+          - name: Ubuntu GCC S390X
+            os: ubuntu-latest
+            compiler: s390x-linux-gnu-gcc
+            configure-args: --warn --static
+            chost: s390x-linux-gnu
+            packages: qemu qemu-user gcc-s390x-linux-gnu libc-dev-s390x-cross
+            qemu-run: qemu-s390x -L /usr/s390x-linux-gnu
+            cflags: -static
+            ldflags: -static
+
           - name: macOS GCC
             os: macos-latest
             compiler: gcc-9
