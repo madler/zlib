@@ -21,6 +21,30 @@ jobs:
             build-dir: ../build
             src-dir: ../zlib
 
+          - name: Ubuntu GCC ARM SF
+            os: ubuntu-latest
+            compiler: arm-linux-gnueabi-gcc
+            configure-args: --warn
+            chost: arm-linux-gnueabi
+            packages: qemu qemu-user gcc-arm-linux-gnueabi libc-dev-armel-cross
+            qemu-run: qemu-arm -L /usr/arm-linux-gnueabi
+
+          - name: Ubuntu GCC ARM HF
+            os: ubuntu-latest
+            compiler: arm-linux-gnueabihf-gcc
+            configure-args: --warn
+            chost: arm-linux-gnueabihf
+            packages: qemu qemu-user gcc-arm-linux-gnueabihf libc-dev-armhf-cross
+            qemu-run: qemu-arm -L /usr/arm-linux-gnueabihf
+
+          - name: Ubuntu GCC AARCH64
+            os: ubuntu-latest
+            compiler: aarch64-linux-gnu-gcc
+            configure-args: --warn
+            chost: aarch64-linux-gnu
+            packages: qemu qemu-user gcc-aarch64-linux-gnu libc-dev-arm64-cross
+            qemu-run: qemu-aarch64 -L /usr/aarch64-linux-gnu
+
           - name: macOS GCC
             os: macos-latest
             compiler: gcc-9
@@ -30,6 +54,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Install packages (Ubuntu)
+      if: runner.os == 'Linux' && matrix.packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.packages }}
+
     - name: Generate project files
       run: |
         [ -d ${{ matrix.build-dir || '.' }} ] || mkdir ${{ matrix.build-dir || '.' }}
@@ -37,6 +67,7 @@ jobs:
         ${{ matrix.src-dir || '.' }}/configure ${{ matrix.configure-args }}
       env:
         CC: ${{ matrix.compiler }}
+        CHOST: ${{ matrix.chost }}
 
     - name: Compile source code
       run: make -j2
