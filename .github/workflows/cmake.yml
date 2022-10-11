@@ -43,6 +43,11 @@ jobs:
             compiler: cl
             cmake-args: -A x64
 
+          - name: Windows GCC
+            os: windows-latest
+            compiler: gcc
+            cmake-args: -G Ninja
+
           - name: macOS Clang
             os: macos-latest
             compiler: clang
@@ -54,6 +59,11 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+
+    - name: Install packages (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install --no-progress ninja ${{ matrix.packages }}
 
     - name: Generate project files
       run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
