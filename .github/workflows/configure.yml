@@ -45,6 +45,34 @@ jobs:
             packages: qemu qemu-user gcc-aarch64-linux-gnu libc-dev-arm64-cross
             qemu-run: qemu-aarch64 -L /usr/aarch64-linux-gnu
 
+          - name: Ubuntu GCC PPC
+            os: ubuntu-latest
+            compiler: powerpc-linux-gnu-gcc
+            configure-args: --warn --static
+            chost: powerpc-linux-gnu
+            packages: qemu qemu-user gcc-powerpc-linux-gnu libc-dev-powerpc-cross
+            qemu-run: qemu-ppc -L /usr/powerpc-linux-gnu
+            cflags: -static
+            ldflags: -static
+
+          - name: Ubuntu GCC PPC64
+            os: ubuntu-latest
+            compiler: powerpc64-linux-gnu-gcc
+            configure-args: --warn --static
+            chost: powerpc-linux-gnu
+            packages: qemu qemu-user gcc-powerpc64-linux-gnu libc-dev-ppc64-cross
+            qemu-run: qemu-ppc64 -L /usr/powerpc64-linux-gnu
+            cflags: -static
+            ldflags: -static
+
+          - name: Ubuntu GCC PPC64LE
+            os: ubuntu-latest
+            compiler: powerpc64le-linux-gnu-gcc
+            configure-args: --warn
+            chost: powerpc64le-linux-gnu
+            packages: qemu qemu-user gcc-powerpc64le-linux-gnu libc-dev-ppc64el-cross
+            qemu-run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu
+
           - name: macOS GCC
             os: macos-latest
             compiler: gcc-9
@@ -67,6 +95,8 @@ jobs:
         ${{ matrix.src-dir || '.' }}/configure ${{ matrix.configure-args }}
       env:
         CC: ${{ matrix.compiler }}
+        CFLAGS: ${{ matrix.cflags }}
+        LDFLAGS: ${{ matrix.ldflags }}
         CHOST: ${{ matrix.chost }}
 
     - name: Compile source code
