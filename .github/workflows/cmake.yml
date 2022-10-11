@@ -19,6 +19,11 @@ jobs:
             build-dir: ../build
             src-dir: ../zlib
 
+          - name: Ubuntu GCC -O3
+            os: ubuntu-latest
+            compiler: gcc
+            cflags: -O3
+
           - name: Ubuntu Clang
             os: ubuntu-latest
             compiler: clang
@@ -54,6 +59,7 @@ jobs:
       run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
       env:
         CC: ${{ matrix.compiler }}
+        CFLAGS: ${{ matrix.cflags }}
 
     - name: Compile source code
       run: cmake --build ${{ matrix.build-dir || '.' }} --config ${{ matrix.build-config || 'Release' }}
