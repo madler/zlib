@@ -78,6 +78,8 @@ jobs:
         make test
         make cover
       working-directory: ${{ matrix.build-dir }}
+      env:
+        QEMU_RUN: ${{ matrix.qemu-run }}
 
     - name: Upload build errors
       uses: actions/upload-artifact@v3

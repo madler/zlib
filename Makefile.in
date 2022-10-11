@@ -83,7 +83,7 @@ test: all teststatic testshared
 
 teststatic: static
 	@TMPST=tmpst_$$; \
-	if echo hello world | ./minigzip | ./minigzip -d && ./example $$TMPST ; then \
+	if echo hello world | ${QEMU_RUN} ./minigzip | ${QEMU_RUN} ./minigzip -d && ${QEMU_RUN} ./example $$TMPST ; then \
 	  echo '		*** zlib test OK ***'; \
 	else \
 	  echo '		*** zlib test FAILED ***'; false; \
@@ -96,7 +96,7 @@ testshared: shared
 	DYLD_LIBRARY_PATH=`pwd`:$(DYLD_LIBRARY_PATH) ; export DYLD_LIBRARY_PATH; \
 	SHLIB_PATH=`pwd`:$(SHLIB_PATH) ; export SHLIB_PATH; \
 	TMPSH=tmpsh_$$; \
-	if echo hello world | ./minigzipsh | ./minigzipsh -d && ./examplesh $$TMPSH; then \
+	if echo hello world | ${QEMU_RUN} ./minigzipsh | ${QEMU_RUN} ./minigzipsh -d && ${QEMU_RUN} ./examplesh $$TMPSH; then \
 	  echo '		*** zlib shared test OK ***'; \
 	else \
 	  echo '		*** zlib shared test FAILED ***'; false; \
@@ -105,7 +105,7 @@ testshared: shared
 
 test64: all64
 	@TMP64=tmp64_$$; \
-	if echo hello world | ./minigzip64 | ./minigzip64 -d && ./example64 $$TMP64; then \
+	if echo hello world | ${QEMU_RUN} ./minigzip64 | ${QEMU_RUN} ./minigzip64 -d && ${QEMU_RUN} ./example64 $$TMP64; then \
 	  echo '		*** zlib 64-bit test OK ***'; \
 	else \
 	  echo '		*** zlib 64-bit test FAILED ***'; false; \
@@ -120,7 +120,7 @@ infcover: infcover.o libz.a
 
 cover: infcover
 	rm -f *.gcda
-	./infcover
+	${QEMU_RUN} ./infcover
 	gcov inf*.c
 
 libz.a: $(OBJS)
