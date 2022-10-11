@@ -45,3 +45,12 @@ jobs:
     - name: Run test cases
       run: make test
       working-directory: ${{ matrix.build-dir }}
+
+    - name: Upload build errors
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: ${{ matrix.name }} (configure)
+        path: |
+          ${{ matrix.build-dir || '.' }}/configure.log
+        retention-days: 7
