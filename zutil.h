@@ -150,7 +150,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
-#ifdef __acorn
+#ifdef __riscos
 #  define OS_CODE 13
 #endif
 
@@ -170,7 +170,11 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE 19
 #endif
 
-#if defined(_BEOS_) || defined(RISCOS)
+#ifdef _BEOS_
+#  define fdopen(fd,mode) NULL /* No fdopen() */
+#endif
+
+#if defined(__riscos) && !defined(__GNUC__)
 #  define fdopen(fd,mode) NULL /* No fdopen() */
 #endif
 

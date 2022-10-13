@@ -13,9 +13,13 @@
 #  include <stdlib.h>
 #endif
 
-#if defined(VMS) || defined(RISCOS)
+#if defined(VMS)
 #  define TESTFILE "foo-gz"
-#else
+#endif
+#if defined(__riscos) && !defined(__TARGET_UNIXLIB__)
+#  define TESTFILE "foo/gz"
+#endif
+#ifndef TESTFILE
 #  define TESTFILE "foo.gz"
 #endif
 

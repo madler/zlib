@@ -1150,7 +1150,7 @@ Changes in 1.1.3 (9 July 1998)
 - Python interface to zlib now in Python 1.5 (Jeremy Hylton)
 - new Makefile.riscos (Rich Walker)
 - initialize static descriptors in trees.c for embedded targets (Nick Smith)
-- use "foo-gz" in example.c for RISCOS and VMS (Nick Smith)
+- use "foo-gz" in example.c for RISC OS and VMS (Nick Smith)
 - add the OS/2 files in Makefile.in too (Andrew Zabolotny)
 - fix fdopen and halloc macros for Microsoft C 6.0 (Tom Lane)
 - fix maketree.c to allow clean compilation of inffixed.h (Mark)
@@ -1357,7 +1357,7 @@ Changes in 1.0.4 (24 Jul 96)
   bit, so the decompressor could decompress all the correct data but went
   on to attempt decompressing extra garbage data. This affected minigzip too
 - zlibVersion and gzerror return const char* (needed for DLL)
-- port to RISCOS (no fdopen, no multiple dots, no unlink, no fileno)
+- port to RISC OS (no fdopen, no multiple dots, no unlink, no fileno)
 - use z_error only for DEBUG (avoid problem with DLLs)
 
 Changes in 1.0.3 (2 Jul 96)
