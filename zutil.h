@@ -141,7 +141,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE  7
 #endif
 
-#ifdef __acorn
+#if defined(__acorn) || defined(__riscos)
 #  define OS_CODE 13
 #endif
 
