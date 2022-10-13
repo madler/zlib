@@ -1,8 +1,17 @@
 
                 ChangeLog file for zlib
 
-Changes in 1.2.12.1 (xx Mar 2022)
-- 
+Changes in 1.2.13 (13 Oct 2022)
+- Fix configure issue that discarded provided CC definition
+- Correct incorrect inputs provided to the CRC functions
+- Repair prototypes and exporting of new CRC functions
+- Fix inflateBack to detect invalid input with distances too far
+- Have infback() deliver all of the available output up to any error
+- Fix a bug when getting a gzip header extra field with inflate()
+- Fix bug in block type selection when Z_FIXED used
+- Tighten deflateBound bounds
+- Remove deleted assembler code references
+- Various portability and appearance improvements
 
 Changes in 1.2.12 (27 Mar 2022)
 - Cygwin does not have _wopen(), so do not create gzopen_w() there
