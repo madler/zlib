@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.13.1 (xx Oct 2022)
+- 
+
 Changes in 1.2.13 (13 Oct 2022)
 - Fix configure issue that discarded provided CC definition
 - Correct incorrect inputs provided to the CRC functions
