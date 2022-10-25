@@ -1,0 +1,72 @@
+name: NuGet
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  ci-nuget:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [windows-latest, ubuntu-latest, macos-latest]
+    env:
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_NOLOGO: true
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@main
+
+    - uses: actions/setup-dotnet@main
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Install packages (Ubuntu)
+      if: runner.OS == 'Linux'
+      run: |
+        sudo apt-get install gcc-multilib
+        sudo apt-get install gcc-arm-linux-gnueabihf -y
+        sudo apt-get install gcc-aarch64-linux-gnu -y
+
+    - name: Build (Windows)
+      if: runner.OS == 'Windows'
+      run: |
+        cd contrib/vstudio/v143/
+        msbuild zlibvc.sln -p:Configuration=Release -p:Platform=Win32
+        msbuild zlibvc.sln -p:Configuration=Release -p:Platform=x64
+        msbuild zlibvc.sln -p:Configuration=Release -p:Platform=ARM
+        msbuild zlibvc.sln -p:Configuration=Release -p:Platform=ARM64
+        cd ../../../
+
+    - name: Build (Ubuntu)
+      if: runner.OS == 'Linux'
+      run: |
+        ./configure
+        mkdir contrib/nuget/linux-x86/
+        mkdir contrib/nuget/linux-x64/
+        mkdir contrib/nuget/linux-arm/
+        mkdir contrib/nuget/linux-arm64/
+        gcc -O3 -Wall -m32 -shared -Wl,--out-implib,contrib/nuget/linux-x86/libz.a -o contrib/nuget/linux-x86/libz.so adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+        gcc -O3 -Wall -m64 -shared -Wl,--out-implib,contrib/nuget/linux-x64/libz.a -o contrib/nuget/linux-x64/libz.so adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+        arm-linux-gnueabihf-gcc -O3 -Wall -shared -Wl,--out-implib,contrib/nuget/linux-arm/libz.a -o contrib/nuget/linux-arm/libz.so adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+        aarch64-linux-gnu-gcc -O3 -Wall -shared -Wl,--out-implib,contrib/nuget/linux-arm64/libz.a -o contrib/nuget/linux-arm64/libz.so adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+
+    - name: Build (MacOS)
+      if: runner.OS == 'MacOS'
+      run: |
+        ./configure
+        mkdir contrib/nuget/osx-x64/
+        mkdir contrib/nuget/osx-arm64/
+        gcc -O3 -Wall -m64 -dynamiclib -o contrib/nuget/osx-x64/libz.dylib adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+        gcc -O3 -Wall -arch arm64 -dynamiclib -o contrib/nuget/osx-arm64/libz.dylib adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c infback.c inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c -fPIC
+
+    - name: Build & Push NuGet Packages
+      uses: Elskom/build-dotnet@main
+      with:
+        SOLUTION_FILE_PATH: 'contrib/nuget/nuget.sln'
+        RESTORE: false
+        PUSH: true
