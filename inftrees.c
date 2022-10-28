@@ -265,7 +265,7 @@ unsigned short FAR *work;
 
             /* determine length of next table */
             curr = len - drop;
-            left = (int)(1 << curr);
+            left = (1 << curr);
             while (curr + drop < max) {
                 left -= count[curr + drop];
                 if (left <= 0) break;

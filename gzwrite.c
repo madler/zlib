@@ -156,7 +156,7 @@ local int gz_zero(state, len)
     z_off64_t len;
 {
     int first;
-    unsigned n;
+    off_t n;
     z_streamp strm = &(state->strm);
 
     /* consume whatever's left in the input buffer */
@@ -165,9 +165,9 @@ local int gz_zero(state, len)
 
     /* compress len zeros (len guaranteed > 0) */
     first = 1;
-    while (len) {
+    while (len > 0) {
         n = GT_OFF(state->size) || (z_off64_t)state->size > len ?
-            (unsigned)len : state->size;
+            len : state->size;
         if (first) {
             memset(state->in, 0, n);
             first = 0;

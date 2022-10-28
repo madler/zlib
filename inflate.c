@@ -838,7 +838,7 @@ int flush;
                 INITBITS();
             }
             if (state->head != Z_NULL) {
-                state->head->hcrc = (int)((state->flags >> 9) & 1);
+                state->head->hcrc = ((state->flags >> 9) & 1);
                 state->head->done = 1;
             }
             strm->adler = state->check = crc32(0L, Z_NULL, 0);

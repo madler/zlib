@@ -690,10 +690,10 @@ local void build_tree(s, desc)
     /* At this point, the fields freq and dad are set. We can now
      * generate the bit lengths.
      */
-    gen_bitlen(s, (tree_desc *)desc);
+    gen_bitlen(s, desc);
 
     /* The field len is now set, we can generate the bit codes */
-    gen_codes ((ct_data *)tree, max_code, s->bl_count);
+    gen_codes (tree, max_code, s->bl_count);
 }
 
 /* ===========================================================================

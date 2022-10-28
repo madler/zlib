@@ -449,8 +449,8 @@ z_off_t ZEXPORT gzseek(file, offset, whence)
 {
     z_off64_t ret;
 
-    ret = gzseek64(file, (z_off64_t)offset, whence);
-    return ret == (z_off_t)ret ? (z_off_t)ret : -1;
+    ret = gzseek64(file, offset, whence);
+    return ret == ret ? ret : -1;
 }
 
 /* -- see zlib.h -- */
@@ -477,7 +477,7 @@ z_off_t ZEXPORT gztell(file)
     z_off64_t ret;
 
     ret = gztell64(file);
-    return ret == (z_off_t)ret ? (z_off_t)ret : -1;
+    return ret == ret ? ret : -1;
 }
 
 /* -- see zlib.h -- */
@@ -510,7 +510,7 @@ z_off_t ZEXPORT gzoffset(file)
     z_off64_t ret;
 
     ret = gzoffset64(file);
-    return ret == (z_off_t)ret ? (z_off_t)ret : -1;
+    return ret == ret ? ret : -1;
 }
 
 /* -- see zlib.h -- */
