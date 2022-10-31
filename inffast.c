@@ -23,8 +23,8 @@
    Entry assumptions:
 
         state->mode == LEN
-        strm->avail_in >= 6
-        strm->avail_out >= 258
+        strm->avail_in >= INFLATE_FAST_MIN_HAVE
+        strm->avail_out >= INFLATE_FAST_MIN_LEFT
         start >= strm->avail_out
         state->bits < 8
 
@@ -80,10 +80,10 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     /* copy state to local variables */
     state = (struct inflate_state FAR *)strm->state;
     in = strm->next_in;
-    last = in + (strm->avail_in - 5);
+    last = in + (strm->avail_in - (INFLATE_FAST_MIN_HAVE - 1));
     out = strm->next_out;
     beg = out - (start - strm->avail_out);
-    end = out + (strm->avail_out - 257);
+    end = out + (strm->avail_out - (INFLATE_FAST_MIN_LEFT - 1));
 #ifdef INFLATE_STRICT
     dmax = state->dmax;
 #endif
@@ -298,9 +298,12 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     /* update state and return */
     strm->next_in = in;
     strm->next_out = out;
-    strm->avail_in = (unsigned)(in < last ? 5 + (last - in) : 5 - (in - last));
+    strm->avail_in = (unsigned)(in < last ?
+        (INFLATE_FAST_MIN_HAVE - 1) + (last - in) :
+        (INFLATE_FAST_MIN_HAVE - 1) - (in - last));
     strm->avail_out = (unsigned)(out < end ?
-                                 257 + (end - out) : 257 - (out - end));
+        (INFLATE_FAST_MIN_LEFT - 1) + (end - out) :
+        (INFLATE_FAST_MIN_LEFT - 1) - (out - end));
     state->hold = hold;
     state->bits = bits;
     return;
