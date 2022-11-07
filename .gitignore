@@ -24,3 +24,6 @@
 /configure.log
 
 .DS_Store
+build
+zconf.h.included
+zconf.h
