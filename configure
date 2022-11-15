@@ -828,6 +828,72 @@ EOF
   fi
 fi
 
+# test to see if we can use a gnu indirection function to detect and load optimized code at runtime
+echo >> configure.log
+cat > $test.c <<EOF
+static int test_ifunc_native(void)
+{
+  return 1;
+}
+
+static int (*(check_ifunc_native(void)))(void)
+{
+  return test_ifunc_native;
+}
+
+int test_ifunc(void) __attribute__ ((ifunc ("check_ifunc_native")));
+EOF
+
+if tryboth $CC -c $CFLAGS $test.c; then
+  SFLAGS="${SFLAGS} -DHAVE_IFUNC"
+  CFLAGS="${CFLAGS} -DHAVE_IFUNC"
+  echo "Checking for attribute(ifunc) support... Yes." | tee -a configure.log
+else
+  echo "Checking for attribute(ifunc) support... No." | tee -a configure.log
+fi
+
+# Test to see if we can use the optimizations for Power
+echo >> configure.log
+cat > $test.c <<EOF
+#ifndef _ARCH_PPC
+  #error "Target is not Power"
+#endif
+#ifndef HAVE_IFUNC
+  #error "Target doesn't support ifunc"
+#endif
+#ifndef __BUILTIN_CPU_SUPPORTS__
+  #error "Target doesn't support __builtin_cpu_supports()"
+#endif
+EOF
+
+if tryboth $CC -c $CFLAGS $test.c; then
+  echo "int main(void){return 0;}" > $test.c
+
+  if tryboth $CC -c $CFLAGS -mcpu=power8 $test.c; then
+    POWER8="-DZ_POWER8"
+    PIC_OBJC="${PIC_OBJC}"
+    OBJC="${OBJC}"
+    echo "Checking for -mcpu=power8 support... Yes." | tee -a configure.log
+  else
+    echo "Checking for -mcpu=power8 support... No." | tee -a configure.log
+  fi
+
+  if tryboth $CC -c $CFLAGS -mcpu=power9 $test.c; then
+    POWER9="-DZ_POWER9"
+    PIC_OBJC="${PIC_OBJC}"
+    OBJC="${OBJC}"
+    echo "Checking for -mcpu=power9 support... Yes." | tee -a configure.log
+  else
+    echo "Checking for -mcpu=power9 support... No." | tee -a configure.log
+  fi
+
+  SFLAGS="${SFLAGS} ${POWER8} ${POWER9} -DZ_POWER_OPT"
+  CFLAGS="${CFLAGS} ${POWER8} ${POWER9} -DZ_POWER_OPT"
+  echo "Checking for Power optimizations support... Yes." | tee -a configure.log
+else
+  echo "Checking for Power optimizations support... No." | tee -a configure.log
+fi
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
