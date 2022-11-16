@@ -858,6 +858,9 @@ cat > $test.c <<EOF
 #ifndef _ARCH_PPC
   #error "Target is not Power"
 #endif
+#if !(defined(__PPC64__) || defined(__powerpc64__))
+  #error "Target is not 64 bits"
+#endif
 #ifndef HAVE_IFUNC
   #error "Target doesn't support ifunc"
 #endif
@@ -871,8 +874,8 @@ if tryboth $CC -c $CFLAGS $test.c; then
 
   if tryboth $CC -c $CFLAGS -mcpu=power8 $test.c; then
     POWER8="-DZ_POWER8"
-    PIC_OBJC="${PIC_OBJC}"
-    OBJC="${OBJC}"
+    PIC_OBJC="${PIC_OBJC} crc32_z_power8.lo"
+    OBJC="${OBJC} crc32_z_power8.o"
     echo "Checking for -mcpu=power8 support... Yes." | tee -a configure.log
   else
     echo "Checking for -mcpu=power8 support... No." | tee -a configure.log
