@@ -50,6 +50,9 @@ local int gz_init(state)
             return -1;
         }
         strm->next_in = NULL;
+    } else {
+        strm->state = NULL;
+        state->out = NULL;
     }
 
     /* mark state as initialized */
@@ -60,6 +63,10 @@ local int gz_init(state)
         strm->avail_out = state->size;
         strm->next_out = state->out;
         state->x.next = strm->next_out;
+    } else {
+        strm->avail_out = 0;
+        strm->next_out = NULL;
+        state->x.next = NULL;
     }
     return 0;
 }
