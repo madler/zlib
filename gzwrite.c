@@ -520,7 +520,7 @@ int ZEXPORT gzsetparams(gzFile file, int level, int strategy) {
     strm = &(state->strm);
 
     /* check that we're writing and that there's no error */
-    if (state->mode != GZ_WRITE || state->err != Z_OK)
+    if (state->mode != GZ_WRITE || state->err != Z_OK || state->direct)
         return Z_STREAM_ERROR;
 
     /* if no change is requested, then do nothing */
