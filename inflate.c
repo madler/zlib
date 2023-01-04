@@ -1585,9 +1585,10 @@ int ZEXPORT inflateValidate(z_streamp strm, int check) {
 long ZEXPORT inflateMark(z_streamp strm) {
     struct inflate_state FAR *state;
 
-    if (inflateStateCheck(strm)) return ULONG_MAX << 16;
+    if (inflateStateCheck(strm))
+        return (long)(((unsigned long)0 - 1) << 16);
     state = (struct inflate_state FAR *)strm->state;
-    return ((long)(state->back) << 16) +
+    return (long)(((unsigned long)((long)state->back)) << 16) +
         (state->mode == COPY ? state->length :
             (state->mode == MATCH ? state->was - state->length : 0));
 }
