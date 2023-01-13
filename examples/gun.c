@@ -91,7 +91,7 @@ local unsigned in(void *in_desc, z_const unsigned char **buf)
     int ret;
     unsigned len;
     unsigned char *next;
-    struct ind *me = (struct ind *)in_desc;
+    struct ind *me = in_desc;
 
     next = me->inbuf;
     *buf = next;
@@ -131,7 +131,7 @@ struct outd {
 local int out(void *out_desc, unsigned char *buf, unsigned len)
 {
     int ret;
-    struct outd *me = (struct outd *)out_desc;
+    struct outd *me = out_desc;
 
     if (me->check) {
         me->crc = crc32(me->crc, buf, len);
