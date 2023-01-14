@@ -46,7 +46,7 @@ $ v_string = "ZLIB_VERSION"
 $ v_file   = "zlib.h"
 $ ccopt   = "/include = []"
 $ lopts   = ""
-$ dnsrl   = ""
+$ dnrsl   = ""
 $ aconf_in_file = "zconf.h.in#zconf.h_in#zconf_h.in"
 $ conf_check_string = ""
 $ linkonly = false

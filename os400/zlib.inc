@@ -332,7 +332,7 @@
      D  level                        10I 0 value                                Compression level
      D  method                       10I 0 value                                Compression method
      D  windowBits                   10I 0 value                                log2(window size)
-     D  memLevel                     10I 0 value                                Mem/cmpress tradeoff
+     D  memLevel                     10I 0 value                                Mem/compress tradeoff
      D  strategy                     10I 0 value                                Compression strategy
      D  version                        *   value options(*string)               Version string
      D  stream_size                  10i 0 value                                Stream struct. size

@@ -1403,7 +1403,7 @@ Changes in 1.0.1 (20 May 96) [1.0 skipped to avoid confusion]
 - no fdopen for BeOS
 - fix the Watcom fix for 32 bit mode (define FAR as empty)
 - removed redefinition of Byte for MKWERKS
-- work around an MWKERKS bug (incorrect merge of all .h files)
+- work around an MWERKS bug (incorrect merge of all .h files)
 
 Changes in 0.99 (27 Jan 96)
 - allow preset dictionary shared between compressor and decompressor
@@ -1430,7 +1430,7 @@ Changes in 0.99 (27 Jan 96)
 - deflate is finally (?) fully deterministic (no matches beyond end of input)
 - Document Z_SYNC_FLUSH
 - add uninstall in Makefile
-- Check for __cpluplus in zlib.h
+- Check for __cplusplus in zlib.h
 - Better test in ct_align for partial flush
 - avoid harmless warnings for Borland C++
 - initialize hash_head in deflate.c
