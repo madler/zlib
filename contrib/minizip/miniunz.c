@@ -192,7 +192,7 @@ static void do_help(void) {
            "  -l  list files\n" \
            "  -d  directory to extract into\n" \
            "  -o  overwrite files without prompting\n" \
-           "  -p  extract crypted file using password\n\n");
+           "  -p  extract encrypted file using password\n\n");
 }
 
 static void Display64BitsSize(ZPOS64_T n, int size_char) {
@@ -248,7 +248,7 @@ static int do_list(unzFile uf) {
         if (file_info.uncompressed_size>0)
             ratio = (uLong)((file_info.compressed_size*100)/file_info.uncompressed_size);
 
-        /* display a '*' if the file is crypted */
+        /* display a '*' if the file is encrypted */
         if ((file_info.flag & 1) != 0)
             charCrypt='*';
 
@@ -574,7 +574,7 @@ int main(int argc, char *argv[]) {
 #        endif
 
         strncpy(filename_try, zipfilename,MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        /* strncpy doesn't append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
 #        ifdef USEWIN32IOAPI
