@@ -1,15 +1,17 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 2.8.11)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
 set(VERSION "1.2.13.1")
 
-set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
-set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
-set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
-set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+include(GNUInstallDirs)
+
+set(INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}" CACHE PATH "Installation directory for executables")
+set(INSTALL_LIB_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Installation directory for libraries")
+set(INSTALL_INC_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Installation directory for headers")
+set(INSTALL_MAN_DIR "${CMAKE_INSTALL_MANDIR}" CACHE PATH "Installation directory for manual pages")
+set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_DATADIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -176,18 +178,26 @@ endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlib zlibstatic
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+        EXPORT zlib
+        RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT runtime
+        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT development
+        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT runtime NAMELINK_SKIP)
+    install(TARGETS	zlib
+        EXPORT zlib
+        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT development NAMELINK_ONLY)
 endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
+    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}" COMPONENT development)
 endif()
 if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
+    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3" COMPONENT documentation)
 endif()
 if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}" COMPONENT development)
+endif()
+
+if(MSVC AND ${CMAKE_MAJOR_VERSION} GREATER 2 AND ${CMAKE_MINOR_VERSION} GREATER 0)
+    install(FILES $<TARGET_PDB_FILE:zlib> DESTINATION ${INSTALL_BIN_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
 endif()
 
 #============================================================================
@@ -211,3 +221,52 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+target_include_directories(zlib INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+target_include_directories(zlibstatic INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(zlib-config.cmake.in zlib-config.cmake INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} COMPONENT development)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake VERSION ${VERSION} COMPATIBILITY ExactVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} COMPONENT development)
+install(EXPORT zlib DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} NAMESPACE zlib:: FILE zlib-export.cmake COMPONENT development)
+
+set(CPACK_COMPONENT_DEVELOPMENT_DEPENDS runtime)
+set(CPACK_COMPONENT_PROGRAMS_DEPENDS runtime)
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_DEBIAN_DOCUMENTATION_PACKAGE_NAME "zlib1g-doc")
+set(CPACK_DEBIAN_DOCUMENTATION_PACKAGE_SECTION "doc")
+set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS "zlib1g")
+set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "zlib1g-dev")
+set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION "libdevel")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://www.zlib.net/")
+set(CPACK_DEBIAN_PACKAGE_NAME "zlib1g")
+set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "zlib1g")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_SECTION "libs")
+set(CPACK_NSIS_PACKAGE_NAME "zlib ${VERSION}")
+set(CPACK_NSIS_URL_INFO_ABOUT ${CPACK_DEBIAN_PACKAGE_HOMEPAGE})
+set(CPACK_PACKAGE_CONTACT "zlib@gzip.org")
+set(CPACK_PACKAGE_DISPLAY_NAME "zlib ${VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "zlib-${VERSION}")
+set(CPACK_PACKAGE_NAME "zlib")
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR 1)
+set(CPACK_PACKAGE_VERSION_MINOR 2)
+set(CPACK_PACKAGE_VERSION_PATCH 8)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/README)
+set(CPACK_RPM_COMPONENT_INSTALL ON)
+set(CPACK_RPM_development_PACKAGE_NAME "zlib-devel")
+set(CPACK_RPM_development_PACKAGE_REQUIRES "zlib")
+set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+set(CPACK_RPM_PACKAGE_NAME "zlib")
+set(CPACK_RPM_PACKAGE_URL ${CPACK_DEBIAN_PACKAGE_HOMEPAGE})
+set(CPACK_RPM_runtime_PACKAGE_NAME "zlib")
+
+if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
+endif()
+
+include(CPack)
