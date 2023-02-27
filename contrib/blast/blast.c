@@ -29,7 +29,7 @@
  *                      - Enable the provision of initial input to blast()
  */
 
-#include <stddef.h>             /* for NULL */
+#include <stddef.h>
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
 #include "blast.h"              /* prototype for blast() */
 

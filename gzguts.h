@@ -30,10 +30,7 @@
 #  define _POSIX_SOURCE
 #endif
 #include <fcntl.h>
-
-#ifdef _WIN32
-#  include <stddef.h>
-#endif
+#include <stddef.h>
 
 #if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
