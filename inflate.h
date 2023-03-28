@@ -16,7 +16,7 @@
 #  define GUNZIP
 #endif
 
-/* Possible inflate modes between inflate() calls */
+   /* Possible inflate modes between inflate() calls */
 typedef enum {
     HEAD = 16180,   /* i: waiting for magic header */
     FLAGS,      /* i: waiting for method and flags (gzip) */
@@ -29,21 +29,19 @@ typedef enum {
     HCRC,       /* i: waiting for header crc (gzip) */
     DICTID,     /* i: waiting for dictionary check value */
     DICT,       /* waiting for inflateSetDictionary() call */
-        TYPE,       /* i: waiting for type bits, including last-flag bit */
-        TYPEDO,     /* i: same, but skip check to exit inflate on new block */
-        STORED,     /* i: waiting for stored size (length and complement) */
-        COPY_,      /* i/o: same as COPY below, but only first time in */
-        COPY,       /* i/o: waiting for input or output to copy stored block */
-        TABLE,      /* i: waiting for dynamic block table lengths */
-        LENLENS,    /* i: waiting for code length code lengths */
-        CODELENS,   /* i: waiting for length/lit and distance code lengths */
-            LEN_,       /* i: same as LEN below, but only first time in */
-            LEN,        /* i: waiting for length/lit/eob code */
-            LENEXT,     /* i: waiting for length extra bits */
-            DIST,       /* i: waiting for distance code */
-            DISTEXT,    /* i: waiting for distance extra bits */
-            MATCH,      /* o: waiting for output space to copy string */
-            LIT,        /* o: waiting for output space to write literal */
+    TYPE,       /* i: waiting for type bits, including last-flag bit */
+    TYPEDO,     /* i: same, but skip check to exit inflate on new block */
+    STORED,     /* i: waiting for stored size (length and complement) */
+    COPY_,      /* i/o: same as COPY below, but only first time in */
+    COPY,       /* i/o: waiting for input or output to copy stored block */
+    TABLE,      /* i: waiting for dynamic block table lengths */
+    LENLENS,    /* i: waiting for code length code lengths */
+    CODELENS,   /* i: waiting for length/lit and distance code lengths */
+    LEN_,       /* i: same as LEN below, but only first time in */
+    LEN,        /* i: waiting for length/lit/eob code */
+    DIST,       /* i: waiting for distance code */
+    MATCH,      /* o: waiting for output space to copy string */
+    LIT,        /* o: waiting for output space to write literal */
     CHECK,      /* i: waiting for 32-bit check value */
     LENGTH,     /* i: waiting for 32-bit length (gzip) */
     DONE,       /* finished check, done -- remain here until reset */
@@ -77,8 +75,8 @@ typedef enum {
         CHECK -> LENGTH -> DONE
  */
 
-/* State maintained between inflate() calls -- approximately 7K bytes, not
-   including the allocated sliding window, which is up to 32K bytes. */
+ /* State maintained between inflate() calls -- approximately 7K bytes, not
+    including the allocated sliding window, which is up to 32K bytes. */
 struct inflate_state {
     z_streamp strm;             /* pointer back to this zlib stream */
     inflate_mode mode;          /* current inflate mode */
@@ -86,8 +84,7 @@ struct inflate_state {
     int wrap;                   /* bit 0 true for zlib, bit 1 true for gzip,
                                    bit 2 true to validate check value */
     int havedict;               /* true if dictionary provided */
-    int flags;                  /* gzip header method and flags, 0 if zlib, or
-                                   -1 if raw or no header yet */
+    int flags;                  /* gzip header method and flags (0 if zlib) */
     unsigned dmax;              /* zlib header max distance (INFLATE_STRICT) */
     unsigned long check;        /* protected copy of check value */
     unsigned long total;        /* protected copy of output count */
@@ -97,29 +94,29 @@ struct inflate_state {
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if needed */
+    unsigned char FAR* window;  /* allocated sliding window, if needed */
         /* bit accumulator */
-    unsigned long hold;         /* input bit accumulator */
+    size_t hold;         /* input bit accumulator */
     unsigned bits;              /* number of bits in "in" */
         /* for string and stored block copying */
     unsigned length;            /* literal or length of data to copy */
     unsigned offset;            /* distance back to copy string from */
         /* for table and code decoding */
-    unsigned extra;             /* extra bits needed */
+
         /* fixed and dynamic code tables */
-    code const FAR *lencode;    /* starting table for length/literal codes */
-    code const FAR *distcode;   /* starting table for distance codes */
-    unsigned lenbits;           /* index bits for lencode */
-    unsigned distbits;          /* index bits for distcode */
+    unsigned char lens[320];             /* Huffman code lengths */
+    DecodeStr lenDec[1 << LEN_ROOT];        /* primary table for length/literal codes */
+    DecodeStr lenDec2[ENOUGH_LENS];               /* secondary table */
+    DecodeStr distDec[1 << DIST_ROOT];    /* primary table for distance codes */
+    DecodeStr distDec2[ENOUGH_DISTS];               /* secondary table */
+
         /* dynamic table building */
+    unsigned lenMask, distMask; /* masks for preclusion of the second look-up */
     unsigned ncode;             /* number of code length code lengths */
     unsigned nlen;              /* number of length code lengths */
     unsigned ndist;             /* number of distance code lengths */
     unsigned have;              /* number of code lengths in lens[] */
-    code FAR *next;             /* next available space in codes[] */
-    unsigned short lens[320];   /* temporary storage for code lengths */
-    unsigned short work[288];   /* work area for code table building */
-    code codes[ENOUGH];         /* space for code tables */
+
     int sane;                   /* if false, allow invalid distance too far */
     int back;                   /* bits back of last unprocessed length/lit */
     unsigned was;               /* initial length of match */

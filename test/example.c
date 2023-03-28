@@ -537,6 +537,95 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     }
 }
 
+void test_zlib()
+{
+    char rawFile[100];
+    char CalgaryDir[] = "C:\\Users\\yingq\\OneDrive\\Projects\\DEFLATE\\Compression\\Compression\\CalgaryCorpus\\";
+    char SilesiaDir[] = "C:\\Users\\yingq\\OneDrive\\Projects\\DEFLATE\\Compression\\Compression\\SilesiaCorpus\\";
+    int n, nFiles = 18;
+    char* CalgaryCorpus[18] = { "book1",   "bib",    "book2",    "news",  "paper1",  "paper2",
+                               "paper3",  "paper4",  "paper5",  "paper6",   "pic",   "progc",  "progl",  "progp",  "trans",  "geo",   "obj1",  "obj2" };
+
+    char* SilesiaCorpus[] = { "mr", "ooffice",  "mozilla", "x-ray",  "reymont",  "ooffice",  "dickens",  "mr",   "nci",  "osdb",
+                              "samba",    "sao",  "webster",  "xml", };
+
+    unsigned char* rawStream, * defStream, * decStream;
+    FILE* fptr;
+    const unsigned sectLen = 1 << 12;
+    unsigned comprLen, rawPos, fileLen;
+    defStream = (unsigned char*)malloc(sectLen + 1000);         //allocate additional space to avoid overflowing in case of uncompressible data
+    decStream = (unsigned char*)malloc(sectLen);
+
+    int err;
+    z_stream c_stream; /* compression stream */
+    c_stream.zalloc = zalloc;
+    c_stream.zfree = zfree;
+    c_stream.opaque = (voidpf)0;
+
+    z_stream d_stream; /* decompression stream */
+    d_stream.zalloc = zalloc;
+    d_stream.zfree = zfree;
+    d_stream.opaque = (voidpf)0;
+
+    for (n = 0; n < 12; n++) {
+        //sprintf(rawFile, "%s%s", CalgaryDir, CalgaryCorpus[n]);
+        sprintf(rawFile, "%s%s", SilesiaDir, SilesiaCorpus[n]);
+        fptr = fopen(rawFile, "rb");
+
+        _fseeki64(fptr, 0, SEEK_END);
+        fileLen = _ftelli64(fptr);
+        _fseeki64(fptr, 0, SEEK_SET);
+
+        rawStream = (unsigned char*)malloc(fileLen);
+        fread(rawStream, 1, fileLen, fptr);
+        fclose(fptr);
+        printf("File: %10s,  Raw: %d\n Dec succeeded: ", rawFile, fileLen);
+
+        comprLen = 0;
+        for (rawPos = 0; rawPos < fileLen - 1; rawPos += sectLen) {
+            err = deflateInit(&c_stream, Z_BEST_SPEED);
+            CHECK_ERR(err, "deflateInit");
+
+            c_stream.next_out = defStream;
+            c_stream.avail_out = (uInt)sectLen + 1000;
+            c_stream.next_in = rawStream + rawPos;
+            c_stream.avail_in = (uInt)min(fileLen - rawPos, sectLen);
+
+            err = deflate(&c_stream, Z_FINISH);
+            if (err != Z_STREAM_END) {
+                fprintf(stderr, "deflate should report Z_STREAM_END\n");
+                exit(1);
+            }
+            err = deflateEnd(&c_stream);
+            CHECK_ERR(err, "deflateEnd");
+            comprLen += c_stream.total_out;
+
+            err = inflateInit(&d_stream);
+            CHECK_ERR(err, "inflateInit");
+            d_stream.next_in = defStream;
+            d_stream.avail_in = c_stream.total_out;
+
+            for (;;) {
+                d_stream.next_out = decStream;            /* discard the output */
+                d_stream.avail_out = sectLen;
+                err = inflate(&d_stream, Z_NO_FLUSH);
+                if (err == Z_STREAM_END) break;
+                CHECK_ERR(err, "large inflate");
+            }
+            err = inflateEnd(&d_stream);
+            CHECK_ERR(err, "inflateEnd");
+            printf("%d  ", rawPos / sectLen);
+        }
+        printf("\nCompressed: %d\n", comprLen);
+
+        free(rawStream);
+    }
+
+
+    free(defStream);
+    free(decStream);
+}
+
 /* ===========================================================================
  * Usage:  example [output.gz  [input.gz]]
  */
@@ -561,6 +650,8 @@ int main(argc, argv)
 
     printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
             ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
+
+    test_zlib();
 
     compr    = (Byte*)calloc((uInt)comprLen, 1);
     uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);
