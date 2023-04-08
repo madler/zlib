@@ -11,15 +11,22 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
 set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
-include(CheckTypeSize)
-include(CheckFunctionExists)
-include(CheckIncludeFile)
-include(CheckCSourceCompiles)
-enable_testing()
+option(ZLIB_ENABLE_TESTS "Choose if you want to enable the tests or not." ON)
+option(ZLIB_ENABLE_ALIAS "Choose if you want to enable a alias for ZLib" OFF)
+option(ZLIB_ENABLE_EXAMPLE "Choose if you want to enable the example or not" ON)
+option(ZLIB_ENABLE_ALIAS_INCLUDE_DIRECTORY "CHoose if you want to enable target_include_directories()" OFF)
 
-check_include_file(sys/types.h HAVE_SYS_TYPES_H)
-check_include_file(stdint.h    HAVE_STDINT_H)
-check_include_file(stddef.h    HAVE_STDDEF_H)
+if(ZLIB_ENABLE_TESTS)
+    include(CheckTypeSize)
+    include(CheckFunctionExists)
+    include(CheckIncludeFile)
+    include(CheckCSourceCompiles)
+    enable_testing()
+
+    check_include_file(sys/types.h HAVE_SYS_TYPES_H)
+    check_include_file(stdint.h    HAVE_STDINT_H)
+    check_include_file(stddef.h    HAVE_STDDEF_H)
+endif()
 
 #
 # Check to see if we have large file support
@@ -37,7 +44,9 @@ endif()
 if(HAVE_STDDEF_H)
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
 endif()
-check_type_size(off64_t OFF64_T)
+if(ZLIB_ENABLE_TESTS)
+    check_type_size(off64_t OFF64_T)
+endif()
 if(HAVE_OFF64_T)
    add_definitions(-D_LARGEFILE64_SOURCE=1)
 endif()
@@ -46,7 +55,9 @@ set(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 #
 # Check for fseeko
 #
-check_function_exists(fseeko HAVE_FSEEKO)
+if(ZLIB_ENABLE_TESTS)
+    check_function_exists(fseeko HAVE_FSEEKO)
+endif()
 if(NOT HAVE_FSEEKO)
     add_definitions(-DNO_FSEEKO)
 endif()
@@ -54,8 +65,9 @@ endif()
 #
 # Check for unistd.h
 #
-check_include_file(unistd.h Z_HAVE_UNISTD_H)
-
+if(ZLIB_ENABLE_TESTS)
+    check_include_file(unistd.h Z_HAVE_UNISTD_H)
+endif()
 if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
@@ -152,6 +164,14 @@ add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HD
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
 
+if(ZLIB_ENABLE_ALIAS)
+    add_library(zlib::zlib ALIAS ${PROJECT_NAME})
+
+    if(ZLIB_ENABLE_ALIAS_INCLUDE_DIRECTORY)
+        target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/)
+    endif()
+endif()
+
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
     # encoded into their final filename.  We disable this on Cygwin because
@@ -194,20 +214,28 @@ endif()
 # Example binaries
 #============================================================================
 
-add_executable(example test/example.c)
-target_link_libraries(example zlib)
-add_test(example example)
+if(ZLIB_ENABLE_EXAMPLE)
+    add_executable(example test/example.c)
+    target_link_libraries(example zlib)
 
-add_executable(minigzip test/minigzip.c)
-target_link_libraries(minigzip zlib)
+    if(ZLIB_ENABLE_TESTS)
+        add_test(example example)
+    endif()
 
-if(HAVE_OFF64_T)
-    add_executable(example64 test/example.c)
-    target_link_libraries(example64 zlib)
-    set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+    add_executable(minigzip test/minigzip.c)
+    target_link_libraries(minigzip zlib)
 
-    add_executable(minigzip64 test/minigzip.c)
-    target_link_libraries(minigzip64 zlib)
-    set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    if(HAVE_OFF64_T)
+        add_executable(example64 test/example.c)
+        target_link_libraries(example64 zlib)
+        set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+        
+        if(ZLIB_ENABLE_TESTS)
+            add_test(example64 example64)
+        endif()
+
+        add_executable(minigzip64 test/minigzip.c)
+        target_link_libraries(minigzip64 zlib)
+        set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    endif()
 endif()
