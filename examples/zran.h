@@ -10,7 +10,7 @@
 typedef struct point {
     off_t out;          // offset in uncompressed data
     off_t in;           // offset in compressed file of first full byte
-    int bits;           // 0, or number of bits (1-7) from byte at in-1
+    //int bits;           // 0, or number of bits (1-7) from byte at in-1
     unsigned char window[32768];    // preceding 32K of uncompressed data
 } point_t;
 

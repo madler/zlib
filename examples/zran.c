@@ -75,7 +75,7 @@ void deflate_index_free(struct deflate_index *index) {
 // list and return NULL. index->mode is temporarily the allocated number of
 // access points, until it is time for deflate_index_build() to return. Then
 // index->mode is set to the mode of inflation.
-static struct deflate_index *add_point(struct deflate_index *index, int bits,
+static struct deflate_index *add_point(struct deflate_index *index,// int bits,
                                        off_t in, off_t out, unsigned left,
                                        unsigned char *window) {
     if (index == NULL) {
@@ -112,7 +112,7 @@ static struct deflate_index *add_point(struct deflate_index *index, int bits,
     }
     next->out = out;
     next->in = in;
-    next->bits = bits;
+//    next->bits = bits;
     if (left)
         memcpy(next->window, window + WINSIZE - left, left);
     if (left < WINSIZE)
@@ -141,13 +141,16 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
     int ret;                    // the return value from zlib, or Z_ERRNO
     off_t last;                 // last access point uncompressed offset
     struct deflate_index *index = NULL;     // list of access points
+    const size_t stride0 = sizeof(buf);           // stride for reading input
+    size_t stride = stride0;           // stride temp
+
     do {
         // Assure available input, at least until reaching EOF.
         if (strm.avail_in == 0) {
-            strm.avail_in = fread(buf, 1, sizeof(buf), in);
+            strm.avail_in = fread(buf, 1, stride, in);
             totin += strm.avail_in;
             strm.next_in = buf;
-            if (strm.avail_in < sizeof(buf) && ferror(in)) {
+            if (strm.avail_in < stride && ferror(in)) {
                 ret = Z_ERRNO;
                 break;
             }
@@ -194,7 +197,12 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
             // very start for the first access point, or there has been span or
             // more uncompressed bytes since the last access point, so we want
             // to add an access point here.
-            index = add_point(index, strm.data_type & 7, totin - strm.avail_in,
+            int bits = strm.data_type & 7;
+            if (bits) {
+                stride = 1;
+                continue;
+            }else stride=stride0;
+            index = add_point(index, /*bits,*/ totin - strm.avail_in,
                               totout, strm.avail_out, win);
             if (index == NULL) {
                 ret = Z_MEM_ERROR;
@@ -261,18 +269,18 @@ ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
     point += lo;
 
     // Initialize the input file and prime the inflate engine to start there.
-    int ret = fseeko(in, point->in - (point->bits ? 1 : 0), SEEK_SET);
+    int ret = fseeko(in, point->in /*- (point->bits ? 1 : 0)*/, SEEK_SET);
     if (ret == -1)
         return Z_ERRNO;
     int ch = 0;
-    if (point->bits && (ch = getc(in)) == EOF)
-        return ferror(in) ? Z_ERRNO : Z_BUF_ERROR;
+    /*if (point->bits && (ch = getc(in)) == EOF)
+        return ferror(in) ? Z_ERRNO : Z_BUF_ERROR;*/
     z_stream strm = {0};
     ret = inflateInit2(&strm, RAW);
     if (ret != Z_OK)
         return ret;
-    if (point->bits)
-        inflatePrime(&strm, point->bits, ch >> (8 - point->bits));
+    /*if (point->bits)
+        inflatePrime(&strm, point->bits, ch >> (8 - point->bits));*/
     inflateSetDictionary(&strm, point->window, WINSIZE);
 
     // Skip uncompressed bytes until offset reached, then satisfy request.
