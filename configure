@@ -194,8 +194,8 @@ show $cc -c $test.c
 if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   echo ... using gcc >> configure.log
   CC="$cc"
-  CFLAGS="${CFLAGS--O3}"
-  SFLAGS="${CFLAGS--O3} -fPIC"
+  CFLAGS="${CFLAGS--O3} -Wno-deprecated-non-prototype"
+  SFLAGS="${CFLAGS--O3} -Wno-deprecated-non-prototype -fPIC"
   if test "$ARCHS"; then
     CFLAGS="${CFLAGS} ${ARCHS}"
     LDFLAGS="${LDFLAGS} ${ARCHS}"
