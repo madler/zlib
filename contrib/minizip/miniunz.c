@@ -81,11 +81,7 @@
     filename : the filename of the file where date/time must be modified
     dosdate : the new date at the MSDos format (4 bytes)
     tmu_date : the SAME new date at the tm_unz format */
-static void change_file_date(filename,dosdate,tmu_date)
-    const char *filename;
-    uLong dosdate;
-    tm_unz tmu_date;
-{
+static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date) {
 #ifdef _WIN32
   HANDLE hFile;
   FILETIME ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite;
@@ -123,9 +119,7 @@ static void change_file_date(filename,dosdate,tmu_date)
 /* mymkdir and change_file_date are not 100 % portable
    As I don't know well Unix, I wait feedback for the unix portion */
 
-static int mymkdir(dirname)
-    const char* dirname;
-{
+static int mymkdir(const char* dirname) {
     int ret=0;
 #ifdef _WIN32
     ret = _mkdir(dirname);
@@ -137,9 +131,7 @@ static int mymkdir(dirname)
     return ret;
 }
 
-static int makedir (newdir)
-    const char *newdir;
-{
+static int makedir(const char *newdir) {
   char *buffer ;
   char *p;
   size_t len = strlen(newdir);
@@ -187,14 +179,12 @@ static int makedir (newdir)
   return 1;
 }
 
-static void do_banner()
-{
+static void do_banner(void) {
     printf("MiniUnz 1.01b, demo of zLib + Unz package written by Gilles Vollant\n");
     printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 
-static void do_help()
-{
+static void do_help(void) {
     printf("Usage : miniunz [-e] [-x] [-v] [-l] [-o] [-p password] file.zip [file_to_extr.] [-d extractdir]\n\n" \
            "  -e  Extract without pathname (junk paths)\n" \
            "  -x  Extract with pathname\n" \
@@ -205,8 +195,7 @@ static void do_help()
            "  -p  extract crypted file using password\n\n");
 }
 
-static void Display64BitsSize(ZPOS64_T n, int size_char)
-{
+static void Display64BitsSize(ZPOS64_T n, int size_char) {
   /* to avoid compatibility problem , we do here the conversion */
   char number[21];
   int offset=19;
@@ -233,9 +222,7 @@ static void Display64BitsSize(ZPOS64_T n, int size_char)
   printf("%s",&number[pos_string]);
 }
 
-static int do_list(uf)
-    unzFile uf;
-{
+static int do_list(unzFile uf) {
     uLong i;
     unz_global_info64 gi;
     int err;
@@ -311,12 +298,7 @@ static int do_list(uf)
 }
 
 
-static int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
-    unzFile uf;
-    const int* popt_extract_without_path;
-    int* popt_overwrite;
-    const char* password;
-{
+static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password) {
     char filename_inzip[256];
     char* filename_withoutpath;
     char* p;
@@ -473,12 +455,7 @@ static int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,pa
 }
 
 
-static int do_extract(uf,opt_extract_without_path,opt_overwrite,password)
-    unzFile uf;
-    int opt_extract_without_path;
-    int opt_overwrite;
-    const char* password;
-{
+static int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, const char* password) {
     uLong i;
     unz_global_info64 gi;
     int err;
@@ -508,13 +485,7 @@ static int do_extract(uf,opt_extract_without_path,opt_overwrite,password)
     return 0;
 }
 
-static int do_extract_onefile(uf,filename,opt_extract_without_path,opt_overwrite,password)
-    unzFile uf;
-    const char* filename;
-    int opt_extract_without_path;
-    int opt_overwrite;
-    const char* password;
-{
+static int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password) {
     if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
     {
         printf("file %s not found in the zipfile\n",filename);
@@ -530,10 +501,7 @@ static int do_extract_onefile(uf,filename,opt_extract_without_path,opt_overwrite
 }
 
 
-int main(argc,argv)
-    int argc;
-    char *argv[];
-{
+int main(int argc, char *argv[]) {
     const char *zipfilename=NULL;
     const char *filename_to_extract=NULL;
     const char *password=NULL;

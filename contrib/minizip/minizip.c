@@ -71,11 +71,9 @@
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
-static int filetime(f, tmzip, dt)
-    const char *f;          /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
   int ret = 0;
   {
       FILETIME ftLocal;
@@ -95,11 +93,9 @@ static int filetime(f, tmzip, dt)
 }
 #else
 #if defined(unix) || defined(__APPLE__)
-static int filetime(f, tmzip, dt)
-    const char *f;         /* name of file to get info on */
-    tm_zip *tmzip;         /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
   (void)dt;
   int ret=0;
   struct stat s;        /* results of stat() */
@@ -138,11 +134,12 @@ static int filetime(f, tmzip, dt)
   return ret;
 }
 #else
-uLong filetime(f, tmzip, dt)
-    const char *f;          /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+uLong filetime(const char *f, tm_zip *tmzip, uLong *dt) {
+    (void)f;
+    (void)tmzip;
+    (void)dt;
     return 0;
 }
 #endif
@@ -151,9 +148,7 @@ uLong filetime(f, tmzip, dt)
 
 
 
-static int check_exist_file(filename)
-    const char* filename;
-{
+static int check_exist_file(const char* filename) {
     FILE* ftestexist;
     int ret = 1;
     ftestexist = FOPEN_FUNC(filename,"rb");
@@ -164,14 +159,12 @@ static int check_exist_file(filename)
     return ret;
 }
 
-static void do_banner()
-{
+static void do_banner(void) {
     printf("MiniZip 1.1, demo of zLib + MiniZip64 package, written by Gilles Vollant\n");
     printf("more info on MiniZip at http://www.winimage.com/zLibDll/minizip.html\n\n");
 }
 
-static void do_help()
-{
+static void do_help(void) {
     printf("Usage : minizip [-o] [-a] [-0 to -9] [-p password] [-j] file.zip [files_to_add]\n\n" \
            "  -o  Overwrite existing file.zip\n" \
            "  -a  Append to existing file.zip\n" \
@@ -183,8 +176,7 @@ static void do_help()
 
 /* calculate the CRC32 of a file,
    because to encrypt a file, we need known the CRC32 of the file before */
-static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
-{
+static int getFileCrc(const char* filenameinzip, void* buf, unsigned long size_buf, unsigned long* result_crc) {
    unsigned long calculate_crc=0;
    int err=ZIP_OK;
    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
@@ -222,8 +214,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
     return err;
 }
 
-static int isLargeFile(const char* filename)
-{
+static int isLargeFile(const char* filename) {
   int largeFile = 0;
   ZPOS64_T pos = 0;
   FILE* pFile = FOPEN_FUNC(filename, "rb");
@@ -244,10 +235,7 @@ static int isLargeFile(const char* filename)
  return largeFile;
 }
 
-int main(argc,argv)
-    int argc;
-    char *argv[];
-{
+int main(int argc, char *argv[]) {
     int i;
     int opt_overwrite=0;
     int opt_compress_level=Z_DEFAULT_COMPRESSION;
