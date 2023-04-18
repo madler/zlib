@@ -267,7 +267,7 @@ void test_large_deflate(Byte *compr, uLong comprLen, Byte *uncompr,
     /* Feed in already compressed data and switch to no compression: */
     deflateParams(&c_stream, Z_NO_COMPRESSION, Z_DEFAULT_STRATEGY);
     c_stream.next_in = compr;
-    c_stream.avail_in = (uInt)comprLen/2;
+    c_stream.avail_in = (uInt)uncomprLen/2;
     err = deflate(&c_stream, Z_NO_FLUSH);
     CHECK_ERR(err, "deflate");
 
@@ -318,7 +318,7 @@ void test_large_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    if (d_stream.total_out != 2*uncomprLen + comprLen/2) {
+    if (d_stream.total_out != 2*uncomprLen + uncomprLen/2) {
         fprintf(stderr, "bad large inflate: %ld\n", d_stream.total_out);
         exit(1);
     } else {
@@ -489,8 +489,8 @@ void test_dict_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
 
 int main(int argc, char *argv[]) {
     Byte *compr, *uncompr;
-    uLong comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
-    uLong uncomprLen = comprLen;
+    uLong uncomprLen = 20000;
+    uLong comprLen = 3 * uncomprLen;
     static const char* myVersion = ZLIB_VERSION;
 
     if (zlibVersion()[0] != myVersion[0]) {
@@ -533,7 +533,7 @@ int main(int argc, char *argv[]) {
 
     test_flush(compr, &comprLen);
     test_sync(compr, comprLen, uncompr, uncomprLen);
-    comprLen = uncomprLen;
+    comprLen = 3 * uncomprLen;
 
     test_dict_deflate(compr, comprLen);
     test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
