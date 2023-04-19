@@ -1,0 +1,9 @@
+Compile command:
+gcc -fPIC -O3 -lz -o uadk_test uadk_test.c
+
+Execute command:
+./uadk_test (Parallel) (Block size) (Compress secs) (Decompress secs) (Original file path)
+Normal console output:
+parameters: parallel = 20, chunksize = 65536, compress secs = 5, decompress secs = 5, input file = source_data/silesia.tar
+comp speed	decomp speed	original size	compressed size	ratio
+7575.28 MB/s	11402.63 MB/s	211957760	97436633	45.97
