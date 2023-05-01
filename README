@@ -35,12 +35,11 @@ The changes made in version 1.2.13.1 are documented in the file ChangeLog.
 
 Unsupported third party contributions are provided in directory contrib/ .
 
-zlib is available in Java using the java.util.zip package, documented at
-http://java.sun.com/developer/technicalArticles/Programming/compression/ .
+zlib is available in Java using the java.util.zip package. Follow the API
+Documentation link at: https://docs.oracle.com/search/?q=java.util.zip .
 
-A Perl interface to zlib written by Paul Marquess <pmqs@cpan.org> is available
-at CPAN (Comprehensive Perl Archive Network) sites, including
-http://search.cpan.org/~pmqs/IO-Compress-Zlib/ .
+A Perl interface to zlib and bzip2 written by Paul Marquess <pmqs@cpan.org>
+can be found at https://github.com/pmqs/IO-Compress .
 
 A Python interface to zlib written by A.M. Kuchling <amk@amk.ca> is
 available in Python 1.5 and later versions, see
