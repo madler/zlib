@@ -24,3 +24,11 @@
 /configure.log
 
 .DS_Store
+/.vs
+/bin/Debug-windows/zlib/Testing/Temporary
+/bin/Debug-windows/zlib/CMakeFiles
+/bin/Debug-windows/zlib/.cmake/api/v1
+/bin/Release-windows/zlib/Testing/Temporary
+/bin/Release-windows/zlib/CMakeFiles
+/bin/Release-windows/zlib/.cmake/api/v1
+/out/build
