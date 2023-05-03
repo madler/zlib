@@ -1,6 +1,19 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.14 (1 May 2023)
+- Faster Huffman decoding using preprocessing and two separate 
+  lookup tables (instead of a combined one previously).
+- Faster LZ copy operation using overlapped memcpy of 8-byte and
+  special processing of cases wherein distance is within 8.
+- Faster decoding of DEFLATE sequence. In particular, a while loop is 
+  deployed to decode literal sequence.
+- created inflateBackWrap() which validates inflateBack(), and also
+  exhibits identical functionality as inflate().This allows to compare 
+  the efficiency between inflate() and inflateBack() under different
+  environments.
+
+
 Changes in 1.2.13 (13 Oct 2022)
 - Fix configure issue that discarded provided CC definition
 - Correct incorrect inputs provided to the CRC functions

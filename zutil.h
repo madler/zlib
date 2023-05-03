@@ -29,6 +29,24 @@
 #  include <stdlib.h>
 #endif
 
+#if defined(_MSC_VER)   /* Visual Studio */
+#   include <stdlib.h>  /* _byteswap_ulong */
+#   include <intrin.h>  /* _byteswap_* */
+#endif
+
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) || (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 800)) || defined(__clang__)
+#  define expect(expr,value)    (__builtin_expect ((expr),(value)) )
+#else
+#  define expect(expr,value)    (expr)
+#endif
+
+#ifndef likely
+#define likely(expr)     expect((expr) != 0, 1)
+#endif
+#ifndef unlikely
+#define unlikely(expr)   expect((expr) != 0, 0)
+#endif
+
 #ifndef local
 #  define local static
 #endif
