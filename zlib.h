@@ -1173,6 +1173,10 @@ ZEXTERN int ZEXPORT inflateBackEnd OF((z_streamp strm));
    state was inconsistent.
 */
 
+ZEXTERN int ZEXPORT inflateBackWrap OF((z_streamp strm, int flush));
+/* TBD */
+
+
 ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
 /* Return flags indicating compile-time options.
 

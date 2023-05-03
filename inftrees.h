@@ -8,6 +8,9 @@
    subject to change. Applications should only use zlib.h.
  */
 
+/* XXX_ROOT is the number of the first look-up bits;  
+ * ENOUGH_XXX is the space for the second loop-up 
+ */
 #define LLEN_ROOT 7
 #define LEN_ROOT  11
 #define DIST_ROOT 8

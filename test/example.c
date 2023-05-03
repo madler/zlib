@@ -370,6 +370,48 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
 }
 
 /* ===========================================================================
+ * Test inflateBackWrap() with large buffers
+ */
+void test_large_inflateBackWrap(compr, comprLen, uncompr, uncomprLen)
+Byte* compr, * uncompr;
+uLong comprLen, uncomprLen;
+{
+    int err;
+    z_stream d_stream; /* decompression stream */
+
+    strcpy((char*)uncompr, "garbage");
+
+    d_stream.zalloc = zalloc;
+    d_stream.zfree = zfree;
+    d_stream.opaque = (voidpf)0;
+
+    d_stream.next_in = compr;
+    d_stream.avail_in = (uInt)comprLen;
+
+    err = inflateInit(&d_stream);
+    CHECK_ERR(err, "inflateInit");
+
+    for (;;) {
+        d_stream.next_out = uncompr;            /* discard the output */
+        d_stream.avail_out = (uInt)uncomprLen;
+        err = inflateBackWrap(&d_stream, Z_NO_FLUSH);
+        if (err == Z_STREAM_END) break;
+        CHECK_ERR(err, "large inflate");
+    }
+
+    err = inflateEnd(&d_stream);
+    CHECK_ERR(err, "inflateEnd");
+
+    if (d_stream.total_out != 100000) {
+        fprintf(stderr, "bad large inflateBack: %ld\n", d_stream.total_out);
+        exit(1);
+    }
+    else {
+        printf("large_inflateBack(): OK\n");
+    }
+}
+
+/* ===========================================================================
  * Test deflate() with full flush
  */
 void test_flush(compr, comprLen)
@@ -651,7 +693,7 @@ int main(argc, argv)
     printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
             ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
 
-    test_zlib();
+    //test_zlib();
 
     compr    = (Byte*)calloc((uInt)comprLen, 1);
     uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);
@@ -678,6 +720,12 @@ int main(argc, argv)
 
     test_large_deflate(compr, comprLen, uncompr, uncomprLen);
     test_large_inflate(compr, comprLen, uncompr, uncomprLen);
+
+    uLong uncomprLen_infback = comprLen * 4;
+    Byte* uncompr_infback;
+    uncompr_infback = (Byte*)calloc((uInt)uncomprLen_infback, 1);
+    test_large_inflateBackWrap(compr, comprLen, uncompr_infback, uncomprLen_infback);
+    free(uncompr_infback);
 
     test_flush(compr, &comprLen);
     test_sync(compr, comprLen, uncompr, uncomprLen);

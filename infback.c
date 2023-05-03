@@ -458,7 +458,8 @@ void FAR *out_desc;
                 break;
             }
             Tracev((stderr, "inflate:       codes ok\n"));
-            state->mode = LEN_;
+            state->mode = LEN;
+            /* fallthrough */
 
         case LEN:
             /* newly add the third condition to ensure the pre-hold value is flushed */
@@ -590,6 +591,8 @@ void FAR *out_desc;
     }
     strm->next_in = next;
     strm->avail_in = have;
+    state->hold = hold;      /* newly added for restoratioin */
+    state->bits = bits;
     return ret;
 }
 

@@ -113,6 +113,7 @@ set(ZLIB_SRCS
     gzwrite.c
     inflate.c
     infback.c
+    infbackwrap.c
     inftrees.c
     inffast.c
     trees.c

@@ -27,7 +27,7 @@
 
          state->mode == LEN
          strm->avail_in >= 8
-         strm->avail_out >= 266
+         strm->avail_out >= 8
          start >= strm->avail_out
          state->usedBits < 8
 
@@ -103,6 +103,7 @@ static size_t MemSwap8(size_t in)
 #endif
 }
 
+/* Fast read "size_t val" in the Little Endian order */
 static size_t MemReadLEST(const void* memPtr)
 {
     size_t val;
@@ -136,6 +137,11 @@ static size_t MemReadLEST(const void* memPtr)
    dist = here->val + (((hold >> usedBits) & ((1 << here->allBits) - 1)) >> here->hufBits); \
 }
 
+/* Optimized LZ copy operation 
+ * 1. fast overlapped memcpy-8-byte 
+ * 2. memset for single-run
+ * 3. initiated with 2-byte copy among distances 2-7
+ */
 #define FAST_LZ_COPY() {                                               \
 if (likely(dist >= 8)) { MemWildCopy_Overlap(out, from, outStop); }    \
 else if (dist == 1) { memset(out, *(out - 1), len); }                  \
@@ -205,7 +211,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     whave = state->whave;
     wnext = state->wnext;
     window = state->window;
-    if (window + winSize == beg) {   /* window is continuous toward output stream */
+
+    /* If window is continuous toward output stream, then treat as expanded output stream */
+    if ( beg == window + winSize && wnext==0 && whave == winSize) {   
         whave = 0;
         winSize = 0;
         beg = window;
@@ -230,6 +238,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
         HUFF_DECODE_LEN();
 
         while ((here->val & 0xFF00) == 0x8000) {
+            /* while -- an uncompressed litereral is likely followed by another literal */
             if (unlikely(out >= litEnd)) goto WrapUp;
             *out++ = (unsigned char)(here->val);
             if (DEBUG) {
@@ -237,7 +246,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             }
 
             usedBits += here->allBits;
-            if (usedBits > sizeof(state->hold) * 8 - MAX_HUFBITS) {   /* the max literal bit length along with extension is 15+5=20 */
+            if (usedBits > sizeof(state->hold) * 8 - MAX_HUFBITS) {  
                 in += usedBits >> 3;    /* update the input stream pointer */
                 usedBits &= 7;
                 if (unlikely(in > last)) {
@@ -248,7 +257,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             HUFF_DECODE_LEN();
         }
 
-        if (likely((here->val & 0x8000) == 0)) {
+        if (likely((here->val & 0x8000) == 0)) {     /* LZ copy */
             in += usedBits >> 3;    /* update the input stream pointer */
             usedBits &= 7;
             if (unlikely(in > last)) {   /* insufficient data, reverse update*/
