@@ -1488,7 +1488,7 @@ ZEXTERN int ZEXPORT gzputs OF((gzFile file, const char *s));
      gzputs returns the number of characters written, or -1 in case of error.
 */
 
-ZEXTERN char * ZEXPORT gzgets OF((gzFile file, char *buf, int len));
+ZEXTERN char * ZEXPORT gzgets OF((gzFile file, char *buf, unsigned len));
 /*
      Read and decompress bytes from file into buf, until len-1 characters are
    read, or until a newline character is read and transferred to buf, or an

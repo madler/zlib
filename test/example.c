@@ -176,7 +176,7 @@ void test_gzio(fname, uncompr, uncomprLen)
         exit(1);
     }
 
-    gzgets(file, (char*)uncompr, (int)uncomprLen);
+    gzgets(file, (char*)uncompr, uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
         fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
         exit(1);

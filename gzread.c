@@ -539,7 +539,7 @@ int ZEXPORT gzungetc(c, file)
 char * ZEXPORT gzgets(file, buf, len)
     gzFile file;
     char *buf;
-    int len;
+    unsigned int len;
 {
     unsigned left, n;
     char *str;
@@ -547,7 +547,7 @@ char * ZEXPORT gzgets(file, buf, len)
     gz_statep state;
 
     /* check parameters and get internal structure */
-    if (file == NULL || buf == NULL || len < 1)
+    if (file == NULL || buf == NULL || !len)
         return NULL;
     state = (gz_statep)file;
 
