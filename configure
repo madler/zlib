@@ -626,26 +626,9 @@ fi
 
 echo >> configure.log
 
-# conduct a series of tests to resolve eight possible cases of using "vs" or "s" printf functions
-# (using stdarg or not), with or without "n" (proving size of buffer), and with or without a
-# return value.  The most secure result is vsnprintf() with a return value.  snprintf() with a
-# return value is secure as well, but then gzprintf() will be limited to 20 arguments.
-cat > $test.c <<EOF
-#include <stdio.h>
-#include <stdarg.h>
-#include "zconf.h"
-int main()
-{
-#ifndef STDC
-  choke me
-#endif
-  return 0;
-}
-EOF
-if try $CC -c $CFLAGS $test.c; then
-  echo "Checking whether to use vs[n]printf() or s[n]printf()... using vs[n]printf()." | tee -a configure.log
-
-  echo >> configure.log
+# conduct a series of tests to resolve four possible cases of vs[n]printf functions
+# with or without "n" (proving size of buffer), and with or without a return value.
+# The most secure result is vsnprintf() with a return value.
   cat > $test.c <<EOF
 #include <stdio.h>
 #include <stdarg.h>
@@ -735,85 +718,6 @@ EOF
       echo "  vulnerabilities." | tee -a configure.log
     fi
   fi
-else
-  echo "Checking whether to use vs[n]printf() or s[n]printf()... using s[n]printf()." | tee -a configure.log
-
-  echo >> configure.log
-  cat >$test.c <<EOF
-#include <stdio.h>
-int mytest()
-{
-  char buf[20];
-  snprintf(buf, sizeof(buf), "%s", "foo");
-  return 0;
-}
-int main()
-{
-  return (mytest());
-}
-EOF
-
-  if try $CC $CFLAGS -o $test $test.c; then
-    echo "Checking for snprintf() in stdio.h... Yes." | tee -a configure.log
-
-    echo >> configure.log
-    cat >$test.c <<EOF
-#include <stdio.h>
-int mytest()
-{
-  char buf[20];
-  return snprintf(buf, sizeof(buf), "%s", "foo");
-}
-int main()
-{
-  return (mytest());
-}
-EOF
-
-    if try $CC -c $CFLAGS $test.c; then
-      echo "Checking for return value of snprintf()... Yes." | tee -a configure.log
-    else
-      CFLAGS="$CFLAGS -DHAS_snprintf_void"
-      SFLAGS="$SFLAGS -DHAS_snprintf_void"
-      echo "Checking for return value of snprintf()... No." | tee -a configure.log
-      echo "  WARNING: apparently snprintf() does not return a value. zlib" | tee -a configure.log
-      echo "  can build but will be open to possible string-format security" | tee -a configure.log
-      echo "  vulnerabilities." | tee -a configure.log
-    fi
-  else
-    CFLAGS="$CFLAGS -DNO_snprintf"
-    SFLAGS="$SFLAGS -DNO_snprintf"
-    echo "Checking for snprintf() in stdio.h... No." | tee -a configure.log
-    echo "  WARNING: snprintf() not found, falling back to sprintf(). zlib" | tee -a configure.log
-    echo "  can build but will be open to possible buffer-overflow security" | tee -a configure.log
-    echo "  vulnerabilities." | tee -a configure.log
-
-    echo >> configure.log
-    cat >$test.c <<EOF
-#include <stdio.h>
-int mytest()
-{
-  char buf[20];
-  return sprintf(buf, "%s", "foo");
-}
-int main()
-{
-  return (mytest());
-}
-EOF
-
-    if try $CC -c $CFLAGS $test.c; then
-      echo "Checking for return value of sprintf()... Yes." | tee -a configure.log
-    else
-      CFLAGS="$CFLAGS -DHAS_sprintf_void"
-      SFLAGS="$SFLAGS -DHAS_sprintf_void"
-      echo "Checking for return value of sprintf()... No." | tee -a configure.log
-      echo "  WARNING: apparently sprintf() does not return a value. zlib" | tee -a configure.log
-      echo "  can build but will be open to possible string-format security" | tee -a configure.log
-      echo "  vulnerabilities." | tee -a configure.log
-    fi
-  fi
-fi
 
 # see if we can hide zlib internal symbols that are linked between separate source files
 if test "$gcc" -eq 1; then

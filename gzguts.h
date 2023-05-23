@@ -19,11 +19,9 @@
 
 #include <stdio.h>
 #include "zlib.h"
-#ifdef STDC
-#  include <string.h>
-#  include <stdlib.h>
-#  include <limits.h>
-#endif
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #ifndef _POSIX_SOURCE
 #  define _POSIX_SOURCE
@@ -115,12 +113,6 @@
 /* since "static" is used to mean two completely different things in C, we
    define "local" for the non-static meaning of "static", for readability
    (compile with -Dlocal if your debugger can't find static symbols) */
-
-/* gz* functions always use library allocation functions */
-#ifndef STDC
-  extern voidp  malloc(uInt size);
-  extern void   free(voidpf ptr);
-#endif
 
 /* get errno and strerror definition */
 #if defined UNDER_CE

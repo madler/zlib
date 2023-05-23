@@ -202,35 +202,10 @@
 #endif
 
 #ifdef __STDC_VERSION__
-#  ifndef STDC
-#    define STDC
-#  endif
 #  if __STDC_VERSION__ >= 199901L
 #    ifndef STDC99
 #      define STDC99
 #    endif
-#  endif
-#endif
-#if !defined(STDC) && (defined(__STDC__) || defined(__cplusplus))
-#  define STDC
-#endif
-#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__))
-#  define STDC
-#endif
-#if !defined(STDC) && (defined(MSDOS) || defined(WINDOWS) || defined(WIN32))
-#  define STDC
-#endif
-#if !defined(STDC) && (defined(OS2) || defined(__HOS_AIX__))
-#  define STDC
-#endif
-
-#if defined(__OS400__) && !defined(STDC)    /* iSeries (formerly AS/400). */
-#  define STDC
-#endif
-
-#ifndef STDC
-#  ifndef const /* cannot use !defined(STDC) && !defined(const) on Mac */
-#    define const       /* note: need a more gentle solution here */
 #  endif
 #endif
 
@@ -250,11 +225,9 @@
 #  define z_longlong long long
 #  if defined(NO_SIZE_T)
      typedef unsigned NO_SIZE_T z_size_t;
-#  elif defined(STDC)
+#  else
 #    include <stddef.h>
      typedef size_t z_size_t;
-#  else
-     typedef unsigned long z_size_t;
 #  endif
 #  undef z_longlong
 #endif
@@ -293,11 +266,7 @@
                         /* Type declarations */
 
 #ifndef OF /* function prototypes */
-#  ifdef STDC
-#    define OF(args)  args
-#  else
-#    define OF(args)  ()
-#  endif
+#  define OF(args)  args
 #endif
 
 /* The following definitions for FAR are needed only for MSDOS mixed
@@ -406,17 +375,11 @@ typedef int   FAR intf;
 typedef uInt  FAR uIntf;
 typedef uLong FAR uLongf;
 
-#ifdef STDC
-   typedef void const *voidpc;
-   typedef void FAR   *voidpf;
-   typedef void       *voidp;
-#else
-   typedef Byte const *voidpc;
-   typedef Byte FAR   *voidpf;
-   typedef Byte       *voidp;
-#endif
+typedef void const *voidpc;
+typedef void FAR   *voidpf;
+typedef void       *voidp;
 
-#if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
+#if !defined(Z_U4) && !defined(Z_SOLO)
 #  include <limits.h>
 #  if (UINT_MAX == 0xffffffffUL)
 #    define Z_U4 unsigned
@@ -441,16 +404,12 @@ typedef uLong FAR uLongf;
 #  define Z_HAVE_STDARG_H
 #endif
 
-#ifdef STDC
-#  ifndef Z_SOLO
-#    include <sys/types.h>      /* for off_t */
-#  endif
+#ifndef Z_SOLO
+#  include <sys/types.h>      /* for off_t */
 #endif
 
-#if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#  ifndef Z_SOLO
-#    include <stdarg.h>         /* for va_list */
-#  endif
+#ifndef Z_SOLO
+#  include <stdarg.h>         /* for va_list */
 #endif
 
 #ifdef _WIN32

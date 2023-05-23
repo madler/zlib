@@ -1923,12 +1923,10 @@ ZEXTERN int            ZEXPORT deflateResetKeep(z_streamp);
 ZEXTERN gzFile         ZEXPORT gzopen_w(const wchar_t *path,
                                         const char *mode);
 #endif
-#if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#  ifndef Z_SOLO
+#ifndef Z_SOLO
 ZEXTERN int            ZEXPORTVA gzvprintf(gzFile file,
                                            const char *format,
                                            va_list va);
-#  endif
 #endif
 
 #ifdef __cplusplus

@@ -75,9 +75,7 @@
 #include "zlib.h"
 #include "unzip.h"
 
-#ifdef STDC
-#  include <stddef.h>
-#endif
+#include <stddef.h>
 #ifdef NO_ERRNO_H
     extern int errno;
 #else
