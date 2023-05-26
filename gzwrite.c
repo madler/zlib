@@ -391,13 +391,7 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
     next = (char *)(state->in + (strm->next_in - state->in) + strm->avail_in);
     next[state->size - 1] = 0;
 #ifdef NO_vsnprintf
-#  ifdef HAS_vsprintf_void
-    (void)vsprintf(next, format, va);
-    for (len = 0; len < state->size; len++)
-        if (next[len] == 0) break;
-#  else
     len = vsprintf(next, format, va);
-#  endif
 #else
 #  ifdef HAS_vsnprintf_void
     (void)vsnprintf(next, state->size, format, va);

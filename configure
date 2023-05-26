@@ -673,37 +673,6 @@ else
   echo "  WARNING: vsnprintf() not found, falling back to vsprintf(). zlib" | tee -a configure.log
   echo "  can build but will be open to possible buffer-overflow security" | tee -a configure.log
   echo "  vulnerabilities." | tee -a configure.log
-
-  echo >> configure.log
-  cat >$test.c <<EOF
-#include <stdio.h>
-#include <stdarg.h>
-int mytest(const char *fmt, ...)
-{
-  int n;
-  char buf[20];
-  va_list ap;
-  va_start(ap, fmt);
-  n = vsprintf(buf, fmt, ap);
-  va_end(ap);
-  return n;
-}
-int main()
-{
-  return (mytest("Hello%d\n", 1));
-}
-EOF
-
-  if try $CC -c $CFLAGS $test.c; then
-    echo "Checking for return value of vsprintf()... Yes." | tee -a configure.log
-  else
-    CFLAGS="$CFLAGS -DHAS_vsprintf_void"
-    SFLAGS="$SFLAGS -DHAS_vsprintf_void"
-    echo "Checking for return value of vsprintf()... No." | tee -a configure.log
-    echo "  WARNING: apparently vsprintf() does not return a value. zlib" | tee -a configure.log
-    echo "  can build but will be open to possible string-format security" | tee -a configure.log
-    echo "  vulnerabilities." | tee -a configure.log
-  fi
 fi
 
 # see if we can hide zlib internal symbols that are linked between separate source files
