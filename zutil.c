@@ -87,10 +87,6 @@ uLong ZEXPORT zlibCompileFlags(void) {
 #endif
 #ifdef NO_vsnprintf
     flags += 1L << 25;
-#else
-#  ifdef HAS_vsnprintf_void
-    flags += 1L << 26;
-#  endif
 #endif
     return flags;
 }

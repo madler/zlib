@@ -613,9 +613,7 @@ fi
 
 echo >> configure.log
 
-# conduct a series of tests to resolve four possible cases of vs[n]printf functions
-# with or without "n" (proving size of buffer), and with or without a return value.
-# The most secure result is vsnprintf() with a return value.
+# See if we can use "n" vsnprintf() safer C99 functions.
 cat > $test.c <<EOF
 #include <stdio.h>
 #include <stdarg.h>
@@ -635,37 +633,6 @@ int main()
 EOF
 if try $CC $CFLAGS -o $test $test.c; then
   echo "Checking for vsnprintf() in stdio.h... Yes." | tee -a configure.log
-
-  echo >> configure.log
-  cat >$test.c <<EOF
-#include <stdio.h>
-#include <stdarg.h>
-int mytest(const char *fmt, ...)
-{
-  int n;
-  char buf[20];
-  va_list ap;
-  va_start(ap, fmt);
-  n = vsnprintf(buf, sizeof(buf), fmt, ap);
-  va_end(ap);
-  return n;
-}
-int main()
-{
-  return (mytest("Hello%d\n", 1));
-}
-EOF
-
-  if try $CC -c $CFLAGS $test.c; then
-    echo "Checking for return value of vsnprintf()... Yes." | tee -a configure.log
-  else
-    CFLAGS="$CFLAGS -DHAS_vsnprintf_void"
-    SFLAGS="$SFLAGS -DHAS_vsnprintf_void"
-    echo "Checking for return value of vsnprintf()... No." | tee -a configure.log
-    echo "  WARNING: apparently vsnprintf() does not return a value. zlib" | tee -a configure.log
-    echo "  can build but will be open to possible string-format security" | tee -a configure.log
-    echo "  vulnerabilities." | tee -a configure.log
-  fi
 else
   CFLAGS="$CFLAGS -DNO_vsnprintf"
   SFLAGS="$SFLAGS -DNO_vsnprintf"
