@@ -26,7 +26,6 @@ enable_testing()
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
-check_include_file(stddef.h    HAVE_STDDEF_H)
 
 #
 # Check to see if we have large file support
@@ -40,9 +39,6 @@ if(HAVE_SYS_TYPES_H)
 endif()
 if(HAVE_STDINT_H)
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDINT_H)
-endif()
-if(HAVE_STDDEF_H)
-    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
 endif()
 check_type_size(off64_t OFF64_T)
 if(HAVE_OFF64_T)
