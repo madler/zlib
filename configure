@@ -584,19 +584,6 @@ fi
 
 echo >> configure.log
 
-# check for stdarg.h and save result in zconf.h
-cat > $test.c <<EOF
-#include <stdarg.h>
-int main() { return 0; }
-EOF
-if try $CC -c $CFLAGS $test.c; then
-  sed < zconf.h "/^#ifdef HAVE_STDARG_H.* may be/s/def HAVE_STDARG_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
-  mv zconf.temp.h zconf.h
-  echo "Checking for stdarg.h... Yes." | tee -a configure.log
-else
-  echo "Checking for stdarg.h... No." | tee -a configure.log
-fi
-
 # if the z_ prefix was requested, save that in zconf.h
 if test $zprefix -eq 1; then
   sed < zconf.h "/#ifdef Z_PREFIX.* may be/s/def Z_PREFIX\(.*\) may be/ 1\1 was/" > zconf.temp.h
