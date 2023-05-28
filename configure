@@ -516,8 +516,16 @@ cat > $test.c <<EOF
 off64_t dummy = 0;
 EOF
 if try $CC -c $CFLAGS -D_LARGEFILE64_SOURCE=1 $test.c; then
-  CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE=1"
-  SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE=1"
+  case ${CFLAGS} in
+    *"_TIME_BITS="*|*"_FILE_OFFSET_BITS="*)
+      echo "_TIME_BITS or _FILE_OFFSET_BITS defined, this is incompatible with _LARGEFILE64_SOURCE, not setting the latter"
+      ;;
+    *)
+      echo "Setting _LARGEFILE64_SOURCE"
+      CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE=1"
+      SFLAGS="${SFLAGS} -D_LARGEFILE64_SOURCE=1"
+      ;;
+  esac
   ALL="${ALL} all64"
   TEST="${TEST} test64"
   echo "Checking for off64_t... Yes." | tee -a configure.log
