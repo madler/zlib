@@ -1,0 +1,63 @@
+.TH zlibVersion 3 (date) "zlib (unreleased)"
+.
+.SH Name
+zlibVersion
+\-
+get version of the zlib runtime library
+.
+.SH Library
+zlib compression library
+.RI ( zlib ", " \-lz )
+.
+.SH Synopsis
+.nf
+.B #include <zlib.h>
+.PP
+.B const char *zlibVersion(void);
+.PP
+.BR "#define ZLIB_VERSION" "  /* ... */"
+.fi
+.
+.SH Description
+.MR zlibVersion 3
+can be called by the application to
+compare the version of the runtime library
+with the version of the header file used at compilation
+.RB \%( ZLIB_VERSION ).
+If the major version (the first character) differs,
+the runtime library is not compatible with the header file.
+This check is performed automatically by
+.MR deflateInit 3
+and
+.MR inflateInit 3 .
+.
+.SH Return value
+A static string similar to
+.IR \[dq]1.2.13.1-motley\[dq] .
+.
+.SH Errors
+None.
+.
+.SH Examples
+.EX
+#include <err.h>
+#include <stdio.h>
+#include <stdlib.h>
+\&
+#include <zlib.h>
+\&
+int
+main(void)
+{
+    printf("zlib header version:  %s\en", ZLIB_VERSION);
+    printf("zlib runtime version: %s\en", zlibVersion());
+\&
+    if (ZLIB_VERSION[0] != zlibVersion()[0])
+        errx(EXIT_FAILURE, "incompatible zlib runtime version");
+\&
+    exit(EXIT_SUCCESS);
+}
+.EE
+.
+.SH See also
+.MR zlib 3 .
