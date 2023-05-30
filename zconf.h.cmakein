@@ -267,10 +267,6 @@
 
                         /* Type declarations */
 
-#ifndef OF /* function prototypes */
-#  define OF(args)  args
-#endif
-
 /* The following definitions for FAR are needed only for MSDOS mixed
  * model programming (small or medium model with some far allocations).
  * This was tested only with MSC; for other MSDOS compilers you may have
