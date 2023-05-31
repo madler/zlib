@@ -218,11 +218,7 @@ typedef gz_header FAR *gz_headerp;
                         /* basic functions */
 
 ZEXTERN const char * ZEXPORT zlibVersion(void);
-/* The application can compare zlibVersion and ZLIB_VERSION for consistency.
-   If the first character differs, the library code actually used is not
-   compatible with the zlib.h header file used by the application.  This check
-   is automatically made by deflateInit and inflateInit.
- */
+/* See zlibVersion(3).  */
 
 /*
 ZEXTERN int ZEXPORT deflateInit(z_streamp strm, int level);
