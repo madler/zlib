@@ -70,7 +70,6 @@ void fill_zlib_filefunc64_32_def_from_filefunc32(zlib_filefunc64_32_def* p_filef
 {
     p_filefunc64_32->zfile_func64.zopen64_file = NULL;
     p_filefunc64_32->zopen32_file = p_filefunc32->zopen_file;
-    p_filefunc64_32->zfile_func64.zerror_file = p_filefunc32->zerror_file;
     p_filefunc64_32->zfile_func64.zread_file = p_filefunc32->zread_file;
     p_filefunc64_32->zfile_func64.zwrite_file = p_filefunc32->zwrite_file;
     p_filefunc64_32->zfile_func64.ztell64_file = NULL;
