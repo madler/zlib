@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1.2...3.27)
 project(zlib VERSION 1.3.0.1 LANGUAGES C)
 
 option(BUILD_SHARED_LIBS "Enable to build a shared library(DLL) instead a static one." ON)
+option(BUILD_TESTING "Enable to build the test too." ON)
 option(BUILD_EXAMPLES "Enable to build the examples too." OFF)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
@@ -71,7 +72,7 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
         message(STATUS "to 'zconf.h.included' because this file is included with zlib")
         message(STATUS "but CMake generates it automatically in the build directory.")
         file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
-  endif()
+    endif()
 endif()
 
 set(ZLIB_PC ${CMAKE_CURRENT_BINARY_DIR}/zlib.pc)
@@ -128,7 +129,8 @@ endif()
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
 string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
-    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
+    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents}
+)
 
 
 # TODO: add_library without SHARED/STATIC arg picks which one to use based on
@@ -145,7 +147,8 @@ if(BUILD_SHARED_LIBS AND MINGW)
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             -I ${CMAKE_CURRENT_BINARY_DIR}
                             -o ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
-                            -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc)
+                            -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc
+    )
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif()
 
@@ -187,32 +190,13 @@ add_library(zlib::zlib ALIAS zlib)
 add_library(ZLIB::ZLIB ALIAS zlib)
 
 
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
-    install(TARGETS zlib
-        EXPORT ${PROJECT_NAME}Config
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}")
-    install(EXPORT ${PROJECT_NAME}Config
-        NAMESPACE zlib:: DESTINATION "${INSTALL_LIB_DIR}/cmake/${PROJECT_NAME}")
-    target_include_directories(zlib PUBLIC $<INSTALL_INTERFACE:${INSTALL_INC_DIR}>)
-endif()
-if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
-    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
-    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
-    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
-endif()
-
 #============================================================================
 # Example binaries and ctests locatet at test subdir
 # TODO: add_subdirectory(test)
 #============================================================================
-include(CTest)
 if(BUILD_TESTING)
+    enable_testing()
+
     add_executable(example test/example.c)
     target_link_libraries(example zlib)
     add_test(example example)
@@ -233,4 +217,32 @@ if(BUILD_TESTING)
         endif()
     endif()
 
+endif()
+
+
+#============================================================================
+# optional install part
+#============================================================================
+if(SKIP_INSTALL_ALL)
+    return()
+endif()
+
+if(NOT SKIP_INSTALL_LIBRARIES)
+    install(TARGETS zlib
+        EXPORT ${PROJECT_NAME}Config
+        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+        LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+    )
+    install(EXPORT ${PROJECT_NAME}Config
+        NAMESPACE zlib:: DESTINATION "${INSTALL_LIB_DIR}/cmake/${PROJECT_NAME}"
+    )
+    target_include_directories(zlib PUBLIC $<INSTALL_INTERFACE:${INSTALL_INC_DIR}>)
+endif()
+if(NOT SKIP_INSTALL_HEADERS)
+    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
+endif()
+if(NOT SKIP_INSTALL_FILES)
+    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
+    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
 endif()
