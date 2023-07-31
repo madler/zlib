@@ -13,11 +13,15 @@ the library is working correctly.  Another example is given in the file
 test/minigzip.c.  The compression library itself is composed of all source
 files in the root directory.
 
-To compile all files and run the test program, follow the instructions given at
-the top of Makefile.in.  In short "./configure; make test", and if that goes
-well, "make install" should work for most flavors of Unix.  For Windows, use
-one of the special makefiles in win32/ or contrib/vstudio/ .  For VMS, use
-make_vms.com.
+To compile all files and run the test program, follow this instructions:
+
+  mkdir build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+  cmake --build .
+  ctest
+  DESTDIR=/tmp/zlib/ cmake --build . --target install
+
+Tip: Try cmake --help to see all available generators on your system.
 
 Questions about zlib should be sent to <zlib@gzip.org>, or to Gilles Vollant
 <info@winimage.com> for the Windows DLL version.  The zlib home page is
