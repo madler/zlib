@@ -359,8 +359,14 @@ zconf.h.cmakein: $(SRCDIR)zconf.h.in
 zconf: $(SRCDIR)zconf.h.in
 	cp -p $(SRCDIR)zconf.h.in zconf.h
 
+minizip-test: static
+	CFLAGS="$(CFLAGS)" make -C contrib/minizip test
+
+minizip-clean:
+	make -C contrib/minizip clean
+
 mostlyclean: clean
-clean:
+clean: minizip-clean
 	rm -f *.o *.lo *~ \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) \
