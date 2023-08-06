@@ -497,7 +497,7 @@ local unzFile unzOpenInternal(const void *path,
     ZPOS64_T central_pos;
     uLong   uL;
 
-    uLong number_disk;          /* number of the current dist, used for
+    uLong number_disk;          /* number of the current disk, used for
                                    spanning ZIP, unsupported, always 0*/
     uLong number_disk_with_CD;  /* number the disk with central dir, used
                                    for spanning ZIP, unsupported, always 0*/
