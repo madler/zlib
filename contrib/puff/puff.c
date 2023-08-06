@@ -594,7 +594,7 @@ local int fixed(struct state *s)
  *   distance symbols.
  *
  * - If a symbol is not used in the block, this is represented by a zero as
- *   as the code length.  This does not mean a zero-length code, but rather
+ *   the code length.  This does not mean a zero-length code, but rather
  *   that no code should be created for this symbol.  There is no way in the
  *   deflate format to represent a zero-length code.
  *
