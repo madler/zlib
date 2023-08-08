@@ -211,3 +211,12 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+#============================================================================
+# Minigzip tool
+#============================================================================
+add_executable(minizip_bin contrib/minizip/minizip.c contrib/minizip/ioapi.c
+contrib/minizip/ioapi.h contrib/minizip/unzip.c
+contrib/minizip/unzip.h contrib/minizip/zip.c contrib/minizip/zip.h
+)
+target_link_libraries(minizip_bin zlib)
