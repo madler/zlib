@@ -213,7 +213,7 @@ if(HAVE_OFF64_T)
 endif()
 
 #============================================================================
-# Minigzip tool
+# Minizip tool
 #============================================================================
 add_executable(minizip_bin contrib/minizip/minizip.c contrib/minizip/ioapi.c
 contrib/minizip/ioapi.h contrib/minizip/unzip.c
