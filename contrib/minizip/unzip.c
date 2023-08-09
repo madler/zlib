@@ -77,8 +77,6 @@
 
 #ifdef STDC
 #  include <stddef.h>
-#  include <string.h>
-#  include <stdlib.h>
 #endif
 #ifdef NO_ERRNO_H
     extern int errno;
@@ -112,7 +110,7 @@
 # define ALLOC(size) (malloc(size))
 #endif
 #ifndef TRYFREE
-# define TRYFREE(p) { free(p);}
+# define TRYFREE(p) { free(p); }
 #endif
 
 #define SIZECENTRALDIRITEM (0x2e)
