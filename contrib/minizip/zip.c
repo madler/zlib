@@ -1622,10 +1622,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
       }
 
       if(zi->ci.pos_local_header >= 0xffffffff)
-      {
         zip64local_putValue_inmemory(p, zi->ci.pos_local_header, 8);
-        p += 8;
-      }
 
       // Update how much extra free space we got in the memory buffer
       // and increase the centralheader size so the new ZIP64 fields are included
