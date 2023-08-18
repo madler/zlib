@@ -111,6 +111,10 @@ static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_dat
 
   ut.actime=ut.modtime=mktime(&newdate);
   utime(filename,&ut);
+#else
+  (void)filename;
+  (void)dosdate;
+  (void)tmu_date;
 #endif
 #endif
 }
@@ -127,6 +131,8 @@ static int mymkdir(const char* dirname) {
     ret = mkdir (dirname,0775);
 #elif __APPLE__
     ret = mkdir (dirname,0775);
+#else
+    (void)dirname;
 #endif
     return ret;
 }
@@ -237,7 +243,7 @@ static int do_list(unzFile uf) {
         char filename_inzip[256];
         unz_file_info64 file_info;
         uLong ratio=0;
-        const char *string_method;
+        const char *string_method = "";
         char charCrypt=' ';
         err = unzGetCurrentFileInfo64(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
         if (err!=UNZ_OK)
