@@ -297,7 +297,7 @@ example64$(EXE): example64.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@) minigzip64.o $(TEST_LDFLAGS
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
