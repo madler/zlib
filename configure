@@ -44,7 +44,7 @@ STATICLIB=libz.a
 
 # extract zlib version numbers from zlib.h
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < ${SRCDIR}zlib.h`
-VERN=`echo ${VER}|sed -n -e 's/\([0-9]\{1,\}\(\\.[0-9]\{1,\}\)\{1,\}\).*/\1/p'`
+VER3=`echo ${VER}|sed -n -e 's/\([0-9]\{1,\}\(\\.[0-9]\{1,\}\)\{1,2\}\).*/\1/p'`
 VER1=`echo ${VER}|sed -n -e 's/\([0-9]\{1,\}\)\\..*/\1/p'`
 
 # establish commands for library building
@@ -264,7 +264,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         SHAREDLIB=libz$shared_ext
         SHAREDLIBV=libz.$VER$shared_ext
         SHAREDLIBM=libz.$VER1$shared_ext
-        LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VERN"}
+        LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
         if "${CROSS_PREFIX}libtool" -V 2>&1 | grep Apple > /dev/null; then
             AR="${CROSS_PREFIX}libtool"
         elif libtool -V 2>&1 | grep Apple > /dev/null; then
