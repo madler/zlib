@@ -3,8 +3,6 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id$ */
-
 #include "zutil.h"
 
 #define BASE 65521U     /* largest prime smaller than 65536 */
