@@ -21,15 +21,15 @@
   <ItemGroup>
     <None Include="../../LICENSE" Pack="true" PackagePath="" />
     <!-- Package up Windows builds. -->
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/x86/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-x86/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/x64/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-x64/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/arm/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-arm/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/arm64/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-arm64/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/x86/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-x86/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/x64/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-x64/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/arm/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-arm/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/arm64/ZlibDll$(Configuration)/zlibwapi.dll" Pack="true" PackagePath="runtimes/win-arm64/native" />
     <!-- Include debug symbols as well as we never know if they might actually be needed in the future. -->
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/x86/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-x86/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/x64/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-x64/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/arm/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-arm/native" />
-    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc143/arm64/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-arm64/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/x86/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-x86/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/x64/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-x64/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/arm/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-arm/native" />
+    <None Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../vstudio/vc17/arm64/ZlibDll$(Configuration)/zlibwapi.pdb" Pack="true" PackagePath="runtimes/win-arm64/native" />
     <!-- Package up Linux builds. -->
     <None Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="./linux-x86/libz.so" Pack="true" PackagePath="runtimes/linux-x86/native" />
     <None Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="./linux-x64/libz.so" Pack="true" PackagePath="runtimes/linux-x64/native" />
