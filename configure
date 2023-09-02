@@ -119,12 +119,12 @@ case "$1" in
       echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
         exit 0 ;;
-    -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
-    -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
-    -l*=* | --libdir=*) libdir=`echo $1 | sed 's/.*=//'`; shift ;;
-    --sharedlibdir=*) sharedlibdir=`echo $1 | sed 's/.*=//'`; shift ;;
-    -i*=* | --includedir=*) includedir=`echo $1 | sed 's/.*=//'`;shift ;;
-    -u*=* | --uname=*) uname=`echo $1 | sed 's/.*=//'`;shift ;;
+    -p*=* | --prefix=*) prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
+    -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
+    -l*=* | --libdir=*) libdir=`echo $1 | sed 's/[^=]*=//'`; shift ;;
+    --sharedlibdir=*) sharedlibdir=`echo $1 | sed 's/[^=]*=//'`; shift ;;
+    -i*=* | --includedir=*) includedir=`echo $1 | sed 's/[^=]*=//'`;shift ;;
+    -u*=* | --uname=*) uname=`echo $1 | sed 's/[^=]*=//'`;shift ;;
     -p* | --prefix) prefix="$2"; shift; shift ;;
     -e* | --eprefix) exec_prefix="$2"; shift; shift ;;
     -l* | --libdir) libdir="$2"; shift; shift ;;
@@ -135,7 +135,7 @@ case "$1" in
     --cover) cover=1; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
-    -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
+    -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/[^=]*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
