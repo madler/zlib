@@ -13,12 +13,6 @@
 #  include <stdlib.h>
 #endif
 
-#if defined(VMS) || defined(RISCOS)
-#  define TESTFILE "foo-gz"
-#else
-#  define TESTFILE "foo.gz"
-#endif
-
 #define CHECK_ERR(err, msg) { \
     if (err != Z_OK) { \
         fprintf(stderr, "%s error: %d\n", msg, err); \
