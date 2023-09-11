@@ -205,7 +205,7 @@ if(HAVE_OFF64_T)
     add_executable(example64 test/example.c)
     target_link_libraries(example64 zlib)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+    add_test(example64 example64 bar.gz)
 
     add_executable(minigzip64 test/minigzip.c)
     target_link_libraries(minigzip64 zlib)
