@@ -46,7 +46,8 @@ minizip/    by Gilles Vollant <info@winimage.com>
 pascal/     by Bob Dellaca <bobdl@xtra.co.nz> et al.
         Support for Pascal
 
-power/      by Matheus Castanho <msc@linux.ibm.com>
+power/      by Daniel Black <daniel@linux.ibm.com>
+               Matheus Castanho <msc@linux.ibm.com>
             and Rogerio Alves <rcardoso@linux.ibm.com>
         Optimized functions for Power processors
 
