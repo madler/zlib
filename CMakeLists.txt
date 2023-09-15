@@ -5,6 +5,8 @@ project(zlib C)
 
 set(VERSION "1.3")
 
+option(POWER "Enable building power implementation")
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
@@ -126,6 +128,76 @@ if(NOT MINGW)
     )
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCC)
+
+    # test to see if we can use a GNU indirect function to detect and load optimized code at runtime
+    CHECK_C_SOURCE_COMPILES("
+    static int test_ifunc_native(void)
+    {
+       return 1;
+    }
+    static int (*(check_ifunc_native(void)))(void)
+    {
+       return test_ifunc_native;
+    }
+    int test_ifunc(void) __attribute__ ((ifunc (\"check_ifunc_native\")));
+    int main(void)
+    {
+       return 0;
+    }
+    " HAS_C_ATTR_IFUNC)
+
+    if(HAS_C_ATTR_IFUNC)
+        add_definitions(-DHAVE_IFUNC)
+        set(ZLIB_PRIVATE_HDRS ${ZLIB_PRIVATE_HDRS} contrib/gcc/zifunc.h)
+    endif()
+
+    if(POWER)
+        # Test to see if we can use the optimizations for Power
+        CHECK_C_SOURCE_COMPILES("
+        #ifndef _ARCH_PPC
+            #error \"Target is not Power\"
+        #endif
+        #ifndef __BUILTIN_CPU_SUPPORTS__
+            #error \"Target doesn't support __builtin_cpu_supports()\"
+        #endif
+        int main() { return 0; }
+        " HAS_POWER_SUPPORT)
+
+        if(HAS_POWER_SUPPORT AND HAS_C_ATTR_IFUNC)
+            add_definitions(-DZ_POWER_OPT)
+
+            set(CMAKE_REQUIRED_FLAGS -mcpu=power8)
+            CHECK_C_SOURCE_COMPILES("int main(void){return 0;}" POWER8)
+
+            if(POWER8)
+                add_definitions(-DZ_POWER8)
+                set(ZLIB_POWER8
+                  contrib/power/crc32_z_power8.c)
+
+                set_source_files_properties(
+                    ${ZLIB_POWER8}
+                    PROPERTIES COMPILE_FLAGS -mcpu=power8)
+            endif()
+
+            set(CMAKE_REQUIRED_FLAGS -mcpu=power9)
+            CHECK_C_SOURCE_COMPILES("int main(void){return 0;}" POWER9)
+
+            if(POWER9)
+                add_definitions(-DZ_POWER9)
+                set(ZLIB_POWER9 )
+
+                set_source_files_properties(
+                    ${ZLIB_POWER9}
+                    PROPERTIES COMPILE_FLAGS -mcpu=power9)
+            endif()
+
+            set(ZLIB_PRIVATE_HDRS ${ZLIB_PRIVATE_HDRS} contrib/power/power.h)
+            set(ZLIB_SRCS ${ZLIB_SRCS} ${ZLIB_POWER8} ${ZLIB_POWER9})
+        endif()
+    endif()
+endif()
+
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
 string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
@@ -197,6 +269,10 @@ endif()
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
 add_test(example example)
+
+add_executable(crc32_test test/crc32_test.c)
+target_link_libraries(crc32_test zlib)
+add_test(crc32_test crc32_test)
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
