@@ -31,11 +31,7 @@
 #include "zip.h"
 
 #include <stddef.h>
-#ifdef NO_ERRNO_H
-    extern int errno;
-#else
-#   include <errno.h>
-#endif
+#include <errno.h>
 
 
 #ifndef local
