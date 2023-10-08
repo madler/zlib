@@ -204,9 +204,7 @@ local void make_crc_table()
 }
 
 #ifdef MAKECRCH
-local void write_table(out, table)
-    FILE *out;
-    const z_crc_t FAR *table;
+static void write_table(FILE *out, const z_crc_t FAR *table)
 {
     int n;
 
@@ -241,10 +239,7 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
 
 /* ========================================================================= */
-local unsigned long crc32_generic(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    uInt len;
+static unsigned long crc32_generic(unsigned long crc, const unsigned char FAR *buf, uInt len)
 {
     if (buf == Z_NULL) return 0UL;
 
@@ -318,10 +313,7 @@ int has_pclmul(void) {
     return cpu_has_pclmul;
 }
 
-uLong crc32(crc, buf, len)
-    uLong crc;
-    const Bytef *buf;
-    uInt len;
+uLong crc32(uLong crc, const Bytef *buf, uInt len)
 {
     if (len < PCLMUL_MIN_LEN + PCLMUL_ALIGN  - 1)
       return crc32_generic(crc, buf, len);
@@ -355,10 +347,7 @@ uLong crc32(crc, buf, len)
 #undef PCLMUL_ALIGN_MASK
 
 #else
-uLong crc32(crc, buf, len)
-    uLong crc;
-    const Bytef *buf;
-    uInt len;
+uLong crc32(uLong crc, const Bytef *buf, uInt len)
 {
     return crc32_generic(crc, buf, len);
 }
@@ -373,10 +362,7 @@ uLong crc32(crc, buf, len)
 #define DOLIT32 DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4
 
 /* ========================================================================= */
-local unsigned long crc32_little(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    unsigned len;
+static unsigned long crc32_little(unsigned long crc, const unsigned char FAR *buf, unsigned len)
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
@@ -413,10 +399,7 @@ local unsigned long crc32_little(crc, buf, len)
 #define DOBIG32 DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4
 
 /* ========================================================================= */
-local unsigned long crc32_big(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    unsigned len;
+static unsigned long crc32_big(unsigned long crc, const unsigned char FAR *buf, unsigned len)
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
@@ -453,9 +436,7 @@ local unsigned long crc32_big(crc, buf, len)
 #define GF2_DIM 32      /* dimension of GF(2) vectors (length of CRC) */
 
 /* ========================================================================= */
-local unsigned long gf2_matrix_times(mat, vec)
-    unsigned long *mat;
-    unsigned long vec;
+static unsigned long gf2_matrix_times(unsigned long *mat, unsigned long vec)
 {
     unsigned long sum;
 
@@ -470,9 +451,7 @@ local unsigned long gf2_matrix_times(mat, vec)
 }
 
 /* ========================================================================= */
-local void gf2_matrix_square(square, mat)
-    unsigned long *square;
-    unsigned long *mat;
+static void gf2_matrix_square(unsigned long *square, unsigned long *mat)
 {
     int n;
 
@@ -481,10 +460,7 @@ local void gf2_matrix_square(square, mat)
 }
 
 /* ========================================================================= */
-local uLong crc32_combine_(crc1, crc2, len2)
-    uLong crc1;
-    uLong crc2;
-    z_off64_t len2;
+static uLong crc32_combine_(uLong crc1, uLong crc2, z_off64_t len2)
 {
     int n;
     unsigned long row;
@@ -537,18 +513,12 @@ local uLong crc32_combine_(crc1, crc2, len2)
 }
 
 /* ========================================================================= */
-uLong ZEXPORT crc32_combine(crc1, crc2, len2)
-    uLong crc1;
-    uLong crc2;
-    z_off_t len2;
+uLong ZEXPORT crc32_combine(uLong crc1, uLong crc2, z_off_t len2)
 {
     return crc32_combine_(crc1, crc2, len2);
 }
 
-uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
-    uLong crc1;
-    uLong crc2;
-    z_off64_t len2;
+uLong ZEXPORT crc32_combine64(uLong crc1, uLong crc2, z_off64_t len2)
 {
     return crc32_combine_(crc1, crc2, len2);
 }
