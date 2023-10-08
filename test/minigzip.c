@@ -59,7 +59,7 @@
 
 #if !defined(Z_HAVE_UNISTD_H) && !defined(_LARGEFILE64_SOURCE)
 #ifndef WIN32 /* unlink already in stdio.h for WIN32 */
-  extern int unlink OF((const char *));
+  extern int unlink(const char *);
 #endif
 #endif
 
@@ -147,8 +147,8 @@ static void pwinerror (const char *s)
 #  include <unistd.h>       /* for unlink() */
 #endif
 
-void *myalloc OF((void *, unsigned, unsigned));
-void myfree OF((void *, void *));
+void *myalloc(void *, unsigned, unsigned);
+void myfree(void *, void *);
 
 void *myalloc(void *q, unsigned n, unsigned m)
 {
@@ -170,9 +170,9 @@ typedef struct gzFile_s {
     z_stream strm;
 } *gzFile;
 
-gzFile gzopen OF((const char *, const char *));
-gzFile gzdopen OF((int, const char *));
-gzFile gz_open OF((const char *, int, const char *));
+gzFile gzopen(const char *, const char *);
+gzFile gzdopen(int, const char *);
+gzFile gz_open(const char *, int, const char *);
 
 gzFile gzopen(const char *path, const char *mode)
 {
@@ -218,7 +218,7 @@ gzFile gz_open(const char *path, int fd, const char *mode) {
     return gz;
 }
 
-int gzwrite OF((gzFile, const void *, unsigned));
+int gzwrite(gzFile, const void *, unsigned);
 
 int gzwrite(gzFile gz, const void *buf, unsigned len)
 {
@@ -239,7 +239,7 @@ int gzwrite(gzFile gz, const void *buf, unsigned len)
     return len;
 }
 
-int gzread OF((gzFile, void *, unsigned));
+int gzread(gzFile, void *, unsigned);
 
 int gzread(gzFile gz, void *buf, unsigned len)
 {
@@ -273,7 +273,7 @@ int gzread(gzFile gz, void *buf, unsigned len)
     return len - strm->avail_out;
 }
 
-int gzclose OF((gzFile));
+int gzclose(gzFile);
 
 int gzclose(gzFile gz)
 {
@@ -301,7 +301,7 @@ int gzclose(gzFile gz)
     return Z_OK;
 }
 
-const char *gzerror OF((gzFile, int *));
+const char *gzerror(gzFile, int *);
 
 const char *gzerror(gzFile gz, int *err) {
     *err = gz->err;
@@ -312,15 +312,15 @@ const char *gzerror(gzFile gz, int *err) {
 
 char *prog;
 
-void error            OF((const char *msg));
-void gz_compress      OF((FILE   *in, gzFile out));
+void error           (const char *msg);
+void gz_compress     (FILE   *in, gzFile out);
 #ifdef USE_MMAP
-int  gz_compress_mmap OF((FILE   *in, gzFile out));
+int  gz_compress_mmap(FILE   *in, gzFile out);
 #endif
-void gz_uncompress    OF((gzFile in, FILE   *out));
-void file_compress    OF((char  *file, char *mode, int keep));
-void file_uncompress  OF((char  *file, int keep));
-int  main             OF((int argc, char *argv[]));
+void gz_uncompress   (gzFile in, FILE   *out);
+void file_compress   (char  *file, char *mode, int keep);
+void file_uncompress (char  *file, int keep);
+int  main            (int argc, char *argv[]);
 
 /* ===========================================================================
  * Display error message and exit

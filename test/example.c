@@ -34,26 +34,26 @@ z_const char hello[] = "hello, hello!";
 const char dictionary[] = "hello";
 uLong dictId; /* Adler32 value of the dictionary */
 
-void test_deflate       OF((Byte *compr, uLong comprLen));
-void test_inflate       OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_large_deflate OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_large_inflate OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_flush         OF((Byte *compr, uLong *comprLen));
-void test_sync          OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_dict_deflate  OF((Byte *compr, uLong comprLen));
-void test_dict_inflate  OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-int  main               OF((int argc, char *argv[]));
+void test_deflate      (Byte *compr, uLong comprLen);
+void test_inflate      (Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+void test_large_deflate(Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+void test_large_inflate(Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+void test_flush        (Byte *compr, uLong *comprLen);
+void test_sync         (Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+void test_dict_deflate (Byte *compr, uLong comprLen);
+void test_dict_inflate (Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+int  main              (int argc, char *argv[]);
 
 
 #ifdef Z_SOLO
 
-void *myalloc OF((void *, unsigned, unsigned));
-void myfree OF((void *, void *));
+void *myalloc(void *, unsigned, unsigned);
+void myfree(void *, void *);
 
 void *myalloc(void *q, unsigned n, unsigned m)
 {
@@ -75,10 +75,10 @@ static free_func zfree = myfree;
 static alloc_func zalloc = (alloc_func)0;
 static free_func zfree = (free_func)0;
 
-void test_compress      OF((Byte *compr, uLong comprLen,
-                            Byte *uncompr, uLong uncomprLen));
-void test_gzio          OF((const char *fname,
-                            Byte *uncompr, uLong uncomprLen));
+void test_compress     (Byte *compr, uLong comprLen,
+                            Byte *uncompr, uLong uncomprLen);
+void test_gzio         (const char *fname,
+                            Byte *uncompr, uLong uncomprLen);
 
 /* ===========================================================================
  * Test compress() and uncompress()

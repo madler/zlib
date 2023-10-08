@@ -16,7 +16,7 @@
 #include "inffast.h"
 
 /* function prototypes */
-local void fixedtables OF((struct inflate_state FAR *state));
+local void fixedtables(struct inflate_state FAR *state);
 
 /*
    strm provides memory allocation functions in zalloc and zfree, or

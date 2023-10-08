@@ -6,12 +6,12 @@
 #include "gzguts.h"
 
 /* Local functions */
-local int gz_load OF((gz_statep, unsigned char *, unsigned, unsigned *));
-local int gz_avail OF((gz_statep));
-local int gz_look OF((gz_statep));
-local int gz_decomp OF((gz_statep));
-local int gz_fetch OF((gz_statep));
-local int gz_skip OF((gz_statep, z_off64_t));
+local int gz_load(gz_statep, unsigned char *, unsigned, unsigned *);
+local int gz_avail(gz_statep);
+local int gz_look(gz_statep);
+local int gz_decomp(gz_statep);
+local int gz_fetch(gz_statep);
+local int gz_skip(gz_statep, z_off64_t);
 
 /* Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
    state->fd, and update state->eof, state->err, and state->msg as appropriate.
