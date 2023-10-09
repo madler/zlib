@@ -384,7 +384,7 @@
 #endif
 
 #ifndef ZEXTERN
-#  define ZEXTERN extern
+#  define ZEXTERN extern __attribute((visibility("default")))
 #endif
 #ifndef ZEXPORT
 #  define ZEXPORT
