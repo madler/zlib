@@ -72,7 +72,7 @@ are too numerous to cite here.
 
 Copyright notice:
 
-  (C) 1995-2012 Jean-loup Gailly and Mark Adler
+  (C) 1995-2017 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages

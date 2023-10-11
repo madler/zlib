@@ -1,5 +1,5 @@
 /* uncompr.c -- decompress a memory buffer
- * Copyright (C) 1995-2003, 2010 Jean-loup Gailly.
+ * Copyright (C) 1995-2003, 2010, 2014, 2016 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -18,6 +18,7 @@
    *destLen is the size of the decompressed data and *sourceLen is the number
    of source bytes consumed. Upon return, source + *sourceLen points to the
    first unused input byte.
+
      uncompress returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_BUF_ERROR if there was not enough room in the output buffer, or
    Z_DATA_ERROR if the input data was corrupted, including if the input data is
