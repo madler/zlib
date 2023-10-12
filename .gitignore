@@ -22,6 +22,7 @@
 /minigzipsh
 /zlib.pc
 /zconf.h.included
+/configure.log
 
 .DS_Store
 

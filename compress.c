@@ -23,7 +23,7 @@ int ZEXPORT compress2(Bytef *dest, uLongf *destLen, const Bytef *source,
                       uLong sourceLen, int level) {
     z_stream stream;
     int err;
-    const uInt max = -1;
+    const uInt max = (uInt)-1;
     uLong left;
 
     left = *destLen;
