@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@master
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
+    - name: Test
       run: cargo test --all
