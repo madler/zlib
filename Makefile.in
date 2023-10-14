@@ -260,7 +260,7 @@ minizip-clean:
 	cd contrib/minizip && { $(MAKE) clean ; cd ../.. ; }
 
 mostlyclean: clean
-clean: minizip-clean
+clean:
 	rm -f *.o *.lo *~ \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) \
