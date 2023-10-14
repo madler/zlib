@@ -22,3 +22,5 @@ jobs:
       run: make
     - name: make check
       run: make check
+    - name: make clean
+      run: make clean
