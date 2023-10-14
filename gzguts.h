@@ -65,7 +65,7 @@
 #  endif
 #endif
 
-#if defined(MSDOS) && defined(__BORLANDC__) && (BORLANDC > 0x410)
+#if defined(MSDOS) && defined(__BORLANDC__) && !defined(__clang__) && (BORLANDC > 0x410)
 #  ifndef HAVE_VSNPRINTF
 #    define HAVE_VSNPRINTF
 #  endif
