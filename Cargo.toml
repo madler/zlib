@@ -1,0 +1,27 @@
+[package]
+name = "cloudflare-zlib-sys"
+version = "0.3.2"
+edition = "2021"
+authors = ["Vlad Krasnov <vlad@cloudflare.com>", "Kornel Lesiński <kornel@geekhood.net>", "Mark Adler <madler@alumni.caltech.edu>"]
+categories = ["external-ffi-bindings", "compression"]
+description = "Cloudflare fork of zlib with performance improvements"
+documentation = "https://www.zlib.net/manual.html"
+homepage = "https://lib.rs/crates/cloudflare-zlib-sys"
+repository = "https://github.com/cloudflare/zlib"
+include = ["rust/README.md", "LICENSE", "Cargo.toml", "rust/*.rs", "/*.[ch]"]
+keywords = ["cloudflare", "libz", "gzip"]
+license = "Zlib"
+readme = "rust/README.md"
+build = "rust/build.rs"
+links = "cfzlib"
+
+[lib]
+crate-type = ["lib", "staticlib"]
+path = "rust/lib.rs"
+
+[build-dependencies]
+cc = "1.0.67"
+
+[features]
+# Obsolete
+asm = []

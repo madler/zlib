@@ -29,3 +29,6 @@
 /build
 /Makefile
 /configure.log
+
+/target
+Cargo.lock
