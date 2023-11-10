@@ -1137,7 +1137,7 @@ static uint32_t longest_match(deflate_state *s, IPos cur_match /* current match 
     register uint8_t *scan = s->window + s->strstart; /* current string */
     register uint8_t *match;                          /* matched string */
     register int len;                                 /* length of current match */
-    int best_len = s->prev_length;                    /* best match length so far */
+    int best_len = (s->prev_length == 0) ? ACTUAL_MIN_MATCH-1 : s->prev_length;                    /* best match length so far */
     int nice_match = s->nice_match;                   /* stop if match long enough */
     IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
         s->strstart - (IPos)MAX_DIST(s) : NIL;
@@ -1467,8 +1467,8 @@ static block_state deflate_stored(deflate_state *s, int flush)
     uint64_t max_block_size = 0xffff;
     uint64_t max_start;
 
-    if (max_block_size > s->pending_buf_size - 5) {
-        max_block_size = s->pending_buf_size - 5;
+    if (max_block_size > s->pending_buf_size - 6) {
+        max_block_size = s->pending_buf_size - 6;
     }
 
     /* Copy as much as possible from input to output: */
@@ -1688,7 +1688,7 @@ static block_state deflate_slow(deflate_state *s, int flush) {
                 insert_cnt = max_insert - s->strstart;
 
             bulk_insert_str(s, s->strstart + 1, insert_cnt);
-            s->prev_length = 0;
+            s->prev_length = ACTUAL_MIN_MATCH-1;
             s->match_available = 0;
             s->match_length = ACTUAL_MIN_MATCH-1;
             s->strstart += mov_fwd + 1;
