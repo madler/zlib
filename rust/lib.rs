@@ -190,25 +190,57 @@ pub const Z_DEFLATED: c_int = 8;
 pub const MAX_MEM_LEVEL: c_int = 8;
 pub const DEF_MEM_LEVEL: c_int = 8;
 
-#[test]
-fn test_compress() {
-    unsafe {
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_files() {
+        for i in 1..=1 {
+            assert_roundtrips(&std::fs::read(format!("rust/test_files/test{i}")).unwrap());
+        }
+    }
+
+    #[test]
+    fn test_synthetic() {
+        assert_roundtrips(&[0; 0]);
+        assert_roundtrips(&[0; 1]);
+        assert_roundtrips(&[0; 10]);
+        assert_roundtrips(&vec![0; 1000]);
+        assert_roundtrips(&[0xff; 1]);
+        assert_roundtrips(&[0xff; 2]);
+        assert_roundtrips(&[0xff; 3]);
+    }
+
+    #[test]
+    fn test_compress() {
         let source = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
 quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
 consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-        let mut gzbuf = [0u8; 500];
-
-        let mut len = gzbuf.len() as uLong;
-        assert_eq!(0, compress2(gzbuf.as_mut_ptr(), &mut len, source.as_bytes().as_ptr(), source.as_bytes().len() as uLong, Z_BEST_COMPRESSION));
         assert_eq!(446, source.len());
-        assert_eq!(271, len);
+        let compressed = assert_roundtrips(source.as_bytes());
+        assert_eq!(271, compressed.len());
+    }
 
-        let mut unbuf = [0u8; 500];
-        let mut len = unbuf.len() as uLong;
-        assert_eq!(0, uncompress(unbuf.as_mut_ptr(), &mut len, gzbuf.as_ptr(), gzbuf.len() as uLong));
-        assert_eq!(&unbuf[0..len as usize], source.as_bytes());
+    fn assert_roundtrips(source: &[u8]) -> Vec<u8> {
+        let mut gzbuf = Vec::with_capacity(100 + source.len());
+        let mut gzbuf_len = gzbuf.capacity() as uLong;
+        unsafe {
+            assert_eq!(0, compress2(gzbuf.as_mut_ptr(), &mut gzbuf_len, source.as_ptr(), source.len() as uLong, Z_BEST_COMPRESSION));
+            gzbuf.set_len(gzbuf_len as usize);
+        }
+
+        let mut ungzbuf = vec![0x55; 100 + source.len()];
+        let mut ungzbuf_len = source.len() as uLong;
+        unsafe {
+            assert_eq!(0, uncompress(ungzbuf.as_mut_ptr(), &mut ungzbuf_len, gzbuf.as_ptr(), gzbuf.len() as uLong));
+        }
+        let (ungzipped, rest) = ungzbuf.split_at(source.len());
+        assert_eq!(source, ungzipped);
+        rest.iter().for_each(|&x| assert_eq!(x, 0x55));
+        gzbuf
     }
 }
