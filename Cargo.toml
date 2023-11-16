@@ -1,6 +1,6 @@
 [package]
 name = "cloudflare-zlib-sys"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 authors = ["Vlad Krasnov <vlad@cloudflare.com>", "Kornel Lesiński <kornel@geekhood.net>", "Mark Adler <madler@alumni.caltech.edu>"]
 categories = ["external-ffi-bindings", "compression"]
