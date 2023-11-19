@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 2.4.4...3.15.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
+if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(zlib C)
 
 set(VERSION "1.3.0.1")
+
+option(ZLIB_STATIC_LINK_CRT "Link the MSVC runtime library statically" OFF)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -76,12 +82,24 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
 endif()
 
 set(ZLIB_PC ${CMAKE_CURRENT_BINARY_DIR}/zlib.pc)
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
-		${ZLIB_PC} @ONLY)
-configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
-		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
+        ${ZLIB_PC} @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
+       ${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR})
 
+if(POLICY CMP0091)
+    # CMake >= 3.15 has CMAKE_MSVC_RUNTIME_LIBRARY to set the MSVCC runtime library
+    if(WIN32 AND CMAKE_GENERATOR MATCHES "Visual Studio .*|NMake .*")
+        if(ZLIB_STATIC_LINK_CRT)
+            message(STATUS "Configuring to link the MSVC runtime library statically")
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        else()
+            message(STATUS "Configuring to link the MSVC runtime library dynamically")
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+        endif()
+    endif()
+endif()
 
 #============================================================================
 # zlib
