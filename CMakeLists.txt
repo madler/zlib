@@ -1,5 +1,6 @@
 # Define the option to control static library build
 option(BUILD_STATIC_LIBS "Build static libraries" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 cmake_minimum_required(VERSION 2.4.4...3.15.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
