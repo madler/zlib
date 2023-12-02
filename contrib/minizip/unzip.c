@@ -450,7 +450,7 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
     if (unz64local_getLong(pzlib_filefunc_def,filestream,&uL)!=UNZ_OK)
         return CENTRALDIRINVALID;
 
-    /* number of the disk with the start of the zip64 end of  central directory */
+    /* number of the disk with the start of the zip64 end of central directory */
     if (unz64local_getLong(pzlib_filefunc_def,filestream,&uL)!=UNZ_OK)
         return CENTRALDIRINVALID;
     if (uL != 0)
@@ -499,7 +499,7 @@ local unzFile unzOpenInternal(const void *path,
 
     uLong number_disk;          /* number of the current dist, used for
                                    spanning ZIP, unsupported, always 0*/
-    uLong number_disk_with_CD;  /* number the the disk with central dir, used
+    uLong number_disk_with_CD;  /* number the disk with central dir, used
                                    for spanning ZIP, unsupported, always 0*/
     ZPOS64_T number_entry_CD;      /* total number of entries in
                                    the central dir
