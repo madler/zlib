@@ -112,6 +112,35 @@ struct state {
     jmp_buf env;
 };
 
+unsigned char getbyte(struct state *s) {
+    if (s->incnt == s->inlen)
+        longjmp(s->env, 2);         /* err, out of input */
+    return s->in[s->incnt++];
+}
+
+void putbyte(struct state *s, unsigned char c) {
+    if (s->out != NIL) {
+        if (s->outcnt == s->outlen)
+            longjmp(s->env, 1);        /* err, no output space*/
+        s->out[s->outcnt++] = c;
+    } else {
+        s->outcnt++;
+    }
+}
+
+unsigned char recallbyte(struct state *s, unsigned dist) {
+#ifndef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
+    if (dist > s->outcnt)
+        longjmp(s->env, -11);     /* distance too far back */
+#endif
+    return
+#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
+        dist > s->outcnt ?
+        0 :
+#endif
+        s->out[s->outcnt - dist];
+}
+
 /*
  * Return need bits from the input stream.  This always leaves less than
  * eight bits in the buffer.  bits() works properly for need == 0.
@@ -130,9 +159,7 @@ local int bits(struct state *s, int need)
     /* load at least need bits into val */
     val = s->bitbuf;
     while (s->bitcnt < need) {
-        if (s->incnt == s->inlen)
-            longjmp(s->env, 1);         /* out of input */
-        val |= (long)(s->in[s->incnt++]) << s->bitcnt;  /* load eight bits */
+        val |= (long)getbyte(s) << s->bitcnt;  /* load eight bits */
         s->bitcnt += 8;
     }
 
@@ -170,27 +197,15 @@ local int stored(struct state *s)
     s->bitcnt = 0;
 
     /* get length and check against its one's complement */
-    if (s->incnt + 4 > s->inlen)
-        return 2;                               /* not enough input */
-    len = s->in[s->incnt++];
-    len |= s->in[s->incnt++] << 8;
-    if (s->in[s->incnt++] != (~len & 0xff) ||
-        s->in[s->incnt++] != ((~len >> 8) & 0xff))
+    len = getbyte(s);
+    len |= getbyte(s) << 8;
+    if (getbyte(s) != (~len & 0xff) ||
+        getbyte(s) != ((~len >> 8) & 0xff))
         return -2;                              /* didn't match complement! */
 
     /* copy len bytes from in to out */
-    if (s->incnt + len > s->inlen)
-        return 2;                               /* not enough input */
-    if (s->out != NIL) {
-        if (s->outcnt + len > s->outlen)
-            return 1;                           /* not enough output space */
-        while (len--)
-            s->out[s->outcnt++] = s->in[s->incnt++];
-    }
-    else {                                      /* just scanning */
-        s->outcnt += len;
-        s->incnt += len;
-    }
+    while (len--)
+        putbyte(s, getbyte(s));
 
     /* done with a valid stored block */
     return 0;
@@ -295,9 +310,7 @@ local int decode(struct state *s, const struct huffman *h)
         left = (MAXBITS+1) - len;
         if (left == 0)
             break;
-        if (s->incnt == s->inlen)
-            longjmp(s->env, 1);         /* out of input */
-        bitbuf = s->in[s->incnt++];
+        bitbuf = getbyte(s);
         if (left > 8)
             left = 8;
     }
@@ -460,15 +473,9 @@ local int codes(struct state *s,
         symbol = decode(s, lencode);
         if (symbol < 0)
             return symbol;              /* invalid symbol */
-        if (symbol < 256) {             /* literal: symbol is the byte */
+        if (symbol < 256)               /* literal: symbol is the byte */
             /* write out the literal */
-            if (s->out != NIL) {
-                if (s->outcnt == s->outlen)
-                    return 1;
-                s->out[s->outcnt] = symbol;
-            }
-            s->outcnt++;
-        }
+            putbyte(s, symbol);
         else if (symbol > 256) {        /* length */
             /* get and compute length */
             symbol -= 257;
@@ -481,27 +488,9 @@ local int codes(struct state *s,
             if (symbol < 0)
                 return symbol;          /* invalid symbol */
             dist = dists[symbol] + bits(s, dext[symbol]);
-#ifndef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-            if (dist > s->outcnt)
-                return -11;     /* distance too far back */
-#endif
-
             /* copy length bytes from distance bytes back */
-            if (s->out != NIL) {
-                if (s->outcnt + len > s->outlen)
-                    return 1;
-                while (len--) {
-                    s->out[s->outcnt] =
-#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-                        dist > s->outcnt ?
-                            0 :
-#endif
-                            s->out[s->outcnt - dist];
-                    s->outcnt++;
-                }
-            }
-            else
-                s->outcnt += len;
+            while (len--)
+                putbyte(s, recallbyte(s, dist));
         }
     } while (symbol != 256);            /* end of block symbol */
 
@@ -812,9 +801,9 @@ int puff(unsigned char *dest,           /* pointer to destination pointer */
     s.bitcnt = 0;
 
     /* return if bits() or decode() tries to read past available input */
-    if (setjmp(s.env) != 0)             /* if came back here via longjmp() */
-        err = 2;                        /* then skip do-loop, return error */
-    else {
+    /* if we came back here via longjmp() skip do-loop, return error */
+    err = setjmp(s.env);
+    if (err == 0) {
         /* process blocks until last block or error */
         do {
             last = bits(&s, 1);         /* one if last block */
