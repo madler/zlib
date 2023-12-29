@@ -62,6 +62,10 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
     unsigned long sum2;
     unsigned n;
 
+    /* initial Adler-32 value */
+    if (buf == Z_NULL)
+        return 1L;
+
     /* split Adler-32 into component sums */
     sum2 = (adler >> 16) & 0xffff;
     adler &= 0xffff;
@@ -76,10 +80,6 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
             sum2 -= BASE;
         return adler | (sum2 << 16);
     }
-
-    /* initial Adler-32 value (deferred check for len == 1 speed) */
-    if (buf == Z_NULL)
-        return 1L;
 
     /* in case short lengths are provided, keep it somewhat fast */
     if (len < 16) {
