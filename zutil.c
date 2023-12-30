@@ -285,7 +285,7 @@ extern void free(voidpf ptr);
 
 voidpf ZLIB_INTERNAL zcalloc(voidpf opaque, unsigned items, unsigned size) {
     (void)opaque;
-    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+    return sizeof(uInt) > 2 ? (voidpf)malloc((z_size_t)items * size) :
                               (voidpf)calloc(items, size);
 }
 
