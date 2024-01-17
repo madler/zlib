@@ -356,6 +356,20 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
         else
             write_filename = filename_withoutpath;
 
+        if (write_filename[0]!='\0')
+        {
+            const char* relative_check = write_filename;
+            while (relative_check[1]!='\0')
+            {
+                if (relative_check[0]=='.' && relative_check[1]=='.')
+                    write_filename = relative_check;
+                relative_check++;
+            }
+        }
+
+        while (write_filename[0]=='/' || write_filename[0]=='.')
+            write_filename++;
+
         err = unzOpenCurrentFilePassword(uf,password);
         if (err!=UNZ_OK)
         {
