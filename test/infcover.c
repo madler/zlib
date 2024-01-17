@@ -462,8 +462,7 @@ local unsigned pull(void *desc, unsigned char **buf)
 
 local int push(void *desc, unsigned char *buf, unsigned len)
 {
-    (void)buf;
-    (void)len;
+    buf += len;
     return desc != Z_NULL;      /* force error if desc not null */
 }
 
