@@ -352,7 +352,6 @@ int ZEXPORT gzputs(gzFile file, const char *s) {
     return put < len ? -1 : (int)len;
 }
 
-#if defined(STDC) || defined(Z_HAVE_STDARG_H)
 #include <stdarg.h>
 
 /* -- see zlib.h -- */
@@ -392,20 +391,9 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
     next = (char *)(state->in + (strm->next_in - state->in) + strm->avail_in);
     next[state->size - 1] = 0;
 #ifdef NO_vsnprintf
-#  ifdef HAS_vsprintf_void
-    (void)vsprintf(next, format, va);
-    for (len = 0; len < state->size; len++)
-        if (next[len] == 0) break;
-#  else
     len = vsprintf(next, format, va);
-#  endif
 #else
-#  ifdef HAS_vsnprintf_void
-    (void)vsnprintf(next, state->size, format, va);
-    len = strlen(next);
-#  else
     len = vsnprintf(next, state->size, format, va);
-#  endif
 #endif
 
     /* check that printf() results fit in buffer */
@@ -436,93 +424,6 @@ int ZEXPORTVA gzprintf(gzFile file, const char *format, ...) {
     va_end(va);
     return ret;
 }
-
-#else /* !STDC && !Z_HAVE_STDARG_H */
-
-/* -- see zlib.h -- */
-int ZEXPORTVA gzprintf(gzFile file, const char *format, int a1, int a2, int a3,
-                       int a4, int a5, int a6, int a7, int a8, int a9, int a10,
-                       int a11, int a12, int a13, int a14, int a15, int a16,
-                       int a17, int a18, int a19, int a20) {
-    unsigned len, left;
-    char *next;
-    gz_statep state;
-    z_streamp strm;
-
-    /* get internal structure */
-    if (file == NULL)
-        return Z_STREAM_ERROR;
-    state = (gz_statep)file;
-    strm = &(state->strm);
-
-    /* check that can really pass pointer in ints */
-    if (sizeof(int) != sizeof(void *))
-        return Z_STREAM_ERROR;
-
-    /* check that we're writing and that there's no error */
-    if (state->mode != GZ_WRITE || state->err != Z_OK)
-        return Z_STREAM_ERROR;
-
-    /* make sure we have some buffer space */
-    if (state->size == 0 && gz_init(state) == -1)
-        return state->error;
-
-    /* check for seek request */
-    if (state->seek) {
-        state->seek = 0;
-        if (gz_zero(state, state->skip) == -1)
-            return state->error;
-    }
-
-    /* do the printf() into the input buffer, put length in len -- the input
-       buffer is double-sized just for this function, so there is guaranteed to
-       be state->size bytes available after the current contents */
-    if (strm->avail_in == 0)
-        strm->next_in = state->in;
-    next = (char *)(strm->next_in + strm->avail_in);
-    next[state->size - 1] = 0;
-#ifdef NO_snprintf
-#  ifdef HAS_sprintf_void
-    sprintf(next, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12,
-            a13, a14, a15, a16, a17, a18, a19, a20);
-    for (len = 0; len < size; len++)
-        if (next[len] == 0)
-            break;
-#  else
-    len = sprintf(next, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11,
-                  a12, a13, a14, a15, a16, a17, a18, a19, a20);
-#  endif
-#else
-#  ifdef HAS_snprintf_void
-    snprintf(next, state->size, format, a1, a2, a3, a4, a5, a6, a7, a8, a9,
-             a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
-    len = strlen(next);
-#  else
-    len = snprintf(next, state->size, format, a1, a2, a3, a4, a5, a6, a7, a8,
-                   a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
-#  endif
-#endif
-
-    /* check that printf() results fit in buffer */
-    if (len == 0 || len >= state->size || next[state->size - 1] != 0)
-        return 0;
-
-    /* update buffer and position, compress first half if past that */
-    strm->avail_in += len;
-    state->x.pos += len;
-    if (strm->avail_in >= state->size) {
-        left = strm->avail_in - state->size;
-        strm->avail_in = state->size;
-        if (gz_comp(state, Z_NO_FLUSH) == -1)
-            return state->err;
-        memmove(state->in, state->in + state->size, left);
-        strm->next_in = state->in;
-        strm->avail_in = left;
-    }
-    return (int)len;
-}
-
-#endif
 
 /* -- see zlib.h -- */
 int ZEXPORT gzflush(gzFile file, int flush) {

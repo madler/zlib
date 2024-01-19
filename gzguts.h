@@ -19,11 +19,9 @@
 
 #include <stdio.h>
 #include "zlib.h"
-#ifdef STDC
-#  include <string.h>
-#  include <stdlib.h>
-#  include <limits.h>
-#endif
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #ifndef _POSIX_SOURCE
 #  define _POSIX_SOURCE
@@ -116,12 +114,6 @@
    define "local" for the non-static meaning of "static", for readability
    (compile with -Dlocal if your debugger can't find static symbols) */
 
-/* gz* functions always use library allocation functions */
-#ifndef STDC
-  extern voidp  malloc(uInt size);
-  extern void   free(voidpf ptr);
-#endif
-
 /* get errno and strerror definition */
 #if defined UNDER_CE
 #  include <windows.h>
@@ -210,5 +202,4 @@ char ZLIB_INTERNAL *gz_strwinerror(DWORD error);
 /* GT_OFF(x), where x is an unsigned value, is true if x > maximum z_off64_t
    value -- needed when comparing unsigned to z_off64_t, which is signed
    (possible z_off64_t types off_t, off64_t, and long are all signed) */
-unsigned ZLIB_INTERNAL gz_intmax(void);
-#define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > gz_intmax())
+#define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > INT_MAX)

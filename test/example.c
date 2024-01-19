@@ -8,10 +8,8 @@
 #include "zlib.h"
 #include <stdio.h>
 
-#ifdef STDC
-#  include <string.h>
-#  include <stdlib.h>
-#endif
+#include <string.h>
+#include <stdlib.h>
 
 #if defined(VMS) || defined(RISCOS)
 #  define TESTFILE "foo-gz"

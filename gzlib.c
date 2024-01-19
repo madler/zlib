@@ -200,7 +200,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
             *(state->path) = 0;
     else
 #endif
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
         (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #else
         strcpy(state->path, path);
@@ -273,7 +273,7 @@ gzFile ZEXPORT gzdopen(int fd, const char *mode) {
 
     if (fd == -1 || (path = (char *)malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
     (void)snprintf(path, 7 + 3 * sizeof(int), "<fd:%d>", fd);
 #else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
@@ -553,30 +553,12 @@ void ZLIB_INTERNAL gz_error(gz_statep state, int err, const char *msg) {
         state->err = Z_MEM_ERROR;
         return;
     }
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
     (void)snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
                    "%s%s%s", state->path, ": ", msg);
 #else
     strcpy(state->msg, state->path);
     strcat(state->msg, ": ");
     strcat(state->msg, msg);
-#endif
-}
-
-/* portably return maximum value for an int (when limits.h presumed not
-   available) -- we need to do this to cover cases where 2's complement not
-   used, since C standard permits 1's complement and sign-bit representations,
-   otherwise we could just use ((unsigned)-1) >> 1 */
-unsigned ZLIB_INTERNAL gz_intmax(void) {
-#ifdef INT_MAX
-    return INT_MAX;
-#else
-    unsigned p = 1, q;
-    do {
-        q = p;
-        p <<= 1;
-        p++;
-    } while (p > q);
-    return q >> 1;
 #endif
 }

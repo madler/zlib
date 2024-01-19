@@ -80,8 +80,7 @@ local const uch bl_order[BL_CODES]
 
 #define DIST_CODE_LEN  512 /* see definition of array dist_code below */
 
-#if defined(GEN_TREES_H) || !defined(STDC)
-/* non ANSI compilers may not accept trees.h */
+#if defined(GEN_TREES_H)
 
 local ct_data static_ltree[L_CODES+2];
 /* The static literal tree. Since the bit lengths are imposed, there is no
@@ -292,7 +291,7 @@ local void send_bits(deflate_state *s, int value, int length) {
  * Initialize the various 'constant' tables.
  */
 local void tr_static_init(void) {
-#if defined(GEN_TREES_H) || !defined(STDC)
+#if defined(GEN_TREES_H)
     static int static_init_done = 0;
     int n;        /* iterates over tree elements */
     int bits;     /* bit counter */
@@ -369,7 +368,7 @@ local void tr_static_init(void) {
 #  ifdef GEN_TREES_H
     gen_trees_header();
 #  endif
-#endif /* defined(GEN_TREES_H) || !defined(STDC) */
+#endif /* defined(GEN_TREES_H) */
 }
 
 /* ===========================================================================

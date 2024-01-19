@@ -18,10 +18,8 @@
 #include "zlib.h"
 #include <stdio.h>
 
-#ifdef STDC
-#  include <string.h>
-#  include <stdlib.h>
-#endif
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef USE_MMAP
 #  include <sys/types.h>
@@ -400,7 +398,7 @@ static void file_compress(char *file, char *mode) {
         exit(1);
     }
 
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
     snprintf(outfile, sizeof(outfile), "%s%s", file, GZ_SUFFIX);
 #else
     strcpy(outfile, file);
@@ -438,7 +436,7 @@ static void file_uncompress(char *file) {
         exit(1);
     }
 
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
     snprintf(buf, sizeof(buf), "%s", file);
 #else
     strcpy(buf, file);
@@ -451,7 +449,7 @@ static void file_uncompress(char *file) {
     } else {
         outfile = file;
         infile = buf;
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
         snprintf(buf + len, sizeof(buf) - len, "%s", GZ_SUFFIX);
 #else
         strcat(infile, GZ_SUFFIX);
@@ -490,7 +488,7 @@ int main(int argc, char *argv[]) {
     gzFile file;
     char *bname, outmode[20];
 
-#if !defined(NO_snprintf) && !defined(NO_vsnprintf)
+#if !defined(NO_vsnprintf)
     snprintf(outmode, sizeof(outmode), "%s", "wb6 ");
 #else
     strcpy(outmode, "wb6 ");
