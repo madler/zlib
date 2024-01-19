@@ -1556,13 +1556,21 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
  */
 local void check_match(deflate_state *s, IPos start, IPos match, int length) {
     /* check that the match is indeed a match */
-    if (zmemcmp(s->window + match,
-                s->window + start, length) != EQUAL) {
-        fprintf(stderr, " start %u, match %u, length %d\n",
-                start, match, length);
+    Bytef *back = s->window + (int)match, *here = s->window + start;
+    IPos len = length;
+    if (match == (IPos)-1) {
+        /* match starts one byte before the current window -- just compare the
+           subsequent length-1 bytes */
+        back++;
+        here++;
+        len--;
+    }
+    if (zmemcmp(back, here, len) != EQUAL) {
+        fprintf(stderr, " start %u, match %d, length %d\n",
+                start, (int)match, length);
         do {
-            fprintf(stderr, "%c%c", s->window[match++], s->window[start++]);
-        } while (--length != 0);
+            fprintf(stderr, "(%02x %02x)", *back++, *here++);
+        } while (--len != 0);
         z_error("invalid match");
     }
     if (z_verbose > 1) {
