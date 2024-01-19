@@ -1271,13 +1271,11 @@ local int unz64local_CheckCurrentFileCoherencyHeader(unz64_s* s, uInt* piSizeVar
         return UNZ_ERRNO;
 
 
-    if (err==UNZ_OK)
-    {
-        if (unz64local_getLong(&s->z_filefunc, s->filestream,&uMagic) != UNZ_OK)
-            err=UNZ_ERRNO;
-        else if (uMagic!=0x04034b50)
-            err=UNZ_BADZIPFILE;
-    }
+
+    if (unz64local_getLong(&s->z_filefunc, s->filestream,&uMagic) != UNZ_OK)
+        err=UNZ_ERRNO;
+    else if (uMagic!=0x04034b50)
+        err=UNZ_BADZIPFILE;
 
     if (unz64local_getShort(&s->z_filefunc, s->filestream,&uData) != UNZ_OK)
         err=UNZ_ERRNO;
