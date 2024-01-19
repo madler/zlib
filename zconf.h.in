@@ -63,7 +63,6 @@
 #  define get_crc_table         z_get_crc_table
 #  ifndef Z_SOLO
 #    define gz_error              z_gz_error
-#    define gz_intmax             z_gz_intmax
 #    define gz_strwinerror        z_gz_strwinerror
 #    define gzbuffer              z_gzbuffer
 #    define gzclearerr            z_gzclearerr
