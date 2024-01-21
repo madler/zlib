@@ -360,7 +360,7 @@ zconf: $(SRCDIR)zconf.h.in
 	cp -p $(SRCDIR)zconf.h.in zconf.h
 
 minizip-test: static
-	cd contrib/minizip && { CFLAGS="$(CFLAGS)" $(MAKE) test ; cd ../.. ; }
+	cd contrib/minizip && { CC="$(CC)" CFLAGS="$(CFLAGS)" $(MAKE) test ; cd ../.. ; }
 
 minizip-clean:
 	cd contrib/minizip && { $(MAKE) clean ; cd ../.. ; }
