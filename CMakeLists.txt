@@ -3,7 +3,7 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
-set(VERSION "1.3.0.1")
+set(VERSION "1.3.1")
 
 option(ZLIB_BUILD_EXAMPLES "Enable Zlib Examples" ON)
 
