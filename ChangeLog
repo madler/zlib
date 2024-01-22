@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.3.1.1 (xx Jan 2024)
+- 
+
 Changes in 1.3.1 (22 Jan 2024)
 - Reject overflows of zip header fields in minizip
 - Fix bug in inflateSync() for data held in bit buffer
