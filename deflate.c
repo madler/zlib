@@ -535,11 +535,11 @@ local int deflateStateCheck(z_streamp strm) {
     if (s == Z_NULL || s->strm != strm || (s->status != INIT_STATE &&
 #ifdef GZIP
                                            s->status != GZIP_STATE &&
-#endif
                                            s->status != EXTRA_STATE &&
                                            s->status != NAME_STATE &&
                                            s->status != COMMENT_STATE &&
                                            s->status != HCRC_STATE &&
+#endif
                                            s->status != BUSY_STATE &&
                                            s->status != FINISH_STATE))
         return 1;

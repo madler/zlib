@@ -58,11 +58,11 @@
 #define INIT_STATE    42    /* zlib header -> BUSY_STATE */
 #ifdef GZIP
 #  define GZIP_STATE  57    /* gzip header -> BUSY_STATE | EXTRA_STATE */
+#  define EXTRA_STATE   69  /* gzip extra block -> NAME_STATE */
+#  define NAME_STATE    73  /* gzip file name -> COMMENT_STATE */
+#  define COMMENT_STATE 91  /* gzip comment -> HCRC_STATE */
+#  define HCRC_STATE   103  /* gzip header CRC -> BUSY_STATE */
 #endif
-#define EXTRA_STATE   69    /* gzip extra block -> NAME_STATE */
-#define NAME_STATE    73    /* gzip file name -> COMMENT_STATE */
-#define COMMENT_STATE 91    /* gzip comment -> HCRC_STATE */
-#define HCRC_STATE   103    /* gzip header CRC -> BUSY_STATE */
 #define BUSY_STATE   113    /* deflate -> FINISH_STATE */
 #define FINISH_STATE 666    /* stream complete */
 /* Stream status */
