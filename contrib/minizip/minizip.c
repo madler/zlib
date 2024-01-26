@@ -249,9 +249,9 @@ int main(int argc, char *argv[]) {
     const char* password=NULL;
 
 
-    do_banner();
     if (argc==1)
     {
+        do_banner();
         do_help();
         return 0;
     }
