@@ -240,7 +240,7 @@ static int do_list(unzFile uf) {
     printf("  ------  ------     ---- -----   ----    ----   ------     ----\n");
     for (i=0;i<gi.number_entry;i++)
     {
-        char filename_inzip[256];
+        char filename_inzip[65536+1];
         unz_file_info64 file_info;
         uLong ratio=0;
         const char *string_method = "";
@@ -305,7 +305,7 @@ static int do_list(unzFile uf) {
 
 
 static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password) {
-    char filename_inzip[256];
+    char filename_inzip[65536+1];
     char* filename_withoutpath;
     char* p;
     int err=UNZ_OK;
