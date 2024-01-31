@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-2021 Jean-loup Gailly
+ * Copyright (C) 1995-2024 Jean-loup Gailly
  * detect_data_type() function provided freely by Cosmin Truta, 2006
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
@@ -724,7 +724,7 @@ local void scan_tree(deflate_state *s, ct_data *tree, int max_code) {
         if (++count < max_count && curlen == nextlen) {
             continue;
         } else if (count < min_count) {
-            s->bl_tree[curlen].Freq += count;
+            s->bl_tree[curlen].Freq += (ush)count;
         } else if (curlen != 0) {
             if (curlen != prevlen) s->bl_tree[curlen].Freq++;
             s->bl_tree[REP_3_6].Freq++;
@@ -938,7 +938,7 @@ local void compress_block(deflate_state *s, const ct_data *ltree,
 
         /* Check for no overlay of pending_buf on needed symbols */
 #ifdef LIT_MEM
-        Assert(s->pending < (s->lit_bufsize << 1) + sx, "pendingBuf overflow");
+        Assert(s->pending < 2 * (s->lit_bufsize + sx), "pendingBuf overflow");
 #else
         Assert(s->pending < s->lit_bufsize + sx, "pendingBuf overflow");
 #endif
