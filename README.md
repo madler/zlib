@@ -1,4 +1,4 @@
-ZLIB DATA COMPRESSION LIBRARY
+# ZLIB DATA COMPRESSION LIBRARY
 
 zlib 1.3.1.1 is a general purpose data compression library.  All the code is
 thread safe.  The data format used by the zlib library is described by RFCs
@@ -52,7 +52,7 @@ of zlib by Gilles Vollant <info@winimage.com>, is available in the
 contrib/minizip directory of zlib.
 
 
-Notes for some targets:
+## Notes for some targets:
 
 - For Windows DLL versions, please see win32/DLL_FAQ.txt
 
@@ -74,14 +74,14 @@ Notes for some targets:
 - For PalmOs, see http://palmzlib.sourceforge.net/
 
 
-Acknowledgments:
+## Acknowledgments:
 
   The deflate format used by zlib was defined by Phil Katz.  The deflate and
   zlib specifications were written by L.  Peter Deutsch.  Thanks to all the
   people who reported problems and suggested various improvements in zlib; they
   are too numerous to cite here.
 
-Copyright notice:
+## Copyright notice:
 
  (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
