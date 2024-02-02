@@ -30,7 +30,7 @@ struct deflate_index {
 // the number of access points on success (>= 1), Z_MEM_ERROR for out of
 // memory, Z_BUF_ERROR for a premature end of input, Z_DATA_ERROR for a format
 // or verification error in the input file, or Z_ERRNO for a file read error.
-// On success, *built points to the resulting index.
+// On success, *built points to the resulting index, otherwise it's NULL.
 int deflate_index_build(FILE *in, off_t span, struct deflate_index **built);
 
 // Use the index to read len bytes from offset into buf. Return the number of

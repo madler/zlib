@@ -130,6 +130,10 @@ static struct deflate_index *add_point(struct deflate_index *index, int bits,
 
 // See comments in zran.h.
 int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
+    // If this returns with an error, any attempt to use the index will cleanly
+    // return an error.
+    *built = NULL;
+
     // Set up inflation state.
     z_stream strm = {0};        // inflate engine (gets fired up later)
     unsigned char buf[CHUNK];   // input buffer
