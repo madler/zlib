@@ -402,8 +402,12 @@ ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
         // Update the appropriate count.
         if (offset)
             offset -= got;
-        else
+        else {
             left -= got;
+            if (left == 0)
+                // Request satisfied.
+                break;
+        }
 
         // If we're at the end of a gzip member and there's more to read,
         // continue to the next gzip member.
@@ -450,7 +454,7 @@ ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
 
         // Continue until we have the requested data, the deflate data has
         // ended, or an error is encountered.
-    } while (ret == Z_OK && left);
+    } while (ret == Z_OK);
     inflateEnd(&strm);
 
     // Return the number of uncompressed bytes read into buf, or the error.
