@@ -1,7 +1,7 @@
 /* zran.c -- example of deflate stream indexing and random access
- * Copyright (C) 2005, 2012, 2018, 2023 Mark Adler
+ * Copyright (C) 2005, 2012, 2018, 2023, 2024 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
- * Version 1.4  13 Apr 2023  Mark Adler */
+ * Version 1.5  4 Feb 2024  Mark Adler */
 
 /* Version History:
  1.0  29 May 2005  First version
@@ -14,6 +14,10 @@
                    Do a binary search over the index for an access point
                    Expose the access point type to enable save and load
  1.4  13 Apr 2023  Add a NOPRIME define to not use inflatePrime()
+ 1.5   4 Feb 2024  Set returned index to NULL on an index build error
+                   Stop decoding once request is satisfied
+                   Provide a reusable inflate engine in the index
+                   Allocate the dictionaries to reduce memory usage
  */
 
 // Illustrate the use of Z_BLOCK, inflatePrime(), and inflateSetDictionary()
