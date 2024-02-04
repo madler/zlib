@@ -20,6 +20,7 @@ struct deflate_index {
     int mode;           // -15 for raw, 15 for zlib, or 31 for gzip
     off_t length;       // total length of uncompressed data
     point_t *list;      // allocated list of access points
+    z_stream strm;      // re-usable inflate engine for extraction
 };
 
 // Make one pass through a zlib, gzip, or raw deflate compressed stream and
