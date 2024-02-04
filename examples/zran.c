@@ -67,6 +67,9 @@
 // See comments in zran.h.
 void deflate_index_free(struct deflate_index *index) {
     if (index != NULL) {
+        size_t i = index->have;
+        while (i)
+            free(index->list[--i].window);
         free(index->list);
         inflateEnd(&index->strm);
         free(index);
@@ -77,8 +80,8 @@ void deflate_index_free(struct deflate_index *index) {
 // list and return NULL. index->mode is temporarily the allocated number of
 // access points, until it is time for deflate_index_build() to return. Then
 // index->mode is set to the mode of inflation.
-static struct deflate_index *add_point(struct deflate_index *index, int bits,
-                                       off_t in, off_t out, unsigned left,
+static struct deflate_index *add_point(struct deflate_index *index, off_t in,
+                                       off_t out, off_t beg,
                                        unsigned char *window) {
     if (index->have == index->mode) {
         // The list is full. Make it bigger.
@@ -100,11 +103,18 @@ static struct deflate_index *add_point(struct deflate_index *index, int bits,
     }
     next->out = out;
     next->in = in;
-    next->bits = bits;
-    if (left)
-        memcpy(next->window, window + WINSIZE - left, left);
-    if (left < WINSIZE)
-        memcpy(next->window + left, window, WINSIZE - left);
+    next->bits = index->strm.data_type & 7;
+    next->dict = out - beg > WINSIZE ? WINSIZE : (unsigned)(out - beg);
+    next->window = malloc(next->dict);
+    if (next->window == NULL) {
+        deflate_index_free(index);
+        return NULL;
+    }
+    unsigned recent = WINSIZE - index->strm.avail_out;
+    unsigned copy = recent > next->dict ? next->dict : recent;
+    memcpy(next->window + next->dict - copy, window + recent - copy, copy);
+    copy = next->dict - copy;
+    memcpy(next->window, window + WINSIZE - copy, copy);
 
     // Return the index, which may have been newly allocated or destroyed.
     return index;
@@ -137,6 +147,7 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
     unsigned char win[WINSIZE] = {0};   // output sliding window
     off_t totin = 0;            // total bytes read from input
     off_t totout = 0;           // total bytes uncompressed
+    off_t beg = 0;              // starting offset of last history reset
     int mode = 0;               // mode: RAW, ZLIB, or GZIP (0 => not set yet)
 
     // Decompress from in, generating access points along the way.
@@ -198,9 +209,8 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
             // very start for the first access point, or there has been span or
             // more uncompressed bytes since the last access point, so we want
             // to add an access point here.
-            index = add_point(index, index->strm.data_type & 7,
-                              totin - index->strm.avail_in,
-                              totout, index->strm.avail_out, win);
+            index = add_point(index, totin - index->strm.avail_in, totout, beg,
+                              win);
             if (index == NULL) {
                 ret = Z_MEM_ERROR;
                 break;
@@ -209,11 +219,13 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
         }
 
         if (ret == Z_STREAM_END && mode == GZIP &&
-            (index->strm.avail_in || ungetc(getc(in), in) != EOF))
+            (index->strm.avail_in || ungetc(getc(in), in) != EOF)) {
             // There is more input after the end of a gzip member. Reset the
             // inflate state to read another gzip member. On success, this will
             // set ret to Z_OK to continue decompressing.
             ret = inflateReset2(&index->strm, GZIP);
+            beg = totout;           // reset history
+        }
 
         // Keep going until Z_STREAM_END or error. If the compressed data ends
         // prematurely without a file read error, Z_BUF_ERROR is returned.
@@ -226,17 +238,9 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
         return ret == Z_NEED_DICT ? Z_DATA_ERROR : ret;
     }
 
-    // Shrink the index to only the occupied access points and return it.
+    // Return the index.
     index->mode = mode;
     index->length = totout;
-    point_t *list = realloc(index->list, sizeof(point_t) * index->have);
-    if (list == NULL) {
-        // Seems like a realloc() to make something smaller should always work,
-        // but just in case.
-        deflate_index_free(index);
-        return Z_MEM_ERROR;
-    }
-    index->list = list;
     *built = index;
     return index->have;
 }
@@ -366,7 +370,7 @@ ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
         return ret;
     if (point->bits)
         INFLATEPRIME(&index->strm, point->bits, ch >> (8 - point->bits));
-    inflateSetDictionary(&index->strm, point->window, WINSIZE);
+    inflateSetDictionary(&index->strm, point->window, point->dict);
 
     // Skip uncompressed bytes until offset reached, then satisfy request.
     unsigned char input[CHUNK];
