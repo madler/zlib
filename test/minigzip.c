@@ -15,6 +15,10 @@
 
 /* @(#) $Id$ */
 
+#ifndef _POSIX_SOURCE
+#  define _POSIX_SOURCE
+#endif
+
 #include "zlib.h"
 #include <stdio.h>
 
