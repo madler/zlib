@@ -120,8 +120,16 @@ zlibrc.o: win32/zlib1.rc
 .PHONY: install uninstall clean
 
 install: zlib.h zconf.h $(STATICLIB) $(IMPLIB)
-	@if test -z "$(DESTDIR)$(INCLUDE_PATH)" -o -z "$(DESTDIR)$(LIBRARY_PATH)" -o -z "$(DESTDIR)$(BINARY_PATH)"; then \
-		echo INCLUDE_PATH, LIBRARY_PATH, and BINARY_PATH must be specified; \
+	@if "$(DESTDIR)$(INCLUDE_PATH)" == ""; then \
+		echo INCLUDE_PATH must be specified; \
+		exit 1; \
+	fi
+	@if "$(DESTDIR)$(LIBRARY_PATH)" == ""; then \
+		echo LIBRARY_PATH must be specified; \
+		exit 1; \
+	fi
+	@if "$(DESTDIR)$(BINARY_PATH)" == ""; then \
+		echo BINARY_PATH must be specified; \
 		exit 1; \
 	fi
 	-@mkdir -p '$(DESTDIR)$(INCLUDE_PATH)'
