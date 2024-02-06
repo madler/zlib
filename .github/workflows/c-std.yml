@@ -7,13 +7,14 @@ on:
 
 jobs:
   configure:
-    name: ${{ matrix.compiler }} + ${{ matrix.builder }} -std=${{ matrix.std }}
+    name: ${{ matrix.os }} + ${{ matrix.compiler }} + ${{ matrix.builder }} -std=${{ matrix.std }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
+          - macos-latest
 
         compiler:
           - gcc
@@ -45,6 +46,7 @@ jobs:
         show-progress: 'false'
 
     - name: Install packages (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
 
@@ -86,7 +88,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: failure() && matrix.builder == 'configure'
       with:
-        name: ${{ matrix.compiler }} ${{ matrix.std }} (configure)
+        name: ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.std }} (configure)
         path: |
           ./configure.log
         if-no-files-found: ignore
@@ -96,7 +98,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: failure() && matrix.builder == 'cmake'
       with:
-        name: ${{ matrix.compiler }} ${{ matrix.std }} (cmake)
+        name: ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.std }} (cmake)
         path: |
           **/CMakeFiles/CMakeOutput.log
           **/CMakeFiles/CMakeError.log
