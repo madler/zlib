@@ -5,6 +5,10 @@
 
 #include "gzguts.h"
 
+#if __STDC_WANT_SECURE_LIB__
+#include <sys/stat.h>
+#endif
+
 #if defined(_WIN32) && !defined(__BORLANDC__)
 #  define LSEEK _lseeki64
 #else
@@ -180,7 +184,11 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
     /* save the path name for error messages */
 #ifdef WIDECHAR
     if (fd == -2) {
+#if __STDC_WANT_SECURE_LIB__
+        wcstombs_s(&len, NULL, 0, path, 0);
+#else
         len = wcstombs(NULL, path, 0);
+#endif
         if (len == (z_size_t)-1)
             len = 0;
     }
@@ -195,7 +203,11 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 #ifdef WIDECHAR
     if (fd == -2)
         if (len)
+#if __STDC_WANT_SECURE_LIB__
+            wcstombs_s(NULL, state->path, len + 1, path, _TRUNCATE);
+#else
             wcstombs(state->path, path, len + 1);
+#endif
         else
             *(state->path) = 0;
     else
@@ -228,12 +240,28 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
            O_APPEND)));
 
     /* open the file with the appropriate flags (or just use fd) */
-    state->fd = fd > -1 ? fd : (
+    errno_t err = 0;
+    if (fd > -1) {
+      state->fd = fd;
+    }
+    else {
 #ifdef WIDECHAR
-        fd == -2 ? _wopen(path, oflag, 0666) :
+      if (fd == -2) {
+#if __STDC_WANT_SECURE_LIB__
+        err = _wsopen_s(&state->fd, path, oflag, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+#else
+        fd =_wopen(path, oflag, 0666);
 #endif
+      } else {
+#endif
+#if __STDC_WANT_SECURE_LIB__
+        err = _sopen_s(&state->fd, (const char *)path, oflag, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+#else
         open((const char *)path, oflag, 0666));
-    if (state->fd == -1) {
+#endif
+      }
+    }
+    if (state->fd == -1 || err != 0) {
         free(state->path);
         free(state);
         return NULL;

@@ -75,9 +75,15 @@ local int gz_comp(gz_statep state, int flush) {
     if (state->direct) {
         while (strm->avail_in) {
             put = strm->avail_in > max ? max : strm->avail_in;
-            writ = write(state->fd, strm->next_in, put);
+            writ = _write(state->fd, strm->next_in, put);
             if (writ < 0) {
+#if __STDC_WANT_SECURE_LIB__
+                char error_buf[256];
+                strerror_s(error_buf, sizeof error_buf, errno);
+                gz_error(state, Z_ERRNO, error_buf);
+#else
                 gz_error(state, Z_ERRNO, zstrerror());
+#endif
                 return -1;
             }
             strm->avail_in -= (unsigned)writ;
@@ -105,9 +111,15 @@ local int gz_comp(gz_statep state, int flush) {
             while (strm->next_out > state->x.next) {
                 put = strm->next_out - state->x.next > (int)max ? max :
                       (unsigned)(strm->next_out - state->x.next);
-                writ = write(state->fd, state->x.next, put);
+                writ = _write(state->fd, state->x.next, put);
                 if (writ < 0) {
+#if __STDC_WANT_SECURE_LIB__
+                    char error_buf[256];
+                    strerror_s(error_buf, sizeof error_buf, errno);
+                    gz_error(state, Z_ERRNO, error_buf);
+#else
                     gz_error(state, Z_ERRNO, zstrerror());
+#endif
                     return -1;
                 }
                 state->x.next += writ;
@@ -348,7 +360,7 @@ int ZEXPORT gzputs(gzFile file, const char *s) {
         gz_error(state, Z_STREAM_ERROR, "string length does not fit in int");
         return -1;
     }
-    put = gz_write(state, s, len);
+    put = (int)gz_write(state, s, len);
     return put < len ? -1 : (int)len;
 }
 

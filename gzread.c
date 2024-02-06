@@ -19,13 +19,19 @@ local int gz_load(gz_statep state, unsigned char *buf, unsigned len,
         get = len - *have;
         if (get > max)
             get = max;
-        ret = read(state->fd, buf + *have, get);
+        ret = _read(state->fd, buf + *have, get);
         if (ret <= 0)
             break;
         *have += (unsigned)ret;
     } while (*have < len);
     if (ret < 0) {
+#if __STDC_WANT_SECURE_LIB__
+        char error_buf[256];
+        strerror_s(error_buf, sizeof error_buf, errno);
+        gz_error(state, Z_ERRNO, error_buf);
+#else
         gz_error(state, Z_ERRNO, zstrerror());
+#endif
         return -1;
     }
     if (ret == 0)
@@ -427,7 +433,7 @@ int ZEXPORT gzgetc(gzFile file) {
     }
 
     /* nothing there -- try gz_read() */
-    return gz_read(state, buf, 1) < 1 ? -1 : buf[0];
+    return (int)gz_read(state, buf, 1) < 1 ? -1 : buf[0];
 }
 
 int ZEXPORT gzgetc_(gzFile file) {
@@ -596,7 +602,7 @@ int ZEXPORT gzclose_r(gzFile file) {
     err = state->err == Z_BUF_ERROR ? Z_BUF_ERROR : Z_OK;
     gz_error(state, Z_OK, NULL);
     free(state->path);
-    ret = close(state->fd);
+    ret = _close(state->fd);
     free(state);
     return ret ? Z_ERRNO : err;
 }
