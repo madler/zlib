@@ -25,8 +25,8 @@
 #  include <limits.h>
 #endif
 
-#ifndef _POSIX_SOURCE
-#  define _POSIX_SOURCE
+#ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200112L
 #endif
 #include <fcntl.h>
 
@@ -72,33 +72,28 @@
 #endif
 
 #ifndef HAVE_VSNPRINTF
-#  ifdef MSDOS
+#  if !defined(NO_vsnprintf) && \
+      (defined(MSDOS) || defined(__TURBOC__) || defined(__SASC) || \
+       defined(VMS) || defined(__OS400) || defined(__MVS__))
 /* vsnprintf may exist on some MS-DOS compilers (DJGPP?),
    but for now we just assume it doesn't. */
 #    define NO_vsnprintf
 #  endif
-#  ifdef __TURBOC__
-#    define NO_vsnprintf
-#  endif
 #  ifdef WIN32
 /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
-#    if !defined(vsnprintf) && !defined(NO_vsnprintf)
-#      if !defined(_MSC_VER) || ( defined(_MSC_VER) && _MSC_VER < 1500 )
-#         define vsnprintf _vsnprintf
+#    if !defined(_MSC_VER) || ( defined(_MSC_VER) && _MSC_VER < 1500 )
+#      ifndef vsnprintf
+#        define vsnprintf _vsnprintf
 #      endif
 #    endif
-#  endif
-#  ifdef __SASC
-#    define NO_vsnprintf
-#  endif
-#  ifdef VMS
-#    define NO_vsnprintf
-#  endif
-#  ifdef __OS400__
-#    define NO_vsnprintf
-#  endif
-#  ifdef __MVS__
-#    define NO_vsnprintf
+#  elif !defined(__STDC_VERSION__) || __STDC_VERSION__-0 < 199901L
+/* Otherwise if C89/90, assume no C99 snprintf() or vsnprintf() */
+#    ifndef NO_snprintf
+#      define NO_snprintf
+#    endif
+#    ifndef NO_vsnprintf
+#      define NO_vsnprintf
+#    endif
 #  endif
 #endif
 
