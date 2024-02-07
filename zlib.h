@@ -587,18 +587,21 @@ ZEXTERN int ZEXPORT deflateInit2(z_streamp strm,
 
      The strategy parameter is used to tune the compression algorithm.  Use the
    value Z_DEFAULT_STRATEGY for normal data, Z_FILTERED for data produced by a
-   filter (or predictor), Z_HUFFMAN_ONLY to force Huffman encoding only (no
-   string match), or Z_RLE to limit match distances to one (run-length
-   encoding).  Filtered data consists mostly of small values with a somewhat
-   random distribution.  In this case, the compression algorithm is tuned to
-   compress them better.  The effect of Z_FILTERED is to force more Huffman
-   coding and less string matching; it is somewhat intermediate between
-   Z_DEFAULT_STRATEGY and Z_HUFFMAN_ONLY.  Z_RLE is designed to be almost as
-   fast as Z_HUFFMAN_ONLY, but give better compression for PNG image data.  The
-   strategy parameter only affects the compression ratio but not the
-   correctness of the compressed output even if it is not set appropriately.
-   Z_FIXED prevents the use of dynamic Huffman codes, allowing for a simpler
-   decoder for special applications.
+   filter (or predictor), Z_RLE to limit match distances to one (run-length
+   encoding), or Z_HUFFMAN_ONLY to force Huffman encoding only (no string
+   matching).  Filtered data consists mostly of small values with a somewhat
+   random distribution, as produced by the PNG filters.  In this case, the
+   compression algorithm is tuned to compress them better.  The effect of
+   Z_FILTERED is to force more Huffman coding and less string matching than the
+   default; it is intermediate between Z_DEFAULT_STRATEGY and Z_HUFFMAN_ONLY.
+   Z_RLE is almost as fast as Z_HUFFMAN_ONLY, but should give better
+   compression for PNG image data than Huffman only.  The degree of string
+   matching from most to none is: Z_DEFAULT_STRATEGY, Z_FILTERED, Z_RLE, then
+   Z_HUFFMAN. The strategy parameter affects the compression ratio but never
+   the correctness of the compressed output, even if it is not set optimally
+   for the given data.  Z_FIXED uses the default string matching, but prevents
+   the use of dynamic Huffman codes, allowing for a simpler decoder for special
+   applications.
 
      deflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_STREAM_ERROR if any parameter is invalid (such as an invalid
