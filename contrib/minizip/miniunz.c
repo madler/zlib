@@ -482,13 +482,17 @@ static int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrit
 
     err = unzGetGlobalInfo64(uf,&gi);
     if (err!=UNZ_OK)
+    {
         printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+        return err;
+    }
 
     for (i=0;i<gi.number_entry;i++)
     {
-        if (do_extract_currentfile(uf,&opt_extract_without_path,
+        err = do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) != UNZ_OK)
+                                      password);
+        if (err != UNZ_OK)
             break;
 
         if ((i+1)<gi.number_entry)
@@ -502,7 +506,7 @@ static int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrit
         }
     }
 
-    return 0;
+    return err;
 }
 
 static int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password) {
@@ -512,12 +516,9 @@ static int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_
         return 2;
     }
 
-    if (do_extract_currentfile(uf,&opt_extract_without_path,
+    return do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) == UNZ_OK)
-        return 0;
-    else
-        return 1;
+                                      password);
 }
 
 
