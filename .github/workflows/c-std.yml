@@ -185,6 +185,9 @@ jobs:
           - name: C17
             value: /std:c17
 
+          - name: C20
+            value: /std:c20
+
           - name: latest
             value: /std:clatest
 
