@@ -58,7 +58,7 @@
                <QPM:ProductIconLarge></QPM:ProductIconLarge>
                <QPM:ProductDescriptionShort>A massively spiffy yet delicately unobtrusive compression library.</QPM:ProductDescriptionShort>
                <QPM:ProductDescriptionLong>zlib is designed to be a free, general-purpose, legally unencumbered, lossless data compression library for use on virtually any computer hardware and operating system.</QPM:ProductDescriptionLong>
-               <QPM:ProductDescriptionURL>http://www.gzip.org/zlib</QPM:ProductDescriptionURL>
+               <QPM:ProductDescriptionURL>https://zlib.net/</QPM:ProductDescriptionURL>
                <QPM:ProductDescriptionEmbedURL></QPM:ProductDescriptionEmbedURL>
             </QPM:ProductDescription>
 

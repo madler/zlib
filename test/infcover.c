@@ -185,7 +185,7 @@ local void mem_used(z_stream *strm, char *prefix)
 {
     struct mem_zone *zone = strm->opaque;
 
-    fprintf(stderr, "%s: %lu allocated\n", prefix, zone->total);
+    fprintf(stderr, "%s: %zu allocated\n", prefix, zone->total);
 }
 
 /* show the high water allocation in bytes */
@@ -193,7 +193,7 @@ local void mem_high(z_stream *strm, char *prefix)
 {
     struct mem_zone *zone = strm->opaque;
 
-    fprintf(stderr, "%s: %lu high water mark\n", prefix, zone->highwater);
+    fprintf(stderr, "%s: %zu high water mark\n", prefix, zone->highwater);
 }
 
 /* release the memory allocation zone -- if there are any surprises, notify */
@@ -218,7 +218,7 @@ local void mem_done(z_stream *strm, char *prefix)
 
     /* issue alerts about anything unexpected */
     if (count || zone->total)
-        fprintf(stderr, "** %s: %lu bytes in %d blocks not freed\n",
+        fprintf(stderr, "** %s: %zu bytes in %d blocks not freed\n",
                 prefix, zone->total, count);
     if (zone->notlifo)
         fprintf(stderr, "** %s: %d frees not LIFO\n", prefix, zone->notlifo);
