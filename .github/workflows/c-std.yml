@@ -1,42 +1,103 @@
 name: C Standard
 
+# Compile with as many C standars as possible.
+# The worflow is setup to fail on any compilation warnings.
+
 on:
   workflow_dispatch:
   push:
   pull_request:
 
 jobs:
-  configure:
-    name: ${{ matrix.os }} + ${{ matrix.compiler }} + ${{ matrix.builder }} -std=${{ matrix.std }}
-    runs-on: ${{ matrix.os }}
+
+  main:
+    name: ${{ matrix.os.name }} ${{ matrix.compiler }} ${{ matrix.arch.name }} ${{ matrix.std.name }}  ${{ matrix.builder }}
+    runs-on: ${{ matrix.os.value }}
     strategy:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
-          - macos-latest
+          - name: Linux
+            value: ubuntu-latest
+
+          - name: MacOS
+            value: macos-latest
+
+          - name: Windows
+            value: windows-latest
+            cmake-opt: -G Ninja
 
         compiler:
           - gcc
           - clang
+
+        arch:
+          - name: 64-bit
+            tag: amd64
+            compiler-opt: -m64
+            cmake-opt: -A x64
+
+          - name: 32-bit
+            tag: i386
+            compiler-opt: -m32
+            cmake-opt: -A Win32
+
 
         builder:
           - configure
           - cmake
 
         std:
-          - c89
-          - gnu89
-          # c94 is iso9899:199409 for both gcc & clang
-          - iso9899:199409
-          - c99
-          - gnu99
-          - c11
-          - gnu11
-          - c17
-          - gnu17
-          - c2x
-          - gnu2x
+          - name: c89
+            value: c89
+
+          - name: gnu89
+            value: gnu89
+
+          - name: c94
+            value: iso9899:199409
+
+          - name: c99
+            value: c99
+
+          - name: gnu99
+            value: gnu99
+
+          - name: c11
+            value: c11
+
+          - name: gnu11
+            value: gnu11
+
+          - name: c17
+            value: c17
+
+          - name: gnu17
+            value: gnu17
+
+          - name: c2x
+            value: c2x
+
+          - name: gnu2x
+            value: gnu2x
+
+        exclude:
+            # Don't run 32-bit on MacOS
+          - { os:   { name: MacOS },
+              arch: { tag:  i386  } }
+
+            # Don't run configure on Windows
+          - { os:   { name: Windows },
+              builder: configure }
+
+            # Don't run clang on Windows
+            # See https://github.com/madler/zlib/issues/932
+          - { os:   { name: Windows },
+              compiler: clang }
+
+            # Don't run gcc 32-bit on Windows
+          - { os:   { name: Windows },
+              arch: { tag:  i386  } }
 
     steps:
 
@@ -45,10 +106,16 @@ jobs:
       with:
         show-progress: 'false'
 
-    - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install packages (Linux)
+      if: runner.os == 'Linux' && matrix.arch.tag == 'i386'
       run: |
         sudo apt-get update
+        sudo apt install gcc-multilib libc6-dev-i386-cross
+
+    - name: Install packages (Windows)
+      if: runner.os == 'Windows'
+      run: |
+          choco install --no-progress ninja
 
     - name: Generate project files (configure)
       if: matrix.builder == 'configure'
@@ -56,7 +123,7 @@ jobs:
         ./configure
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std }} -Werror
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror
 
     - name: Compile source code (configure)
       if: matrix.builder == 'configure'
@@ -71,10 +138,10 @@ jobs:
     - name: Generate project files (cmake)
       if: matrix.builder == 'cmake'
       run: |
-        cmake -S . -B . -D CMAKE_BUILD_TYPE=Release -D ZLIB_BUILD_EXAMPLES=OFF
+        cmake -S . -B . -D CMAKE_BUILD_TYPE=Release -D ZLIB_BUILD_EXAMPLES=OFF  ${{ matrix.os.cmake-opt }}
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std }} -Werror
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror
 
     - name: Compile source code (cmake)
       if: matrix.builder == 'cmake'
@@ -84,23 +151,59 @@ jobs:
       if: matrix.builder == 'cmake'
       run: ctest -C Release --output-on-failure --max-width 120
 
-    - name: Upload build errors (configure)
-      uses: actions/upload-artifact@v4
-      if: failure() && matrix.builder == 'configure'
-      with:
-        name: ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.std }} (configure)
-        path: |
-          ./configure.log
-        if-no-files-found: ignore
-        retention-days: 7
 
-    - name: Upload build errors (cmake)
-      uses: actions/upload-artifact@v4
-      if: failure() && matrix.builder == 'cmake'
+  msvc:
+    name: ${{ matrix.os.name }} ${{ matrix.compiler }} ${{ matrix.arch.name }} ${{ matrix.std.name }}  ${{ matrix.builder }}
+    runs-on: ${{ matrix.os.value }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - name: Windows
+            value: windows-latest
+
+        compiler:
+          - cl
+
+        arch:
+          - name: 32-bit
+            value: -A Win32
+
+          - name: 64-bit
+            value: -A x64
+
+        builder:
+          - cmake
+
+        std:
+          - name: default
+            value: ""
+
+          - name: C11
+            value: /std:c11
+
+          - name: C17
+            value: /std:c17
+
+          - name: latest
+            value: /std:clatest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
       with:
-        name: ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.std }} (cmake)
-        path: |
-          **/CMakeFiles/CMakeOutput.log
-          **/CMakeFiles/CMakeError.log
-        if-no-files-found: ignore
-        retention-days: 7
+        show-progress: 'false'
+
+    - name: Generate project files (cmake)
+      run: |
+        cmake -S . -B . ${{ matrix.arch.value }} -D CMAKE_BUILD_TYPE=Release
+      env:
+        CC: ${{ matrix.compiler }}
+        CFLAGS: /WX ${{ matrix.std.value }}
+
+    - name: Compile source code (cmake)
+      run: cmake --build . --config Release -v
+
+    - name: Run test cases (cmake)
+      run: ctest -C Release --output-on-failure --max-width 120
