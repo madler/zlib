@@ -40,6 +40,7 @@
 
 #if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
+#  include <share.h>
 #  include <sys/stat.h>
 #endif
 
