@@ -17,6 +17,10 @@
 #  define ZLIB_INTERNAL
 #endif
 
+#if defined(_WIN32) && !defined(_CRT_SECURE_NO_WARNINGS)
+#  define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdio.h>
 #include "zlib.h"
 #ifdef STDC
@@ -36,13 +40,14 @@
 
 #if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
+#  include <sys/stat.h>
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(WIDECHAR)
 #  define WIDECHAR
 #endif
 
-#ifdef WINAPI_FAMILY
+#if defined(_WIN32) || defined(WINAPI_FAMILY)
 #  define open _open
 #  define read _read
 #  define write _write

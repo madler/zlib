@@ -52,7 +52,8 @@ char ZLIB_INTERNAL *gz_strwinerror(DWORD error) {
             msgbuf[chars] = 0;
         }
 
-        wcstombs(buf, msgbuf, chars + 1);
+        z_size_t len;
+        wcstombs_s(&len, buf, sizeof(buf), msgbuf, chars + 1);
         LocalFree(msgbuf);
     }
     else {
@@ -180,8 +181,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
     /* save the path name for error messages */
 #ifdef WIDECHAR
     if (fd == -2) {
-        len = wcstombs(NULL, path, 0);
-        if (len == (z_size_t)-1)
+        if (wcstombs_s(&len, NULL, 0, path, 0) != 0)
             len = 0;
     }
     else
@@ -195,7 +195,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 #ifdef WIDECHAR
     if (fd == -2)
         if (len)
-            wcstombs(state->path, path, len + 1);
+            wcstombs_s(&len, state->path, len + 1, path, len + 1);
         else
             *(state->path) = 0;
     else
@@ -228,11 +228,14 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
            O_APPEND)));
 
     /* open the file with the appropriate flags (or just use fd) */
-    state->fd = fd > -1 ? fd : (
+    if (fd == -1)
+        state->fd = open((const char *)path, oflag, 0666);
 #ifdef WIDECHAR
-        fd == -2 ? _wopen(path, oflag, 0666) :
+    else if (fd == -2)
+        _wsopen_s(&state->fd, path, oflag, _SH_DENYNO, _S_IREAD | _S_IWRITE);
 #endif
-        open((const char *)path, oflag, 0666));
+    else
+        state->fd = fd;
     if (state->fd == -1) {
         free(state->path);
         free(state);
