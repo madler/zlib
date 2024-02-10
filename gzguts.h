@@ -20,6 +20,9 @@
 #if defined(_WIN32) && !defined(_CRT_SECURE_NO_WARNINGS)
 #  define _CRT_SECURE_NO_WARNINGS
 #endif
+#if defined(_WIN32) && !defined(_CRT_NONSTDC_NO_DEPRECATE)
+#  define _CRT_NONSTDC_NO_DEPRECATE
+#endif
 
 #include <stdio.h>
 #include "zlib.h"
@@ -40,19 +43,11 @@
 
 #if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
-#  include <share.h>
 #  include <sys/stat.h>
 #endif
 
 #if defined(_WIN32) && !defined(WIDECHAR)
 #  define WIDECHAR
-#endif
-
-#if defined(_WIN32) || defined(WINAPI_FAMILY)
-#  define open _open
-#  define read _read
-#  define write _write
-#  define close _close
 #endif
 
 #ifdef NO_DEFLATE       /* for compatibility with old definition */

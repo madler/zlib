@@ -5,14 +5,16 @@
 
 #include "gzguts.h"
 
-#if defined(_WIN32) && !defined(__BORLANDC__)
+#if defined(UNDER_CE)
+#  define LSEEK _wcelseek
+#elif defined(__DJGPP__)
+#  define LSEEK llseek
+#elif defined(_WIN32) && !defined(__BORLANDC__)
 #  define LSEEK _lseeki64
-#else
-#if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
+#elif defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
 #  define LSEEK lseek64
 #else
 #  define LSEEK lseek
-#endif
 #endif
 
 #if defined UNDER_CE
@@ -52,8 +54,7 @@ char ZLIB_INTERNAL *gz_strwinerror(DWORD error) {
             msgbuf[chars] = 0;
         }
 
-        z_size_t len;
-        wcstombs_s(&len, buf, sizeof(buf), msgbuf, chars + 1);
+        wcstombs(buf, msgbuf, chars + 1);       // assumes buf is big enough
         LocalFree(msgbuf);
     }
     else {
@@ -180,10 +181,8 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 
     /* save the path name for error messages */
 #ifdef WIDECHAR
-    if (fd == -2) {
-        if (wcstombs_s(&len, NULL, 0, path, 0) != 0)
-            len = 0;
-    }
+    if (fd == -2)
+        len = wcstombs(NULL, path, 0);
     else
 #endif
         len = strlen((const char *)path);
@@ -193,18 +192,21 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
         return NULL;
     }
 #ifdef WIDECHAR
-    if (fd == -2)
+    if (fd == -2) {
         if (len)
-            wcstombs_s(&len, state->path, len + 1, path, len + 1);
+            wcstombs(state->path, path, len + 1);
         else
             *(state->path) = 0;
+    }
     else
 #endif
+    {
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
         (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #else
         strcpy(state->path, path);
 #endif
+    }
 
     /* compute the flags for open() */
     oflag =
@@ -232,7 +234,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
         state->fd = open((const char *)path, oflag, 0666);
 #ifdef WIDECHAR
     else if (fd == -2)
-        _wsopen_s(&state->fd, path, oflag, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+        state->fd = _wopen(path, oflag, _S_IREAD | _S_IWRITE);
 #endif
     else
         state->fd = fd;

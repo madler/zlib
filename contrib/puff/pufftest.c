@@ -16,6 +16,10 @@
    testing, and causes pufftest to fail with not enough output space (-f does
    a write like -w, so -w is not required). */
 
+#if defined(_WIN32) && !defined(_CRT_NONSTDC_NO_DEPRECATE)
+#  define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "puff.h"
@@ -23,7 +27,7 @@
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
 #  include <fcntl.h>
 #  include <io.h>
-#  define SET_BINARY_MODE(file) _setmode(_fileno(file), O_BINARY)
+#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
 #  define SET_BINARY_MODE(file)
 #endif

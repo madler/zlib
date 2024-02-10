@@ -19,6 +19,13 @@
 #  define _POSIX_C_SOURCE 200112L
 #endif
 
+#if defined(_WIN32) && !defined(_CRT_SECURE_NO_WARNINGS)
+#  define _CRT_SECURE_NO_WARNINGS
+#endif
+#if defined(_WIN32) && !defined(_CRT_NONSTDC_NO_DEPRECATE)
+#  define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+
 #include "zlib.h"
 #include <stdio.h>
 
@@ -39,7 +46,7 @@
 #  ifdef UNDER_CE
 #    include <stdlib.h>
 #  endif
-#  define SET_BINARY_MODE(file) _setmode(_fileno(file), O_BINARY)
+#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
 #  define SET_BINARY_MODE(file)
 #endif
@@ -57,10 +64,6 @@
 #endif
 #if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
 #  include <unix.h> /* for fileno */
-#endif
-#ifdef WIN32
-#  define fileno _fileno
-#  define unlink _unlink
 #endif
 
 #if !defined(Z_HAVE_UNISTD_H) && !defined(_LARGEFILE64_SOURCE)
