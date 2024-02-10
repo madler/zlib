@@ -90,11 +90,6 @@ jobs:
           - { os:   { name: Windows },
               builder: configure }
 
-            # Don't run clang on Windows
-            # See https://github.com/madler/zlib/issues/932
-          - { os:   { name: Windows },
-              compiler: clang }
-
             # Don't run gcc 32-bit on Windows
           - { os:   { name: Windows },
               arch: { tag:  i386  } }
@@ -123,7 +118,7 @@ jobs:
         ./configure
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
 
     - name: Compile source code (configure)
       if: matrix.builder == 'configure'
@@ -141,7 +136,7 @@ jobs:
         cmake -S . -B . -D CMAKE_BUILD_TYPE=Release -D ZLIB_BUILD_EXAMPLES=OFF  ${{ matrix.os.cmake-opt }}
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
 
     - name: Compile source code (cmake)
       if: matrix.builder == 'cmake'
@@ -185,8 +180,9 @@ jobs:
           - name: C17
             value: /std:c17
 
-          - name: C20
-            value: /std:c20
+          # not available on the runner yet
+          # - name: C20
+          #   value: /std:c20
 
           - name: latest
             value: /std:clatest
