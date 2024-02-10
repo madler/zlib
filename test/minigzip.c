@@ -426,7 +426,7 @@ static void file_compress(char *file, char *mode) {
     }
 
     end = string_copy(outfile, file, sizeof(outfile));
-    string_copy(end, GZ_SUFFIX, (outfile + sizeof(outfile)) - end);
+    string_copy(end, GZ_SUFFIX, sizeof(outfile) - (z_size_t)(end - outfile));
 
     in = fopen(file, "rb");
     if (in == NULL) {
