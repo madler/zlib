@@ -52,7 +52,7 @@
 #include "deflate.h"
 
 const char deflate_copyright[] =
-   " deflate 1.3.1 Copyright 1995-2024 Jean-loup Gailly and Mark Adler ";
+   " deflate 1.3.1.1 Copyright 1995-2024 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -1635,7 +1635,8 @@ local block_state deflate_stored(deflate_state *s, int flush) {
      * possible. If flushing, copy the remaining available input to next_out as
      * stored blocks, if there is enough space.
      */
-    unsigned len, left, have, last = 0;
+    int last = 0;
+    unsigned len, left, have;
     unsigned used = s->strm->avail_in;
     do {
         /* Set len to the maximum size block that we can copy directly with the
@@ -1671,10 +1672,10 @@ local block_state deflate_stored(deflate_state *s, int flush) {
         _tr_stored_block(s, (char *)0, 0L, last);
 
         /* Replace the lengths in the dummy stored block with len. */
-        s->pending_buf[s->pending - 4] = len;
-        s->pending_buf[s->pending - 3] = len >> 8;
-        s->pending_buf[s->pending - 2] = ~len;
-        s->pending_buf[s->pending - 1] = ~len >> 8;
+        s->pending_buf[s->pending - 4] = (Bytef)len;
+        s->pending_buf[s->pending - 3] = (Bytef)(len >> 8);
+        s->pending_buf[s->pending - 2] = (Bytef)~len;
+        s->pending_buf[s->pending - 1] = (Bytef)(~len >> 8);
 
         /* Write the stored block header bytes. */
         flush_pending(s->strm);

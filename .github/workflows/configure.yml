@@ -95,7 +95,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install packages (Ubuntu)
       if: runner.os == 'Linux' && matrix.packages
@@ -110,7 +110,7 @@ jobs:
         ${{ matrix.src-dir || '.' }}/configure ${{ matrix.configure-args }}
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: ${{ matrix.cflags }}
+        CFLAGS: ${{ matrix.cflags }} -Werror
         LDFLAGS: ${{ matrix.ldflags }}
         CHOST: ${{ matrix.chost }}
 
@@ -127,7 +127,7 @@ jobs:
         QEMU_RUN: ${{ matrix.qemu-run }}
 
     - name: Upload build errors
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: ${{ matrix.name }} (configure)

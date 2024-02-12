@@ -91,6 +91,7 @@ warn=0
 debug=0
 address=0
 memory=0
+unknown=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 OBJC='$(OBJZ) $(OBJG)'
@@ -144,12 +145,12 @@ case "$1" in
     --sanitize) address=1; shift ;;
     --address) address=1; shift ;;
     --memory) memory=1; shift ;;
-    *)
-      echo "unknown option: $1" | tee -a configure.log
-      echo "$0 --help for help" | tee -a configure.log
-      leave 1;;
+    *) unknown=1; echo "unknown option ignored: $1" | tee -a configure.log; shift;;
     esac
 done
+if test $unknown -eq 1; then
+  echo "$0 --help for help" | tee -a configure.log
+fi
 
 # temporary file name
 test=ztest$$
@@ -258,6 +259,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
             SHAREDLIB='libz.sl' ;;
         esac ;;
   AIX*)
+        LDSHARED=${LDSHARED-"$cc -shared"}
         LDFLAGS="${LDFLAGS} -Wl,-brtl" ;;
   Darwin* | darwin* | *-darwin*)
         shared_ext='.dylib'

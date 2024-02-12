@@ -11,54 +11,63 @@ jobs:
           - name: Ubuntu GCC
             os: ubuntu-latest
             compiler: gcc
+            cflags: -Werror -Wall -Wextra
 
           # Test out of source builds
           - name: Ubuntu GCC OSB
             os: ubuntu-latest
             compiler: gcc
+            cflags: -Werror -Wall -Wextra
             build-dir: ../build
             src-dir: ../zlib
 
           - name: Ubuntu GCC -O3
             os: ubuntu-latest
             compiler: gcc
-            cflags: -O3
+            cflags: -O3 -Werror -Wall -Wextra
 
           - name: Ubuntu Clang
             os: ubuntu-latest
             compiler: clang
+            cflags: -Werror -Wall -Wextra
 
           - name: Ubuntu Clang Debug
             os: ubuntu-latest
             compiler: clang
+            cflags: -Werror -Wall -Wextra
             build-config: Debug
 
           - name: Windows MSVC Win32
             os: windows-latest
             compiler: cl
+            cflags: /WX /W3
             cmake-args: -A Win32
 
           - name: Windows MSVC Win64
             os: windows-latest
             compiler: cl
+            cflags: /WX /W3
             cmake-args: -A x64
 
           - name: Windows GCC
             os: windows-latest
             compiler: gcc
+            cflags: -Werror -Wall -Wextra
             cmake-args: -G Ninja
 
           - name: macOS Clang
             os: macos-latest
             compiler: clang
+            cflags: -Werror -Wall -Wextra
 
           - name: macOS GCC
             os: macos-latest
             compiler: gcc-11
+            cflags: -Werror -Wall -Wextra
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
@@ -79,7 +88,7 @@ jobs:
       working-directory: ${{ matrix.build-dir || '.' }}
 
     - name: Upload build errors
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: ${{ matrix.name }} (cmake)

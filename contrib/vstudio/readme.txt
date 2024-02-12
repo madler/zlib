@@ -1,4 +1,4 @@
-Building instructions for the DLL versions of Zlib 1.3.1
+Building instructions for the DLL versions of Zlib 1.3.1.1
 ========================================================
 
 This directory contains projects that build zlib and minizip using
