@@ -30,6 +30,9 @@ else
     SRCDIR="$SRCDIR/"
 fi
 
+# get build directory
+BUILDDIR="`pwd`/"
+
 # set command prefix for cross-compilation
 if [ -n "${CHOST}" ]; then
     uname=${CHOST}
@@ -167,6 +170,15 @@ show()
   echo $* >> configure.log
 }
 
+# generate zlib.map and modify its content according to the value of the z_ prefix
+cp -p ${SRCDIR}zlib.map.in zlib.map
+if test $zprefix -eq 1; then
+  sed < zlib.map "s/\@Z_PREFIX_STR\@/z_/" > zlib.temp.map
+else
+  sed < zlib.map "s/\@Z_PREFIX_STR\@//" > zlib.temp.map
+fi
+mv zlib.temp.map zlib.map
+
 # check for gcc vs. cc and set compile and link flags based on the system identified by uname
 cat > $test.c <<EOF
 extern int getchar();
@@ -233,9 +245,9 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         *sparc*)
             LDFLAGS="${LDFLAGS} -Wl,--no-warn-rwx-segments" ;;
         esac
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"} ;;
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${BUILDDIR}zlib.map"} ;;
   *BSD | *bsd* | DragonFly)
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"}
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${BUILDDIR}zlib.map"}
         LDCONFIG="ldconfig -m" ;;
   CYGWIN* | Cygwin* | cygwin* | *-cygwin* | OS/2*)
         EXE='.exe' ;;
