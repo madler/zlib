@@ -178,20 +178,20 @@ elseif(BUILD_SHARED_LIBS AND WIN32)
     set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
 endif()
 
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS zlib zlibstatic
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
-endif()
-if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
-endif()
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+if(NOT SKIP_INSTALL_ALL)
+    if(NOT SKIP_INSTALL_LIBRARIES)
+        install(TARGETS zlib zlibstatic
+            RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+            ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+            LIBRARY DESTINATION "${INSTALL_LIB_DIR}")
+    endif()
+    if(NOT SKIP_INSTALL_HEADERS)
+        install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")
+    endif()
+    if(NOT SKIP_INSTALL_FILES)
+        install(FILES zlib.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
+        install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+    endif()
 endif()
 
 #============================================================================
