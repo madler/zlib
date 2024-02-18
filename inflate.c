@@ -123,6 +123,7 @@ int ZEXPORT inflateResetKeep(z_streamp strm) {
     state->lencode = state->distcode = state->next = state->codes;
     state->sane = 1;
     state->back = -1;
+    state->check = 0;
     Tracev((stderr, "inflate: reset\n"));
     return Z_OK;
 }
