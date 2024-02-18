@@ -200,6 +200,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   SFLAGS="${CFLAGS--O3} -fPIC"
   if test "$ARCHS"; then
     CFLAGS="${CFLAGS} ${ARCHS}"
+    SFLAGS="${SFLAGS} ${ARCHS}"
     LDFLAGS="${LDFLAGS} ${ARCHS}"
   fi
   if test $build64 -eq 1; then
