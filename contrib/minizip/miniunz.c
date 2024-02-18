@@ -270,6 +270,8 @@ static int do_list(unzFile uf) {
               string_method="Defl:X";
             else if ((iLevel==2) || (iLevel==3))
               string_method="Defl:F"; /* 2:fast , 3 : extra fast*/
+            else
+              string_method="Unkn. ";
         }
         else
         if (file_info.compression_method==Z_BZIP2ED)
