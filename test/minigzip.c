@@ -57,6 +57,10 @@
 #  include <unix.h> /* for fileno */
 #endif
 
+#ifndef OF
+#define OF(x) x
+#endif
+
 #if !defined(Z_HAVE_UNISTD_H) && !defined(_LARGEFILE64_SOURCE)
 #ifndef WIN32 /* unlink already in stdio.h for WIN32 */
   extern int unlink(const char *);
