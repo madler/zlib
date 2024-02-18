@@ -112,7 +112,7 @@ test64: all64
 	fi
 	@rm -f tmp64_$$
 
-infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h
+infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h $(SRCDIR)inflate.h $(SRCDIR)inftrees.h
 	$(CC) $(CFLAGS) $(ZINCOUT) -c -o $@ $(SRCDIR)test/infcover.c
 
 infcover: infcover.o libz.a
@@ -274,7 +274,7 @@ gzwrite.lo: $(SRCDIR)gzwrite.c
 	-@mv objs/gzwrite.o $@
 
 
-placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a
+placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a $(SRCDIR)zlib.map
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
@@ -389,7 +389,7 @@ distclean: clean zconf zconf.h.cmakein
 tags:
 	etags $(SRCDIR)*.[ch]
 
-adler32.o zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+adler32.o zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 compress.o example.o minigzip.o uncompr.o: $(SRCDIR)zlib.h zconf.h
 crc32.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
@@ -399,7 +399,7 @@ inffast.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR
 inftrees.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
 
-adler32.lo zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+adler32.lo zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)zlib.h zconf.h
 crc32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
