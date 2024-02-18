@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 8.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotZLib", "DotZLib\DotZLib.csproj", "{BB1EE0B1-1808-46CB-B786-949D91117FC5}"
 	ProjectSection(ProjectDependencies) = postProject
