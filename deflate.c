@@ -2138,3 +2138,35 @@ local block_state deflate_huff(deflate_state *s, int flush) {
         FLUSH_BLOCK(s, 0);
     return block_done;
 }
+
+/* ===========================================================================
+ * Given histograms l_hist and d_hist builds the huffman table that
+ * can be used as the DHT in the front matter of Type 2 blocks.
+ * DHT is returned in the buffer strm->avail_out.
+ * Number of valid bits in the last valid byte of the buffer is also returned.
+ */
+extern int make_trees( deflate_state *s,  int *l_hist, int *d_hist );
+int ZEXPORT deflate_make_dht(strm, lhistg, dhistg, bits_valid)
+    z_streamp strm;
+    int *lhistg;
+    int *dhistg;
+    int *bits_valid;
+{
+    deflate_state *s;
+
+    if (strm == Z_NULL || strm->state == Z_NULL ) {
+	return Z_STREAM_ERROR;
+    }
+    if (strm->next_out == Z_NULL ) {
+	ERR_RETURN(strm, Z_STREAM_ERROR);
+    }
+    if (strm->avail_out == 0 || bits_valid == NULL) {
+	ERR_RETURN(strm, Z_BUF_ERROR);
+    }
+
+    *bits_valid = make_trees( s = strm->state, lhistg, dhistg );
+
+    flush_pending( strm );
+
+    return Z_OK;
+}
