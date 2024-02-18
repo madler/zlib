@@ -93,7 +93,10 @@ typedef uint64_t ZPOS64_T;
 
 
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
+/* See https://support.hpe.com/hpsc/doc/public/display?docId=emr_na-c04623066 (C)
+ * See https://support.hpe.com/hpsc/doc/public/display?docId=a00058500en_us   (C++)
+ */
+#if defined(_MSC_VER) || defined(__BORLANDC__) || ((defined(__DECC) || defined(__DECCXX)) && !defined(__osf) && (defined(__alpha) || defined(__ia64) || defined(__IA64))) || defined(__int64)
 typedef unsigned __int64 ZPOS64_T;
 #else
 typedef unsigned long long int ZPOS64_T;
