@@ -1,0 +1,44 @@
+# This sets line endings for files other than those inside contrib/
+
+
+# Documentation
+*.3       eol=lf
+*.html    eol=lf
+*.pdf     binary
+*.txt     eol=lf
+ChangeLog eol=lf
+FAQ       eol=lf
+INDEX     eol=lf
+README*   eol=lf
+
+
+# C files
+*.c       eol=lf
+*.h       eol=lf
+
+
+# Amiga files
+*.pup     eol=lf
+*.sas     eol=lf
+
+
+# Shell scripts
+*.sh      eol=lf
+configure eol=lf
+zlib2ansi eol=lf
+
+
+# Build files
+*.cmakein eol=lf
+*.com     eol=lf
+*.in      eol=lf
+*.inc     eol=lf
+*.mak     eol=lf
+*.map     eol=crlf
+*.mms     eol=lf
+*.qpg     eol=lf
+bndsrc    eol=lf
+Makefile* eol=lf
+old/os2/zlib.def eol=lf
+treebuild.xml    eol=lf
+win32/zlib.def   eol=crlf
