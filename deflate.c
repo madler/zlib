@@ -1835,7 +1835,7 @@ local block_state deflate_fast(deflate_state *s, int flush) {
             INSERT_STRING(s, s->strstart, hash_head);
         }
 
-        /* Find the longest match, discarding those <= prev_length.
+        /* Find the longest match.
          * At this point we have always match_length < MIN_MATCH
          */
         if (hash_head != NIL && s->strstart - hash_head <= MAX_DIST(s)) {
