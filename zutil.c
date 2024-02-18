@@ -275,6 +275,36 @@ void ZLIB_INTERNAL zcfree(voidpf opaque, voidpf ptr) {
 #endif /* SYS16BIT */
 
 
+#ifdef ESP_PLATFORM
+/* Espressif IDF (ESP32) */
+
+#  include "esp_heap_caps.h"
+#  define MY_ZCALLOC
+
+voidpf ZLIB_INTERNAL zcalloc (opaque, items, size)
+    voidpf opaque;
+    unsigned items;
+    unsigned size;
+{
+    (void)opaque;
+    void* ret = heap_caps_malloc(items * size, MALLOC_CAP_SPIRAM);
+    if (ret)
+        return ret;
+    else
+        return malloc(items * size);
+}
+
+void ZLIB_INTERNAL zcfree (opaque, ptr)
+    voidpf opaque;
+    voidpf ptr;
+{
+    (void)opaque;
+    free(ptr);
+}
+
+#endif /* ESP32 */
+
+
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
 
 #ifndef STDC
