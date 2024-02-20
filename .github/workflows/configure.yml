@@ -110,7 +110,7 @@ jobs:
         ${{ matrix.src-dir || '.' }}/configure ${{ matrix.configure-args }}
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: ${{ matrix.cflags }}
+        CFLAGS: ${{ matrix.cflags }} -Werror
         LDFLAGS: ${{ matrix.ldflags }}
         CHOST: ${{ matrix.chost }}
 
