@@ -86,7 +86,7 @@ local int gz_comp(state, flush)
     if (state->direct) {
         while (strm->avail_in) {
             put = strm->avail_in > max ? max : strm->avail_in;
-            writ = write(state->fd, strm->next_in, put);
+            writ = _write(state->fd, strm->next_in, put);
             if (writ < 0) {
                 gz_error(state, Z_ERRNO, zstrerror());
                 return -1;
@@ -107,7 +107,7 @@ local int gz_comp(state, flush)
             while (strm->next_out > state->x.next) {
                 put = strm->next_out - state->x.next > (int)max ? max :
                       (unsigned)(strm->next_out - state->x.next);
-                writ = write(state->fd, state->x.next, put);
+                writ = _write(state->fd, state->x.next, put);
                 if (writ < 0) {
                     gz_error(state, Z_ERRNO, zstrerror());
                     return -1;
@@ -658,7 +658,7 @@ int ZEXPORT gzclose_w(file)
     }
     gz_error(state, Z_OK, NULL);
     free(state->path);
-    if (close(state->fd) == -1)
+    if (_close(state->fd) == -1)
         ret = Z_ERRNO;
     free(state);
     return ret;
