@@ -1,5 +1,5 @@
 CC?=cc
-CFLAGS := $(CFLAGS) -O -I../..
+CFLAGS := -O $(CFLAGS) -I../..
 
 UNZ_OBJS = miniunz.o unzip.o ioapi.o ../../libz.a
 ZIP_OBJS = minizip.o zip.o   ioapi.o ../../libz.a
