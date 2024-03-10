@@ -231,7 +231,8 @@ void set_start(set_t *set) {
     set_grow(set, set->head, 1, 1); // one link back to head for an empty set
     *(unsigned char *)&set->head->key = 137;    // set id
     set->depth = 0;
-    set_seed(&set->gen, (uint64_t)time(NULL) * (uint64_t)clock(), 0);
+    set_seed(&set->gen, ((uint64_t)set << 32) ^
+                        ((uint64_t)time(NULL) << 12) ^ clock(), 0);
     set->ran = 1;
 }
 
