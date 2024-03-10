@@ -129,14 +129,16 @@ case "$1" in
     -p* | --prefix) prefix="$2"; shift; shift ;;
     -e* | --eprefix) exec_prefix="$2"; shift; shift ;;
     -l* | --libdir) libdir="$2"; shift; shift ;;
+    --sharedlibdir) sharedlibdir="$2"; shift; shift ;;
     -i* | --includedir) includedir="$2"; shift; shift ;;
     -s* | --shared | --enable-shared) shared=1; shift ;;
-    -t | --static) shared=0; shift ;;
+    -t | --static | --disable-shared) shared=0; shift ;;
     --solo) solo=1; shift ;;
     --cover) cover=1; shift ;;
     -z* | --zprefix) zprefix=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
+    --archs) ARCHS="$2"; shift; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
