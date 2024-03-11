@@ -93,8 +93,7 @@ static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_dat
   LocalFileTimeToFileTime(&ftLocal,&ftm);
   SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
   CloseHandle(hFile);
-#else
-#if defined(unix) || defined(__APPLE__)
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
   (void)dosdate;
   struct utimbuf ut;
   struct tm newdate;
@@ -116,7 +115,6 @@ static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_dat
   (void)dosdate;
   (void)tmu_date;
 #endif
-#endif
 }
 
 
@@ -127,9 +125,7 @@ static int mymkdir(const char* dirname) {
     int ret=0;
 #ifdef _WIN32
     ret = _mkdir(dirname);
-#elif unix
-    ret = mkdir (dirname,0775);
-#elif __APPLE__
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
     ret = mkdir (dirname,0775);
 #else
     (void)dirname;

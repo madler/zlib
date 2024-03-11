@@ -91,8 +91,7 @@ static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
   }
   return ret;
 }
-#else
-#if defined(unix) || defined(__APPLE__)
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
 /* f: name of file to get info on, tmzip: return value: access,
    modification and creation times, dt: dostime */
 static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
@@ -142,7 +141,6 @@ static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
     (void)dt;
     return 0;
 }
-#endif
 #endif
 
 
