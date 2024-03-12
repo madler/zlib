@@ -355,8 +355,11 @@ local int block_get(block_t *block) {
 // Return a 16-bit unsigned little-endian value from block, or a negative value
 // if the end is reached.
 local long block_get2(block_t *block) {
-    long got = block_get(block);
-    return got | ((long)block_get(block) << 8);
+    long low = block_get(block);
+    long high = block_get(block);
+    if (high == -1)
+        return -1;
+    return low | (high << 8);
 }
 
 // Read up to len bytes from block into buf. Return the number of bytes read.
