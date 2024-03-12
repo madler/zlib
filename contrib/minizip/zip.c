@@ -356,7 +356,7 @@ local int block_get(block_t *block) {
 // if the end is reached.
 local long block_get2(block_t *block) {
     long got = block_get(block);
-    return got | ((long)block_get(block) << 8);
+    return got | ((unsigned long)block_get(block) << 8);
 }
 
 // Read up to len bytes from block into buf. Return the number of bytes read.
