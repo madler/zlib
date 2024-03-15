@@ -1,0 +1,100 @@
+ZLIB_1.2.0 {
+  global:
+    @Z_PREFIX_STR@compressBound;
+    @Z_PREFIX_STR@deflateBound;
+    @Z_PREFIX_STR@inflateBack;
+    @Z_PREFIX_STR@inflateBackEnd;
+    @Z_PREFIX_STR@inflateBackInit_;
+    @Z_PREFIX_STR@inflateCopy;
+  local:
+    @Z_PREFIX_STR@deflate_copyright;
+    @Z_PREFIX_STR@inflate_copyright;
+    @Z_PREFIX_STR@inflate_fast;
+    @Z_PREFIX_STR@inflate_table;
+    @Z_PREFIX_STR@zcalloc;
+    @Z_PREFIX_STR@zcfree;
+    z_errmsg;
+    @Z_PREFIX_STR@gz_error;
+    @Z_PREFIX_STR@gz_intmax;
+    _*;
+};
+
+ZLIB_1.2.0.2 {
+    @Z_PREFIX_STR@gzclearerr;
+    @Z_PREFIX_STR@gzungetc;
+    @Z_PREFIX_STR@zlibCompileFlags;
+} ZLIB_1.2.0;
+
+ZLIB_1.2.0.8 {
+    @Z_PREFIX_STR@deflatePrime;
+} ZLIB_1.2.0.2;
+
+ZLIB_1.2.2 {
+    @Z_PREFIX_STR@adler32_combine;
+    @Z_PREFIX_STR@crc32_combine;
+    @Z_PREFIX_STR@deflateSetHeader;
+    @Z_PREFIX_STR@inflateGetHeader;
+} ZLIB_1.2.0.8;
+
+ZLIB_1.2.2.3 {
+    @Z_PREFIX_STR@deflateTune;
+    @Z_PREFIX_STR@gzdirect;
+} ZLIB_1.2.2;
+
+ZLIB_1.2.2.4 {
+    @Z_PREFIX_STR@inflatePrime;
+} ZLIB_1.2.2.3;
+
+ZLIB_1.2.3.3 {
+    @Z_PREFIX_STR@adler32_combine64;
+    @Z_PREFIX_STR@crc32_combine64;
+    @Z_PREFIX_STR@gzopen64;
+    @Z_PREFIX_STR@gzseek64;
+    @Z_PREFIX_STR@gztell64;
+    @Z_PREFIX_STR@inflateUndermine;
+} ZLIB_1.2.2.4;
+
+ZLIB_1.2.3.4 {
+    @Z_PREFIX_STR@inflateReset2;
+    @Z_PREFIX_STR@inflateMark;
+} ZLIB_1.2.3.3;
+
+ZLIB_1.2.3.5 {
+    @Z_PREFIX_STR@gzbuffer;
+    @Z_PREFIX_STR@gzoffset;
+    @Z_PREFIX_STR@gzoffset64;
+    @Z_PREFIX_STR@gzclose_r;
+    @Z_PREFIX_STR@gzclose_w;
+} ZLIB_1.2.3.4;
+
+ZLIB_1.2.5.1 {
+    @Z_PREFIX_STR@deflatePending;
+} ZLIB_1.2.3.5;
+
+ZLIB_1.2.5.2 {
+    @Z_PREFIX_STR@deflateResetKeep;
+    @Z_PREFIX_STR@gzgetc_;
+    @Z_PREFIX_STR@inflateResetKeep;
+} ZLIB_1.2.5.1;
+
+ZLIB_1.2.7.1 {
+    @Z_PREFIX_STR@inflateGetDictionary;
+    @Z_PREFIX_STR@gzvprintf;
+} ZLIB_1.2.5.2;
+
+ZLIB_1.2.9 {
+    @Z_PREFIX_STR@inflateCodesUsed;
+    @Z_PREFIX_STR@inflateValidate;
+    @Z_PREFIX_STR@uncompress2;
+    @Z_PREFIX_STR@gzfread;
+    @Z_PREFIX_STR@gzfwrite;
+    @Z_PREFIX_STR@deflateGetDictionary;
+    @Z_PREFIX_STR@adler32_z;
+    @Z_PREFIX_STR@crc32_z;
+} ZLIB_1.2.7.1;
+
+ZLIB_1.2.12 {
+    @Z_PREFIX_STR@crc32_combine_gen;
+    @Z_PREFIX_STR@crc32_combine_gen64;
+    @Z_PREFIX_STR@crc32_combine_op;
+} ZLIB_1.2.9;
