@@ -5,11 +5,9 @@
 
 #include "gzguts.h"
 
-#if defined(UNDER_CE)
-#  define LSEEK _wcelseek
-#elif defined(__DJGPP__)
+#if defined(__DJGPP__)
 #  define LSEEK llseek
-#elif defined(_WIN32) && !defined(__BORLANDC__)
+#elif defined(_WIN32) && !defined(__BORLANDC__) && !defined(UNDER_CE)
 #  define LSEEK _lseeki64
 #elif defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
 #  define LSEEK lseek64

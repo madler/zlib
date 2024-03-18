@@ -17,11 +17,16 @@
 #  define ZLIB_INTERNAL
 #endif
 
-#if defined(_WIN32) && !defined(_CRT_SECURE_NO_WARNINGS)
-#  define _CRT_SECURE_NO_WARNINGS
-#endif
-#if defined(_WIN32) && !defined(_CRT_NONSTDC_NO_DEPRECATE)
-#  define _CRT_NONSTDC_NO_DEPRECATE
+#if defined(_WIN32)
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
+#  endif
+#  ifndef _CRT_NONSTDC_NO_DEPRECATE
+#    define _CRT_NONSTDC_NO_DEPRECATE
+#  endif
 #endif
 
 #include <stdio.h>
