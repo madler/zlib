@@ -242,7 +242,8 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
         return NULL;
     }
     if (state->mode == GZ_APPEND) {
-        LSEEK(state->fd, 0, SEEK_END);  /* so gzoffset() is correct */
+        if (LSEEK(state->fd, 0, SEEK_END) == -1)  /* so gzoffset() is correct */
+            return NULL;
         state->mode = GZ_WRITE;         /* simplify later checks */
     }
 
