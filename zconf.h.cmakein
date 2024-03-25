@@ -377,6 +377,17 @@
 #  endif
 #endif
 
+#if defined(__WATCOMC__)
+#  if defined(ZLIB_DLL)
+#    if defined(__OS2__)
+#      if defined(__SW_BD)
+#        define ZEXPORT   __export
+#        define ZEXPORTVA __export
+#      endif
+#    endif
+#  endif
+#endif
+
 #ifndef ZEXTERN
 #  define ZEXTERN extern
 #endif

@@ -37,6 +37,39 @@ jobs:
             cflags: -Werror -Wall -Wextra
             build-config: Debug
 
+          - name: Ubuntu OW DOS 16-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            cflags: -ml
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=DOS -D CMAKE_SYSTEM_PROCESSOR=I86
+
+          - name: Ubuntu OW DOS 32-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=DOS -D CMAKE_SYSTEM_PROCESSOR=X86
+
+          - name: Ubuntu OW OS/2 16-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            cflags: -ml
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=OS2 -D CMAKE_SYSTEM_PROCESSOR=I86
+
+          - name: Ubuntu OW OS/2 32-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=OS2 -D CMAKE_SYSTEM_PROCESSOR=X86
+
+          - name: Ubuntu OW Windows 32-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=Windows -D CMAKE_SYSTEM_PROCESSOR=X86
+
+          - name: Ubuntu OW Linux 32-bit
+            os: Ubuntu-latest
+            compiler: watcom
+            watcom-test: 1
+            cmake-args: -G "Watcom WMake"
+
           - name: Windows MSVC Win32
             os: windows-latest
             compiler: cl
@@ -65,27 +98,75 @@ jobs:
             compiler: gcc-11
             cflags: -Werror -Wall -Wextra
 
+          - name: Windows OW DOS 16-bit
+            os: windows-latest
+            compiler: watcom
+            cflags: -ml
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=DOS -D CMAKE_SYSTEM_PROCESSOR=I86
+
+          - name: Windows OW DOS 32-bit
+            os: windows-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=DOS -D CMAKE_SYSTEM_PROCESSOR=X86
+
+          - name: Windows OW OS/2 16-bit
+            os: windows-latest
+            compiler: watcom
+            cflags: -ml
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=OS2 -D CMAKE_SYSTEM_PROCESSOR=I86
+
+          - name: Windows OW OS/2 32-bit
+            os: windows-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=OS2 -D CMAKE_SYSTEM_PROCESSOR=X86
+
+          - name: Windows OW Windows 32-bit
+            os: windows-latest
+            compiler: watcom
+            watcom-test: 1
+            cmake-args: -G "Watcom WMake"
+
+          - name: Windows OW Linux 32-bit
+            os: windows-latest
+            compiler: watcom
+            cmake-args: -G "Watcom WMake" -D CMAKE_SYSTEM_NAME=Linux -D CMAKE_SYSTEM_PROCESSOR=X86
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install packages (Open Watcom)
+      if: matrix.compiler == 'watcom'
+      uses: open-watcom/setup-watcom@v0
     - name: Install packages (Windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && matrix.compiler != 'watcom'
       run: |
         choco install --no-progress ninja ${{ matrix.packages }}
 
+    - name: Generate project files (Open Watcom)
+      if: matrix.compiler == 'watcom'
+      run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || 'build' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
+      env:
+        CFLAGS: ${{ matrix.cflags }}
     - name: Generate project files
-      run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
+      if: matrix.compiler != 'watcom'
+      run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || 'build' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
       env:
         CC: ${{ matrix.compiler }}
         CFLAGS: ${{ matrix.cflags }}
 
     - name: Compile source code
-      run: cmake --build ${{ matrix.build-dir || '.' }} --config ${{ matrix.build-config || 'Release' }}
+      run: cmake --build ${{ matrix.build-dir || 'build' }} --config ${{ matrix.build-config || 'Release' }}
+
+    - name: Run test cases (Open Watcom)
+      if: matrix.compiler == 'watcom' && matrix.watcom-test
+      run: ctest -C Release --output-on-failure --max-width 120
+      working-directory: ${{ matrix.build-dir || 'build' }}
 
     - name: Run test cases
+      if: matrix.compiler != 'watcom'
       run: ctest -C Release --output-on-failure --max-width 120
-      working-directory: ${{ matrix.build-dir || '.' }}
+      working-directory: ${{ matrix.build-dir || 'build' }}
 
     - name: Upload build errors
       uses: actions/upload-artifact@v4
