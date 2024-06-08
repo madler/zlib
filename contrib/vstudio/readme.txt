@@ -6,7 +6,7 @@ Microsoft Visual C++ 9.0/10.0.
 
 You don't need to build these projects yourself. You can download the
 binaries from:
-  http://www.winimage.com/zLibDll
+  https://www.winimage.com/zLibDll
 
 More information can be found at this site.
 
@@ -57,7 +57,7 @@ Additional notes
 ----------------
 - This DLL, named zlibwapi.dll, is compatible to the old zlib.dll built
   by Gilles Vollant from the zlib 1.1.x sources, and distributed at
-    http://www.winimage.com/zLibDll
+    https://www.winimage.com/zLibDll
   It uses the WINAPI calling convention for the exported functions, and
   includes the minizip functionality. If your application needs that
   particular build of zlib.dll, you can rename zlibwapi.dll to zlib.dll.

@@ -1,15 +1,15 @@
 /*
    miniunz.c
    Version 1.1, February 14h, 2010
-   sample part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
+   sample part of the MiniZip project - ( https://www.winimage.com/zLibDll/minizip.html )
 
-         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( https://www.winimage.com/zLibDll/minizip.html )
 
          Modifications of Unzip for Zip64
          Copyright (C) 2007-2008 Even Rouault
 
          Modifications for Zip64 support on both zip and unzip
-         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Copyright (C) 2009-2010 Mathias Svensson ( https://result42.com )
 */
 
 #if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__))
@@ -187,7 +187,7 @@ static int makedir(const char *newdir) {
 
 static void do_banner(void) {
     printf("MiniUnz 1.1, demo of zLib + Unz package written by Gilles Vollant\n");
-    printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
+    printf("more info at https://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 
 static void do_help(void) {

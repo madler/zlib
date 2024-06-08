@@ -30,9 +30,9 @@
 ;     misrepresented as being the original software
 ;  3. This notice may not be removed or altered from any source distribution.
 ;
-;         http://www.zlib.net
-;         http://www.winimage.com/zLibDll
-;         http://www.muppetlabs.com/~breadbox/software/assembly.html
+;         https://www.zlib.net
+;         https://www.winimage.com/zLibDll
+;         https://www.muppetlabs.com/~breadbox/software/assembly.html
 ;
 ; to compile this file for zLib, I use option:
 ;   gcc -c -arch x86_64 gvmat64.S
