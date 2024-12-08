@@ -21,7 +21,7 @@
 
 #include "zlib.h"
 
-#if defined(STDC) && !defined(Z_SOLO)
+#if !defined(Z_SOLO)
 #  if !(defined(_WIN32_WCE) && defined(_MSC_VER))
 #    include <stddef.h>
 #  endif
@@ -42,7 +42,7 @@ typedef unsigned short ush;
 typedef ush FAR ushf;
 typedef unsigned long  ulg;
 
-#if !defined(Z_U8) && !defined(Z_SOLO) && defined(STDC)
+#if !defined(Z_U8) && !defined(Z_SOLO)
 #  include <limits.h>
 #  if (ULONG_MAX == 0xffffffffffffffff)
 #    define Z_U8 unsigned long
@@ -97,7 +97,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE  0x00
 #  ifndef Z_SOLO
 #    if defined(__TURBOC__) || defined(__BORLANDC__)
-#      if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
+#      if defined(__LARGE__) || defined(__COMPACT__)
          /* Allow compilation with ANSI keywords only enabled */
          void _Cdecl farfree( void *block );
          void *_Cdecl farmalloc( unsigned long nbytes );
@@ -200,7 +200,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
   */
 #  define NO_MEMCPY
 #endif
-#if defined(STDC) && !defined(HAVE_MEMCPY) && !defined(NO_MEMCPY)
+#if !defined(HAVE_MEMCPY) && !defined(NO_MEMCPY)
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY

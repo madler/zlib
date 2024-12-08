@@ -12,10 +12,8 @@
 #include "zlib.h"
 #include <stdio.h>
 
-#ifdef STDC
-#  include <string.h>
-#  include <stdlib.h>
-#endif
+#include <string.h>
+#include <stdlib.h>
 
 #if defined(VMS)
 #  define TESTFILE "foo-gz"
