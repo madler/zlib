@@ -46,12 +46,9 @@ endif()
 set(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 
 #
-# Check for fseeko
+# Check for fseeko. This only maybe affects VMS, see make_vms.com.
 #
 check_function_exists(fseeko HAVE_FSEEKO)
-if(NOT HAVE_FSEEKO)
-    add_definitions(-DNO_FSEEKO)
-endif()
 
 #
 # Check for unistd.h
