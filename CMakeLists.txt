@@ -22,6 +22,7 @@ set(CPACK_RESOURCE_FILE_README ${zlib_SOURCE_DIR}/README)
 option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ON)
 option(ZLIB_BUILD_SHARED "Enable building zlib shared library" ON)
 option(ZLIB_BUILD_STATIC "Enable building zlib static library" ON)
+option(ZLIB_BUILD_PIC "Build zlib static with position independent code" OFF)
 option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
 option(ZLIB_INSTALL "Enable installation of zlib" ON)
 option(ZLIB_PREFIX "prefix for all types and library functions, see zconf.h.in"
@@ -211,6 +212,7 @@ endif(ZLIB_BUILD_SHARED)
 if(ZLIB_BUILD_STATIC)
     add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
                                   ${ZLIB_PRIVATE_HDRS})
+    set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ${ZLIB_BUILD_PIC})
     add_library(ZLIB::ZLIBSTATIC ALIAS zlibstatic)
     target_include_directories(
         zlibstatic
