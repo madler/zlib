@@ -155,11 +155,6 @@ set(ZLIB_SRCS
     uncompr.c
     zutil.c)
 
-set_source_files_properties(
-    win32/zlib1.rc
-    PROPERTIES COMPILE_FLAGS
-               $<$<STREQUAL:${CMAKE_RC_OUTPUT_EXTENSION},.obj>:-DGCC_WINDRES>)
-
 if(WIN32)
     set(zlib_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
