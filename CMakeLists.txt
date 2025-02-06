@@ -212,7 +212,9 @@ endif(ZLIB_BUILD_SHARED)
 if(ZLIB_BUILD_STATIC)
     add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
                                   ${ZLIB_PRIVATE_HDRS})
-    set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ${ZLIB_BUILD_PIC})
+    if(ZLIB_BUILD_PIC)
+        set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
+    endif(ZLIB_BUILD_PIC)
     add_library(ZLIB::ZLIBSTATIC ALIAS zlibstatic)
     target_include_directories(
         zlibstatic
