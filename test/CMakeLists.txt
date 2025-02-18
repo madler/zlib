@@ -16,6 +16,7 @@ endfunction()
 if(ZLIB_BUILD_SHARED)
     add_executable(zlib_example example.c)
     target_link_libraries(zlib_example ZLIB::ZLIB)
+    target_compile_definitions(zlib_example PRIVATE ZLIB_BUILD)
     add_test(NAME zlib_example COMMAND zlib_example)
 
     add_executable(minigzip minigzip.c)
@@ -38,7 +39,7 @@ if(ZLIB_BUILD_SHARED)
         add_executable(zlib_example64 example.c)
         target_compile_definitions(
             zlib_example64
-            PRIVATE LARGEFILE64_SOURCE=1
+            PRIVATE ZLIB_BUILD
                     $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
         target_link_libraries(zlib_example64 ZLIB::ZLIB)
         add_test(NAME zlib_example64 COMMAND zlib_example64)
@@ -61,7 +62,8 @@ if(ZLIB_BUILD_STATIC)
     target_link_libraries(zlib_static_example ZLIB::ZLIBSTATIC)
     target_compile_definitions(
         zlib_static_example
-        PRIVATE $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
+        PRIVATE ZLIB_BUILD
+                $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
     add_test(NAME zlib_static_example COMMAND zlib_static_example)
 
     add_executable(static_minigzip minigzip.c)
@@ -116,7 +118,7 @@ if(ZLIB_BUILD_STATIC)
         add_executable(zlib_static_example64 example.c)
         target_compile_definitions(
             zlib_static_example64
-            PRIVATE LARGEFILE64_SOURCE=1
+            PRIVATE ZLIB_BUILD
                     $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
         target_link_libraries(zlib_static_example64 ZLIB::ZLIBSTATIC)
         add_test(NAME zlib_static_example64 COMMAND zlib_static_example64)

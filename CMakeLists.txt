@@ -119,7 +119,6 @@ unset(CMAKE_COMPILE_FLAGS)
 set(ZLIB_PC ${zlib_BINARY_DIR}/zlib.pc)
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
 configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
-include_directories(${zlib_BINARY_DIR} ${zlib_SOURCE_DIR})
 
 # ============================================================================
 # zlib
@@ -172,7 +171,8 @@ if(ZLIB_BUILD_SHARED)
                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
     target_compile_definitions(
         zlib
-        PRIVATE $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
+        PRIVATE ZLIB_BUILD
+                $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
@@ -214,7 +214,8 @@ if(ZLIB_BUILD_STATIC)
                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
     target_compile_definitions(
         zlibstatic
-        PRIVATE $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
+        PRIVATE ZLIB_BUILD
+                $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
