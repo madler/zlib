@@ -9,12 +9,14 @@ jobs:
       matrix:
         include:
           - name: Ubuntu GCC
+            enabled: true
             os: ubuntu-latest
             compiler: gcc
             configure-args: --warn
 
           # Test out of source builds
           - name: Ubuntu GCC OSB
+            enabled: true
             os: ubuntu-latest
             compiler: gcc
             configure-args: --warn
@@ -22,6 +24,7 @@ jobs:
             src-dir: ../zlib
 
           - name: Ubuntu GCC ARM SF
+            enabled: true
             os: ubuntu-latest
             compiler: arm-linux-gnueabi-gcc
             configure-args: --warn
@@ -30,6 +33,7 @@ jobs:
             qemu-run: qemu-arm -L /usr/arm-linux-gnueabi
 
           - name: Ubuntu GCC ARM HF
+            enabled: true
             os: ubuntu-latest
             compiler: arm-linux-gnueabihf-gcc
             configure-args: --warn
@@ -38,6 +42,7 @@ jobs:
             qemu-run: qemu-arm -L /usr/arm-linux-gnueabihf
 
           - name: Ubuntu GCC AARCH64
+            enabled: true
             os: ubuntu-latest
             compiler: aarch64-linux-gnu-gcc
             configure-args: --warn
@@ -46,6 +51,7 @@ jobs:
             qemu-run: qemu-aarch64 -L /usr/aarch64-linux-gnu
 
           - name: Ubuntu GCC PPC
+            enabled: true
             os: ubuntu-latest
             compiler: powerpc-linux-gnu-gcc
             configure-args: --warn --static
@@ -56,6 +62,7 @@ jobs:
             ldflags: -static
 
           - name: Ubuntu GCC PPC64
+            enabled: true
             os: ubuntu-latest
             compiler: powerpc64-linux-gnu-gcc
             configure-args: --warn --static
@@ -66,6 +73,7 @@ jobs:
             ldflags: -static
 
           - name: Ubuntu GCC PPC64LE
+            enabled: true
             os: ubuntu-latest
             compiler: powerpc64le-linux-gnu-gcc
             configure-args: --warn
@@ -73,7 +81,9 @@ jobs:
             packages: qemu-system qemu-user gcc-powerpc64le-linux-gnu libc-dev-ppc64el-cross
             qemu-run: qemu-ppc64le -L /usr/powerpc64le-linux-gnu
 
+          # if on base repo use the native workflow runner, else QEMU
           - name: Ubuntu GCC S390X
+            enabled: true
             os: ubuntu-latest
             compiler: s390x-linux-gnu-gcc
             configure-args: --warn --static
@@ -83,27 +93,37 @@ jobs:
             cflags: -static
             ldflags: -static
 
+          - name: Native S390X GCC
+            enabled: ${{ github.repository == 'fneddy/zlib' && 'true' || false }}
+            os: ${{ github.repository == 'fneddy/zlib' && 'S390X' || 'ubuntu-latest' }}
+            compiler: gcc
+            configure-args: --warn
+
           - name: macOS GCC
+            enabled: true
             os: macos-latest
             compiler: gcc-12
             configure-args: --warn
 
           - name: macOS Clang
+            enabled: true
             os: macos-latest
             compiler: clang
             configure-args: --warn
 
     steps:
     - name: Checkout repository
+      if: matrix.enabled
       uses: actions/checkout@v4
 
     - name: Install packages (Ubuntu)
-      if: runner.os == 'Linux' && matrix.packages
+      if: runner.os == 'Linux' && matrix.packages && matrix.enabled
       run: |
         sudo apt-get update
         sudo apt-get install -y ${{ matrix.packages }}
 
     - name: Generate project files
+      if: matrix.enabled
       run: |
         [ -d ${{ matrix.build-dir || '.' }} ] || mkdir ${{ matrix.build-dir || '.' }}
         cd ${{ matrix.build-dir || '.' }}
@@ -115,10 +135,12 @@ jobs:
         CHOST: ${{ matrix.chost }}
 
     - name: Compile source code
+      if: matrix.enabled
       run: make -j2
       working-directory: ${{ matrix.build-dir }}
 
     - name: Run test cases
+      if: matrix.enabled
       run: |
         make test
         make cover
@@ -128,7 +150,7 @@ jobs:
 
     - name: Upload build errors
       uses: actions/upload-artifact@v4
-      if: failure()
+      if: failure() && matrix.enabled
       with:
         name: ${{ matrix.name }} (configure)
         path: |

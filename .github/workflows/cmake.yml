@@ -9,6 +9,7 @@ jobs:
       matrix:
         include:
           - name: Ubuntu GCC
+            enabled: true
             os: ubuntu-latest
             compiler: gcc
             cflags: -Wall -Wextra
@@ -16,6 +17,7 @@ jobs:
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
           - name: Ubuntu GCC -O3
+            enabled: true
             os: ubuntu-latest
             compiler: gcc
             cflags: -O3 -Wall -Wextra
@@ -23,6 +25,7 @@ jobs:
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
           - name: Ubuntu Clang
+            enabled: true
             os: ubuntu-latest
             compiler: clang
             cflags: -Wall -Wextra
@@ -30,6 +33,7 @@ jobs:
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
           - name: Ubuntu Clang Debug
+            enabled: true
             os: ubuntu-latest
             compiler: clang
             cflags: -Wall -Wextra
@@ -38,6 +42,7 @@ jobs:
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
           - name: Windows MSVC Win32
+            enabled: true
             os: windows-latest
             compiler: cl
             cflags: /W3
@@ -45,6 +50,7 @@ jobs:
             pkgtgt: PACKAGE
 
           - name: Windows MSVC Win64
+            enabled: true
             os: windows-latest
             compiler: cl
             cflags: /W3
@@ -52,6 +58,7 @@ jobs:
             pkgtgt: PACKAGE
 
           - name: Windows GCC
+            enabled: true
             os: windows-latest
             compiler: gcc
             cflags: -Wall -Wextra
@@ -59,6 +66,7 @@ jobs:
             pkgtgt: package
 
           - name: macOS Clang
+            enabled: true
             os: macos-latest
             compiler: clang
             cflags: -Wall -Wextra
@@ -66,44 +74,59 @@ jobs:
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
           - name: macOS GCC
+            enabled: true
             os: macos-latest
             compiler: gcc-12
             cflags: -Wall -Wextra
             pkgtgt: package
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
+          - name: S390X Native GCC
+            enabled: ${{ github.repository == 'fneddy/zlib' && 'true' || false }}
+            os: ${{ github.repository == 'fneddy/zlib' && 'S390X' || 'ubuntu-latest' }}
+            compiler: gcc
+            cflags: -Wall -Wextra
+            cmake-args: -DMINIZIP_ENABLE_BZIP2=OFF
+            pkgtgt: package
+
     steps:
     - name: Checkout repository
+      if: matrix.enabled
       uses: actions/checkout@v4
 
     - name: Install packages (Windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && matrix.enabled
       run: |
         choco install --no-progress ninja
 
     - name: Install packages (Linux)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' &&  matrix.os != 'S390X' && matrix.enabled
       run: |
         sudo apt install libbz2-dev
+
     - name: Generate project files
+      if: matrix.enabled
       run: cmake -S . -B ../build ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }} -DZLIB_BUILD_MINIZIP=ON
       env:
         CC: ${{ matrix.compiler }}
         CFLAGS: ${{ matrix.cflags }}
 
     - name: Compile source code
+      if: matrix.enabled
       run: cmake --build ../build --config ${{ matrix.build-config || 'Release' }}
 
     - name: Run test cases
+      if: matrix.enabled
       run: ctest -C Release --output-on-failure --max-width 120
       working-directory: ../build
 
     - name: create packages
+      if: matrix.enabled
       run: cmake --build ../build --config ${{ matrix.build-config || 'Release' }} -t ${{ matrix.pkgtgt }}
 
     - name: Upload build errors
       uses: actions/upload-artifact@v4
-      if: failure()
+      if: failure() && matrix.enabled == true
       with:
         name: ${{ matrix.name }} (cmake)
         path: |

@@ -1,0 +1,9 @@
+[Unit]
+Description=GitHub Actions Worker for zlib
+
+[Container]
+Image=zlib/actions_runner
+
+[Install]
+WantedBy=multi-user.target default.target
+
