@@ -90,12 +90,13 @@ static struct deflate_index *add_point(struct deflate_index *index, off_t in,
     if (index->have == index->mode) {
         // The list is full. Make it bigger.
         index->mode = index->mode ? index->mode << 1 : 8;
-        point_t *next = realloc(index->list, sizeof(point_t) * index->mode);
-        if (next == NULL) {
-            deflate_index_free(index);
-            return NULL;
-        }
-        index->list = next;
+point_t *next = realloc(index->list, sizeof(point_t) * index->mode);
+if (next == NULL) {
+    deflate_index_free(index);
+    index = NULL;  // Optional safety
+    return NULL;
+}
+index->list = next;
     }
 
     // Fill in the access point and increment how many we have.
