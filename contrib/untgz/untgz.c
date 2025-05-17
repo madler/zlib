@@ -330,10 +330,11 @@ int makedir (char *newdir)
   char *p;
   int  len = strlen(buffer);
 
-  if (len <= 0) {
+ if (len <= 0) {
     free(buffer);
+    buffer = NULL; // Prevent use-after-free or double-free
     return 0;
-  }
+}
   if (buffer[len-1] == '/') {
     buffer[len-1] = '\0';
   }
