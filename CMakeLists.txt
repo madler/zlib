@@ -191,7 +191,8 @@ if(ZLIB_BUILD_SHARED)
                    OUTPUT_NAME z)
     if(UNIX
        AND NOT APPLE
-       AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX))
+       AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
+       AND NOT (${CMAKE_C_COMPILER_ID} STREQUAL "Clang"))
         # On unix-like platforms the library is almost always called libz
         set_target_properties(
             zlib
@@ -200,7 +201,8 @@ if(ZLIB_BUILD_SHARED)
     endif(
         UNIX
         AND NOT APPLE
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX))
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
+        AND NOT (${CMAKE_C_COMPILER_ID} STREQUAL "Clang"))
 endif(ZLIB_BUILD_SHARED)
 
 if(ZLIB_BUILD_STATIC)

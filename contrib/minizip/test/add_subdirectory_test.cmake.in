@@ -12,9 +12,12 @@ option(MINIZIP_ENABLE_BZIP2 "" @MINIZIP_ENABLE_BZIP2@)
 
 add_subdirectory(@minizip_SOURCE_DIR@ ${CMAKE_CURRENT_BINARY_DIR}/minizip)
 
+include(CheckSymbolExists)
+check_symbol_exists(_WIN32 stdlib.h IS_WIN)
+
 set(MINIZIP_SRCS
     @minizip_SOURCE_DIR@/ioapi.c
-    $<$<BOOL:${WIN32}>:@minizip_SOURCE_DIR@/iowin32.c>
+    $<$<BOOL:${IS_WIN}>:@minizip_SOURCE_DIR@/iowin32.c>
     @minizip_SOURCE_DIR@/minizip.c @minizip_SOURCE_DIR@/zip.c)
 
 if(MINIZIP_BUILD_SHARED)
