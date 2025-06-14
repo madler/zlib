@@ -29,8 +29,18 @@ jobs:
           toolchain:p
           cmake:p
     - name: Configure
+      if: matrix.sys != 'clang64'
       run: |
         cmake -G"Unix Makefiles" \
+          -S . \
+          -B build \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DMINIZIP_ENABLE_BZIP2=ON
+    - name: Configure clang64
+      if: matrix.sys == 'clang64'
+      run: |
+        CC=clang cmake -G"Unix Makefiles" \
           -S . \
           -B build \
           -DCMAKE_VERBOSE_MAKEFILE=ON \
