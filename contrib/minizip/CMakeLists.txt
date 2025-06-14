@@ -89,6 +89,9 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
+include(CheckSymbolExists)
+check_symbol_exists(_WIN32 stdlib.h IS_WIN)
+
 if(NOT TARGET ZLIB::ZLIB)
     find_package(ZLIB REQUIRED CONFIG)
 endif(NOT TARGET ZLIB::ZLIB)
@@ -97,19 +100,19 @@ set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
 
 set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
 
-set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
+set(MINIZIP_SRCS ioapi.c $<$<BOOL:${IS_WIN}>:iowin32.c> minizip.c zip.c)
 
-set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> skipset.h
+set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${IS_WIN}>:iowin32.h> skipset.h
                  zip.h)
 
-set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> miniunz.c unzip.c
+set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${IS_WIN}>:iowin32.c> miniunz.c unzip.c
                    zip.c)
 
 set(MINIUNZIP_HDRS
     crypt.h
     ints.h
     ioapi.h
-    $<$<BOOL:${WIN32}>:iowin32.h>
+    $<$<BOOL:${IS_WIN}>:iowin32.h>
     skipset.h
     unzip.h
     zip.h)
