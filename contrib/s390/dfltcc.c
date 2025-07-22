@@ -581,6 +581,9 @@ dfltcc_inflate_action ZLIB_INTERNAL dfltcc_inflate(z_streamp strm, int flush,
 
     /* Translate parameter block to stream */
     strm->msg = oesc_msg(dfltcc_state->msg, param->oesc);
+
+    if (state->wrap & 4)
+        strm->adler = state->check = state->flags ? ZSWAP32(param->cv) : param->cv;
     state->last = cc == DFLTCC_CC_OK;
     state->bits = param->sbb;
     if (state->wrap & 4)
