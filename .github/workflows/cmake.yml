@@ -58,6 +58,13 @@ jobs:
             cmake-args: -G Ninja -DMINIZIP_ENABLE_BZIP2=OFF
             pkgtgt: package
 
+          - name: Windows MSVC Win-ARM64
+            os: windows-11-arm
+            compiler: cl
+            cflags: /W3
+            cmake-args: -A ARM64 -DMINIZIP_ENABLE_BZIP2=OFF
+            pkgtgt: PACKAGE
+
           - name: macOS Clang
             os: macos-latest
             compiler: clang
