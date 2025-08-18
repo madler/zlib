@@ -58,7 +58,7 @@ jobs:
             cmake-args: -G Ninja -DMINIZIP_ENABLE_BZIP2=OFF
             pkgtgt: package
 
-          - name: Windows MSVC Win-ARM64
+          - name: Windows MSVC ARM64
             os: windows-11-arm
             compiler: cl
             cflags: /W3
