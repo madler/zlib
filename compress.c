@@ -7,6 +7,9 @@
 
 #define ZLIB_INTERNAL
 #include "zlib.h"
+#include "contrib/dfltcc/hooks.h"
+
+#define ZLIB_WRAPLEN 6 /* zlib format overhead */
 
 /* ===========================================================================
      Compresses the source buffer into the destination buffer. The level
@@ -94,6 +97,12 @@ z_size_t ZEXPORT compressBound_z(z_size_t sourceLen) {
     return bound < sourceLen ? (z_size_t)-1 : bound;
 }
 uLong ZEXPORT compressBound(uLong sourceLen) {
-    z_size_t bound = compressBound_z(sourceLen);
-    return (uLong)bound != bound ? (uLong)-1 : (uLong)bound;
+    uLong complen = DEFLATE_BOUND_COMPLEN(sourceLen);
+
+    if (complen > 0)
+        /* Architecture-specific code provided an upper bound. */
+        return complen + ZLIB_WRAPLEN;
+
+    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
+           (sourceLen >> 25) + 13;
 }
