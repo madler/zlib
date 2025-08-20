@@ -84,7 +84,11 @@
 #include "inftrees.h"
 #include "inflate.h"
 #include "inffast.h"
-#include "contrib/dfltcc/hooks.h"
+#ifdef HAVE_S390X_DFLTCC
+#  include "contrib/dfltcc/dfltcc_hooks.h"
+#else
+#  include "contrib/dfltcc/hooks.h"
+#endif
 
 local int inflateStateCheck(z_streamp strm) {
     struct inflate_state FAR *state;
@@ -1378,9 +1382,8 @@ int ZEXPORT inflateCopy(z_streamp dest, z_streamp source) {
         copy->distcode = copy->codes + (state->distcode - state->codes);
     }
     copy->next = copy->codes + (state->next - state->codes);
-    if (window != Z_NULL) {
+    if (window != Z_NULL)
         ZCOPY_WINDOW(window, state->window, state->whave);
-    }
     copy->window = window;
     dest->state = (struct internal_state FAR *)copy;
     return Z_OK;

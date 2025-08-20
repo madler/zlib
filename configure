@@ -96,6 +96,7 @@ undefined=0
 insecure=0
 unknown=0
 enable_crcvx=1
+enable_dfltcc=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 OBJC='$(OBJZ) $(OBJG)'
@@ -124,6 +125,7 @@ case "$1" in
       echo '    [--insecure] [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--mandir=MANDIR]' | tee -a configure.log
       echo '    [--archs="-arch i386 -arch x86_64"] [--disable-crcvx]' | tee -a configure.log
+      echo '    [--dfltcc] [--dfltcc-level-mask=MASK]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
@@ -158,6 +160,10 @@ case "$1" in
     --undefined) undefined=1; shift ;;
     --insecure) insecure=1; shift ;;
     --disable-crcvx) enable_crcvx=0; shift ;;
+    --dfltcc)enable_dfltcc=1; shift ;;
+    --dfltcc-level-mask=*)
+      CFLAGS="$CFLAGS -DDFLTCC_LEVEL_MASK=`echo $1 | sed 's/.*=//'`"
+      shift ;;
     *) unknown=1; echo "unknown option ignored: $1" | tee -a configure.log; shift;;
     esac
 done
@@ -979,6 +985,17 @@ EOF
     fi
 fi
 
+# enable ibm s390x dfltcc extension
+HAVE_S390X_DFLTCC=0
+if test $HAVE_S390X -eq 1 && test $enable_dfltcc -eq 1; then
+    HAVE_S390X_DFLTCC=1
+    echo "Enabeling s390x dfltcc extension ... Yes." | tee -a configure.log
+    CFLAGS="$CFLAGS -DHAVE_S390X_DFLTCC"
+    SFLAGS="$SFLAGS -DHAVE_S390X_DFLTCC"
+    OBJC="$OBJC dfltcc.o"
+    PIC_OBJC="$PIC_OBJC dfltcc.lo"
+fi
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -1012,6 +1029,7 @@ echo sharedlibdir = $sharedlibdir >> configure.log
 echo uname = $uname >> configure.log
 echo HAVE_S390X = $HAVE_S390X >> configure.log
 echo HAVE_S390X_VX = $HAVE_S390X_VX >> configure.log
+echo HAVE_S390X_DFLTCC = $HAVE_S390X_DFLTCC >> configure.log
 echo VGFMAFLAG = $VGFMAFLAG >> configure.log
 
 # update Makefile with the configure results

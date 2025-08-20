@@ -50,7 +50,11 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
-#include "contrib/dfltcc/hooks.h"
+#ifdef HAVE_S390X_DFLTCC
+#  include "contrib/dfltcc/dfltcc_hooks.h"
+#else
+#  include "contrib/dfltcc/hooks.h"
+#endif
 
 const char deflate_copyright[] =
    " deflate 1.3.2.1 Copyright 1995-2026 Jean-loup Gailly and Mark Adler ";
