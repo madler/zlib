@@ -49,6 +49,10 @@ puff/       by Mark Adler <madler@alumni.caltech.edu>
 crc32vx/      by Ilya Leoshkevich <iii@linux.ibm.com>
         Hardware-accelerated CRC32 on IBM Z with Z13 VX extension.
 
+dfltcc/      by Ilya Leoshkevich <iii@linux.ibm.com>
+        Hardware-accelerated deflate on IBM Z with Z15 DEFLATE CONVERSION CALL
+        instruction.
+
 testzlib/   by Gilles Vollant <info@winimage.com>
         Example of the use of zlib
 

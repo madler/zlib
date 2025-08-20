@@ -7,7 +7,11 @@
 
 #define ZLIB_INTERNAL
 #include "zlib.h"
-#include "contrib/dfltcc/hooks.h"
+#ifdef HAVE_S390X_DFLTCC
+#  include "contrib/dfltcc/dfltcc_hooks.h"
+#else
+#  include "contrib/dfltcc/hooks.h"
+#endif
 
 #define ZLIB_WRAPLEN 6 /* zlib format overhead */
 
