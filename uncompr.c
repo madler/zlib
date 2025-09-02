@@ -32,6 +32,14 @@ int ZEXPORT uncompress2(Bytef *dest, uLongf *destLen, const Bytef *source,
     uLong len, left;
     Byte buf[1];    /* for detection of incomplete stream when *destLen == 0 */
 
+    if (source == NULL || sourceLen == NULL || destLen == NULL) {
+        return Z_STREAM_ERROR;
+    }
+
+    if (*destLen > 0 && dest == NULL) {
+        return Z_STREAM_ERROR;
+    }
+
     len = *sourceLen;
     if (*destLen) {
         left = *destLen;
