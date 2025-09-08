@@ -446,7 +446,8 @@ int ZEXPORT gzungetc(int c, gzFile file) {
 
     /* in case this was just opened, set up the input buffer */
     if (state->mode == GZ_READ && state->how == LOOK && state->x.have == 0)
-        (void)gz_look(state);
+        if (gz_look(state) == -1)
+            return -1;
 
     /* check that we're reading and that there's no (serious) error */
     if (state->mode != GZ_READ ||
