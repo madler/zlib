@@ -103,7 +103,7 @@ check_include_file(unistd.h HAVE_UNISTD_H)
 if(MSVC)
     set(CMAKE_REQUIRED_FLAGS "-WX")
 else(MSVC)
-    set(CMAKE_REQUIRED_FLAGS "-WError")
+    set(CMAKE_REQUIRED_FLAGS "-Werror")
 endif(MSVC)
 
 check_c_source_compiles(

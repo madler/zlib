@@ -46,6 +46,9 @@ puff/       by Mark Adler <madler@alumni.caltech.edu>
         Small, low memory usage inflate.  Also serves to provide an
         unambiguous description of the deflate format.
 
+crc32vx/      by Ilya Leoshkevich <iii@linux.ibm.com>
+        Hardware-accelerated CRC32 on IBM Z with Z13 VX extension.
+
 testzlib/   by Gilles Vollant <info@winimage.com>
         Example of the use of zlib
 

@@ -95,6 +95,7 @@ memory=0
 undefined=0
 insecure=0
 unknown=0
+enable_crcvx=1
 old_cc="$CC"
 old_cflags="$CFLAGS"
 OBJC='$(OBJZ) $(OBJG)'
@@ -122,6 +123,7 @@ case "$1" in
       echo '  configure [--const] [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
       echo '    [--insecure] [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
+      echo '    [--disable-crcvx]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -150,6 +152,7 @@ case "$1" in
     --memory) memory=1; shift ;;
     --undefined) undefined=1; shift ;;
     --insecure) insecure=1; shift ;;
+    --disable-crcvx) enable_crcvx=0; shift ;;
     *) unknown=1; echo "unknown option ignored: $1" | tee -a configure.log; shift;;
     esac
 done
@@ -888,6 +891,70 @@ EOF
   fi
 fi
 
+# check for ibm s390x build
+HAVE_S390X=0
+cat > $test.c << EOF
+#ifndef __s390x__
+    #error
+#endif
+EOF
+if try $CC -c $CFLAGS $test.c; then 
+    echo "Checking for s390x build ... Yes." | tee -a configure.log
+    HAVE_S390X=1
+else
+    echo "Checking for s390x build ... No." | tee -a configure.log
+fi
+
+# check for ibm s390x vx vector extensions
+HAVE_S390X_VX=0
+if test $HAVE_S390X -eq 1 && test $enable_crcvx -eq 1 ; then
+    # preset the compiler specific flags
+    if test $clang -eq 1; then
+        VGFMAFLAG=-fzvector
+    else
+        VGFMAFLAG=-mzarch
+    fi
+
+    cat > $test.c <<EOF
+#ifndef __s390x__
+#error
+#endif
+#include <vecintrin.h>
+int main(void) {
+    unsigned long long a __attribute__((vector_size(16))) = { 0 };
+    unsigned long long b __attribute__((vector_size(16))) = { 0 };
+    unsigned char c __attribute__((vector_size(16))) = { 0 };
+    c = vec_gfmsum_accum_128(a, b, c);
+    return c[0];
+}
+EOF
+
+    # cflags already contains a valid march
+    if try $CC -c $CFLAGS $VGFMAFLAG $test.c; then
+        echo "Checking for s390x vx vector extension ... Yes." | tee -a configure.log
+        HAVE_S390X_VX=1
+    # or set march for our compile units
+    elif try $CC -c $CFLAGS $VGFMAFLAG -march=z13 $test.c; then
+        echo "Checking for s390x vx vector extension (march=z13) ... Yes." | tee -a configure.log
+        HAVE_S390X_VX=1
+        VGFMAFLAG="$VGFMAFLAG -march=z13"
+    # else we are not on s390x
+    else 
+        echo "Checking for s390x vx vector extension ... No." | tee -a configure.log
+    fi
+
+    # prepare compiling for s390x
+    if test $HAVE_S390X_VX -eq 1; then
+        CFLAGS="$CFLAGS -DHAVE_S390X_VX"
+        SFLAGS="$SFLAGS -DHAVE_S390X_VX"
+        OBJC="$OBJC crc32_vx.o"
+        PIC_OBJC="$PIC_OBJC crc32_vx.lo"
+    else
+        # target has no vx extension
+        VGFMAFLAG=""
+    fi
+fi
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -919,6 +986,9 @@ echo mandir = $mandir >> configure.log
 echo prefix = $prefix >> configure.log
 echo sharedlibdir = $sharedlibdir >> configure.log
 echo uname = $uname >> configure.log
+echo HAVE_S390X = $HAVE_S390X >> configure.log
+echo HAVE_S390X_VX = $HAVE_S390X_VX >> configure.log
+echo VGFMAFLAG = $VGFMAFLAG >> configure.log
 
 # update Makefile with the configure results
 sed < ${SRCDIR}Makefile.in "

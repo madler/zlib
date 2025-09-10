@@ -24,9 +24,15 @@ function(zlib_add_contrib_lib name description dir)
 endfunction(zlib_add_contrib_lib name description dir)
 
 function(zlib_add_contrib_feature name description dir)
+    if(ARGC EQUAL 4)
+        set(default_on ${ARGV3})
+    else()
+        set(default_on Off)
+    endif()
+
     option(ZLIB_WITH_${name}
            "Enable build ${description}"
-           OFF)
+           ${default_on})
 
     if(ZLIB_WITH_${name})
         add_subdirectory(${dir}/)
@@ -38,6 +44,7 @@ zlib_add_contrib_feature("GVMAT64"
     gcc_gvmat64)
 
 zlib_add_contrib_feature(INFBACK9 "with support for method 9 deflate" infback9)
+zlib_add_contrib_feature(CRC32VX "with S390X-CRC32VX implementation" crc32vx On)
 zlib_add_contrib_lib(ADA "Ada bindings" ada)
 zlib_add_contrib_lib(BLAST "blast binary" blast)
 zlib_add_contrib_lib(IOSTREAM3 "IOStream C++ bindings V3" iostream3)

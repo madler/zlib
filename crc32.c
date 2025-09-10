@@ -19,6 +19,9 @@
   MAKECRCH can be #defined to write out crc32.h. A main() routine is also
   produced, so that this one source file can be compiled to an executable.
  */
+#ifdef HAVE_S390X_VX
+#  include "contrib/hooks.h"
+#endif
 
 #ifdef MAKECRCH
 #  include <stdio.h>
@@ -942,6 +945,9 @@ unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
 /* ========================================================================= */
 unsigned long ZEXPORT crc32(unsigned long crc, const unsigned char FAR *buf,
                             uInt len) {
+    #ifdef HAVE_S390X_VX
+    return crc32_z_hook(crc, buf, len);
+    #endif
     return crc32_z(crc, buf, len);
 }
 
