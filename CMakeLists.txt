@@ -207,6 +207,9 @@ if(ZLIB_BUILD_STATIC)
     add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
                                   ${ZLIB_PRIVATE_HDRS})
     add_library(ZLIB::ZLIBSTATIC ALIAS zlibstatic)
+    if(NOT ZLIB_BUILD_SHARED)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
     target_include_directories(
         zlibstatic
         PUBLIC $<BUILD_INTERFACE:${zlib_BINARY_DIR}>

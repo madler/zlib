@@ -24,3 +24,7 @@ else(ZLIB_FIND_COMPONENTS)
         include("${CMAKE_CURRENT_LIST_DIR}/ZLIB-${_component_config}.cmake")
     endforeach(_component_config IN LISTS _ZLIB_supported_components)
 endif(ZLIB_FIND_COMPONENTS)
+
+if(@ZLIB_BUILD_STATIC@ AND NOT @ZLIB_BUILD_SHARED@)
+    add_library(ZLIB::ZLIB ALIAS ZLIB::ZLIBSTATIC)
+endif(@ZLIB_BUILD_STATIC@ AND NOT @ZLIB_BUILD_SHARED@)
