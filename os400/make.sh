@@ -361,6 +361,6 @@ then    rm -rf "${LIBIFSNAME}/${DYNBNDDIR}.BNDDIR"
         CMD="${CMD} TEXT('ZLIB dynamic binding directory')"
         system "${CMD}"
         CMD="ADDBNDDIRE BNDDIR(${TARGETLIB}/${DYNBNDDIR})"
-        CMD="${CMD} OBJ((*LIBL/${SRVPGM} *SRVPGM))"
+        CMD="${CMD} OBJ((${TARGETLIB}/${SRVPGM} *SRVPGM))"
         system "${CMD}"
 fi
