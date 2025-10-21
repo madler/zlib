@@ -187,6 +187,7 @@ do      MEMBER="${LIBIFSNAME}/DOCS.FILE/`db2_name \"${TEXT}\"`.MBR"
         then    CMD="CPY OBJ('${TEXT}') TOOBJ('${MEMBER}') TOCCSID(${TGTCCSID})"
                 CMD="${CMD} DTAFMT(*TEXT) REPLACE(*YES)"
                 system "${CMD}"
+                system "CHGPFM FILE(${TARGETLIB}/DOCS) MBR(`basename ${TEXT}`) SRCTYPE(TXT)"
         fi
 done
 
@@ -221,6 +222,7 @@ do      DEST="${SRCPF}/`db2_name \"${HFILE}\"`.MBR"
                 CMD="CPY OBJ('`pwd`/tmphdrfile') TOOBJ('${DEST}')"
                 CMD="${CMD} TOCCSID(${TGTCCSID}) DTAFMT(*TEXT) REPLACE(*YES)"
                 system "${CMD}"
+                system "CHGPFM FILE(${TARGETLIB}/H) MBR(`basename ${HFILE} .h`) SRCTYPE(H)"
                 # touch -r "${HFILE}" "${DEST}"
                 rm -f tmphdrfile
         fi
@@ -315,6 +317,7 @@ if action_needed "${SCRIPTDIR}/bndsrc" "${DEST}"
 then    CMD="CPY OBJ('${SCRIPTDIR}/bndsrc') TOOBJ('${DEST}')"
         CMD="${CMD} TOCCSID(${TGTCCSID}) DTAFMT(*TEXT) REPLACE(*YES)"
         system "${CMD}"
+        system "CHGPFM FILE(${TARGETLIB}/TOOLS) MBR(BNDSRC) SRCTYPE(BND)"
         # touch -r "${SCRIPTDIR}/bndsrc" "${DEST}"
         LINK=YES
 fi
