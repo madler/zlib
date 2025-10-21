@@ -238,13 +238,15 @@ done
 
 
 HFILE="${SCRIPTDIR}/zlib.inc"
-DEST="${SRCPF}/ZLIB.INC.MBR"
+MBR="ZLIB.INC"
+DEST="${SRCPF}/${MBR}.MBR"
 
 if action_needed "${DEST}" "${HFILE}"
 then    CMD="CPY OBJ('${HFILE}') TOOBJ('${DEST}')"
         CMD="${CMD} TOCCSID(${TGTCCSID}) DTAFMT(*TEXT) REPLACE(*YES)"
         system "${CMD}"
         # touch -r "${HFILE}" "${DEST}"
+        system "CHGPFM FILE(${TARGETLIB}/H) MBR(${MBR}) SRCTYPE(RPGLE)"
 fi
 
 IFSFILE="${IFSDIR}/include/`basename \"${HFILE}\"`"
