@@ -247,6 +247,18 @@ then    CMD="CPY OBJ('${HFILE}') TOOBJ('${DEST}')"
         # touch -r "${HFILE}" "${DEST}"
 fi
 
+HFILE="${SCRIPTDIR}/zlibfree"
+MBR="ZLIBFREE"
+DEST="${SRCPF}/${MBR}.MBR"
+
+if action_needed "${DEST}" "${HFILE}"
+then    CMD="CPY OBJ('${HFILE}') TOOBJ('${DEST}')"
+        CMD="${CMD} TOCCSID(${TGTCCSID}) DTAFMT(*TEXT) REPLACE(*YES)"
+        system "${CMD}"
+        # touch -r "${HFILE}" "${DEST}"
+        system "CHGPFM FILE(${TARGETLIB}/H) MBR(${MBR}) SRCTYPE(RPGLE)"
+fi
+
 IFSFILE="${IFSDIR}/include/`basename \"${HFILE}\"`"
 
 if action_needed "${IFSFILE}" "${DEST}"
