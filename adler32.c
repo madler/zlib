@@ -57,10 +57,113 @@
 #  define MOD63(a) a %= BASE
 #endif
 
+#if defined(ADLER32_RVV)
+#include <riscv_vector.h>
+#define ADLER32_RVV_MIN_LEN 64
+
+/*
+ * rvv-optimized adler32
+ */
+uLong ZLIB_INTERNAL adler32_rvv(uLong adler, const Bytef *buf, z_size_t len)
+{
+    /* initial Adler-32 value (deferred check for len == 1 speed) */
+    if (buf == NULL)
+        return 1L;
+
+    uint32_t s1 = adler & 0xffff;
+    uint32_t s2 = (adler >> 16) & 0xffff;
+
+    if ((uintptr_t)buf & 0xf) {
+        while ((uintptr_t)buf & 0xf && len) {
+            s2 += (s1 += *buf++);
+            --len;
+        }
+        if (s1 >= BASE) s1 -= BASE;
+        s2 %= BASE;
+    }
+
+    size_t vl_max = __riscv_vsetvlmax_e8m4();
+    z_size_t blocks = len / vl_max;
+    len -= blocks * vl_max;
+
+    while (blocks) {
+        unsigned n = NMAX / vl_max;
+        if (n > blocks)
+            n = (unsigned) blocks;
+        blocks -= n;
+
+        do {
+            vuint8m4_t v_buf = __riscv_vle8_v_u8m4(buf, vl_max);
+            vuint16m8_t v_buf16 = __riscv_vzext_vf2_u16m8(v_buf, vl_max);
+            vuint32m1_t v_sum = __riscv_vmv_v_x_u32m1(0, 1);
+            v_sum = __riscv_vwredsumu_vs_u16m8_u32m1(v_buf16, v_sum, vl_max);
+
+            s2 += s1 * vl_max;
+
+            vuint16m8_t v_weights = __riscv_vid_v_u16m8(vl_max);
+            vuint16m8_t v_max = __riscv_vmv_v_x_u16m8(vl_max, vl_max);
+            v_weights = __riscv_vsub_vv_u16m8(v_max, v_weights, vl_max);
+
+            vuint16m8_t v_weighted = __riscv_vmul_vv_u16m8(v_buf16, v_weights, vl_max);
+            vuint32m1_t v_s2_sum = __riscv_vmv_v_x_u32m1(0, 1);
+            v_s2_sum = __riscv_vwredsumu_vs_u16m8_u32m1(v_weighted, v_s2_sum, vl_max);
+
+            s2 += __riscv_vmv_x_s_u32m1_u32(v_s2_sum);
+
+            s1 += __riscv_vmv_x_s_u32m1_u32(v_sum);
+            buf += vl_max;
+        } while (--n);
+
+        s1 %= BASE;
+        s2 %= BASE;
+    }
+
+    if (len) {
+        if (len >= 16) {
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+            s2 += (s1 += *buf++);
+
+            len -= 16;
+        }
+
+        while (len--) {
+            s2 += (s1 += *buf++);
+        }
+
+        if (s1 >= BASE)
+            s1 -= BASE;
+        s2 %= BASE;
+    }
+
+    return s1 | (s2 << 16);
+}
+
 /* ========================================================================= */
 uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
     unsigned long sum2;
     unsigned n;
+
+#if defined(ADLER32_RVV)
+    if (buf && len >= ADLER32_RVV_MIN_LEN)
+	return adler32_rvv(adler, buf, len);
+#endif
 
     /* split Adler-32 into component sums */
     sum2 = (adler >> 16) & 0xffff;
