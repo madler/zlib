@@ -113,3 +113,1473 @@ any third parties.
 If you redistribute modified sources, we would appreciate that you include in
 the file ChangeLog history information documenting your changes.  Please read
 the FAQ for more information on the distribution of modified source versions.
+#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"#!/usr/bin/env bash
+# android_audit.sh
+# Executar no PC com adb conectado. Não apaga nada por padrão; apenas coleta dados.
+# Requisitos: adb instalado, USB Debugging ativado no aparelho.
+set -euo pipefail
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="./android_audit_${TIMESTAMP}"
+mkdir -p "$OUTDIR"
+echo "Salvando relatórios em $OUTDIR"
+
+# espera dispositivo
+echo "Aguardando dispositivo ADB..."
+adb wait-for-device
+
+echo "# 1) Informações básicas do dispositivo" > "$OUTDIR/README.txt"
+echo "Timestamp: $TIMESTAMP" >> "$OUTDIR/README.txt"
+
+adb shell getprop > "$OUTDIR/getprop.txt" || true
+adb shell cat /proc/version > "$OUTDIR/proc_version.txt" || true
+adb shell dumpsys battery > "$OUTDIR/battery.txt" || true
+adb shell wm size > "$OUTDIR/screen_size.txt" || true
+adb shell pm path com.android.vending > "$OUTDIR/play_store_path.txt" || true
+
+# 2) Lista de pacotes com paths (installed & system)
+adb shell pm list packages -f > "$OUTDIR/packages_f.txt" || true
+adb shell pm list packages -s > "$OUTDIR/system_packages.txt" || true
+adb shell pm list packages -3 > "$OUTDIR/third_party_packages.txt" || true
+
+# 3) permissões por app (scan top third-party apps)
+echo "Checando permissões de apps (terceiros, até 200 apps)..."
+adb shell pm list packages -3 | sed 's/package://g' | head -n 200 | while read -r pkg; do
+  echo "---- $pkg ----" >> "$OUTDIR/app_permissions.txt"
+  adb shell dumpsys package "$pkg" | sed -n '1,200p' >> "$OUTDIR/app_permissions.txt" || true
+done
+
+# 4) device admin apps
+adb shell dpm list > "$OUTDIR/device_admins.txt" 2>/dev/null || true
+adb shell dumpsys device_policy > "$OUTDIR/device_policy_dump.txt" 2>/dev/null || true
+
+# 5) accessibility services (vetor de abuso)
+adb shell settings get secure enabled_accessibility_services > "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+adb shell settings get secure accessibility_enabled >> "$OUTDIR/enabled_accessibility_services.txt" 2>/dev/null || true
+
+# 6) running processes and network connections
+# ps variants
+adb shell 'ps -A' > "$OUTDIR/ps_all.txt" 2>/dev/null || adb shell ps > "$OUTDIR/ps_all.txt" 2>/dev/null || true
+# netstat/ss
+adb shell netstat -anp > "$OUTDIR/netstat.txt" 2>/dev/null || adb shell ss -anp > "$OUTDIR/netstat.txt" 2>/dev/null || true
+
+# 7) check for su/root binaries (varias localizações)
+{
+  echo "Checking common su locations:"
+  adb shell ls -la /system/xbin/su /system/bin/su /sbin/su /vendor/bin/su 2>/dev/null || true
+  echo; echo "Which su (if root PATH exposed):"
+  adb shell which su 2>/dev/null || true
+} > "$OUTDIR/su_check.txt"
+
+# 8) dump logcat (short)
+adb logcat -d > "$OUTDIR/logcat.txt" 2>/dev/null || true
+
+# 9) list external storage files (top)
+adb shell ls -la /sdcard/ | head -n 200 > "$OUTDIR/sdcard_root_list.txt" 2>/dev/null || true
+
+# 10) export apk for further analysis (only first 20 third-party apps)
+mkdir -p "$OUTDIR/apks"
+count=0
+# iterate robustly
+adb shell pm list packages -3 | sed 's/package://g' | tr -d '\r' | while read -r pkg; do
+  count=$((count+1))
+  if [ "$count" -gt 20 ]; then
+    break
+  fi
+  path=$(adb shell pm path "$pkg" 2>/dev/null | sed 's/package://g' | tr -d '\r' | head -n1 || true)
+  if [ -n "$path" ]; then
+    fname="$(echo "$pkg" | tr '/' '_' ).apk"
+    echo "Pulling $pkg -> $path"
+    adb pull "$path" "$OUTDIR/apks/${fname}" 2>/dev/null || true
+  fi
+done
+
+# 11) capture permissions summary (dangerous permissions)
+adb shell pm list permissions -d > "$OUTDIR/declared_permissions.txt" 2>/dev/null || true
+adb shell dumpsys package | grep -i "dangerous" -n > "$OUTDIR/dangerous_permissions_grep.txt" 2>/dev/null || true
+
+# 12) summary file
+cat > "$OUTDIR/summary.txt" <<EOF
+Android audit snapshot
+Timestamp: $TIMESTAMP
+
+Files collected in this folder:
+- getprop.txt
+- proc_version.txt
+- battery.txt
+- packages_f.txt
+- system_packages.txt
+- third_party_packages.txt
+- app_permissions.txt
+- device_admins.txt
+- enabled_accessibility_services.txt
+- ps_all.txt
+- netstat.txt
+- su_check.txt
+- logcat.txt
+- sdcard_root_list.txt
+- apks/ (first 20 third-party APKs, if available)
+
+Avisos:
+- Nenhum comando destrutivo foi executado por este script.
+- Copie a pasta para um PC seguro antes de compartilhar com terceiros.
+EOF
+
+echo "Audit complete. Verifique os arquivos em $OUTDIR"
+echo "Se quiser compactar: tar -czf ${OUTDIR}.tar.gz $OUTDIR"
