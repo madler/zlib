@@ -10,6 +10,7 @@ project(
 # ============================================================================
 # CPack
 # ============================================================================
+set(CPACK_PACKAGE_NAME "ZLIB")
 set(CPACK_PACKAGE_VENDOR "zlib-Project")
 set(CPACK_PACKAGE_DESCRIPTION_FILE ${zlib_SOURCE_DIR}/README)
 set(CPACK_RESOURCE_FILE_LICENSE ${zlib_SOURCE_DIR}/LICENSE)
