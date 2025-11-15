@@ -2,7 +2,7 @@ Building instructions for the DLL versions of Zlib 1.3.1.2
 ========================================================
 
 This directory contains projects that build zlib and minizip using
-Microsoft Visual C++ 9.0 - 17.x.
+Microsoft Visual C++ 9.0 - 18.x.
 
 You don't need to build these projects yourself. You can download the
 binaries from:
@@ -43,7 +43,12 @@ Build instructions for Visual Studio 2015 (32 bits or 64 bits)
 Build instructions for Visual Studio 2022 (64 bits)
 --------------------------------------------------------------
 - Decompress current zlib, including all contrib/* files
-- Open contrib\vstudio\vc17\zlibvc.sln with Microsoft Visual C++ 2022
+- Open contrib\vstudio\vc17\zlibvc.sln with Microsoft Visual Studio 2022
+
+Build instructions for Visual Studio 2026 (64 bits)
+--------------------------------------------------------------
+- Decompress current zlib, including all contrib/* files
+- Open contrib\vstudio\vc18\zlibvc.slnx with Microsoft Visual Studio 2026
 
 
 

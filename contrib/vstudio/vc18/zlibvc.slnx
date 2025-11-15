@@ -1,0 +1,26 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="ReleaseWithoutAsm" />
+    <Platform Name="ARM64" />
+    <Platform Name="ARM64EC" />
+    <Platform Name="Win32" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="miniunz.vcxproj" Id="c52f9e7b-498a-42be-8db4-85a15694382a">
+    <BuildType Solution="ReleaseWithoutAsm|*" Project="Release" />
+    <Build Solution="ReleaseWithoutAsm|*" Project="false" />
+  </Project>
+  <Project Path="minizip.vcxproj" Id="48cdd9dc-e09f-4135-9c0c-4fe50c3c654b">
+    <BuildType Solution="ReleaseWithoutAsm|*" Project="Release" />
+    <Build Solution="ReleaseWithoutAsm|*" Project="false" />
+  </Project>
+  <Project Path="testzlib.vcxproj" Id="aa6666aa-e09f-4135-9c0c-4fe50c3c654b" />
+  <Project Path="testzlibdll.vcxproj" Id="c52f9e7b-498a-42be-8db4-85a15694366a">
+    <BuildType Solution="ReleaseWithoutAsm|*" Project="Release" />
+    <Build Solution="ReleaseWithoutAsm|*" Project="false" />
+  </Project>
+  <Project Path="zlibstat.vcxproj" Id="745dec58-ebb3-47a9-a9b8-4c6627c01bf8" />
+  <Project Path="zlibvc.vcxproj" Id="8fd826f8-3739-44e6-8cc8-997122e53b8d" />
+</Solution>
