@@ -154,6 +154,7 @@ uLong ZLIB_INTERNAL adler32_rvv(uLong adler, const Bytef *buf, z_size_t len)
 
     return s1 | (s2 << 16);
 }
+#endif
 
 /* ========================================================================= */
 uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
