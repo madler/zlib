@@ -89,9 +89,11 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
-if(NOT TARGET ZLIB::ZLIB)
-    find_package(ZLIB REQUIRED CONFIG)
-endif(NOT TARGET ZLIB::ZLIB)
+if(ZLIB_BUILD_SHARED)
+    if(NOT TARGET ZLIB::ZLIB)
+        find_package(ZLIB REQUIRED CONFIG)
+    endif(NOT TARGET ZLIB::ZLIB)
+endif()
 
 set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
 
