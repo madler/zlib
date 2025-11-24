@@ -90,12 +90,12 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     z_stream strm;
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
-    unsigned long long total_size;
+
+    unsigned long long total_size = 0;
     long cur;
     long end;
     int flush;
-    int last_percent;
-    size_t extra_len;
+    int last_percent = -1;
 
     // 전체 입력 파일 크기 계산 (진행률용)
     total_size = 0;
@@ -153,7 +153,6 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     last_percent = -1; // 진행률 초기값
 
     // deflate 루프 
-    int flush;
     do {
         strm.avail_in = (uInt)fread(in, 1, CHUNK, source);
         if (ferror(source)) {
