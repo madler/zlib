@@ -83,9 +83,19 @@ jobs:
             cflags: -static
             ldflags: -static
 
-          - name: macOS GCC
+          - name: macOS GCC 13
             os: macos-latest
-            compiler: gcc-12
+            compiler: gcc-13
+            configure-args: --warn
+
+          - name: macOS GCC 14
+            os: macos-latest
+            compiler: gcc-14
+            configure-args: --warn
+
+          - name: macOS GCC 15
+            os: macos-latest
+            compiler: gcc-15
             configure-args: --warn
 
           - name: macOS Clang

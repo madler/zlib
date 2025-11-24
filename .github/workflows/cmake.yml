@@ -65,9 +65,23 @@ jobs:
             pkgtgt: package
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
-          - name: macOS GCC
+          - name: macOS GCC 13
             os: macos-latest
-            compiler: gcc-12
+            compiler: gcc-13
+            cflags: -Wall -Wextra
+            pkgtgt: package
+            cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
+
+          - name: macOS GCC 14
+            os: macos-latest
+            compiler: gcc-14
+            cflags: -Wall -Wextra
+            pkgtgt: package
+            cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
+
+          - name: macOS GCC 15
+            os: macos-latest
+            compiler: gcc-15
             cflags: -Wall -Wextra
             pkgtgt: package
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
