@@ -95,8 +95,6 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     long end;
     int flush;
     int last_percent;
-    gz_header header;
-    unsigned char extra[256];
     size_t extra_len;
 
     // 전체 입력 파일 크기 계산 (진행률용)
@@ -151,6 +149,8 @@ static int deflate_with_meta(FILE *source, FILE *dest,
         deflateEnd(&strm);
         return ret;
     }
+    
+    last_percent = -1; // 진행률 초기값
 
     // deflate 루프 
     int flush;
@@ -178,11 +178,19 @@ static int deflate_with_meta(FILE *source, FILE *dest,
                 deflateEnd(&strm);
                 return Z_ERRNO;
             }
+
+            print_progress(&strm, total_size, &last_percent); // 진행률 출력
+        
         } while (strm.avail_out == 0);
 
     } while (flush != Z_FINISH);
 
     deflateEnd(&strm);
+
+    if (total_size > 0) {
+        fprintf(stderr, "\n"); // 진행률 출력 후 줄바꿈
+    }
+
     return Z_OK;
 }
 
@@ -213,7 +221,7 @@ int main(int argc, char **argv)
         return 1;
     }
     
-    // 실제 압축 + 메타데이터 삽입 작업 호출
+    // 실제 압축 + 메타데이터 + 진행률 표시 
     int ret = deflate_with_meta(in, out, author, date);
 
     fclose(in);
