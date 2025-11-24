@@ -72,7 +72,7 @@ if(ZLIB_BUILD_STATIC)
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_C_COMPILER_ID} STREQUAL
                                                 "Clang")
         set(CFLAGS_OLD ${CMAKE_C_FLAGS})
-        set({CMAKE_C_FLAGS
+        set(CMAKE_C_FLAGS
             ""
             CACHE STRING "" FORCE)
 
