@@ -79,7 +79,7 @@ jobs:
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
       run: |
-        choco install --no-progress ninja
+        choco install --no-progress nsis
 
     - name: Install packages (Linux)
       if: runner.os == 'Linux'
