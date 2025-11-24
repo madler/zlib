@@ -89,7 +89,7 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
-if(ZLIB_BUILD_SHARED)
+if(MINIZIP_BUILD_SHARED)
     if(NOT TARGET ZLIB::ZLIB)
         find_package(ZLIB REQUIRED CONFIG)
     endif(NOT TARGET ZLIB::ZLIB)
