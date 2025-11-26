@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "zlib.h"
 
@@ -13,50 +12,52 @@ static size_t build_extra(unsigned char *buf, size_t max,
                           const char *author, const char *date)
 {
     unsigned char *p = buf;
-    uint16_t xlen = 0;
+    unsigned short xlen = 0;
 
     if (max < 2) {
         return 0;
     }
 
-    // 나중에 XLEN을 채우기 위해 2바이트 비워둠
+    /* 나중에 XLEN을 채우기 위해 2바이트 비워둠 */
     p += 2;
 
-    // 1) AU 필드: 작성자 정보
+    /* 1) AU 필드: 작성자 정보 */
     if (author && author[0] != '\0') {
         size_t len = strlen(author);
         if (max - (size_t)(p - buf) >= 4 + len) {
             *p++ = 'A';
             *p++ = 'U';
-            uint16_t L = (uint16_t)len;
-            *p++ = (unsigned char)(L & 0xff);      // 길이 low byte
-            *p++ = (unsigned char)((L >> 8) & 0xff); // 길이 high byte
+            L = (unsigned short)len;
+            *p++ = (unsigned char)(L & 0xff);          /* 길이 low byte */
+            *p++ = (unsigned char)((L >> 8) & 0xff);   /* 길이 high byte */
             memcpy(p, author, len);
             p += len;
-            xlen += (uint16_t)(4 + len);
+            xlen = (unsigned short)(xlen + 4 + len);
         }
     }
 
-    // 2) DT 필드: 날짜 정보
+    /* 2) DT 필드: 날짜 정보 */
     if (date && date[0] != '\0') {
         size_t len = strlen(date);
         if (max - (size_t)(p - buf) >= 4 + len) {
+            unsigned short L;
+        
             *p++ = 'D';
             *p++ = 'T';
-            uint16_t L = (uint16_t)len;
+            L = (unsigned short)len;
             *p++ = (unsigned char)(L & 0xff);
             *p++ = (unsigned char)((L >> 8) & 0xff);
             memcpy(p, date, len);
             p += len;
-            xlen += (uint16_t)(4 + len);
+            xlen = (unsigned short)(xlen + 4 + len);
         }
     }
 
-    // 맨 앞 2바이트에 XLEN 값 채워 넣기 (little endian)
+    /* 맨 앞 2바이트에 XLEN 값 채워 넣기 (little endian) */
     buf[0] = (unsigned char)(xlen & 0xff);
     buf[1] = (unsigned char)((xlen >> 8) & 0xff);
 
-    return (size_t)(p - buf);  // extra 전체 길이 (XLEN 포함)
+    return (size_t)(p - buf);  /* extra 전체 길이 (XLEN 포함) */
 }
 
 
@@ -70,13 +71,13 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
 
-    // z_stream 초기화
+    /* z_stream 초기화 */
     memset(&strm, 0, sizeof(strm));
     strm.zalloc = Z_NULL;
     strm.zfree  = Z_NULL;
     strm.opaque = Z_NULL;
 
-    // 15 + 16 : 15비트 윈도우 + gzip 사용 플래그(16) → gzip 포맷으로 압축
+    /* 15 + 16 : 15비트 윈도우 + gzip 사용 플래그(16) → gzip 포맷으로 압축 */
     ret = deflateInit2(&strm,
                        Z_DEFAULT_COMPRESSION,
                        Z_DEFLATED,
@@ -87,13 +88,13 @@ static int deflate_with_meta(FILE *source, FILE *dest,
         return ret;
     }
 
-    // gzip 헤더 설정
+    /* gzip 헤더 설정 */
     gz_header header;
     memset(&header, 0, sizeof(header));
 
     header.os = 3;  // 운영체제 코드(3 = UNIX)
 
-    // extra 버퍼에 메타데이터 채우기
+    /* extra 버퍼에 메타데이터 채우기 */
     unsigned char extra[256];
     size_t extra_len = build_extra(extra, sizeof(extra), author, date);
 
@@ -103,15 +104,15 @@ static int deflate_with_meta(FILE *source, FILE *dest,
         header.extra_max = (uInt)extra_len;
     }
 
-    // 헤더를 스트림에 세팅
-    // 이렇게 하면 FEXTRA 비트가 켜지고 우리가 만든 extra field가 gzip 헤더에 들어감
+    /* 헤더를 스트림에 세팅
+    이렇게 하면 FEXTRA 비트가 켜지고 우리가 만든 extra field가 gzip 헤더에 들어감 */
     ret = deflateSetHeader(&strm, &header);
     if (ret != Z_OK) {
         deflateEnd(&strm);
         return ret;
     }
 
-    // deflate 루프 
+    /* deflate 루프 */
     int flush;
     do {
         strm.avail_in = (uInt)fread(in, 1, CHUNK, source);
@@ -172,7 +173,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // 실제 압축 + 메타데이터 삽입 작업 호출
+    /* 실제 압축 + 메타데이터 삽입 작업 호출 */
     int ret = deflate_with_meta(in, out, author, date);
 
     fclose(in);
