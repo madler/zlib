@@ -42,7 +42,6 @@ static size_t build_extra(unsigned char *buf, size_t max,
     if (date && date[0] != '\0') {
         len = strlen(date);
         if (max - (size_t)(p - buf) >= 4 + len) {
-            unsigned short L;
         
             *p++ = 'D';
             *p++ = 'T';
@@ -65,7 +64,7 @@ static size_t build_extra(unsigned char *buf, size_t max,
  /*압축 진행률(%)을 stderr로 출력하는 함수*/
  static void print_progress(z_stream *strm,
                            unsigned long long total_in_bytes,
-                           int *last_percent) // total_in_bytes: 전체 입력 크기, last_percent: 직전에 출력한 퍼센트 값 (중복 출력 방지용)
+                           int *last_percent) /* total_in_bytes: 전체 입력 크기, last_percent: 직전에 출력한 퍼센트 값 (중복 출력 방지용) */ 
 {
     unsigned long long now;
     int percent;
@@ -134,13 +133,11 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     }
 
     /* gzip 헤더 설정 */
-    gz_header header;
     memset(&header, 0, sizeof(header));
 
     header.os = 3;  /*운영체제 코드(3 = UNIX)*/ 
 
     /* extra 버퍼에 메타데이터 채우기 */
-    unsigned char extra[256];
     extra_len = build_extra(extra, sizeof(extra), author, date);
 
     if (extra_len > 0) {
@@ -160,7 +157,6 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     last_percent = -1; /*진행률 초기값*/ 
 
     /* deflate 루프 */
-    int flush;
     do {
         strm.avail_in = (uInt)fread(in, 1, CHUNK, source);
         if (ferror(source)) {
