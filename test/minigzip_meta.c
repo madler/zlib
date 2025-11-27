@@ -60,6 +60,29 @@ static size_t build_extra(unsigned char *buf, size_t max,
     return (size_t)(p - buf);  /* extra 전체 길이 (XLEN 포함) */
 }
 
+ /*압축 진행률(%)을 stderr로 출력하는 함수*/
+ static void print_progress(z_stream *strm,
+                           unsigned long long total_in_bytes,
+                           int *last_percent) // total_in_bytes: 전체 입력 크기, last_percent: 직전에 출력한 퍼센트 값 (중복 출력 방지용)
+{
+    unsigned long long now;
+    int percent;
+
+    if (total_in_bytes == 0) {
+        /* 파일 크기를 못 구했으면 진행률 계산 불가 → 그냥 패스 */
+        return;
+    }
+
+    now = strm->total_in;
+    percent = (int)(now * 100 / total_in_bytes);
+
+    if (percent != *last_percent) {
+        *last_percent = percent;
+        fprintf(stderr, "\rcompressing... %3d%%", percent);
+        fflush(stderr);
+    }
+}
+
 
 /* deflate_with_meta: source 파일을 gzip 포맷으로 압축하면서 gzip 헤더에 meta(author, date)를 넣는 함수 */
 static int deflate_with_meta(FILE *source, FILE *dest,
