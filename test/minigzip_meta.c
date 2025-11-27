@@ -93,6 +93,26 @@ static int deflate_with_meta(FILE *source, FILE *dest,
     z_stream strm;
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
+    unsigned long long total_size;
+    long cur;
+    long end;
+    int flush;
+    int last_percent;
+    gz_header header;
+    unsigned char extra[256];
+    size_t extra_len;
+
+    // 전체 입력 파일 크기 계산 (진행률용)
+    total_size = 0;
+    cur = ftell(source);
+    if (cur != -1L && fseek(source, 0, SEEK_END) == 0) {
+        end = ftell(source);
+        if (end > 0) {
+            total_size = (unsigned long long)end;
+        }
+        // 다시 원래 위치(처음)로 돌려놓기
+        fseek(source, cur, SEEK_SET);
+    }
 
     /* z_stream 초기화 */
     memset(&strm, 0, sizeof(strm));
