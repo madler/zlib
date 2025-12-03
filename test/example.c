@@ -524,7 +524,7 @@ static void test_error_conditions(void) {
     stream.next_out = buffer;
     stream.avail_out = 100;
     err = deflate(&stream, Z_FINISH);
-    CHECK_ERR(err, "test_1"); /*CHECK_ERR가 나는 순간 프로그램 정지*/
+    CHECK_ERR(err, "Z_STREAM_ERROR"); /*CHECK_ERR가 나는 순간 프로그램 정지*/
     /*printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);*/
     
     /* 테스트 2: 잘못된 압축 레벨 */
@@ -620,7 +620,7 @@ int main(int argc, char *argv[]) {
 
 
     // 강제 오류 발생하여 test
-    /*test_error_conditions();*/
+    test_error_conditions();
 
 
 #ifdef Z_SOLO
