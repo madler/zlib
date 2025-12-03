@@ -25,10 +25,14 @@
 #  define TESTFILE "foo.gz"
 #endif
 
+/*코드의 에러 처리는 대부분 CHECK_ERR 매크로에 의존하고 있으며, 이 매크로를 중심으로 에러 메시지를 분석*/
 #define CHECK_ERR(err, msg) { \
     if (err != Z_OK) { \
-        fprintf(stderr, "%s error: %d\n", msg, err); \
-        exit(1); \
+        fprintf(stderr, \
+            "[Zlib error occurred] \nError message: %s \nDetails: (%s).\n", msg, zError(err)); \
+        fprintf(stderr, \
+            "-> Error code: %d\n",err); \
+            exit(1); \
     } \
 }
 
@@ -86,6 +90,7 @@ static void test_compress(Byte *compr, uLong comprLen, Byte *uncompr,
 
 /* ===========================================================================
  * Test read/write of .gz files
+ * 여기는 gzerror()를 사용하기에 관련 에러출력 에러 코드 까지 나오게 통일시킴
  */
 static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
 #ifdef NO_GZCOMPRESS
@@ -103,11 +108,13 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     }
     gzputc(file, 'h');
     if (gzputs(file, "ello") != 4) {
-        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
+        const char* err_msg = gzerror(file, &err);
+        fprintf(stderr, "[gzputs err] \nError message: %s\n-> Error code: %d", err_msg, err);
         exit(1);
     }
     if (gzprintf(file, ", %s!", "hello") != 8) {
-        fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
+        const char* err_msg = gzerror(file, &err);
+        fprintf(stderr, "[gzprintf err] \nError message: %s\n-> Error code: %d", err_msg, err);
         exit(1);
     }
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
@@ -121,7 +128,8 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     strcpy((char*)uncompr, "garbage");
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
-        fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
+        const char* err_msg = gzerror(file, &err);
+        fprintf(stderr, "[gzread err] \nError message: %s\n-> Error code: %d", err_msg, err);
         exit(1);
     }
     if (strcmp((char*)uncompr, hello)) {
@@ -150,7 +158,8 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
 
     gzgets(file, (char*)uncompr, (int)uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
-        fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
+        const char* err_msg = gzerror(file, &err);
+        fprintf(stderr, "[gzgets err after gzseek] \nError message: %s\n-> Error code: %d", err_msg, err);
         exit(1);
     }
     if (strcmp((char*)uncompr, hello + 6)) {
@@ -490,6 +499,93 @@ static void test_dict_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     }
 }
 
+
+
+
+
+
+
+
+/* ===========================================================================
+ * Test error conditions - 의도적으로 에러 발생시키기
+ */
+static void test_error_conditions(void) {
+    z_stream stream;
+    int err;
+    Byte buffer[100];
+    
+    printf("\n=== Testing Error Conditions ===\n");
+    
+    /* 테스트 1: 초기화 없이 deflate 호출 */
+    printf("Test 1: Using uninitialized stream\n");
+    memset(&stream, 0, sizeof(stream));
+    stream.next_in = (Bytef*)"test";
+    stream.avail_in = 4;
+    stream.next_out = buffer;
+    stream.avail_out = 100;
+    err = deflate(&stream, Z_FINISH);
+    CHECK_ERR(err, "test_1"); /*CHECK_ERR가 나는 순간 프로그램 정지*/
+    /*printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);*/
+    
+    /* 테스트 2: 잘못된 압축 레벨 */
+    printf("Test 2: Invalid compression level\n");
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = deflateInit(&stream, 99);  // 유효하지 않은 레벨
+    printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);
+    
+    /* 테스트 3: NULL 포인터 */
+    printf("Test 3: NULL pointer\n");
+    err = deflateInit(NULL, Z_DEFAULT_COMPRESSION);
+    printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);
+    
+    /* 테스트 4: 버퍼 부족 */
+    printf("Test 4: Insufficient output buffer\n");
+    memset(&stream, 0, sizeof(stream));
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
+    if (err == Z_OK) {
+        stream.next_in = (Bytef*)"This is a long string that won't fit";
+        stream.avail_in = 37;
+        stream.next_out = buffer;
+        stream.avail_out = 2;  // 의도적으로 작은 버퍼
+        err = deflate(&stream, Z_FINISH);
+        printf("  Result: %d (Expected: Z_BUF_ERROR = %d)\n", err, Z_BUF_ERROR);
+        deflateEnd(&stream);
+    }
+    
+    /* 테스트 5: 손상된 데이터 압축 해제 */
+    printf("\nTest 5: Corrupted compressed data\n");
+    Byte corrupted[] = {0x78, 0x9c, 0xff, 0xff, 0xff, 0xff};  // 손상된 데이터
+    memset(&stream, 0, sizeof(stream));
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = inflateInit(&stream);
+    if (err == Z_OK) {
+        stream.next_in = corrupted;
+        stream.avail_in = sizeof(corrupted);
+        stream.next_out = buffer;
+        stream.avail_out = 100;
+        err = inflate(&stream, Z_FINISH);
+        printf("  Result: %d (Expected: Z_DATA_ERROR = %d)\n", err, Z_DATA_ERROR);
+        inflateEnd(&stream);
+    }
+    
+    printf("\n=== Error Condition Tests Complete ===\n\n");
+}
+
+
+
+
+
+
+
+
+
 /* ===========================================================================
  * Usage:  example [output.gz  [input.gz]]
  */
@@ -522,6 +618,11 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+
+    // 강제 오류 발생하여 test
+    /*test_error_conditions();*/
+
+
 #ifdef Z_SOLO
     (void)argc;
     (void)argv;
@@ -547,6 +648,8 @@ int main(int argc, char *argv[]) {
 
     free(compr);
     free(uncompr);
+
+
 
     return 0;
 }
