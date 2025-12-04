@@ -619,8 +619,8 @@ int main(int argc, char *argv[]) {
     }
 
 
-    // 강제 오류 발생하여 test
-    test_error_conditions();
+    /* 강제 오류 발생하여 test
+    test_error_conditions(); */
 
 
 #ifdef Z_SOLO

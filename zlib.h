@@ -1929,6 +1929,12 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);       /* backward compatibility */
 
 #endif /* !Z_SOLO */
 
+
+/* Zlib 라이브러리 사용자용 공개 함수: 모든 오류 정보를 통합하여 상세 문자열로 반환 */
+/* 이 함수는 Zlib 오류 코드를 입력받아, zError()의 기본 메시지와 z_stream의 상세 메시지를 통합합니다. */
+ZEXTERN const char * ZEXPORT zlib_get_full_error(int err_code, z_streamp strm);
+
+
 /* undocumented functions */
 ZEXTERN const char   * ZEXPORT zError(int);
 ZEXTERN int            ZEXPORT inflateSyncPoint(z_streamp);
