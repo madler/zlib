@@ -36,6 +36,25 @@
     } \
 }
 
+
+
+/* 새로 만든 err 함수 */
+void check_zlib_error(int err, z_stream *strm, const char *msg)
+{
+    if (err != Z_OK) {
+        /* 새로운 오류 처리 함수를 사용하여 상세 메시지를 가져옴. */
+        const char *full_msg = zlib_get_full_error(err, strm);
+        
+        /* 기존 메시지와 함께 상세 메시지를 표준 오류 스트림에 출력 */
+        fprintf(stderr, "FATAL ZLIB ERROR: %s\n", msg);
+        fprintf(stderr, "Zlib Detailed Status: %s\n", full_msg);
+
+        exit(1);
+    }   
+}
+
+
+
 static z_const char hello[] = "hello, hello!";
 /* "hello world" would be more standard, but the repeated "hello"
  * stresses the compression code better, sorry...
@@ -579,7 +598,82 @@ static void test_error_conditions(void) {
 }
 
 
+/* ===========================================================================
+ * Test error conditions_v2 - 의도적으로 에러 발생시키기
+ */
+static void test_error_conditions_v2() {
+    z_stream stream;
+    int err;
+    Byte buffer[100];
+    
+    printf("\n=== Testing Error Conditions_V2 ===\n");
+    
 
+    /* 테스트 1: 초기화 없이 deflate 호출 */
+    printf("Test 1: Using uninitialized stream\n");
+    memset(&stream, 0, sizeof(stream));
+    stream.next_in = (Bytef*)"test";
+    stream.avail_in = 4;
+    stream.next_out = buffer;
+    stream.avail_out = 100;
+    err = deflate(&stream, Z_FINISH);
+    check_zlib_error(err, &stream, "Deflate on uninitialized stream");
+    /*printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);*/
+    
+    /* 테스트 2: 잘못된 압축 레벨 */
+    printf("Test 2: Invalid compression level\n");
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = deflateInit(&stream, 99);  // 유효하지 않은 레벨
+    printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);
+    
+    /* 테스트 3: NULL 포인터 */
+    printf("Test 3: NULL pointer\n");
+    err = deflateInit(NULL, Z_DEFAULT_COMPRESSION);
+    printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);
+    
+    /* 테스트 4: 버퍼 부족 */
+    printf("Test 4: Insufficient output buffer\n");
+    memset(&stream, 0, sizeof(stream));
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
+    if (err == Z_OK) {
+        stream.next_in = (Bytef*)"This is a long string that won't fit";
+        stream.avail_in = 37;
+        stream.next_out = buffer;
+        stream.avail_out = 2;  // 의도적으로 작은 버퍼
+        err = deflate(&stream, Z_FINISH);
+        printf("  Result: %d (Expected: Z_BUF_ERROR = %d)\n", err, Z_BUF_ERROR);
+        deflateEnd(&stream);
+    }
+
+    
+    
+    /* 테스트 5: 손상된 데이터 압축 해제 */
+    printf("\nTest 5: Corrupted compressed data\n");
+    Byte corrupted[] = {0x78, 0x9c, 0xff, 0xff, 0xff, 0xff};  // 손상된 데이터
+    memset(&stream, 0, sizeof(stream));
+    stream.zalloc = Z_NULL;
+    stream.zfree = Z_NULL;
+    stream.opaque = Z_NULL;
+    err = inflateInit(&stream);
+    check_zlib_error(err, &stream, "Corrupted compressed data");
+    if (err == Z_OK) {
+        stream.next_in = corrupted;
+        stream.avail_in = sizeof(corrupted);
+        stream.next_out = buffer;
+        stream.avail_out = 100;
+        err = inflate(&stream, Z_FINISH);
+        check_zlib_error(err, &stream, "Corrupted compressed data");
+        /*printf("  Result: %d (Expected: Z_DATA_ERROR = %d)\n", err, Z_DATA_ERROR);*/
+        inflateEnd(&stream);
+    }
+    
+    printf("\n=== Error Condition Tests Complete ===\n\n");
+}
 
 
 
@@ -621,6 +715,7 @@ int main(int argc, char *argv[]) {
 
     /* 강제 오류 발생하여 test
     test_error_conditions(); */
+    test_error_conditions_v2();
 
 
 #ifdef Z_SOLO

@@ -55,13 +55,14 @@ SRCDIR=
 ZINC=
 ZINCOUT=-I.
 
+# 새로운 파일(zlib_err_v2.o, zlib_err_v2.lo)이 최종 라이브러리에 포함되어야 한다고 빌드 시스템에 알려주기
 OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
 OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
-OBJC = $(OBJZ) $(OBJG)
+OBJC = $(OBJZ) $(OBJG) zlib_err_v2.o
 
 PIC_OBJZ = adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
 PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
-PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG)
+PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG) zlib_err_v2.lo
 
 # to use the asm code: make OBJA=match.o, PIC_OBJA=match.lo
 OBJA =
@@ -417,3 +418,19 @@ infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftree
 inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
 inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
+
+
+# -------------------------------------------------------------
+# 새로운 목적 파일 컴파일 규칙 추가
+# -------------------------------------------------------------
+
+# 1. 정적 라이브러리용 목적 파일(.o) 생성 규칙
+# (OBJC 변수에 포함됨)
+zlib_err_v2.o: zlib_err_v2.c zlib.h zconf.h
+	$(CC) -c $(CFLAGS) zlib_err_v2.c
+
+# 2. 공유 라이브러리용 목적 파일(.lo) 생성 규칙 (PIC)
+# (PIC_OBJC 변수에 포함됨)
+zlib_err_v2.lo: zlib_err_v2.c zlib.h zconf.h
+	$(CC) -c $(CFLAGS) $(PICFLAG) zlib_err_v2.c -o $@
+
