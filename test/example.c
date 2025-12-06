@@ -11,6 +11,8 @@
 
 #include "zlib.h"
 #include <stdio.h>
+/*test를 위한 삽입*/
+#include <errno.h>
 
 #ifdef STDC
 #  include <string.h>
@@ -608,8 +610,7 @@ static void test_error_conditions_v2() {
     
     printf("\n=== Testing Error Conditions_V2 ===\n");
     
-
-    /* 테스트 1: 초기화 없이 deflate 호출 */
+        /* 테스트 1: 초기화 없이 deflate 호출 */
     printf("Test 1: Using uninitialized stream\n");
     memset(&stream, 0, sizeof(stream));
     stream.next_in = (Bytef*)"test";
@@ -671,7 +672,21 @@ static void test_error_conditions_v2() {
         /*printf("  Result: %d (Expected: Z_DATA_ERROR = %d)\n", err, Z_DATA_ERROR);*/
         inflateEnd(&stream);
     }
+ 
+
+
+    /* 테스트 6 : 오류 메시지 확인 (Z_ERRNO Simulation OS) */
+    printf("Test 6: Z_ERRNO Simulation (Expected EXIT)\n");
     
+    // 존재하지 않는 파일에 접근하는 상황을 시뮬레이션하기 위해 errno를 ENOENT로 설정
+    // Zlib 함수는 Z_ERRNO를 반환하면서 errno를 설정했을 것이라고 가정합니다.
+    errno = ENOENT;
+    err = Z_ERRNO; // Zlib에서 Z_ERRNO (-1)를 반환했다고 가정
+    
+    // Z_ERRNO 발생 및 상세 보고 후 종료 예상. OS 오류 메시지가 출력되어야 합니다.
+    check_zlib_error(err, NULL, "Simulated File I/O Error (Z_ERRNO Test)");
+
+
     printf("\n=== Error Condition Tests Complete ===\n\n");
 }
 
