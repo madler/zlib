@@ -563,7 +563,7 @@ static void test_error_conditions(void) {
     CHECK_ERR(err, "Z_STREAM_ERROR");
     
     /* 테스트 4: 손상된 데이터 압축 해제 */
-    printf("\nTest 5: Corrupted compressed data\n");
+    printf("\nTest 4: Corrupted compressed data\n");
     Byte corrupted[] = {0x78, 0x9c, 0xff, 0xff, 0xff, 0xff};  // 손상된 데이터
     memset(&stream, 0, sizeof(stream));
     stream.zalloc = Z_NULL;
@@ -616,13 +616,12 @@ static void test_error_conditions_v2() {
     /* 테스트 3: NULL 포인터 */
     printf("Test 3: NULL pointer\n");
     err = deflateInit(NULL, Z_DEFAULT_COMPRESSION);
-    printf("  Result: %d (Expected: Z_STREAM_ERROR = %d)\n\n", err, Z_STREAM_ERROR);
     check_zlib_error(err, &stream, "NULL pointer");
     
     
     
     /* 테스트 4: 손상된 데이터 압축 해제 */
-    printf("\nTest 5: Corrupted compressed data\n");
+    printf("\nTest 4: Corrupted compressed data\n");
     Byte corrupted[] = {0x78, 0x9c, 0xff, 0xff, 0xff, 0xff};  // 손상된 데이터
     memset(&stream, 0, sizeof(stream));
     stream.zalloc = Z_NULL;
@@ -644,7 +643,7 @@ static void test_error_conditions_v2() {
 
 
     /* 테스트 5: 오류 메시지 확인 (Z_ERRNO Simulation OS) */
-    printf("Test 6: Z_ERRNO Simulation (Expected EXIT)\n");
+    printf("Test 5: Z_ERRNO Simulation (Expected EXIT)\n");
     
     // 존재하지 않는 파일에 접근하는 상황을 시뮬레이션하기 위해 errno를 ENOENT로 설정
     // Zlib 함수는 Z_ERRNO를 반환하면서 errno를 설정했을 것이라고 가정합니다.
@@ -697,8 +696,8 @@ int main(int argc, char *argv[]) {
 
 
     /*강제 오류 발생하여 test*/
-    test_error_conditions();
-    /*test_error_conditions_v2();*/
+    /*test_error_conditions();*/
+    test_error_conditions_v2();
 
 
 #ifdef Z_SOLO
