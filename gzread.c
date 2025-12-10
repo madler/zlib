@@ -412,7 +412,7 @@ int ZEXPORT gzread(gzFile file, voidp buf, unsigned len) {
     }
 
     /* read len or fewer bytes to buf */
-    len = gz_read(state, buf, len);
+    len = (unsigned)gz_read(state, buf, len);
 
     /* check for an error */
     if (len == 0) {
