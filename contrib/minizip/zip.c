@@ -1053,6 +1053,85 @@ local int LoadCentralDirectoryRecord(zip64_internal* pziinit) {
 #endif /* !NO_ADDFILEINEXISTINGZIP*/
 
 
+// Validate and detect UTF-8. Return true if valid UTF-8 multibyte character found.
+local  detectUtf8Char(const unsigned char* s, size_t len)
+{
+    size_t i = 0;
+    while (i < len) {
+        unsigned char c = s[i];
+        if (c < 0x80) {
+            i++;
+            continue; // ASCII
+        }
+
+        // UTF-8 multibyte sequence
+        size_t seqLen = 0;
+        if      ((c & 0xE0) == 0xC0) seqLen = 2;
+        else if ((c & 0xF0) == 0xE0) seqLen = 3;
+        else if ((c & 0xF8) == 0xF0) seqLen = 4;
+        else return FALSE; // invalid start byte
+
+        if (i + seqLen > len) return FALSE;
+
+        int valid = 1;
+        for (size_t j = 1; j < seqLen; ++j) {
+            if ((s[i + j] & 0xC0) != 0x80) {
+                valid = 0;
+                break;
+            }
+        }
+
+        if (valid)
+            return 1; // ? first valid UTF-8 multibyte char found
+
+        i++;
+    }
+    return 0;
+}
+
+// Detect UTF-16 encoding and null-byte patterns. Return true if likely UTF-16.
+local int detectUtf16(const unsigned char* s, size_t len)
+{
+    if (len < 2) return 0;
+
+    // BOM check
+    if (s[0] == 0xFF && s[1] == 0xFE)
+        return 1;
+    if (s[0] == 0xFE && s[1] == 0xFF)
+        return 1;
+
+    // Heuristic: high frequency of 0x00 bytes ? UTF-16 without BOM
+    int zeroCount = 0;
+    for (size_t i = 0; i < len; ++i)
+        if (s[i] == 0x00)
+            zeroCount++;
+
+    if (zeroCount > (int)(len / 4))
+        return 1; // can't know endian, assume LE
+
+    return 0;
+}
+
+// Unified detector. return 1 if filename contains Unicode characters.
+local int containsUnicode(const char* filename)
+{
+    if (!filename )
+        return 0;
+
+    size_t len = oef_crt_strlen(filename);
+    if (len == 0)
+        return 0;
+
+    const unsigned char* bytes = (const unsigned char*)filename;
+
+    int ret = 0;
+    ret = detectUtf16(bytes, len);
+    if (0 == ret){
+      ret = detectUtf8Char(bytes, len);
+    }
+    return ret;
+}
+
 /************************************************************/
 extern zipFile ZEXPORT zipOpen3(const void *pathname, int append, zipcharpc* globalcomment, zlib_filefunc64_32_def* pzlib_filefunc64_32_def) {
     zip64_internal ziinit;
@@ -1322,6 +1401,13 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
             zi->ci.dosDate = zipfi->dosDate;
         else
           zi->ci.dosDate = zip64local_TmzDateToDosDate(&zipfi->tmz_date);
+    }
+
+    int isUnicodeChar = containsUnicode(filename) || containsUnicode(comment); // check for filename or comment
+    if (isUnicodeChar){
+      if (!(flagBase & (1 << 11))) {
+        flagBase |= (1 << 11);   // set bit 11
+      }
     }
 
     zi->ci.flag = flagBase;
