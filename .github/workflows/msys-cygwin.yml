@@ -4,11 +4,14 @@ on: [push, pull_request]
 
 jobs:
   MSys:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os || 'windows-latest' }}
     strategy:
       fail-fast: false
       matrix:
-        sys: [mingw32, mingw64, ucrt64, clang64]
+        sys: [mingw32, mingw64, ucrt64, clang64, clangarm64]
+        include:
+          - sys: clangarm64
+            os: windows-11-arm
     name: MSys - ${{ matrix.sys }}
     defaults:
       run:

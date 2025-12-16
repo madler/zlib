@@ -51,6 +51,13 @@ jobs:
             cmake-args: -A x64 -DMINIZIP_ENABLE_BZIP2=OFF
             pkgtgt: PACKAGE
 
+          - name: Windows MSVC ARM64
+            os: windows-11-arm
+            compiler: cl
+            cflags: /W3
+            cmake-args: -A ARM64 -DMINIZIP_ENABLE_BZIP2=OFF
+            pkgtgt: PACKAGE
+
           - name: Windows GCC
             os: windows-latest
             compiler: gcc
