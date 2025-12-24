@@ -1,0 +1,20 @@
+name: omni-os
+
+on: [push, pull_request]
+
+jobs:
+  omni-os:
+    runs-on: ubuntu-latest
+    name: OmniOS
+    steps:
+    - uses: actions/checkout@v4
+    - name: OmniOS
+      uses: vmactions/omnios-vm@v1
+      with:
+        prepare: |
+          pkg  install cmake gcc14 make bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
