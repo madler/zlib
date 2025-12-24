@@ -15,6 +15,20 @@ jobs:
             pkgtgt: package package_source
             cmake-args: -DMINIZIP_ENABLE_BZIP2=ON
 
+          - name: Ubuntu GCC no shared
+            os: ubuntu-latest
+            compiler: gcc
+            cflags: -Wall -Wextra
+            pkgtgt: package package_source
+            cmake-args: -DZLIB_BUILD_SHARED=OFF -DMINIZIP_ENABLE_BZIP2=ON
+
+          - name: Ubuntu GCC no static
+            os: ubuntu-latest
+            compiler: gcc
+            cflags: -Wall -Wextra
+            pkgtgt: package package_source
+            cmake-args: -DZLIB_BUILD_STATIC=OFF -DMINIZIP_ENABLE_BZIP2=ON
+
           - name: Ubuntu GCC -O3
             os: ubuntu-latest
             compiler: gcc
