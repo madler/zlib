@@ -1,4 +1,4 @@
-name: omni-os
+name: anyVM-OSes
 
 on: [push, pull_request]
 
@@ -13,6 +13,22 @@ jobs:
       with:
         prepare: |
           pkg  install cmake gcc14 make bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
+
+  openindiana:
+    runs-on: ubuntu-latest
+    name: OpenIndiana
+    steps:
+    - uses: actions/checkout@v4
+    - name: OpenIndiana
+      uses: vmactions/openindiana-vm@v0
+      with:
+        prepare: |
+          pkg  install cmake gcc-14 make bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
