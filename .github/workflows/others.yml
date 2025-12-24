@@ -12,7 +12,7 @@ jobs:
       uses: vmactions/omnios-vm@v1
       with:
         prepare: |
-          pkg  install cmake gcc14 make bzip2
+          pkg install cmake gcc14 make bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
@@ -28,7 +28,28 @@ jobs:
       uses: vmactions/openindiana-vm@v0
       with:
         prepare: |
-          pkg  install cmake gcc-14 make bzip2
+          pkg install cmake gcc-14 make bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
+
+  netbsd:
+    runs-on: ubuntu-latest
+    name: NetBSD
+    steps:
+    - uses: actions/checkout@v4
+    - name: NetBSD
+      uses: vmactions/netbsd-vm@v1
+      with:
+        prepare: |
+          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH" &&\
+          export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages" &&\
+          export PKG_PATH="$PKG_PATH/$(uname -s)/$(uname -m)/$(uname -r|cut -f '1 2' -d.)/All" &&\
+          /usr/sbin/pkg_add cmake &&\
+          /usr/sbin/pkg_add gcc14 &&\
+          /usr/sbin/pkg_add bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
