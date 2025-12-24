@@ -69,7 +69,7 @@ or
     find_package(minizip CONFIG COMPONENTS shared static REQUIRED)
 
 As it's possible to only build the shared or the static lib, you can make sure that everything you need
-is found. If no COMPONENTS are requested, everything that is found will satisfy your request. If the
+is found. If no COMPONENTS are requested, everything needs to be found to satisfy your request. If the
 libraries are optional in you project, you can omit the REQUIRED and check yourself if the targets you
 want to link against are created.
 
