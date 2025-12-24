@@ -36,6 +36,7 @@ jobs:
           -B build \
           -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DCMAKE_BUILD_TYPE=Release \
+          -DZLIB_BUILD_MINIZIP=ON \
           -DMINIZIP_ENABLE_BZIP2=ON
     - name: Configure clang64
       if: matrix.sys == 'clang64'
@@ -45,6 +46,7 @@ jobs:
           -B build \
           -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DCMAKE_BUILD_TYPE=Release \
+          -DZLIB_BUILD_MINIZIP=ON \
           -DMINIZIP_ENABLE_BZIP2=ON
     - name: Build
       run: cmake --build build --config Release
