@@ -17,7 +17,7 @@ jobs:
           pkg install -y cmake gcc14 bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/ &&\
           ctest --test-dir build
 
@@ -48,15 +48,15 @@ jobs:
       with:
         copyback: false
         prepare: |
-          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH" &&\
-          export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages" &&\
-          export PKG_PATH="$PKG_PATH/$(uname -s)/$(uname -m)/$(uname -r|cut -f '1 2' -d.)/All" &&\
-          /usr/sbin/pkg_add cmake &&\
+          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH"
+          export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages"
+          export PKG_PATH="$PKG_PATH/$(uname -s)/$(uname -m)/$(uname -r|cut -f '1 2' -d.)/All"
+          /usr/sbin/pkg_add cmake
           /usr/sbin/pkg_add bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
+          cmake --build build/
           ctest --test-dir build
 
 
@@ -73,8 +73,8 @@ jobs:
           pkg install cmake gcc14 make bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
+          cmake --build build/
           ctest --test-dir build
 
   openbsd:
@@ -87,14 +87,14 @@ jobs:
       with:
         copyback: false
         prepare: |
-          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH" &&\
-          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/amd64/" &&\
-          /usr/sbin/pkg_add cmake &&\
+          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH"
+          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/amd64/"
+          /usr/sbin/pkg_add cmake
           /usr/sbin/pkg_add bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
+          cmake --build build/
           ctest --test-dir build
 
   openindiana:
@@ -110,8 +110,8 @@ jobs:
           pkg install cmake gcc-14 make bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
+          cmake --build build/
           ctest --test-dir build
 
   solaris:
@@ -128,6 +128,6 @@ jobs:
           pkgutil -y -i cmake bzip2
 
         run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
+          cmake --build build/
           ctest --test-dir build
