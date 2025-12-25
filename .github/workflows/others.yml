@@ -3,34 +3,18 @@ name: anyVM-OSes
 on: [push, pull_request]
 
 jobs:
-  omni-os:
+
+  dragonflybsd:
     runs-on: ubuntu-latest
-    name: OmniOS
+    name: DragonflyBSD
     steps:
     - uses: actions/checkout@v4
-    - name: OmniOS
-      uses: vmactions/omnios-vm@v1
+    - name: DragonflyBSD
+      uses: vmactions/dragonflybsd-vm@v1
       with:
         copyback: false
         prepare: |
-          pkg install cmake gcc14 make bzip2
-
-        run: |
-          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
-          cmake --build build/ &&\
-          ctest --test-dir build
-
-  openindiana:
-    runs-on: ubuntu-latest
-    name: OpenIndiana
-    steps:
-    - uses: actions/checkout@v4
-    - name: OpenIndiana
-      uses: vmactions/openindiana-vm@v0
-      with:
-        copyback: false
-        prepare: |
-          pkg install cmake gcc-14 make bzip2
+          pkg install -y cmake gcc14 bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
@@ -58,6 +42,24 @@ jobs:
           cmake --build build/ &&\
           ctest --test-dir build
 
+
+  omni-os:
+    runs-on: ubuntu-latest
+    name: OmniOS
+    steps:
+    - uses: actions/checkout@v4
+    - name: OmniOS
+      uses: vmactions/omnios-vm@v1
+      with:
+        copyback: false
+        prepare: |
+          pkg install cmake gcc14 make bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
+
   openbsd:
     runs-on: ubuntu-latest
     name: OpenBSD
@@ -78,17 +80,17 @@ jobs:
           cmake --build build/ &&\
           ctest --test-dir build
 
-  dragonflybsd:
+  openindiana:
     runs-on: ubuntu-latest
-    name: DragonflyBSD
+    name: OpenIndiana
     steps:
     - uses: actions/checkout@v4
-    - name: DragonflyBSD
-      uses: vmactions/dragonflybsd-vm@v1
+    - name: OpenIndiana
+      uses: vmactions/openindiana-vm@v0
       with:
         copyback: false
         prepare: |
-          pkg install -y cmake gcc14 bzip2
+          pkg install cmake gcc-14 make bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
