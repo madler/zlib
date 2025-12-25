@@ -23,13 +23,21 @@ jobs:
 
   freebsd:
     runs-on: ubuntu-latest
-    name: FreeBSD
+    name: FreeBSD - ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: aarch64
+          - name: x86_64
     steps:
     - uses: actions/checkout@v4
-    - name: FreeBSD
+    - name: FreeBSD - ${{ matrix.name }}
       uses: vmactions/freebsd-vm@v1
       with:
+        arch: ${{ matrix.name }}
         copyback: false
+        release: "15.0"
         prepare: |
           pkg install -y cmake gcc14 bzip2
 
@@ -40,10 +48,16 @@ jobs:
 
   netbsd:
     runs-on: ubuntu-latest
-    name: NetBSD
+    name: NetBSD - ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: aarch64
+          - name: x86_64
     steps:
     - uses: actions/checkout@v4
-    - name: NetBSD
+    - name: NetBSD - ${{ matrix.name }}
       uses: vmactions/netbsd-vm@v1
       with:
         copyback: false
@@ -79,16 +93,24 @@ jobs:
 
   openbsd:
     runs-on: ubuntu-latest
-    name: OpenBSD
+    name: OpenBSD - ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: aarch64
+          - name: x86_64
+          - name: riscv64
     steps:
     - uses: actions/checkout@v4
-    - name: OpenBSD
+    - name: OpenBSD - ${{ matrix.name }}
       uses: vmactions/openbsd-vm@v1
       with:
+        arch: ${{ matrix.name }}
         copyback: false
         prepare: |
           export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH"
-          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/amd64/"
+          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/$(uname -m)/"
           /usr/sbin/pkg_add cmake
           /usr/sbin/pkg_add bzip2
 
