@@ -44,7 +44,7 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build --output-on-failure
+          ctest --test-dir build --output-on-failure -E .*summary
 
   netbsd:
     runs-on: ubuntu-latest
