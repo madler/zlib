@@ -94,3 +94,21 @@ jobs:
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
           cmake --build build/ &&\
           ctest --test-dir build
+
+  solaris:
+    runs-on: ubuntu-latest
+    name: Solaris
+    steps:
+    - uses: actions/checkout@v4
+    - name: DragonflyBSD
+      uses: vmactions/solaris-vm@v1
+      with:
+        copyback: false
+        release: "11.4-gcc"
+        prepare: |
+          pkgutil -y -i cmake bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
