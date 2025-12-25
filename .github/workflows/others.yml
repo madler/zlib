@@ -18,8 +18,8 @@ jobs:
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
-          cmake --build build/ &&\
-          ctest --test-dir build
+          cmake --build build/
+          ctest --test-dir build --output-on-failure
 
   freebsd:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build
+          ctest --test-dir build --output-on-failure
 
   netbsd:
     runs-on: ubuntu-latest
@@ -71,8 +71,7 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build
-
+          ctest --test-dir build --output-on-failure
 
   omni-os:
     runs-on: ubuntu-latest
@@ -89,7 +88,7 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build
+          ctest --test-dir build --output-on-failure
 
   openbsd:
     runs-on: ubuntu-latest
@@ -134,7 +133,7 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build
+          ctest --test-dir build --output-on-failure
 
   solaris:
     runs-on: ubuntu-latest
@@ -152,4 +151,4 @@ jobs:
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
           cmake --build build/
-          ctest --test-dir build
+          ctest --test-dir build --output-on-failure
