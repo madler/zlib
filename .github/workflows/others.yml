@@ -55,3 +55,23 @@ jobs:
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
           cmake --build build/ &&\
           ctest --test-dir build
+
+  openbsd:
+    runs-on: ubuntu-latest
+    name: OpenBSD
+    steps:
+    - uses: actions/checkout@v4
+    - name: OpenBSD
+      uses: vmactions/openbsd-vm@v1
+      with:
+        prepare: |
+          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH" &&\
+          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/amd64/" &&\
+          /usr/sbin/pkg_add cmake &&\
+          /usr/sbin/pkg_add gcc14 &&\
+          /usr/sbin/pkg_add bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
