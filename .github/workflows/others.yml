@@ -48,7 +48,6 @@ jobs:
           export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages" &&\
           export PKG_PATH="$PKG_PATH/$(uname -s)/$(uname -m)/$(uname -r|cut -f '1 2' -d.)/All" &&\
           /usr/sbin/pkg_add cmake &&\
-          /usr/sbin/pkg_add gcc14 &&\
           /usr/sbin/pkg_add bzip2
 
         run: |
@@ -68,8 +67,23 @@ jobs:
           export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH" &&\
           export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/amd64/" &&\
           /usr/sbin/pkg_add cmake &&\
-          /usr/sbin/pkg_add gcc14 &&\
           /usr/sbin/pkg_add bzip2
+
+        run: |
+          cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
+          cmake --build build/ &&\
+          ctest --test-dir build
+
+  dragonflybsd:
+    runs-on: ubuntu-latest
+    name: DragonflyBSD
+    steps:
+    - uses: actions/checkout@v4
+    - name: DragonflyBSD
+      uses: vmactions/dragonflybsd-vm@v1
+      with:
+        prepare: |
+          pkg install -y cmake gcc14 bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON &&\
