@@ -18,6 +18,12 @@ foreach(arg RANGE 5 ${CMAKE_ARGC})
         continue()
     endif(CMAKE_ARGV${arg} STREQUAL FLAGS)
 
+    string(SUBSTRING "${CMAKE_ARGV${arg}}" 0 2 start)
+
+    if(start STREQUAL "-O")
+        continue()
+    endif(start STREQUAL "-O")
+
     if(REACHED_FLAGS)
         list(APPEND FLAGS ${CMAKE_ARGV${arg}})
     endif(REACHED_FLAGS)
