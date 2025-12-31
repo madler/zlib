@@ -1,44 +1,39 @@
-option(ZLIB_BUILD_ADA "Enable building of Ada bindings" OFF)
-option(ZLIB_BUILD_BLAST "Enable building of blast binary" OFF)
-option(ZLIB_BUILD_IOSTREAM3 "Build with IOStream C++ bindings V3" OFF)
-option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
-option(ZLIB_WITH_GVMAT64
-       "Enable an optiomized longest_match for 32 bits x86_64"
-       OFF)
-option(ZLIB_WITH_INFBACK9 "Build with support for method 9 deflate" OFF)
+function(zlib_add_contrib_lib name description dir)
+    option(ZLIB_BUILD_${name} "Enable building of ${description}" OFF)
 
-if(ZLIB_BUILD_ADA)
-    set(ZLIB_ADA_BUILD_SHARED ${ZLIB_BUILD_SHARED})
-    set(ZLIB_ADA_BUILD_STATIC ${ZLIB_BUILD_STATIC})
-    set(ZLIB_ADA_BUILD_TESTING ${ZLIB_BUILD_TESTING})
-    add_subdirectory(ada/)
-endif(ZLIB_BUILD_ADA)
+    if(ZLIB_BUILD_${name})
+        if(NOT DEFINED ZLIB_${name}_BUILD_SHARED)
+            set(ZLIB_${name}_BUILD_SHARED ${ZLIB_BUILD_SHARED})
+        endif(NOT DEFINED ZLIB_${name}_BUILD_SHARED)
 
-if(ZLIB_BUILD_BLAST)
-    set(ZLIB_BLAST_BUILD_SHARED ${ZLIB_BUILD_SHARED})
-    set(ZLIB_BLAST_BUILD_STATIC ${ZLIB_BUILD_STATIC})
-    set(ZLIB_BLAST_BUILD_TESTING ${ZLIB_BUILD_TESTING})
-    add_subdirectory(blast/)
-endif(ZLIB_BUILD_BLAST)
+        if(NOT DEFINED ZLIB_${name}_BUILD_STATIC)
+            set(ZLIB_${name}_BUILD_STATIC ${ZLIB_BUILD_STATIC})
+        endif(NOT DEFINED ZLIB_${name}_BUILD_STATIC)
 
-if(ZLIB_BUILD_MINIZIP)
-    set(MINIZIP_BUILD_SHARED ${ZLIB_BUILD_SHARED})
-    set(MINIZIP_BUILD_STATIC ${ZLIB_BUILD_STATIC})
-    set(MINIZIP_BUILD_TESTING ${ZLIB_BUILD_TESTING})
-    add_subdirectory(minizip/)
-endif(ZLIB_BUILD_MINIZIP)
+        if(NOT DEFINED ZLIB_${name}_BUILD_TESTING)
+            set(ZLIB_${name}_BUILD_TESTING ${ZLIB_BUILD_TESTING})
+        endif(NOT DEFINED ZLIB_${name}_BUILD_TESTING)
 
-if(ZLIB_WITH_GVMAT64)
-   add_subdirectory(gcc_gvmat64/)
-endif(ZLIB_WITH_GVMAT64)
+        add_subdirectory(${dir}/)
+    endif(ZLIB_BUILD_${name})
+endfunction(zlib_add_contrib_lib name description dir)
 
-if(ZLIB_WITH_INFBACK9)
-   add_subdirectory(infback9/)
-endif(ZLIB_WITH_INFBACK9)
+function(zlib_add_contrib_feature name description dir)
+    option(ZLIB_WITH_${name}
+           "Enable build ${description}"
+           OFF)
 
-if(ZLIB_BUILD_IOSTREAM3)
-    set(ZLIB_IOSTREAM3_BUILD_SHARED ${ZLIB_BUILD_SHARED})
-    set(ZLIB_IOSTREAM3_BUILD_STATIC ${ZLIB_BUILD_STATIC})
-    set(ZLIB_IOSTREAM3_TESTING ${ZLIB_BUILD_TESTING})
-    add_subdirectory(iostream3/)
-endif(ZLIB_BUILD_IOSTREAM3)
+    if(ZLIB_WITH_${name})
+        add_subdirectory(${dir}/)
+    endif(ZLIB_WITH_${name})
+endfunction(zlib_add_contrib_feature name description dir)
+
+zlib_add_contrib_feature("GVMAT64"
+    "of an optimized longest_match for 32 bits x86_64"
+    gcc_gvmat64)
+
+zlib_add_contrib_feature(INFBACK9 "with support for method 9 deflate" infback9)
+zlib_add_contrib_lib(ADA "Ada bindings" ada)
+zlib_add_contrib_lib(BLAST "blast binary" blast)
+zlib_add_contrib_lib(IOSTREAM3 "IOStream C++ bindings V3" iostream3)
+zlib_add_contrib_lib(MINIZIP "minizip library" minizip)
