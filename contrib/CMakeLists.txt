@@ -4,6 +4,7 @@ option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
 option(ZLIB_WITH_GVMAT64
        "Enable an optiomized longest_match for 32 bits x86_64"
        OFF)
+option(ZLIB_WITH_INFBACK9 "Build with support for method 9 deflate" OFF)
 
 if(ZLIB_BUILD_ADA)
     set(ZLIBADA_BUILD_SHARED ${ZLIB_BUILD_SHARED})
@@ -29,3 +30,6 @@ endif(ZLIB_BUILD_MINIZIP)
 if(ZLIB_WITH_GVMAT64)
    add_subdirectory(gcc_gvmat64/)
 endif(ZLIB_WITH_GVMAT64)
+if(ZLIB_WITH_INFBACK9)
+   add_subdirectory(infback9/)
+endif(ZLIB_WITH_INFBACK9)
