@@ -1,5 +1,6 @@
 option(ZLIB_BUILD_ADA "Enable building of Ada bindings" OFF)
 option(ZLIB_BUILD_BLAST "Enable building of blast binary" OFF)
+option(ZLIB_BUILD_IOSTREAM3 "Build with IOStream C++ bindings V3" OFF)
 option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
 option(ZLIB_WITH_GVMAT64
        "Enable an optiomized longest_match for 32 bits x86_64"
@@ -30,6 +31,14 @@ endif(ZLIB_BUILD_MINIZIP)
 if(ZLIB_WITH_GVMAT64)
    add_subdirectory(gcc_gvmat64/)
 endif(ZLIB_WITH_GVMAT64)
+
 if(ZLIB_WITH_INFBACK9)
    add_subdirectory(infback9/)
 endif(ZLIB_WITH_INFBACK9)
+
+if(ZLIB_BUILD_IOSTREAM3)
+    set(ZLIB_IOSTREAM3_BUILD_SHARED ${ZLIB_BUILD_SHARED})
+    set(ZLIB_IOSTREAM3_BUILD_STATIC ${ZLIB_BUILD_STATIC})
+    set(ZLIB_IOSTREAM3_TESTING ${ZLIB_BUILD_TESTING})
+    add_subdirectory(iostream3/)
+endif(ZLIB_BUILD_IOSTREAM3)

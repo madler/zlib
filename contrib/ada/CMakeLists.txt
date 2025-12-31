@@ -14,7 +14,7 @@ option(ZLIB_ADA_BUILD_STATIC "Enable building ada bindings static library" ON)
 option(ZLIB_ADA_BUILD_TESTING "Enable building tests for ada bindings library" ON)
 
 if(WIN32 OR CYGWIN)
-    set(zlibAda_static_suffix "s")
+    set(zlib_Ada_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
 endif(WIN32 OR CYGWIN)
 
@@ -150,7 +150,7 @@ if(ZLIB_ADA_BUILD_STATIC)
         INTERFACE ZLIB::ZLIBSTATIC)
 
     set_target_properties(zlib-AdaStatic
-        PROPERTIES OUTPUT_NAME zlib-Ada${zlibAda_static_suffix})
+        PROPERTIES OUTPUT_NAME zlib-Ada${zlib_Ada_static_suffix})
 
     ada_add_library(zlib-streamsStatic STATIC
         zlib-streams.adb)
