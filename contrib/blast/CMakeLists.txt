@@ -9,6 +9,10 @@ project(
     DESCRIPTION "A library for creating zipfiles based in zlib"
     HOMEPAGE_URL "https://www.zlib.net")
 
+option(ZLIB_BLAST_BUILD_SHARED "Enable building blast shared library" ON)
+option(ZLIB_BLAST_BUILD_STATIC "Enable building blast static library" ON)
+option(ZLIB_BLAST_BUILD_TESTING "Enable building tests for blast" ON)
+
 if(WIN32 OR CYGWIN)
     set(zlibAda_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
@@ -29,12 +33,12 @@ function(blast_findTestEnv testName)
     set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
 endfunction(blast_findTestEnv testName)
 
-if(ZLIBBLAST_BUILD_SHARED)
+if(ZLIB_BLAST_BUILD_SHARED)
     add_library(blast SHARED
                 blast.c
                 blast.h)
 
-    if(ZLIBBLAST_BUILD_TESTING)
+    if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
         add_executable(blast-test blast-test.c)
         target_link_libraries(blast-test blast)
@@ -55,10 +59,10 @@ if(ZLIBBLAST_BUILD_SHARED)
             OR MSYS
             OR MINGW
             OR CYGWIN)
-    endif(ZLIBBLAST_BUILD_TESTING)
-endif(ZLIBBLAST_BUILD_SHARED)
+    endif(ZLIB_BLAST_BUILD_TESTING)
+endif(ZLIB_BLAST_BUILD_SHARED)
 
-if(ZLIBBLAST_BUILD_STATIC)
+if(ZLIB_BLAST_BUILD_STATIC)
     add_library(blastStatic STATIC
                 blast.c
                 blast.h)
@@ -67,7 +71,7 @@ if(ZLIBBLAST_BUILD_STATIC)
         PROPERTIES
             OUTPUT_NAME blast${minizip_static_suffix})
 
-    if(ZLIBBLAST_BUILD_TESTING)
+    if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
         add_executable(blast-testStatic blast-test.c)
         target_link_libraries(blast-testStatic blastStatic)
@@ -77,5 +81,5 @@ if(ZLIBBLAST_BUILD_STATIC)
                     "$<TARGET_FILE:blast-testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
-    endif(ZLIBBLAST_BUILD_TESTING)
-endif(ZLIBBLAST_BUILD_STATIC)
+    endif(ZLIB_BLAST_BUILD_TESTING)
+endif(ZLIB_BLAST_BUILD_STATIC)
