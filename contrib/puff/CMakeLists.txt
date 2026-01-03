@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.31)
 
 project(
-    iostreamsV3
+    puff
     VERSION 1.0.0
     LANGUAGES C
     DESCRIPTION "A library for decompressing deflate with very little footprint"
@@ -10,6 +10,10 @@ project(
 option(ZLIB_PUFF_BUILD_SHARED "Enable building blast shared library" ON)
 option(ZLIB_PUFF_BUILD_STATIC "Enable building blast static library" ON)
 option(ZLIB_PUFF_BUILD_TESTING "Enable building tests for blast" ON)
+option(ZLIB_PUFF_INSTALL "Enable installation of puff" ON)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(NOT DEFINED ZLIB_BUILD_PUFF)
     if(ZLIB_PUFF_BUILD_SHARED)
@@ -135,3 +139,58 @@ if(ZLIB_PUFF_BUILD_STATIC)
         endif(GCOV_EXECUTABLE)
     endif(ZLIB_PUFF_BUILD_TESTING)
 endif(ZLIB_PUFF_BUILD_STATIC)
+
+if(ZLIB_PUFF_INSTALL)
+    if(ZLIB_PUFF_BUILD_SHARED)
+        install(
+            TARGETS zlib_puff_puff
+            COMPONENT Runtime
+            EXPORT puffSharedExport
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        install(
+            EXPORT puffSharedExport
+            FILE puff-shared.cmake
+            NAMESPACE PUFF::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/puff)
+
+        if(MSVC)
+            install(
+                FILES $<TARGET_PDB_FILE:zlib_puff_puff>
+                COMPONENT Development
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                CONFIGURATIONS Debug OR RelWithDebInfo
+                OPTIONAL)
+        endif(MSVC)
+    endif(ZLIB_PUFF_BUILD_SHARED)
+
+    if(ZLIB_PUFF_BUILD_STATIC)
+        install(
+            TARGETS zlib_puff_puffStatic
+            COMPONENT Development
+            EXPORT puffStaticExport
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+        install(
+            EXPORT puffStaticExport
+            FILE puff-static.cmake
+            NAMESPACE PUFF::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/puff)
+    endif(ZLIB_PUFF_BUILD_STATIC)
+
+    configure_package_config_file(
+        ${puff_SOURCE_DIR}/puffConfig.cmake.in
+        ${puff_BINARY_DIR}/puffConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/puff)
+
+    write_basic_package_version_file(
+        "${puff_BINARY_DIR}/puffConfigVersion.cmake"
+        VERSION "${puff_VERSION}"
+        COMPATIBILITY AnyNewerVersion)
+
+    install(FILES ${puff_BINARY_DIR}/puffConfig.cmake
+                  ${puff_BINARY_DIR}/puffConfigVersion.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/puff)
+    install(
+        FILES puff.h
+        COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif(ZLIB_PUFF_INSTALL)

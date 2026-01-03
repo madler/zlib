@@ -241,7 +241,7 @@ if(ZLIB_INSTALL)
         if(ZLIB_INSTALL_COMPAT_DLL)
             install(
                 FILES $<TARGET_FILE:zlib>
-                COMPONENT Runtime
+                COMPONENT Development
                 RENAME zlib1.dll
                 DESTINATION "${CMAKE_INSTALL_BINDIR}")
         endif(ZLIB_INSTALL_COMPAT_DLL)

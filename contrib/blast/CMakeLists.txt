@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.12...3.31)
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
-
 project(
     blast
     VERSION 1.3.0
@@ -12,9 +10,13 @@ project(
 option(ZLIB_BLAST_BUILD_SHARED "Enable building blast shared library" ON)
 option(ZLIB_BLAST_BUILD_STATIC "Enable building blast static library" ON)
 option(ZLIB_BLAST_BUILD_TESTING "Enable building tests for blast" ON)
+option(ZLIB_BLAST_INSTALL "Enable installation of blast" ON)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(WIN32 OR CYGWIN)
-    set(zlibAda_static_suffix "s")
+    set(zlibblast_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
 endif(WIN32 OR CYGWIN)
 
@@ -83,3 +85,58 @@ if(ZLIB_BLAST_BUILD_STATIC)
                     "${CMAKE_CURRENT_BINARY_DIR}")
     endif(ZLIB_BLAST_BUILD_TESTING)
 endif(ZLIB_BLAST_BUILD_STATIC)
+
+if(ZLIB_BLAST_INSTALL)
+    if(ZLIB_BLAST_BUILD_SHARED)
+        install(
+            TARGETS zlib_blast_blast
+            COMPONENT Runtime
+            EXPORT zlibBlastSharedExport
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        install(
+            EXPORT zlibBlastSharedExport
+            FILE blast-shared.cmake
+            NAMESPACE BLAST::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)
+
+        if(MSVC)
+            install(
+                FILES $<TARGET_PDB_FILE:zlib_blast_blast>
+                COMPONENT Development
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                CONFIGURATIONS Debug OR RelWithDebInfo
+                OPTIONAL)
+        endif(MSVC)
+    endif(ZLIB_BLAST_BUILD_SHARED)
+
+    if(ZLIB_BLAST_BUILD_STATIC)
+        install(
+            TARGETS zlib_blast_blastStatic
+            COMPONENT Development
+            EXPORT zlibBlastStaticExport
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+        install(
+            EXPORT zlibBlastStaticExport
+            FILE blast-static.cmake
+            NAMESPACE BLAST::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)
+    endif(ZLIB_BLAST_BUILD_STATIC)
+
+    configure_package_config_file(
+        ${blast_SOURCE_DIR}/blastConfig.cmake.in
+        ${blast_BINARY_DIR}/blastConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)
+
+    write_basic_package_version_file(
+        "${blast_BINARY_DIR}/blastConfigVersion.cmake"
+        VERSION "${blast_VERSION}"
+        COMPATIBILITY AnyNewerVersion)
+
+    install(FILES ${blast_BINARY_DIR}/blastConfig.cmake
+                  ${blast_BINARY_DIR}/blastConfigVersion.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)
+    install(
+        FILES blast.h
+        COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif(ZLIB_BLAST_INSTALL)

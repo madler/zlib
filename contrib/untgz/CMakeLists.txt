@@ -9,13 +9,31 @@ project(
 
 option(ZLIB_UNTGZ_BUILD_SHARED "Enable building untgz" ON)
 option(ZLIB_UNTGZ_BUILD_STATIC "Enable building static linked untgz" ON)
+option(ZLIB_UNTGZ_INSTALL "Enable installation of untgz" ON)
+
+include(GNUInstallDirs)
+
 
 if(ZLIB_UNTGZ_BUILD_SHARED)
     add_executable(untgz untgz.c)
     target_link_libraries(untgz PRIVATE ZLIB::ZLIB)
+
+    if(ZLIB_UNTGZ_INSTALL)
+        install(
+            TARGETS zlib-untgz
+            COMPONENT Runtime
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    endif(ZLIB_UNTGZ_INSTALL)
 endif(ZLIB_UNTGZ_BUILD_SHARED)
 
 if(ZLIB_UNTGZ_BUILD_STATIC)
     add_executable(untgzStatic untgz.c)
     target_link_libraries(untgzStatic PRIVATE ZLIB::ZLIBSTATIC)
+
+    if(ZLIB_UNTGZ_INSTALL)
+        install(
+            TARGETS zlib-untgzStatic
+            COMPONENT Runtime
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    endif(ZLIB_UNTGZ_INSTALL)
 endif(ZLIB_UNTGZ_BUILD_STATIC)

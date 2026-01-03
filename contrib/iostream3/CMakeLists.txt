@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.31)
 
 project(
-    iostreamsV3
+    iostreamV3
     VERSION 1.0.0
     LANGUAGES CXX
     DESCRIPTION "A library for using C++ IOStreams with zlib V3"
@@ -10,6 +10,10 @@ project(
 option(ZLIB_IOSTREAM3_BUILD_SHARED "Enable building blast shared library" ON)
 option(ZLIB_IOSTREAM3_BUILD_STATIC "Enable building blast static library" ON)
 option(ZLIB_IOSTREAM3_BUILD_TESTING "Enable building tests for blast" ON)
+option(ZLIB_IOSTREAM3_INSTALL "Enable installation of iostream" ON)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
     if(ZLIB_IOSTREAM3_BUILD_SHARED)
@@ -88,3 +92,58 @@ if(ZLIB_IOSTREAM3_BUILD_TESTING)
         PROPERTIES
             FIXTURES_CLEANUP zlib_iostream3_cleanup)
 endif(ZLIB_IOSTREAM3_BUILD_TESTING)
+
+if(ZLIB_IOSTREAM3_INSTALL)
+    if(ZLIB_IOSTREAM3_BUILD_SHARED)
+        install(
+            TARGETS zlib_iostream3_iostreamv3
+            COMPONENT Runtime
+            EXPORT zlibiostream3SharedExport
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        install(
+            EXPORT zlibiostream3SharedExport
+            FILE iostreamv3-shared.cmake
+            NAMESPACE IOSTREAMV3::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iostreamv3)
+
+        if(MSVC)
+            install(
+                FILES $<TARGET_PDB_FILE:zlib_iostream3_iostream3>
+                COMPONENT Development
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                CONFIGURATIONS Debug OR RelWithDebInfo
+                OPTIONAL)
+        endif(MSVC)
+    endif(ZLIB_IOSTREAM3_BUILD_SHARED)
+
+    if(ZLIB_IOSTREAM3_BUILD_STATIC)
+        install(
+            TARGETS zlib_iostream3_iostreamv3Static
+            COMPONENT Development
+            EXPORT iostream3StaticExport
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+        install(
+            EXPORT iostream3StaticExport
+            FILE iostreamv3-static.cmake
+            NAMESPACE IOSTREAMV3::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iostreamv3)
+    endif(ZLIB_IOSTREAM3_BUILD_STATIC)
+
+    configure_package_config_file(
+        ${iostreamV3_SOURCE_DIR}/iostream3Config.cmake.in
+        ${iostreamV3_BINARY_DIR}/iostreamv3Config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iostreamv3)
+
+    write_basic_package_version_file(
+        "${iostreamV3_BINARY_DIR}/iostreamv3ConfigVersion.cmake"
+        VERSION "${iostream3_VERSION}"
+        COMPATIBILITY AnyNewerVersion)
+
+    install(FILES ${iostreamV3_BINARY_DIR}/iostreamv3Config.cmake
+                  ${iostreamV3_BINARY_DIR}/iostreamv3ConfigVersion.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iostreamv3)
+    install(
+        FILES zfstream.h
+        COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif(ZLIB_IOSTREAM3_INSTALL)

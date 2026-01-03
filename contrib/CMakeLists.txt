@@ -14,6 +14,11 @@ function(zlib_add_contrib_lib name description dir)
             set(ZLIB_${name}_BUILD_TESTING ${ZLIB_BUILD_TESTING} CACHE BOOL "")
         endif(NOT DEFINED ZLIB_${name}_BUILD_TESTING)
 
+
+        if(NOT DEFINED ZLIB_${name}_INSTALL)
+            set(ZLIB_${name}_INSTALL ${ZLIB_INSTALL} CACHE BOOL "")
+        endif(NOT DEFINED ZLIB_${name}_INSTALL)
+
         add_subdirectory(${dir}/)
     endif(ZLIB_BUILD_${name})
 endfunction(zlib_add_contrib_lib name description dir)
