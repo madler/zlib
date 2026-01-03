@@ -5,6 +5,11 @@ enable_language(ASM)
 
 set(CMAKE_ASM_COMPILE_OBJECT ${CMAKE_ASM_COMPILE_OBJECT} CACHE INTERNAL "" FORCE)
 
+if(WIN32)
+    #cmake 4.1 doesn't consider cl an asm compiler
+    cmake_policy(SET CMP0194 NEW)
+endif(WIN32)
+
 if(ZLIB_BUILD_SHARED)
     target_sources(zlib PRIVATE gvmat64.S)
 endif(ZLIB_BUILD_SHARED)
