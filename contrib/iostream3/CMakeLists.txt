@@ -58,16 +58,16 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
     if(ZLIB_IOSTREAM3_BUILD_TESTING)
         enable_testing()
 
-        add_executable(iostream-test test.cc)
+        add_executable(zlib_iostream3_test test.cc zfstream.h)
 
-        target_link_libraries(iostream-test
-            PRIVATE zlib-iostream3)
+        target_link_libraries(zlib_iostream3_test
+            PRIVATE zlib_iostream3_iostream3)
 
-        add_test(NAME zlib_iostream3_test COMMAND iostream-test)
+        add_test(NAME zlib_iostream3_test COMMAND zlib_iostream3_test)
 
         set_tests_properties(zlib_iostream3_test
             PROPERTIES
-                FIXTURES_REQUIRED iostream3_cleanup)
+                FIXTURES_REQUIRED zlib_iostream3_cleanup)
     endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 endif(ZLIB_IOSTREAM3_BUILD_SHARED)
 
@@ -82,22 +82,24 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
     target_link_libraries(zlib_iostream3_iostreamv3Static
         INTERFACE ZLIB::ZLIBSTATIC)
 
-    set_target_properties(zlib-iostream3Static
+    set_target_properties(zlib_iostream3_iostreamv3Static
         PROPERTIES
-            OUTPUT_NAME zlib-iostream3${zlib_IOStream3_static_suffix})
+            EXPORT_NAME IOSTREAMV3STATIC
+            OUTPUT_NAME iostream3${zlib_IOStream3_static_suffix})
 
     if(ZLIB_IOSTREAM3_BUILD_TESTING)
         enable_testing()
 
-        add_executable(iostream-testStatic test.cc)
+        add_executable(zlib_iostream3_testStatic test.cc zfstream.h)
 
-        target_link_libraries(iostream-testStatic
-            PRIVATE zlib-iostream3Static)
-        add_test(NAME zlib_iostream3_testStatic COMMAND iostream-testStatic)
+        target_link_libraries(zlib_iostream3_testStatic
+            PRIVATE zlib_iostream3_iostream3Static)
+        add_test(NAME zlib_iostream3_testStatic
+                 COMMAND zlib_iostream3_testStatic)
 
         set_tests_properties(zlib_iostream3_testStatic
             PROPERTIES
-                FIXTURES_REQUIRED iostream3_cleanup)
+                FIXTURES_REQUIRED zlib_iostream3_cleanup)
     endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 endif(ZLIB_IOSTREAM3_BUILD_STATIC)
 

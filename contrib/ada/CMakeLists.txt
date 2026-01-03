@@ -67,75 +67,75 @@ if(ZLIB_ADA_BUILD_SHARED)
 
     if(ZLIB_ADA_BUILD_TESTING)
         enable_testing()
-        ada_add_executable(ada-test test.adb)
+        ada_add_executable(zlib_ada_test test.adb)
 
-        target_link_libraries(ada-test
+        target_link_libraries(zlib_ada_test
             PRIVATE
-                zlib-Ada
-                zlib-streams)
+                zlib_ada_Ada
+                zlib_ada_streams)
 
-        ada_find_ali(ada-test)
+        ada_find_ali(zlib_ada_test)
 
-        add_test(NAME zlib_Ada_ada-test COMMAND ada-test)
-        set_tests_properties(zlib_Ada_ada-test PROPERTIES FIXTURES_REQUIRED ada_cleanup)
+        add_test(NAME zlib_ada_ada-test COMMAND zlib_ada_test)
+        set_tests_properties(zlib_ada_ada-test PROPERTIES FIXTURES_REQUIRED zlib_ada_cleanup)
 
         if(MSVC
            OR MSYS
            OR MINGW
            OR CYGWIN)
-            zlib_ada_findtestenv(zlibAda_ada-test)
+            zlib_ada_findtestenv(zlib_ada_ada-test)
         endif(
             MSVC
             OR MSYS
             OR MINGW
             OR CYGWIN)
 
-        ada_add_executable(buffer_demo buffer_demo.adb)
+        ada_add_executable(zlib_ada_buffer_demo buffer_demo.adb)
 
-        target_link_libraries(buffer_demo
+        target_link_libraries(zlib_ada_buffer_demo
             PRIVATE
-                zlib-Ada)
+                zlib_ada_Ada)
 
-        ada_find_ali(buffer_demo)
+        ada_find_ali(zlib_ada_buffer_demo)
 
-        add_test(NAME zlib_Ada_buffer-demo COMMAND buffer_demo)
+        add_test(NAME zlib_ada_buffer-demo COMMAND zlib_ada_buffer_demo)
 
         if(MSVC
            OR MSYS
            OR MINGW
            OR CYGWIN)
-            zlib_ada_findtestenv(zlibAda_buffer-demo)
+            zlib_ada_findtestenv(zlib_ada_buffer-demo)
         endif(
             MSVC
             OR MSYS
             OR MINGW
             OR CYGWIN)
 
-        ada_add_executable(mtest mtest.adb)
+        ada_add_executable(zlib_ada_mtest mtest.adb)
 
-        target_link_libraries(mtest
+        target_link_libraries(zlib_ada_mtest
             PRIVATE
-                zlib-Ada)
+                zlib_ada_Ada)
 
-        ada_find_ali(mtest)
+        ada_find_ali(zlib_ada_mtest)
 
         #Not adding test as this is an endless-loop
 
-        ada_add_executable(read read.adb)
+        ada_add_executable(zlib_ada_read read.adb)
 
-        target_link_libraries(read
+        target_link_libraries(zlib_ada_read
             PRIVATE
-                zlib-Ada)
+                zlib_ada_Ada)
 
-        ada_find_ali(read)
+        ada_find_ali(zlib_ada_read)
 
-        add_test(NAME zlib_Ada_read COMMAND read)
+        add_test(NAME zlib_ada_read COMMAND zlib_ada_read)
 
         if(MSVC
            OR MSYS
            OR MINGW
            OR CYGWIN)
-            zlib_ada_findtestenv(zlibAda_read)
+            zlib_ada_findtestenv(zlib_ada_read)
         endif(
             MSVC
             OR MSYS
@@ -166,47 +166,47 @@ if(ZLIB_ADA_BUILD_STATIC)
 
     if(ZLIB_ADA_BUILD_TESTING)
         enable_testing()
-        ada_add_executable(ada-testStatic test.adb)
+        ada_add_executable(zlib_ada_testStatic test.adb)
 
-        target_link_libraries(ada-testStatic
+        target_link_libraries(zlib_ada_testStatic
             PRIVATE
-                zlib-AdaStatic
-                zlib-streamsStatic)
+                zlib_ada_AdaStatic
+                zlib_ada_streamsStatic)
 
-        ada_find_ali(ada-testStatic)
+        ada_find_ali(zlib_ada_testStatic)
 
-        add_test(NAME zlib_Ada_ada-testStatic COMMAND ada-testStatic)
-        set_tests_properties(zlib_Ada_ada-testStatic PROPERTIES FIXTURES_REQUIRED ada_cleanup)
+        add_test(NAME zlib_ada_testStatic COMMAND zlib_ada_testStatic)
+        set_tests_properties(zlib_ada_testStatic PROPERTIES FIXTURES_REQUIRED zlib_ada_cleanup)
 
-        ada_add_executable(buffer_demoStatic buffer_demo.adb)
+        ada_add_executable(zlib_ada_buffer-demoStatic buffer_demo.adb)
 
-        target_link_libraries(buffer_demoStatic
+        target_link_libraries(zlib_ada_buffer-demoStatic
             PRIVATE
-                zlib-AdaStatic)
+                zlib_ada_AdaStatic)
 
-        ada_find_ali(buffer_demoStatic)
+        ada_find_ali(zlib_ada_buffer-demoStatic)
 
-        add_test(NAME zlib_Ada-buffer-demoStatic COMMAND buffer_demoStatic)
+        add_test(NAME zlib_ada_buffer-demoStatic COMMAND zlib_ada_buffer-demoStatic)
 
-        ada_add_executable(mtestStatic mtest.adb)
+        ada_add_executable(zlib_ada_mtestStatic mtest.adb)
 
-        target_link_libraries(mtestStatic
+        target_link_libraries(zlib_ada_mtestStatic
             PRIVATE
-                zlib-AdaStatic)
+                zlib_ada_AdaStatic)
 
-        ada_find_ali(mtestStatic)
+        ada_find_ali(zlib_ada_mtestStatic)
 
         # Not adding test as this is an endless-loop
 
-        ada_add_executable(readStatic read.adb)
+        ada_add_executable(zlib_ada_readStatic read.adb)
 
-        target_link_libraries(readStatic
+        target_link_libraries(zlib_ada_readStatic
             PRIVATE
-                zlib-AdaStatic)
+                zlib_ada_AdaStatic)
 
-        ada_find_ali(readStatic)
+        ada_find_ali(zlib_ada_readStatic)
 
-        add_test(NAME zlib_Ada_readStatic COMMAND readStatic)
+        add_test(NAME zlib_ada_readStatic COMMAND zlib_ada_readStatic)
     endif(ZLIB_ADA_BUILD_TESTING)
 endif(ZLIB_ADA_BUILD_STATIC)
 

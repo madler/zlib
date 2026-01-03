@@ -84,28 +84,28 @@ if(ZLIB_PUFF_BUILD_SHARED)
     if(ZLIB_PUFF_BUILD_TESTING)
         enable_testing()
 
-        add_executable(puff-test pufftest.c)
+        add_executable(zlib_puff_test pufftest.c puff.h)
 
-        target_link_libraries(puff-test
-            PRIVATE zlib-puff)
+        target_link_libraries(zlib_puff_test
+            PRIVATE zlib_puff_puff)
 
         add_test(NAME zlib_puff_test
             COMMAND ${CMAKE_COMMAND} -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:puff-test>"
+                    "$<TARGET_FILE:zlib_puff_test>"
                     "${CMAKE_CURRENT_SOURCE_DIR}")
 
         if(GCOV_EXECUTABLE)
-            add_executable(puff-test-coverage pufftest.c puff.c)
+            add_executable(zlib_puff_test-coverage pufftest.c puff.c puff.h)
 
-            target_compile_options(puff-test-coverage PRIVATE -coverage)
+            target_compile_options(zlib_puff_test-coverage PRIVATE -coverage)
 
-            target_link_options(puff-test-coverage PRIVATE -coverage)
+            target_link_options(zlib_puff_test-coverage PRIVATE -coverage)
 
-            add_test(NAME zlib_puff_test_coverage
+            add_test(NAME zlib_puff_test-coverage
                 COMMAND ${CMAKE_COMMAND} -P
                         ${CMAKE_CURRENT_SOURCE_DIR}/tester-cov.cmake
-                        "$<TARGET_FILE:puff-test-coverage>"
+                        "$<TARGET_FILE:zlib_puff_test-coverage>"
                         "${CMAKE_CURRENT_SOURCE_DIR}"
                         "${CMAKE_CURRENT_BINARY_DIR}"
                         ${GCOV_EXECUTABLE}
@@ -129,27 +129,29 @@ if(ZLIB_PUFF_BUILD_STATIC)
     if(ZLIB_PUFF_BUILD_TESTING)
         enable_testing()
 
-        add_executable(puff-testStatic pufftest.c)
+        add_executable(zlib_puff_testStatic pufftest.c puff.h)
 
-        target_link_libraries(puff-testStatic
-            PRIVATE zlib-puffStatic)
+        target_link_libraries(zlib_puff_testStatic
+            PRIVATE zlib_puff_puffStatic)
         add_test(NAME zlib_puff_testStatic
             COMMAND ${CMAKE_COMMAND} -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:puff-testStatic>"
+                    "$<TARGET_FILE:zlib_puff_testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}")
 
         if(GCOV_EXECUTABLE)
-            add_executable(puff-testStatic-coverage pufftest.c puff.c)
+            add_executable(zlib_puff_testStatic-coverage pufftest.c puff.c puff.h)
 
-            target_compile_options(puff-testStatic-coverage PRIVATE -coverage)
+            target_compile_options(zlib_puff_testStatic-coverage
+                PRIVATE -coverage)
 
-            target_link_options(puff-testStatic-coverage PRIVATE -coverage)
+            target_link_options(zlib_puff_testStatic-coverage
+                PRIVATE -coverage)
 
-            add_test(NAME zlib_puff_testStatic_coverage
+            add_test(NAME zlib_puff_testStatic-coverage
                 COMMAND ${CMAKE_COMMAND} -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/tester-cov.cmake
-                    "$<TARGET_FILE:puff-testStatic-coverage>"
+                    "$<TARGET_FILE:zlib_puff_testStatic-coverage>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}"
                     ${GCOV_EXECUTABLE}

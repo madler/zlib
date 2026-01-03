@@ -92,12 +92,13 @@ if(ZLIB_BLAST_BUILD_STATIC)
 
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
-        add_executable(blast-testStatic blast-test.c)
-        target_link_libraries(blast-testStatic blastStatic)
+        add_executable(zlib_blast_testStatic blast-test.c)
+        target_link_libraries(zlib_blast_testStatic
+            PRIVATE zlib_blast_blastStatic)
 
-        add_test(NAME blast_testStatic
+        add_test(NAME zlib_blast_testStatic
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:blast-testStatic>"
+                    "$<TARGET_FILE:zlib_blast_testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
     endif(ZLIB_BLAST_BUILD_TESTING)
