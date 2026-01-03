@@ -211,7 +211,7 @@ if(ZLIB_ADA_BUILD_STATIC)
 endif(ZLIB_ADA_BUILD_STATIC)
 
 if(ZLIB_ADA_BUILD_TESTING)
-    add_test(NAME zlib_Ada_cleanup COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/testzlib.in
+    add_test(NAME zlib_ada_cleanup COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/testzlib.in
         ${CMAKE_CURRENT_BINARY_DIR}/testzlib.out ${CMAKE_CURRENT_BINARY_DIR}/testzlib.zlb)
-    set_tests_properties(zlib_Ada_cleanup PROPERTIES FIXTURES_CLEANUP ada_cleanup)
+    set_tests_properties(zlib_ada_cleanup PROPERTIES FIXTURES_CLEANUP zlib_ada_cleanup)
 endif(ZLIB_ADA_BUILD_TESTING)

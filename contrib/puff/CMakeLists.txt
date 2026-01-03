@@ -59,6 +59,8 @@ if(ZLIB_PUFF_BUILD_TESTING)
         endif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
     endif(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
           ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+
+      add_subdirectory(test)
 endif(ZLIB_PUFF_BUILD_TESTING)
 
 if(ZLIB_PUFF_BUILD_SHARED)

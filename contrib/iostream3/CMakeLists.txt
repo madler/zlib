@@ -111,6 +111,8 @@ if(ZLIB_IOSTREAM3_BUILD_TESTING)
     set_tests_properties(zlib_iostream3_cleanup
         PROPERTIES
             FIXTURES_CLEANUP zlib_iostream3_cleanup)
+
+        add_subdirectory(test)
 endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 
 if(ZLIB_IOSTREAM3_INSTALL)
