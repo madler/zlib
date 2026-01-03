@@ -3,15 +3,15 @@ function(zlib_add_contrib_lib name description dir)
 
     if(ZLIB_BUILD_${name})
         if(NOT DEFINED ZLIB_${name}_BUILD_SHARED)
-            set(ZLIB_${name}_BUILD_SHARED ${ZLIB_BUILD_SHARED})
+            set(ZLIB_${name}_BUILD_SHARED ${ZLIB_BUILD_SHARED} CACHE BOOL "")
         endif(NOT DEFINED ZLIB_${name}_BUILD_SHARED)
 
         if(NOT DEFINED ZLIB_${name}_BUILD_STATIC)
-            set(ZLIB_${name}_BUILD_STATIC ${ZLIB_BUILD_STATIC})
+            set(ZLIB_${name}_BUILD_STATIC ${ZLIB_BUILD_STATIC} CACHE BOOL "")
         endif(NOT DEFINED ZLIB_${name}_BUILD_STATIC)
 
         if(NOT DEFINED ZLIB_${name}_BUILD_TESTING)
-            set(ZLIB_${name}_BUILD_TESTING ${ZLIB_BUILD_TESTING})
+            set(ZLIB_${name}_BUILD_TESTING ${ZLIB_BUILD_TESTING} CACHE BOOL "")
         endif(NOT DEFINED ZLIB_${name}_BUILD_TESTING)
 
         add_subdirectory(${dir}/)
