@@ -26,8 +26,8 @@ if(NOT DEFINED ZLIB_BUILD_UNTGZ)
 endif(NOT DEFINED ZLIB_BUILD_UNTGZ)
 
 if(ZLIB_UNTGZ_BUILD_SHARED)
-    add_executable(untgz untgz.c)
-    target_link_libraries(untgz PRIVATE ZLIB::ZLIB)
+    add_executable(zlib-untgz untgz.c)
+    target_link_libraries(zlib-untgz PRIVATE ZLIB::ZLIB)
 
     if(ZLIB_UNTGZ_INSTALL)
         install(
@@ -38,8 +38,8 @@ if(ZLIB_UNTGZ_BUILD_SHARED)
 endif(ZLIB_UNTGZ_BUILD_SHARED)
 
 if(ZLIB_UNTGZ_BUILD_STATIC)
-    add_executable(untgzStatic untgz.c)
-    target_link_libraries(untgzStatic PRIVATE ZLIB::ZLIBSTATIC)
+    add_executable(zlib-untgzStatic untgz.c)
+    target_link_libraries(zlib-untgzStatic PRIVATE ZLIB::ZLIBSTATIC)
 
     if(ZLIB_UNTGZ_INSTALL)
         install(

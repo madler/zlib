@@ -33,7 +33,7 @@ if(WIN32 OR CYGWIN)
 endif(WIN32 OR CYGWIN)
 
 if(ZLIB_PUFF_BUILD_TESTING)
-    add_executable(bin-writer bin-writer.c)
+    add_executable(zlib_puff_bin-writer bin-writer.c)
 
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
        ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
@@ -62,7 +62,7 @@ if(ZLIB_PUFF_BUILD_TESTING)
 endif(ZLIB_PUFF_BUILD_TESTING)
 
 if(ZLIB_PUFF_BUILD_SHARED)
-    add_library(zlib-puff SHARED
+    add_library(zlib_puff_puff SHARED
                 puff.c
                 puff.h)
 
@@ -115,13 +115,16 @@ if(ZLIB_PUFF_BUILD_SHARED)
 endif(ZLIB_PUFF_BUILD_SHARED)
 
 if(ZLIB_PUFF_BUILD_STATIC)
-    add_library(zlib-puffStatic STATIC
+    add_library(zlib_puff_puffStatic STATIC
                 puff.c
                 puff.h)
 
     add_library(PUFF::PUFFSTATIC ALIAS zlib_puff_puffStatic)
+
+    set_target_properties(zlib_puff_puffStatic
         PROPERTIES
-            OUTPUT_NAME zlib-puff${zlib_puff_static_suffix})
+            EXPORT_NAME PUFFSTATIC
+            OUTPUT_NAME puff${zlib_puff_static_suffix})
 
     if(ZLIB_PUFF_BUILD_TESTING)
         enable_testing()

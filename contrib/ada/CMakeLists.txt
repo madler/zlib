@@ -46,21 +46,24 @@ function(ZLIB_ADA_findTestEnv testName)
 endfunction(ZLIB_ADA_findTestEnv testName)
 
 if(ZLIB_ADA_BUILD_SHARED)
-    ada_add_library(zlib-Ada SHARED
+    ada_add_library(zlib_ada_Ada SHARED
         zlib-thin.adb
         zlib.adb)
 
-    target_link_libraries(zlib-Ada
+    set_target_properties(zlib_ada_Ada
+        PROPERTIES OUTPUT_NAME zlib-ada)
+
+    target_link_libraries(zlib_ada_Ada
         INTERFACE ZLIB::ZLIB)
 
-    ada_add_library(zlib-streams SHARED
+    ada_add_library(zlib_ada_streams SHARED
         zlib-streams.adb)
 
-    target_link_libraries(zlib-streams
+    target_link_libraries(zlib_ada_streams
         PUBLIC
-            zlib-Ada)
+            zlib_ada_Ada)
 
-    ada_find_ali(zlib-streams)
+    ada_find_ali(zlib_ada_streams)
 
     if(ZLIB_ADA_BUILD_TESTING)
         enable_testing()
@@ -142,24 +145,24 @@ if(ZLIB_ADA_BUILD_SHARED)
 endif(ZLIB_ADA_BUILD_SHARED)
 
 if(ZLIB_ADA_BUILD_STATIC)
-    ada_add_library(zlib-AdaStatic STATIC
+    ada_add_library(zlib_ada_AdaStatic STATIC
         zlib-thin.adb
         zlib.adb)
 
-    target_link_libraries(zlib-AdaStatic
+    target_link_libraries(zlib_ada_AdaStatic
         INTERFACE ZLIB::ZLIBSTATIC)
 
-    set_target_properties(zlib-AdaStatic
-        PROPERTIES OUTPUT_NAME zlib-Ada${zlib_Ada_static_suffix})
+    set_target_properties(zlib_ada_AdaStatic
+        PROPERTIES OUTPUT_NAME zlib-ada${zlib_Ada_static_suffix})
 
-    ada_add_library(zlib-streamsStatic STATIC
+    ada_add_library(zlib_ada_streamsStatic STATIC
         zlib-streams.adb)
 
-    target_link_libraries(zlib-streamsStatic
+    target_link_libraries(zlib_ada_streamsStatic
         PUBLIC
-            zlib-AdaStatic)
+            zlib_ada_AdaStatic)
 
-    ada_find_ali(zlib-streamsStatic)
+    ada_find_ali(zlib_ada_streamsStatic)
 
     if(ZLIB_ADA_BUILD_TESTING)
         enable_testing()

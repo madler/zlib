@@ -33,7 +33,7 @@ if(WIN32 OR CYGWIN)
 endif(WIN32 OR CYGWIN)
 
 if(ZLIB_IOSTREAM3_BUILD_SHARED)
-    add_library(zlib-iostream3 SHARED
+    add_library(zlib_iostream3_iostreamv3 SHARED
                 zfstream.cc
                 zfstream.h)
 
@@ -72,7 +72,7 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
 endif(ZLIB_IOSTREAM3_BUILD_SHARED)
 
 if(ZLIB_IOSTREAM3_BUILD_STATIC)
-    add_library(zlib-iostream3Static STATIC
+    add_library(zlib_iostream3_iostreamv3Static STATIC
                 zfstream.cc
                 zfstream.h)
 
