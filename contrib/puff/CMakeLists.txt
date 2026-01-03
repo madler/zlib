@@ -66,6 +66,21 @@ if(ZLIB_PUFF_BUILD_SHARED)
                 puff.c
                 puff.h)
 
+    add_library(PUFF::PUFF ALIAS zlib_puff_puff)
+
+    if(NOT CYGWIN)
+        set_target_properties(zlib_puff_puff
+            PROPERTIES
+                SOVERSION ${puff_VERSION_MAJOR}
+                VERSION ${puff_VERSION})
+    endif(NOT CYGWIN)
+
+    set_target_properties(
+        zlib_puff_puff
+            PROPERTIES
+                EXPORT_NAME PUFF
+                OUTPUT_NAME puff)
+
     if(ZLIB_PUFF_BUILD_TESTING)
         enable_testing()
 
@@ -104,7 +119,7 @@ if(ZLIB_PUFF_BUILD_STATIC)
                 puff.c
                 puff.h)
 
-    set_target_properties(zlib-puffStatic
+    add_library(PUFF::PUFFSTATIC ALIAS zlib_puff_puffStatic)
         PROPERTIES
             OUTPUT_NAME zlib-puff${zlib_puff_static_suffix})
 

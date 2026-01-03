@@ -37,7 +37,22 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
                 zfstream.cc
                 zfstream.h)
 
-    target_link_libraries(zlib-iostream3
+    add_library(IOSTREAMV3::IOSTREAMV3 ALIAS zlib_iostream3_iostreamv3)
+
+    if(NOT CYGWIN)
+        set_target_properties(zlib_iostream3_iostreamv3
+            PROPERTIES
+                SOVERSION ${iostreamV3_VERSION_MAJOR}
+                VERSION ${iostreamV3_VERSION})
+    endif(NOT CYGWIN)
+
+    set_target_properties(
+        zlib_iostream3_iostreamv3
+            PROPERTIES
+                EXPORT_NAME IOSTREAMV3
+                OUTPUT_NAME iostream3)
+
+    target_link_libraries(zlib_iostream3_iostreamv3
         PUBLIC ZLIB::ZLIB)
 
     if(ZLIB_IOSTREAM3_BUILD_TESTING)
@@ -61,7 +76,10 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
                 zfstream.cc
                 zfstream.h)
 
-    target_link_libraries(zlib-iostream3Static
+    add_library(IOSTREAMV3::IOSTREAMV3STATIC
+        ALIAS zlib_iostream3_iostreamv3Static)
+
+    target_link_libraries(zlib_iostream3_iostreamv3Static
         INTERFACE ZLIB::ZLIBSTATIC)
 
     set_target_properties(zlib-iostream3Static

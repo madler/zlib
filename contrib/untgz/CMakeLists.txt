@@ -13,6 +13,17 @@ option(ZLIB_UNTGZ_INSTALL "Enable installation of untgz" ON)
 
 include(GNUInstallDirs)
 
+if(NOT DEFINED ZLIB_BUILD_UNTGZ)
+    if(ZLIB_PUFF_BUILD_SHARED)
+        list(APPEND REQUIRED_COMPONENTS "shared")
+    endif(ZLIB_PUFF_BUILD_SHARED)
+
+    if(ZLIB_PUFF_BUILD_STATIC)
+        list(APPEND REQUIRED_COMPONENTS "static")
+    endif(ZLIB_PUFF_BUILD_STATIC)
+
+    find_package(ZLIB REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} CONFIG)
+endif(NOT DEFINED ZLIB_BUILD_UNTGZ)
 
 if(ZLIB_UNTGZ_BUILD_SHARED)
     add_executable(untgz untgz.c)

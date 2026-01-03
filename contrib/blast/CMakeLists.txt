@@ -40,6 +40,20 @@ if(ZLIB_BLAST_BUILD_SHARED)
                 blast.c
                 blast.h)
 
+    add_library(BLAST::BLAST ALIAS zlib_blast_blast)
+
+    if(NOT CYGWIN)
+        set_target_properties(zlib_blast_blast
+            PROPERTIES
+                SOVERSION ${blast_VERSION_MAJOR}
+                VERSION ${blast_VERSION})
+    endif(NOT CYGWIN)
+
+    set_target_properties(zlib_blast_blast
+        PROPERTIES
+            EXPORT_NAME BLAST
+            OUTPUT_NAME blast)
+
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
         add_executable(blast-test blast-test.c)
@@ -69,9 +83,12 @@ if(ZLIB_BLAST_BUILD_STATIC)
                 blast.c
                 blast.h)
 
-    set_target_properties(blastStatic
+    add_library(BLAST::BLASTSTATIC ALIAS zlib_blast_blastStatic)
+
+    set_target_properties(zlib_blast_blastStatic
         PROPERTIES
-            OUTPUT_NAME blast${minizip_static_suffix})
+            EXPORT_NAME BLASTSTATIC
+            OUTPUT_NAME blast${zlibblast_static_suffix})
 
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
