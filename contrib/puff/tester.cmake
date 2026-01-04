@@ -8,7 +8,8 @@ cmake_minimum_required(VERSION 3.12...3.31)
 
 execute_process(COMMAND ${CMAKE_ARGV3}
                 INPUT_FILE "${CMAKE_ARGV4}/zeros.raw"
-                RESULT_VARIABLE RESULT)
+                RESULT_VARIABLE RESULT
+            COMMAND_ECHO STDERR)
 
 if(RESULT)
     message(FATAL_ERROR "Command exitited with: ${RESULT}")

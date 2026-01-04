@@ -18,6 +18,7 @@ include(CMakePackageConfigHelpers)
 if(WIN32 OR CYGWIN)
     set(zlibblast_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif(WIN32 OR CYGWIN)
 
 function(blast_findTestEnv testName)
@@ -29,7 +30,7 @@ function(blast_findTestEnv testName)
         set(separator ":")
     endif()
 
-    string(APPEND testEnv "$<TARGET_FILE_DIR:ZLIB::ZLIB>${separator}")
+    string(APPEND testEnv "$<TARGET_FILE_DIR:BLAST::BLAST>${separator}")
     string(APPEND testEnv "$ENV{PATH}")
 
     set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
@@ -114,7 +115,8 @@ if(ZLIB_BLAST_INSTALL)
             TARGETS zlib_blast_blast
             COMPONENT Runtime
             EXPORT zlibBlastSharedExport
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         install(
             EXPORT zlibBlastSharedExport
             FILE blast-shared.cmake

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12...3.31)
 
 project(
     puff
-    VERSION 1.0.0
+    VERSION 2.3.0
     LANGUAGES C
     DESCRIPTION "A library for decompressing deflate with very little footprint"
     HOMEPAGE_URL "https://www.zlib.net")
@@ -83,7 +83,7 @@ if(ZLIB_PUFF_BUILD_SHARED)
                 EXPORT_NAME PUFF
                 OUTPUT_NAME puff)
 
-    if(ZLIB_PUFF_BUILD_TESTING)
+    if(ZLIB_PUFF_BUILD_TESTING AND NOT WIN32)
         enable_testing()
 
         add_executable(zlib_puff_test pufftest.c puff.h)
@@ -113,7 +113,7 @@ if(ZLIB_PUFF_BUILD_SHARED)
                         ${GCOV_EXECUTABLE}
                         ${llvm_option})
         endif(GCOV_EXECUTABLE)
-    endif(ZLIB_PUFF_BUILD_TESTING)
+    endif(ZLIB_PUFF_BUILD_TESTING AND NOT WIN32)
 endif(ZLIB_PUFF_BUILD_SHARED)
 
 if(ZLIB_PUFF_BUILD_STATIC)
@@ -128,7 +128,7 @@ if(ZLIB_PUFF_BUILD_STATIC)
             EXPORT_NAME PUFFSTATIC
             OUTPUT_NAME puff${zlib_puff_static_suffix})
 
-    if(ZLIB_PUFF_BUILD_TESTING)
+    if(ZLIB_PUFF_BUILD_TESTING AND NOT WIN32)
         enable_testing()
 
         add_executable(zlib_puff_testStatic pufftest.c puff.h)
@@ -159,7 +159,7 @@ if(ZLIB_PUFF_BUILD_STATIC)
                     ${GCOV_EXECUTABLE}
                     ${llvm_option})
         endif(GCOV_EXECUTABLE)
-    endif(ZLIB_PUFF_BUILD_TESTING)
+    endif(ZLIB_PUFF_BUILD_TESTING AND NOT WIN32)
 endif(ZLIB_PUFF_BUILD_STATIC)
 
 if(ZLIB_PUFF_INSTALL)
@@ -168,7 +168,8 @@ if(ZLIB_PUFF_INSTALL)
             TARGETS zlib_puff_puff
             COMPONENT Runtime
             EXPORT puffSharedExport
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         install(
             EXPORT puffSharedExport
             FILE puff-shared.cmake

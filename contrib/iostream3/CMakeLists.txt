@@ -32,6 +32,23 @@ if(WIN32 OR CYGWIN)
     set(CMAKE_DEBUG_POSTFIX "d")
 endif(WIN32 OR CYGWIN)
 
+
+function(iostreamv3_findTestEnv testName)
+    set(testEnv "PATH=")
+
+    if(MSVC OR MINGW)
+        set(separator "\\\;")
+    else()
+        set(separator ":")
+    endif()
+
+    string(APPEND testEnv "$<TARGET_FILE_DIR:zlib_iostream3_iostreamv3>${separator}")
+    string(APPEND testEnv "$<TARGET_FILE_DIR:ZLIB::ZLIB>${separator}")
+    string(APPEND testEnv "$ENV{PATH}")
+
+    set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
+endfunction(iostreamv3_findTestEnv testName)
+
 if(ZLIB_IOSTREAM3_BUILD_SHARED)
     add_library(zlib_iostream3_iostreamv3 SHARED
                 zfstream.cc
@@ -46,11 +63,10 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
                 VERSION ${iostreamV3_VERSION})
     endif(NOT CYGWIN)
 
-    set_target_properties(
-        zlib_iostream3_iostreamv3
-            PROPERTIES
-                EXPORT_NAME IOSTREAMV3
-                OUTPUT_NAME iostream3)
+    set_target_properties(zlib_iostream3_iostreamv3
+        PROPERTIES
+            EXPORT_NAME IOSTREAMV3
+            OUTPUT_NAME iostream3)
 
     target_link_libraries(zlib_iostream3_iostreamv3
         PUBLIC ZLIB::ZLIB)
@@ -61,13 +77,24 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
         add_executable(zlib_iostream3_test test.cc zfstream.h)
 
         target_link_libraries(zlib_iostream3_test
-            PRIVATE zlib_iostream3_iostream3)
+            PRIVATE zlib_iostream3_iostreamv3)
 
         add_test(NAME zlib_iostream3_test COMMAND zlib_iostream3_test)
 
         set_tests_properties(zlib_iostream3_test
             PROPERTIES
                 FIXTURES_REQUIRED zlib_iostream3_cleanup)
+
+        if(MSVC
+           OR MSYS
+           OR MINGW
+           OR CYGWIN)
+            iostreamv3_findtestenv(zlib_iostream3_test)
+        endif(
+            MSVC
+            OR MSYS
+            OR MINGW
+            OR CYGWIN)
     endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 endif(ZLIB_IOSTREAM3_BUILD_SHARED)
 
@@ -80,7 +107,7 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
         ALIAS zlib_iostream3_iostreamv3Static)
 
     target_link_libraries(zlib_iostream3_iostreamv3Static
-        INTERFACE ZLIB::ZLIBSTATIC)
+        PUBLIC ZLIB::ZLIBSTATIC)
 
     set_target_properties(zlib_iostream3_iostreamv3Static
         PROPERTIES
@@ -93,7 +120,8 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
         add_executable(zlib_iostream3_testStatic test.cc zfstream.h)
 
         target_link_libraries(zlib_iostream3_testStatic
-            PRIVATE zlib_iostream3_iostream3Static)
+            PRIVATE zlib_iostream3_iostreamv3Static)
+
         add_test(NAME zlib_iostream3_testStatic
                  COMMAND zlib_iostream3_testStatic)
 
@@ -121,7 +149,8 @@ if(ZLIB_IOSTREAM3_INSTALL)
             TARGETS zlib_iostream3_iostreamv3
             COMPONENT Runtime
             EXPORT zlibiostream3SharedExport
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         install(
             EXPORT zlibiostream3SharedExport
             FILE iostreamv3-shared.cmake
@@ -130,7 +159,7 @@ if(ZLIB_IOSTREAM3_INSTALL)
 
         if(MSVC)
             install(
-                FILES $<TARGET_PDB_FILE:zlib_iostream3_iostream3>
+                FILES $<TARGET_PDB_FILE:zlib_iostream3_iostreamv3>
                 COMPONENT Development
                 DESTINATION ${CMAKE_INSTALL_BINDIR}
                 CONFIGURATIONS Debug OR RelWithDebInfo

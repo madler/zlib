@@ -1,8 +1,8 @@
 # if we are built from with zlib, use this path's)
-if(DEFINED ZLIB_BUILD_SHARED)
+if(DEFINED ZLIB_BUILD_IOSTREAM3)
     set(WORK_DIR ${zlib_BINARY_DIR})
-    set(inst_setup zlib_iostream3_install)
-else(DEFINED ZLIB_BUILD_SHARED)
+    set(inst_setup zlib_install)
+else(DEFINED ZLIB_BUILD_IOSTREAM3)
     set(WORK_DIR ${iostreamV3_BINARY_DIR})
     set(inst_setup zlib_iostream3_install)
     set(ZLIB_ARG "-DZLIB_DIR=${ZLIB_DIR}")
@@ -16,7 +16,7 @@ else(DEFINED ZLIB_BUILD_SHARED)
     set_tests_properties(zlib_iostream3_install
         PROPERTIES
             FIXTURES_SETUP zlib_iostream3_install)
-endif(DEFINED ZLIB_BUILD_SHARED)
+endif(DEFINED ZLIB_BUILD_IOSTREAM3)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findpackage_test)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test)
