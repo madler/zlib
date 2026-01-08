@@ -226,7 +226,7 @@
 #include <sys/types.h>
 #include <stdio.h>      /* rename, fopen, fprintf, fclose */
 #include <stdlib.h>     /* malloc, free */
-#include <string.h>     /* strlen, strrchr, strcpy, strncpy, strcmp */
+#include <string.h>     /* strlen, strrchr, strncpy, strcmp, memcpy */
 #include <fcntl.h>      /* open */
 #include <unistd.h>     /* lseek, read, write, close, unlink, sleep, */
                         /* ftruncate, fsync */
@@ -350,7 +350,7 @@ local int log_lock(struct log *log)
     int fd;
     struct stat st;
 
-    strcpy(log->end, ".lock");
+    memcpy(log->end, ".lock", sizeof(".lock"));
     while ((fd = open(log->path, O_CREAT | O_EXCL, 0644)) < 0) {
         if (errno != EEXIST)
             return -1;
@@ -373,7 +373,7 @@ local void log_touch(struct log *log)
 {
     struct stat st;
 
-    strcpy(log->end, ".lock");
+    memcpy(log->end, ".lock", sizeof(".lock"));
     utimes(log->path, NULL);
     if (stat(log->path, &st) == 0)
         log->lock = st.st_mtime;
@@ -385,7 +385,7 @@ local int log_check(struct log *log)
 {
     struct stat st;
 
-    strcpy(log->end, ".lock");
+    memcpy(log->end, ".lock", sizeof(".lock"));
     if (stat(log->path, &st) || st.st_mtime != log->lock)
         return 1;
     log_touch(log);
@@ -397,7 +397,7 @@ local void log_unlock(struct log *log)
 {
     if (log_check(log))
         return;
-    strcpy(log->end, ".lock");
+    memcpy(log->end, ".lock", sizeof(".lock"));
     unlink(log->path);
     log->lock = 0;
 }
@@ -556,7 +556,7 @@ local int log_append(struct log *log, unsigned char *data, size_t len)
     /* write the extra field, marking the log file as done, delete .add file */
     if (log_mark(log, NO_OP))
         return -1;
-    strcpy(log->end, ".add");
+    memcpy(log->end, ".add", sizeof(".add"));
     unlink(log->path);          /* ignore error, since may not exist */
     return 0;
 }
@@ -574,17 +574,17 @@ local int log_replace(struct log *log)
     char *dest;
 
     /* delete foo.add file */
-    strcpy(log->end, ".add");
+    memcpy(log->end, ".add", sizeof(".add"));
     unlink(log->path);         /* ignore error, since may not exist */
     BAIL(3);
 
     /* rename foo.name to foo.dict, replacing foo.dict if it exists */
-    strcpy(log->end, ".dict");
+    memcpy(log->end, ".dict", sizeof(".dict"));
     dest = malloc(strlen(log->path) + 1);
     if (dest == NULL)
         return -2;
-    strcpy(dest, log->path);
-    strcpy(log->end, ".temp");
+    memcpy(dest, log->path, strlen(log->path) + 1);
+    memcpy(log->end, ".temp", sizeof(".temp"));
     ret = rename(log->path, dest);
     free(dest);
     if (ret && errno != ENOENT)
@@ -625,7 +625,7 @@ local int log_compress(struct log *log, unsigned char *data, size_t len)
             return -2;
 
         /* read in dictionary (last 32K of data that was compressed) */
-        strcpy(log->end, ".dict");
+        memcpy(log->end, ".dict", sizeof(".dict"));
         fd = open(log->path, O_RDONLY, 0);
         if (fd >= 0) {
             dict = read(fd, buf, DICT);
@@ -721,7 +721,7 @@ local void log_log(struct log *log, int op, char *record)
     FILE *rec;
 
     now = time(NULL);
-    strcpy(log->end, ".repairs");
+    memcpy(log->end, ".repairs", sizeof(".repairs"));
     rec = fopen(log->path, "a");
     if (rec == NULL)
         return;
@@ -747,7 +747,7 @@ local int log_recover(struct log *log, int op)
 
     /* load foo.add file if expected and present */
     if (op == APPEND_OP || op == COMPRESS_OP) {
-        strcpy(log->end, ".add");
+        memcpy(log->end, ".add", sizeof(".add"));
         if (stat(log->path, &st) == 0 && st.st_size) {
             len = (size_t)(st.st_size);
             if ((off_t)len != st.st_size ||
@@ -827,7 +827,7 @@ local int log_open(struct log *log)
         return -1;
 
     /* open the log file, foo.gz */
-    strcpy(log->end, ".gz");
+    memcpy(log->end, ".gz", sizeof(".gz"));
     log->fd = open(log->path, O_RDWR | O_CREAT, 0644);
     if (log->fd < 0) {
         log_close(log);
@@ -842,7 +842,7 @@ local int log_open(struct log *log)
             log_close(log);
             return -1;
         }
-        strcpy(log->end, ".dict");
+        memcpy(log->end, ".dict", sizeof(".dict"));
         unlink(log->path);
     }
 
@@ -877,7 +877,7 @@ gzlog *gzlog_open(char *path)
     log = malloc(sizeof(struct log));
     if (log == NULL)
         return NULL;
-    strcpy(log->id, LOGID);
+    memcpy(log->id, LOGID, sizeof(LOGID));
     log->fd = -1;
 
     /* save path and end of path for name construction */
@@ -887,7 +887,7 @@ gzlog *gzlog_open(char *path)
         free(log);
         return NULL;
     }
-    strcpy(log->path, path);
+    memcpy(log->path, path, n + 1);
     log->end = log->path + n;
 
     /* gain exclusive access and verify log file -- may perform a
@@ -951,7 +951,7 @@ int gzlog_compress(gzlog *logd)
         log_touch(log);
 
         /* write the uncompressed data to the .add file */
-        strcpy(log->end, ".add");
+        memcpy(log->end, ".add", sizeof(".add"));
         fd = open(log->path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (fd < 0)
             break;
@@ -961,7 +961,7 @@ int gzlog_compress(gzlog *logd)
         log_touch(log);
 
         /* write the dictionary for the next compress to the .temp file */
-        strcpy(log->end, ".temp");
+        memcpy(log->end, ".temp", sizeof(".temp"));
         fd = open(log->path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (fd < 0)
             break;
@@ -1012,7 +1012,7 @@ int gzlog_write(gzlog *logd, void *data, size_t len)
         return -1;
 
     /* create and write .add file */
-    strcpy(log->end, ".add");
+    memcpy(log->end, ".add", sizeof(".add"));
     fd = open(log->path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
         return -1;
@@ -1055,7 +1055,7 @@ int gzlog_close(gzlog *logd)
     /* free structure and return */
     if (log->path != NULL)
         free(log->path);
-    strcpy(log->id, "bad");
+    memcpy(log->id, "bad", sizeof("bad"));
     free(log);
     return 0;
 }

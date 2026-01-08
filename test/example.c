@@ -71,7 +71,7 @@ static void test_compress(Byte *compr, uLong comprLen, Byte *uncompr,
     err = compress(compr, &comprLen, (const Bytef*)hello, len);
     CHECK_ERR(err, "compress");
 
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     err = uncompress(uncompr, &uncomprLen, compr, comprLen);
     CHECK_ERR(err, "uncompress");
@@ -118,7 +118,7 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
@@ -209,7 +209,7 @@ static void test_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     d_stream.zalloc = zalloc;
     d_stream.zfree = zfree;
@@ -301,7 +301,7 @@ static void test_large_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     d_stream.zalloc = zalloc;
     d_stream.zfree = zfree;
@@ -375,7 +375,7 @@ static void test_sync(Byte *compr, uLong comprLen, Byte *uncompr,
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     d_stream.zalloc = zalloc;
     d_stream.zfree = zfree;
@@ -450,7 +450,7 @@ static void test_dict_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    memcpy((char*)uncompr, "garbage", sizeof("garbage"));
 
     d_stream.zalloc = zalloc;
     d_stream.zfree = zfree;
