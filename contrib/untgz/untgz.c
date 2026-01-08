@@ -133,8 +133,11 @@ char *TGZfname (const char *arcname)
   static char buffer[1024];
   int origlen,i;
 
-  strcpy(buffer,arcname);
-  origlen = strlen(buffer);
+  origlen = strlen(arcname);
+  /* leave room for longest suffix ".tar.gz" plus null terminator */
+  if (origlen > (int)sizeof(buffer) - 8)
+    return NULL;
+  memcpy(buffer, arcname, origlen + 1);
 
   for (i=0; TGZsuffix[i]; i++)
     {
