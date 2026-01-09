@@ -9,6 +9,8 @@
 #ifndef Z_SOLO
 #  include "gzguts.h"
 #endif
+#include <stddef.h> /* size_t */
+#include <limits.h> /* SIZE_MAX */
 
 z_const char * const z_errmsg[10] = {
     (z_const char *)"need dictionary",     /* Z_NEED_DICT       2  */
@@ -291,9 +293,25 @@ extern voidp calloc(uInt items, uInt size);
 extern void free(voidpf ptr);
 #endif
 
+static int z_size_mul_overflow_(size_t a, size_t b, size_t *out) {
+    if (a == 0 || b == 0) {
+        *out = 0;
+        return 0;
+    }
+    if (a > SIZE_MAX / b)
+        return 1;
+    *out = a * b;
+    return 0;
+}
+
 voidpf ZLIB_INTERNAL zcalloc(voidpf opaque, unsigned items, unsigned size) {
     (void)opaque;
-    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+
+    size_t n = 0;
+    if (z_size_mul_overflow_((size_t)items, (size_t)size, &n))
+        return Z_NULL;
+
+    return sizeof(uInt) > 2 ? (voidpf)malloc(n) :
                               (voidpf)calloc(items, size);
 }
 
