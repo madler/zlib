@@ -43,7 +43,6 @@ zlib_add_contrib_lib(BLAST "blast binary" blast)
 zlib_add_contrib_lib(IOSTREAM3 "IOStream C++ bindings V3" iostream3)
 zlib_add_contrib_lib(MINIZIP "minizip library" minizip)
 zlib_add_contrib_lib(PUFF "puff decompress library" puff)
-zlib_add_contrib_lib(UNTGZ "tool for listing and uncompressing tgz files" untgz)
 
 if(WIN32)
     zlib_add_contrib_lib(TESTZLIB "testzlib binary" testzlib)
