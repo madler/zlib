@@ -92,6 +92,8 @@ warn=0
 debug=0
 address=0
 memory=0
+undefined=0
+insecure=0
 unknown=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
@@ -118,7 +120,7 @@ case "$1" in
     -h* | --help)
       echo 'usage:' | tee -a configure.log
       echo '  configure [--const] [--zprefix] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
-      echo '    [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
+      echo '    [--insecure] [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -146,6 +148,8 @@ case "$1" in
     --sanitize) address=1; shift ;;
     --address) address=1; shift ;;
     --memory) memory=1; shift ;;
+    --undefined) undefined=1; shift ;;
+    --insecure) insecure=1; shift ;;
     *) unknown=1; echo "unknown option ignored: $1" | tee -a configure.log; shift;;
     esac
 done
@@ -255,6 +259,12 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   fi
   if test $memory -eq 1; then
     CFLAGS="${CFLAGS} -g -fsanitize=memory -fno-omit-frame-pointer"
+  fi
+  if test $undefined -eq 1; then
+    CFLAGS="${CFLAGS} -g -fsanitize=undefined -fno-omit-frame-pointer"
+  fi
+  if test $insecure -eq 1; then
+    CFLAGS="${CFLAGS} -DZLIB_INSECURE"
   fi
   if test $debug -eq 1; then
     CFLAGS="${CFLAGS} -DZLIB_DEBUG"
@@ -740,7 +750,10 @@ EOF
     echo "  WARNING: vsnprintf() not found, falling back to vsprintf(). zlib" | tee -a configure.log
     echo "  can build but will be open to possible buffer-overflow security" | tee -a configure.log
     echo "  vulnerabilities." | tee -a configure.log
-
+    if test $insecure -ne 1; then
+      echo "  The --insecure option must be provided to ./configure in order to" | tee -a configure.log
+      echo "  compile using the insecure vsprintf() function." | tee -a configure.log
+    fi
     echo >> configure.log
     cat >$test.c <<EOF
 #include <stdio.h>
@@ -824,7 +837,10 @@ EOF
     echo "  WARNING: snprintf() not found, falling back to sprintf(). zlib" | tee -a configure.log
     echo "  can build but will be open to possible buffer-overflow security" | tee -a configure.log
     echo "  vulnerabilities." | tee -a configure.log
-
+    if test $insecure -ne 1; then
+      echo "  The --insecure option must be provided to ./configure in order to" | tee -a configure.log
+      echo "  compile using the insecure sprintf() function." | tee -a configure.log
+    fi
     echo >> configure.log
     cat >$test.c <<EOF
 #include <stdio.h>

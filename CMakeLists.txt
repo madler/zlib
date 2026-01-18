@@ -22,7 +22,6 @@ set(CPACK_RESOURCE_FILE_README ${zlib_SOURCE_DIR}/README)
 option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ON)
 option(ZLIB_BUILD_SHARED "Enable building zlib shared library" ON)
 option(ZLIB_BUILD_STATIC "Enable building zlib static library" ON)
-option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
 option(ZLIB_INSTALL "Enable installation of zlib" ON)
 option(ZLIB_PREFIX "prefix for all types and library functions, see zconf.h.in"
        OFF)
@@ -244,7 +243,7 @@ if(ZLIB_INSTALL)
         if(ZLIB_INSTALL_COMPAT_DLL)
             install(
                 FILES $<TARGET_FILE:zlib>
-                COMPONENT Runtime
+                COMPONENT Development
                 RENAME zlib1.dll
                 DESTINATION "${CMAKE_INSTALL_BINDIR}")
         endif(ZLIB_INSTALL_COMPAT_DLL)
@@ -327,6 +326,4 @@ if(ZLIB_BUILD_TESTING)
     add_subdirectory(test)
 endif(ZLIB_BUILD_TESTING)
 
-if(ZLIB_BUILD_MINIZIP)
-    add_subdirectory(contrib/minizip/)
-endif(ZLIB_BUILD_MINIZIP)
+add_subdirectory(contrib)

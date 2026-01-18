@@ -49,9 +49,6 @@ puff/       by Mark Adler <madler@alumni.caltech.edu>
 testzlib/   by Gilles Vollant <info@winimage.com>
         Example of the use of zlib
 
-untgz/      by Pedro A. Aranda Gutierrez <paag@tid.es>
-        A very simple tar.gz file extractor using zlib
-
 vstudio/    by Gilles Vollant <info@winimage.com>
         Building a minizip-enhanced zlib with Microsoft Visual Studio
         Includes vc11 from kreuzerkrieg and vc12 from davispuh

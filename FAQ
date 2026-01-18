@@ -19,7 +19,7 @@ The latest zlib FAQ is at http://zlib.net/zlib_faq.html
  3. Where can I get a Visual Basic interface to zlib?
 
     See
-        * https://marknelson.us/posts/1997/01/01/zlib-engine.html
+        * https://zlib.net/nelson/
         * win32/DLL_FAQ.txt in the zlib distribution
 
  4. compress() returns Z_BUF_ERROR.
@@ -156,6 +156,10 @@ The latest zlib FAQ is at http://zlib.net/zlib_faq.html
     library memory allocation routines by default.  zlib's *Init* functions
     allow for the application to provide custom memory allocation routines.
 
+    If the non-default BUILDFIXED or DYNAMIC_CRC_TABLE defines are used on a
+    system without atomics (e.g. pre-C11), then inflate() and crc32() will not
+    be thread safe.
+
     Of course, you should only operate on any given zlib or gzip stream from a
     single thread at a time.
 
@@ -258,20 +262,20 @@ The latest zlib FAQ is at http://zlib.net/zlib_faq.html
 33. Does zlib have any security vulnerabilities?
 
     The only one that we are aware of is potentially in gzprintf().  If zlib is
-    compiled to use sprintf() or vsprintf(), then there is no protection
-    against a buffer overflow of an 8K string space (or other value as set by
-    gzbuffer()), other than the caller of gzprintf() assuring that the output
-    will not exceed 8K.  On the other hand, if zlib is compiled to use
-    snprintf() or vsnprintf(), which should normally be the case, then there is
-    no vulnerability.  The ./configure script will display warnings if an
-    insecure variation of sprintf() will be used by gzprintf().  Also the
-    zlibCompileFlags() function will return information on what variant of
-    sprintf() is used by gzprintf().
+    compiled to use sprintf() or vsprintf(), which requires that ZLIB_INSECURE
+    be defined, then there is no protection against a buffer overflow of an 8K
+    string space (or other value as set by gzbuffer()), other than the caller
+    of gzprintf() assuring that the output will not exceed 8K.  On the other
+    hand, if zlib is compiled to use snprintf() or vsnprintf(), which should
+    normally be the case, then there is no vulnerability.  The ./configure
+    script will display warnings if an insecure variation of sprintf() will be
+    used by gzprintf().  Also the zlibCompileFlags() function will return
+    information on what variant of sprintf() is used by gzprintf().
 
     If you don't have snprintf() or vsnprintf() and would like one, you can
-    find a portable implementation here:
+    find a good portable implementation in stb_sprintf.h here:
 
-        http://www.ijs.si/software/snprintf/
+        https://github.com/nothings/stb
 
     Note that you should be using the most recent version of zlib.  Versions
     1.1.3 and before were subject to a double-free vulnerability, and versions

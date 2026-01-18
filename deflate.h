@@ -282,6 +282,9 @@ typedef struct internal_state {
      * updated to the new high water mark.
      */
 
+    int slid;
+    /* True if the hash table has been slid since it was cleared. */
+
 } FAR deflate_state;
 
 /* Output a byte on the stream.

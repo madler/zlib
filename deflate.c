@@ -172,6 +172,7 @@ local const config configuration_table[10] = {
         s->head[s->hash_size - 1] = NIL; \
         zmemzero((Bytef *)s->head, \
                  (unsigned)(s->hash_size - 1)*sizeof(*s->head)); \
+        s->slid = 0; \
     } while (0)
 
 /* ===========================================================================
@@ -195,8 +196,8 @@ local void slide_hash(deflate_state *s) {
         m = *--p;
         *p = (Pos)(m >= wsize ? m - wsize : NIL);
     } while (--n);
-    n = wsize;
 #ifndef FASTEST
+    n = wsize;
     p = &s->prev[n];
     do {
         m = *--p;
@@ -206,6 +207,7 @@ local void slide_hash(deflate_state *s) {
          */
     } while (--n);
 #endif
+    s->slid = 1;
 }
 
 /* ===========================================================================
@@ -431,6 +433,7 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
     if (windowBits == 8) windowBits = 9;  /* until 256-byte window bug fixed */
     s = (deflate_state *) ZALLOC(strm, 1, sizeof(deflate_state));
     if (s == Z_NULL) return Z_MEM_ERROR;
+    zmemzero(s, sizeof(deflate_state));
     strm->state = (struct internal_state FAR *)s;
     s->strm = strm;
     s->status = INIT_STATE;     /* to pass state test in deflateReset() */
@@ -839,24 +842,30 @@ int ZEXPORT deflateTune(z_streamp strm, int good_length, int max_lazy,
  *
  * Shifts are used to approximate divisions, for speed.
  */
-uLong ZEXPORT deflateBound(z_streamp strm, uLong sourceLen) {
+z_size_t ZEXPORT deflateBound_z(z_streamp strm, z_size_t sourceLen) {
     deflate_state *s;
-    uLong fixedlen, storelen, wraplen;
+    z_size_t fixedlen, storelen, wraplen, bound;
 
     /* upper bound for fixed blocks with 9-bit literals and length 255
        (memLevel == 2, which is the lowest that may not use stored blocks) --
        ~13% overhead plus a small constant */
     fixedlen = sourceLen + (sourceLen >> 3) + (sourceLen >> 8) +
                (sourceLen >> 9) + 4;
+    if (fixedlen < sourceLen)
+        fixedlen = (z_size_t)-1;
 
     /* upper bound for stored blocks with length 127 (memLevel == 1) --
        ~4% overhead plus a small constant */
     storelen = sourceLen + (sourceLen >> 5) + (sourceLen >> 7) +
                (sourceLen >> 11) + 7;
+    if (storelen < sourceLen)
+        storelen = (z_size_t)-1;
 
     /* if can't get parameters, return larger bound plus a wrapper */
-    if (deflateStateCheck(strm))
-        return (fixedlen > storelen ? fixedlen : storelen) + 18;
+    if (deflateStateCheck(strm)) {
+        bound = fixedlen > storelen ? fixedlen : storelen;
+        return bound + 18 < bound ? (z_size_t)-1 : bound + 18;
+    }
 
     /* compute wrapper length */
     s = strm->state;
@@ -894,14 +903,21 @@ uLong ZEXPORT deflateBound(z_streamp strm, uLong sourceLen) {
     }
 
     /* if not default parameters, return one of the conservative bounds */
-    if (s->w_bits != 15 || s->hash_bits != 8 + 7)
-        return (s->w_bits <= s->hash_bits && s->level ? fixedlen : storelen) +
-               wraplen;
+    if (s->w_bits != 15 || s->hash_bits != 8 + 7) {
+        bound = s->w_bits <= s->hash_bits && s->level ? fixedlen :
+                                                        storelen;
+        return bound + wraplen < bound ? (z_size_t)-1 : bound + wraplen;
+    }
 
     /* default settings: return tight bound for that case -- ~0.03% overhead
        plus a small constant */
-    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
-           (sourceLen >> 25) + 13 - 6 + wraplen;
+    bound = sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
+            (sourceLen >> 25) + 13 - 6 + wraplen;
+    return bound < sourceLen ? (z_size_t)-1 : bound;
+}
+uLong ZEXPORT deflateBound(z_streamp strm, uLong sourceLen) {
+    z_size_t bound = deflateBound_z(strm, sourceLen);
+    return (uLong)bound != bound ? (uLong)-1 : (uLong)bound;
 }
 
 /* =========================================================================
@@ -1307,6 +1323,7 @@ int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
 
     ds = (deflate_state *) ZALLOC(dest, 1, sizeof(deflate_state));
     if (ds == Z_NULL) return Z_MEM_ERROR;
+    zmemzero(ds, sizeof(deflate_state));
     dest->state = (struct internal_state FAR *) ds;
     zmemcpy((voidpf)ds, (voidpf)ss, sizeof(deflate_state));
     ds->strm = dest;
@@ -1321,18 +1338,23 @@ int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
         deflateEnd (dest);
         return Z_MEM_ERROR;
     }
-    /* following zmemcpy do not work for 16-bit MSDOS */
-    zmemcpy(ds->window, ss->window, ds->w_size * 2 * sizeof(Byte));
-    zmemcpy((voidpf)ds->prev, (voidpf)ss->prev, ds->w_size * sizeof(Pos));
+    /* following zmemcpy's do not work for 16-bit MSDOS */
+    zmemcpy(ds->window, ss->window, ss->high_water);
+    zmemcpy((voidpf)ds->prev, (voidpf)ss->prev,
+            (ss->slid || ss->strstart - ss->insert > ds->w_size ? ds->w_size :
+                ss->strstart - ss->insert) * sizeof(Pos));
     zmemcpy((voidpf)ds->head, (voidpf)ss->head, ds->hash_size * sizeof(Pos));
-    zmemcpy(ds->pending_buf, ss->pending_buf, ds->lit_bufsize * LIT_BUFS);
 
     ds->pending_out = ds->pending_buf + (ss->pending_out - ss->pending_buf);
+    zmemcpy(ds->pending_out, ss->pending_out, ss->pending);
 #ifdef LIT_MEM
     ds->d_buf = (ushf *)(ds->pending_buf + (ds->lit_bufsize << 1));
     ds->l_buf = ds->pending_buf + (ds->lit_bufsize << 2);
+    zmemcpy(ds->d_buf, ss->d_buf, ss->sym_next * sizeof(ush));
+    zmemcpy(ds->l_buf, ss->l_buf, ss->sym_next);
 #else
     ds->sym_buf = ds->pending_buf + ds->lit_bufsize;
+    zmemcpy(ds->sym_buf, ss->sym_buf, ss->sym_next);
 #endif
 
     ds->l_desc.dyn_tree = ds->dyn_ltree;

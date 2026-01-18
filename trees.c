@@ -112,7 +112,7 @@ local int base_dist[D_CODES];
 
 #else
 #  include "trees.h"
-#endif /* GEN_TREES_H */
+#endif /* defined(GEN_TREES_H) || !defined(STDC) */
 
 struct static_tree_desc_s {
     const ct_data *static_tree;  /* static tree or NULL */

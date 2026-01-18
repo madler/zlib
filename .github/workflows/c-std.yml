@@ -50,12 +50,15 @@ jobs:
         std:
           - name: c89
             value: c89
+            compiler-opt: -DZLIB_INSECURE
 
           - name: gnu89
             value: gnu89
+            compiler-opt: -DZLIB_INSECURE
 
           - name: c94
             value: iso9899:199409
+            compiler-opt: -DZLIB_INSECURE
 
           - name: c99
             value: c99
@@ -118,7 +121,7 @@ jobs:
         ./configure
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
 
     - name: Compile source code (configure)
       if: matrix.builder == 'configure'
@@ -136,7 +139,7 @@ jobs:
         cmake -S . -B ./build1 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_TESTING=OFF
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
 
     - name: Generate project files with tests (cmake)
       if: matrix.builder == 'cmake'
@@ -144,7 +147,7 @@ jobs:
         cmake -S . -B ./build2 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=OFF
       env:
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.arch.compiler-opt }} -Wall -Wextra
+        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Wall -Wextra
 
     - name: Compile source code (cmake)
       if: matrix.builder == 'cmake'

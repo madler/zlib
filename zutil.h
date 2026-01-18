@@ -254,4 +254,74 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
                     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 
+#ifdef Z_ONCE
+/*
+  Create a local z_once() function depending on the availability of atomics.
+ */
+
+/* Check for the availability of atomics. */
+#if defined(__STDC__) && __STDC_VERSION__ >= 201112L && \
+    !defined(__STDC_NO_ATOMICS__)
+
+#include <stdatomic.h>
+typedef struct {
+    atomic_flag begun;
+    atomic_int done;
+} z_once_t;
+#define Z_ONCE_INIT {ATOMIC_FLAG_INIT, 0}
+
+/*
+  Run the provided init() function exactly once, even if multiple threads
+  invoke once() at the same time. The state must be a once_t initialized with
+  Z_ONCE_INIT.
+ */
+local void z_once(z_once_t *state, void (*init)(void)) {
+    if (!atomic_load(&state->done)) {
+        if (atomic_flag_test_and_set(&state->begun))
+            while (!atomic_load(&state->done))
+                ;
+        else {
+            init();
+            atomic_store(&state->done, 1);
+        }
+    }
+}
+
+#else   /* no atomics */
+
+#warning zlib not thread-safe
+
+typedef struct z_once_s {
+    volatile int begun;
+    volatile int done;
+} z_once_t;
+#define Z_ONCE_INIT {0, 0}
+
+/* Test and set. Alas, not atomic, but tries to limit the period of
+   vulnerability. */
+local int test_and_set(int volatile *flag) {
+    int was;
+
+    was = *flag;
+    *flag = 1;
+    return was;
+}
+
+/* Run the provided init() function once. This is not thread-safe. */
+local void z_once(z_once_t *state, void (*init)(void)) {
+    if (!state->done) {
+        if (test_and_set(&state->begun))
+            while (!state->done)
+                ;
+        else {
+            init();
+            state->done = 1;
+        }
+    }
+}
+
+#endif /* ?atomics */
+
+#endif /* Z_ONCE */
+
 #endif /* ZUTIL_H */
