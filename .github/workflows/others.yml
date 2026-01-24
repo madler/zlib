@@ -138,7 +138,7 @@ jobs:
     name: Solaris
     steps:
     - uses: actions/checkout@v4
-    - name: DragonflyBSD
+    - name: Solaris
       uses: vmactions/solaris-vm@v1
       with:
         copyback: false
