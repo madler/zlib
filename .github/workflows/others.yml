@@ -144,6 +144,7 @@ jobs:
         copyback: false
         release: "11.4-gcc"
         prepare: |
+          pkgutil -U
           pkgutil -y -i cmake bzip2
 
         run: |
