@@ -108,10 +108,8 @@ jobs:
         arch: ${{ matrix.name }}
         copyback: false
         prepare: |
-          export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH"
-          export PKG_PATH="https://cdn.openbsd.org/pub/OpenBSD/$(uname -r|cut -f '1 2' -d.)/packages/$(uname -m)/"
-          /usr/sbin/pkg_add cmake
-          /usr/sbin/pkg_add bzip2
+          pkg_add cmake
+          bzip2
 
         run: |
           cmake . -B build -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=ON
