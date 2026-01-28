@@ -98,15 +98,15 @@ if(ZLIB_BUILD_STATIC)
         target_link_options(infcover PRIVATE -coverage)
         target_compile_definitions(
             infcover PRIVATE $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
-        add_test(NAME zlib-coverage COMMAND infcover)
+        add_test(NAME zlib_coverage COMMAND infcover)
         set(INFCOVER_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/infcover.dir)
         add_test(
-            NAME zlib-coverage-summary
+            NAME zlib_coverage-summary
             COMMAND
                 ${GCOV_EXECUTABLE} ${llvm_option}
                 ${CMAKE_CURRENT_SOURCE_DIR}/infcover.c -o
                 ${INFCOVER_DIR}/infcover.c.gcda)
-        set_tests_properties(zlib-coverage-summary PROPERTIES DEPENDS
+        set_tests_properties(zlib_coverage-summary PROPERTIES DEPENDS
                                                               zlib-coverage)
         set(CMAKE_C_FLAGS
             ${CFLAGS_OLD}

@@ -124,8 +124,24 @@
      D  sourceLen                    10U 0 value                                Source length
      D  level                        10I 0 value                                Compression level
       *
+     D compress_z      PR            10I 0 extproc('compress')
+     D  dest                      65535    options(*varsize)                    Destination buffer
+     D  destLen                      20U 0                                      Destination length
+     D  source                    65535    const options(*varsize)              Source buffer
+     D  sourceLen                    20u 0 value                                Source length
+      *
+     D compress2_z     PR            10I 0 extproc('compress2')
+     D  dest                      65535    options(*varsize)                    Destination buffer
+     D  destLen                      20U 0                                      Destination length
+     D  source                    65535    const options(*varsize)              Source buffer
+     D  sourceLen                    20U 0 value                                Source length
+     D  level                        10I 0 value                                Compression level
+      *
      D compressBound   PR            10U 0 extproc('compressBound')
      D  sourceLen                    10U 0 value
+      *
+     D compressBound_z PR            20U 0 extproc('compressBound')
+     D  sourceLen                    20U 0 value
       *
      D uncompress      PR            10I 0 extproc('uncompress')
      D  dest                      65535    options(*varsize)                    Destination buffer
@@ -138,6 +154,18 @@
      D  destLen                      10U 0                                      Destination length
      D  source                    65535    const options(*varsize)              Source buffer
      D  sourceLen                    10U 0                                      Source length
+      *
+     D uncompress_z    PR            10I 0 extproc('uncompress')
+     D  dest                      65535    options(*varsize)                    Destination buffer
+     D  destLen                      20U 0                                      Destination length
+     D  source                    65535    const options(*varsize)              Source buffer
+     D  sourceLen                    20U 0 value                                Source length
+      *
+     D uncompress2_z   PR            10I 0 extproc('uncompress2')
+     D  dest                      65535    options(*varsize)                    Destination buffer
+     D  destLen                      20U 0                                      Destination length
+     D  source                    65535    const options(*varsize)              Source buffer
+     D  sourceLen                    20U 0                                      Source length
       *
       /if not defined(LARGE_FILES)
      D gzopen          PR                  extproc('gzopen')
@@ -365,6 +393,10 @@
      D deflateBound    PR            10U 0 extproc('deflateBound')              Change level & strat
      D  strm                               like(z_stream)                       Compression stream
      D  sourcelen                    10U 0 value                                Compression level
+      *
+     D deflateBound_z  PR            20U 0 extproc('deflateBound')              Change level & strat
+     D  strm                               like(z_stream)                       Compression stream
+     D  sourcelen                    20U 0 value                                Compression level
       *
      D deflatePending  PR            10I 0 extproc('deflatePending')            Change level & strat
      D  strm                               like(z_stream)                       Compression stream

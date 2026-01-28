@@ -3,8 +3,18 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#ifdef MAKEFIXED
+#  ifndef BUILDFIXED
+#    define BUILDFIXED
+#  endif
+#endif
+#ifdef BUILDFIXED
+#  define Z_ONCE
+#endif
+
 #include "zutil.h"
 #include "inftrees.h"
+#include "inflate.h"
 
 #define MAXBITS 15
 
@@ -297,3 +307,116 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
     *bits = root;
     return 0;
 }
+
+#ifdef BUILDFIXED
+/*
+  If this is compiled with BUILDFIXED defined, and if inflate will be used in
+  multiple threads, and if atomics are not available, then inflate() must be
+  called with a fixed block (e.g. 0x03 0x00) to initialize the tables and must
+  return before any other threads are allowed to call inflate.
+ */
+
+static code *lenfix, *distfix;
+static code fixed[544];
+
+/* State for z_once(). */
+local z_once_t built = Z_ONCE_INIT;
+
+local void buildtables(void) {
+    unsigned sym, bits;
+    static code *next;
+    unsigned short lens[288], work[288];
+
+    /* literal/length table */
+    sym = 0;
+    while (sym < 144) lens[sym++] = 8;
+    while (sym < 256) lens[sym++] = 9;
+    while (sym < 280) lens[sym++] = 7;
+    while (sym < 288) lens[sym++] = 8;
+    next = fixed;
+    lenfix = next;
+    bits = 9;
+    inflate_table(LENS, lens, 288, &(next), &(bits), work);
+
+    /* distance table */
+    sym = 0;
+    while (sym < 32) lens[sym++] = 5;
+    distfix = next;
+    bits = 5;
+    inflate_table(DISTS, lens, 32, &(next), &(bits), work);
+}
+#else /* !BUILDFIXED */
+#  include "inffixed.h"
+#endif /* BUILDFIXED */
+
+/*
+   Return state with length and distance decoding tables and index sizes set to
+   fixed code decoding.  Normally this returns fixed tables from inffixed.h.
+   If BUILDFIXED is defined, then instead this routine builds the tables the
+   first time it's called, and returns those tables the first time and
+   thereafter.  This reduces the size of the code by about 2K bytes, in
+   exchange for a little execution time.  However, BUILDFIXED should not be
+   used for threaded applications if atomics are not available, as it will
+   not be thread-safe.
+ */
+void inflate_fixed(struct inflate_state FAR *state) {
+#ifdef BUILDFIXED
+    z_once(&built, buildtables);
+#endif /* BUILDFIXED */
+    state->lencode = lenfix;
+    state->lenbits = 9;
+    state->distcode = distfix;
+    state->distbits = 5;
+}
+
+#ifdef MAKEFIXED
+#include <stdio.h>
+
+/*
+   Write out the inffixed.h that will be #include'd above.  Defining MAKEFIXED
+   also defines BUILDFIXED, so the tables are built on the fly.  main() writes
+   those tables to stdout, which would directed to inffixed.h. Compile this
+   along with zutil.c:
+
+       cc -DMAKEFIXED -o fix inftrees.c zutil.c
+       ./fix > inffixed.h
+ */
+int main(void) {
+    unsigned low, size;
+    struct inflate_state state;
+
+    inflate_fixed(&state);
+    puts("/* inffixed.h -- table for decoding fixed codes");
+    puts(" * Generated automatically by makefixed().");
+    puts(" */");
+    puts("");
+    puts("/* WARNING: this file should *not* be used by applications.");
+    puts("   It is part of the implementation of this library and is");
+    puts("   subject to change. Applications should only use zlib.h.");
+    puts(" */");
+    puts("");
+    size = 1U << 9;
+    printf("static const code lenfix[%u] = {", size);
+    low = 0;
+    for (;;) {
+        if ((low % 7) == 0) printf("\n    ");
+        printf("{%u,%u,%d}", (low & 127) == 99 ? 64 : state.lencode[low].op,
+               state.lencode[low].bits, state.lencode[low].val);
+        if (++low == size) break;
+        putchar(',');
+    }
+    puts("\n};");
+    size = 1U << 5;
+    printf("\nstatic const code distfix[%u] = {", size);
+    low = 0;
+    for (;;) {
+        if ((low % 6) == 0) printf("\n    ");
+        printf("{%u,%u,%d}", state.distcode[low].op, state.distcode[low].bits,
+               state.distcode[low].val);
+        if (++low == size) break;
+        putchar(',');
+    }
+    puts("\n};");
+    return 0;
+}
+#endif /* MAKEFIXED */

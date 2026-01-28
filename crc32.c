@@ -24,10 +24,17 @@
 #  include <stdio.h>
 #  ifndef DYNAMIC_CRC_TABLE
 #    define DYNAMIC_CRC_TABLE
-#  endif /* !DYNAMIC_CRC_TABLE */
-#endif /* MAKECRCH */
+#  endif
+#endif
+#ifdef DYNAMIC_CRC_TABLE
+#  define Z_ONCE
+#endif
 
 #include "zutil.h"      /* for Z_U4, Z_U8, z_crc_t, and FAR definitions */
+
+#ifdef HAVE_S390X_VX
+#  include "contrib/crc32vx/crc32_vx_hooks.h"
+#endif
 
  /*
   A CRC of a message is computed on N braids of words in the message, where
@@ -204,83 +211,8 @@ local z_crc_t FAR crc_table[256];
    local void write_table64(FILE *, const z_word_t FAR *, int);
 #endif /* MAKECRCH */
 
-/*
-  Define a once() function depending on the availability of atomics. If this is
-  compiled with DYNAMIC_CRC_TABLE defined, and if CRCs will be computed in
-  multiple threads, and if atomics are not available, then get_crc_table() must
-  be called to initialize the tables and must return before any threads are
-  allowed to compute or combine CRCs.
- */
-
-/* Definition of once functionality. */
-typedef struct once_s once_t;
-
-/* Check for the availability of atomics. */
-#if defined(__STDC__) && __STDC_VERSION__ >= 201112L && \
-    !defined(__STDC_NO_ATOMICS__)
-
-#include <stdatomic.h>
-
-/* Structure for once(), which must be initialized with ONCE_INIT. */
-struct once_s {
-    atomic_flag begun;
-    atomic_int done;
-};
-#define ONCE_INIT {ATOMIC_FLAG_INIT, 0}
-
-/*
-  Run the provided init() function exactly once, even if multiple threads
-  invoke once() at the same time. The state must be a once_t initialized with
-  ONCE_INIT.
- */
-local void once(once_t *state, void (*init)(void)) {
-    if (!atomic_load(&state->done)) {
-        if (atomic_flag_test_and_set(&state->begun))
-            while (!atomic_load(&state->done))
-                ;
-        else {
-            init();
-            atomic_store(&state->done, 1);
-        }
-    }
-}
-
-#else   /* no atomics */
-
-/* Structure for once(), which must be initialized with ONCE_INIT. */
-struct once_s {
-    volatile int begun;
-    volatile int done;
-};
-#define ONCE_INIT {0, 0}
-
-/* Test and set. Alas, not atomic, but tries to minimize the period of
-   vulnerability. */
-local int test_and_set(int volatile *flag) {
-    int was;
-
-    was = *flag;
-    *flag = 1;
-    return was;
-}
-
-/* Run the provided init() function once. This is not thread-safe. */
-local void once(once_t *state, void (*init)(void)) {
-    if (!state->done) {
-        if (test_and_set(&state->begun))
-            while (!state->done)
-                ;
-        else {
-            init();
-            state->done = 1;
-        }
-    }
-}
-
-#endif
-
 /* State for once(). */
-local once_t made = ONCE_INIT;
+local z_once_t made = Z_ONCE_INIT;
 
 /*
   Generate tables for a byte-wise 32-bit CRC calculation on the polynomial:
@@ -548,7 +480,7 @@ local void braid(z_crc_t ltl[][256], z_word_t big[][256], int n, int w) {
  */
 const z_crc_t FAR * ZEXPORT get_crc_table(void) {
 #ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
+    z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
     return (const z_crc_t FAR *)crc_table;
 }
@@ -585,7 +517,7 @@ unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
     if (buf == Z_NULL) return 0;
 
 #ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
+    z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
 
     /* Pre-condition the CRC */
@@ -697,7 +629,7 @@ unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
     if (buf == Z_NULL) return 0;
 
 #ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
+    z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
 
     /* Pre-condition the CRC */
@@ -1014,13 +946,18 @@ unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
 /* ========================================================================= */
 unsigned long ZEXPORT crc32(unsigned long crc, const unsigned char FAR *buf,
                             uInt len) {
+    #ifdef HAVE_S390X_VX
+    return crc32_z_hook(crc, buf, len);
+    #endif
     return crc32_z(crc, buf, len);
 }
 
 /* ========================================================================= */
 uLong ZEXPORT crc32_combine64(uLong crc1, uLong crc2, z_off64_t len2) {
+    if (len2 < 0)
+        return 0;
 #ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
+    z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
     return multmodp(x2nmodp(len2, 3), crc1) ^ (crc2 & 0xffffffff);
 }
@@ -1032,8 +969,10 @@ uLong ZEXPORT crc32_combine(uLong crc1, uLong crc2, z_off_t len2) {
 
 /* ========================================================================= */
 uLong ZEXPORT crc32_combine_gen64(z_off64_t len2) {
+    if (len2 < 0)
+        return 0;
 #ifdef DYNAMIC_CRC_TABLE
-    once(&made, make_crc_table);
+    z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
     return x2nmodp(len2, 3);
 }

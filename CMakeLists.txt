@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12...3.31)
 project(
     zlib
     LANGUAGES C
-    VERSION 1.4.1.1
+    VERSION 1.3.1.2
     HOMEPAGE_URL "https://zlib.net/"
     DESCRIPTION "a general-purpose lossless data-compression library")
 
@@ -22,7 +22,6 @@ set(CPACK_RESOURCE_FILE_README ${zlib_SOURCE_DIR}/README)
 option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ON)
 option(ZLIB_BUILD_SHARED "Enable building zlib shared library" ON)
 option(ZLIB_BUILD_STATIC "Enable building zlib static library" ON)
-option(ZLIB_BUILD_MINIZIP "Enable building libminizip contrib library" OFF)
 option(ZLIB_INSTALL "Enable installation of zlib" ON)
 option(ZLIB_PREFIX "prefix for all types and library functions, see zconf.h.in"
        OFF)
@@ -104,7 +103,7 @@ check_include_file(unistd.h HAVE_UNISTD_H)
 if(MSVC)
     set(CMAKE_REQUIRED_FLAGS "-WX")
 else(MSVC)
-    set(CMAKE_REQUIRED_FLAGS "-WError")
+    set(CMAKE_REQUIRED_FLAGS "-Werror")
 endif(MSVC)
 
 check_c_source_compiles(
@@ -190,8 +189,9 @@ if(ZLIB_BUILD_SHARED)
                    EXPORT_NAME ZLIB
                    OUTPUT_NAME z)
     if(UNIX
-       AND NOT APPLE
-       AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX))
+        AND NOT APPLE
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL SunOS))
         # On unix-like platforms the library is almost always called libz
         set_target_properties(
             zlib
@@ -200,7 +200,8 @@ if(ZLIB_BUILD_SHARED)
     endif(
         UNIX
         AND NOT APPLE
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX))
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL SunOS))
 endif(ZLIB_BUILD_SHARED)
 
 if(ZLIB_BUILD_STATIC)
@@ -242,7 +243,7 @@ if(ZLIB_INSTALL)
         if(ZLIB_INSTALL_COMPAT_DLL)
             install(
                 FILES $<TARGET_FILE:zlib>
-                COMPONENT Runtime
+                COMPONENT Development
                 RENAME zlib1.dll
                 DESTINATION "${CMAKE_INSTALL_BINDIR}")
         endif(ZLIB_INSTALL_COMPAT_DLL)
@@ -325,8 +326,4 @@ if(ZLIB_BUILD_TESTING)
     add_subdirectory(test)
 endif(ZLIB_BUILD_TESTING)
 
-if(ZLIB_BUILD_MINIZIP)
-    set(MINIZIP_BUILD_SHARED ${ZLIB_BUILD_SHARED})
-    set(MINIZIP_BUILD_STATIC ${ZLIB_BUILD_STATIC})
-    add_subdirectory(contrib/minizip/)
-endif(ZLIB_BUILD_MINIZIP)
+add_subdirectory(contrib)

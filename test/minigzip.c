@@ -438,6 +438,7 @@ static void file_compress(char *file, char *mode) {
     }
     out = gzopen(outfile, mode);
     if (out == NULL) {
+        fclose(in);
         fprintf(stderr, "%s: can't gzopen %s\n", prog, outfile);
         exit(1);
     }
@@ -480,6 +481,7 @@ static void file_uncompress(char *file) {
     }
     out = fopen(outfile, "wb");
     if (out == NULL) {
+        gzclose(in);
         perror(file);
         exit(1);
     }

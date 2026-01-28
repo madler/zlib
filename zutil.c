@@ -86,28 +86,36 @@ uLong ZEXPORT zlibCompileFlags(void) {
     flags += 1L << 21;
 #endif
 #if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#  ifdef NO_vsnprintf
-    flags += 1L << 25;
-#    ifdef HAS_vsprintf_void
-    flags += 1L << 26;
-#    endif
-#  else
-#    ifdef HAS_vsnprintf_void
-    flags += 1L << 26;
-#    endif
-#  endif
+#   ifdef NO_vsnprintf
+#       ifdef ZLIB_INSECURE
+            flags += 1L << 25;
+#       else
+            flags += 1L << 27;
+#       endif
+#       ifdef HAS_vsprintf_void
+            flags += 1L << 26;
+#       endif
+#   else
+#       ifdef HAS_vsnprintf_void
+            flags += 1L << 26;
+#       endif
+#   endif
 #else
     flags += 1L << 24;
-#  ifdef NO_snprintf
-    flags += 1L << 25;
-#    ifdef HAS_sprintf_void
-    flags += 1L << 26;
-#    endif
-#  else
-#    ifdef HAS_snprintf_void
-    flags += 1L << 26;
-#    endif
-#  endif
+#   ifdef NO_snprintf
+#       ifdef ZLIB_INSECURE
+            flags += 1L << 25;
+#       else
+            flags += 1L << 27;
+#       endif
+#       ifdef HAS_sprintf_void
+            flags += 1L << 26;
+#       endif
+#   else
+#       ifdef HAS_snprintf_void
+            flags += 1L << 26;
+#       endif
+#   endif
 #endif
     return flags;
 }
