@@ -51,6 +51,10 @@
 
 #include "deflate.h"
 
+#ifdef __GNUC__
+__attribute__((used))
+static
+#endif
 const char deflate_copyright[] =
    " deflate 1.3.1.2 Copyright 1995-2025 Jean-loup Gailly and Mark Adler ";
 /*

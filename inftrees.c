@@ -18,6 +18,10 @@
 
 #define MAXBITS 15
 
+#ifdef __GNUC__
+__attribute__((used))
+static
+#endif
 const char inflate_copyright[] =
    " inflate 1.3.1.2 Copyright 1995-2025 Mark Adler ";
 /*
