@@ -11,12 +11,14 @@ cmake_minimum_required(VERSION 3.12...3.31)
 
 function(puff_cov_test test_string expected_result)
     execute_process(COMMAND ${CMAKE_ARGV0} -E echo_append ${test_string}
-                    COMMAND ${CMAKE_ARGV5}/bin-writer
+                    COMMAND ${CMAKE_ARGV5}
                     COMMAND ${CMAKE_ARGV3}
                     RESULT_VARIABLE RESULT)
 
     if(NOT RESULT EQUAL expected_result)
-        message(FATAL_ERROR "${RESULT} not matching ${expected_result}")
+        message(FATAL_ERROR "Received Exit-Code: ${RESULT}\n"
+                            "Expected Exit-Code: ${expected_result}\n"
+                            "Test-String: ${test_string}")
     endif(NOT RESULT EQUAL expected_result)
 endfunction(puff_cov_test test_string expected_result)
 
@@ -28,7 +30,7 @@ puff_cov_test("00 00 00 00 00" "254")
 puff_cov_test("00 01 00 fe ff" "2")
 
 execute_process(COMMAND ${CMAKE_ARGV0} -E echo_append "01 01 00 fe ff 0a"
-                COMMAND ${CMAKE_ARGV5}/bin-writer
+                COMMAND ${CMAKE_ARGV5}
                 COMMAND ${CMAKE_ARGV3})
 
 puff_cov_test("02 7e ff ff" "246")
@@ -38,7 +40,7 @@ puff_cov_test("04 80 49 92 24 49 92 24 71 ff ff 93 11 00" "249")
 puff_cov_test("04 c0 81 08 00 00 00 00 20 7f eb 0b 00 00" "246")
 
 execute_process(COMMAND ${CMAKE_ARGV0} -E echo_append "0b 00 00"
-                COMMAND ${CMAKE_ARGV5}/bin-writer
+                COMMAND ${CMAKE_ARGV5}
                 COMMAND ${CMAKE_ARGV3})
 
 puff_cov_test("1a 07" "246")
