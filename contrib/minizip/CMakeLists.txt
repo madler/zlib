@@ -21,6 +21,16 @@ set(CPACK_RESOURCE_FILE_LICENSE ${minizip_SOURCE_DIR}/../../LICENSE)
 set(CPACK_RESOURCE_FILE_README ${minizip_SOURCE_DIR}/MiniZip64_info.txt)
 
 # ============================================================================
+# set options if build from zlib
+# ============================================================================
+if(ZLIB_BUILD_MINIZIP)
+    set(MINIZIP_BUILD_SHARED ${ZLIB_MINIZIP_BUILD_SHARED} CACHE BOOL "")
+    set(MINIZIP_BUILD_STATIC ${ZLIB_MINIZIP_BUILD_STATIC} CACHE BOOL "")
+    set(MINIZIP_BUILD_TESTING ${ZLIB_MINIZIP_INSTALL} CACHE BOOL "")
+    set(MINIZIP_INSTALL ${ZLIB_MINIZIP_INSTALL} CACHE BOOL "")
+endif(ZLIB_BUILD_MINIZIP)
+
+# ============================================================================
 # configuration
 # ============================================================================
 option(MINIZIP_BUILD_SHARED "Enable building minizip shared library" ON)
