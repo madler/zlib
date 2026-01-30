@@ -172,7 +172,7 @@ if(NOT ZLIB_BLAST_BUILD_SHARED OR NOT ZLIB_BLAST_BUILD_STATIC)
 endif(NOT ZLIB_BLAST_BUILD_SHARED OR NOT ZLIB_BLAST_BUILD_STATIC)
 
 #
-# findpackage_no_components_test
+# findpackage_wrong_components_test
 #
 add_test(
     NAME zlib_blast_find_package_wrong_components_configure
