@@ -9,7 +9,7 @@ else(DEFINED ZLIB_BUILD_IOSTREAM3)
 
     add_test(
         NAME zlib_iostream3_install
-        COMMAND ${CMAKE_COMMAND} --install ${minizip_BINARY_DIR} --prefix
+        COMMAND ${CMAKE_COMMAND} --install ${iostreamV3_BINARY_DIR} --prefix
                 ${CMAKE_CURRENT_BINARY_DIR}/test_install --config $<CONFIG>
         WORKING_DIRECTORY ${iostreamV3_BINARY_DIR})
 
