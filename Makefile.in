@@ -115,7 +115,7 @@ test64: all64
 	fi
 	@rm -f tmp64_$$
 
-infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h
+infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h zconf.h $(SRCDIR)inflate.h $(SRCDIR)inftrees.h
 	$(CC) $(CFLAGS) $(ZINCOUT) -c -coverage -o $@ $(SRCDIR)test/infcover.c
 
 infcover: infcover.o libz.a
@@ -289,7 +289,7 @@ gzwrite.lo: $(SRCDIR)gzwrite.c
 	-@mv objs/gzwrite.o $@
 
 
-placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a
+placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a $(SRCDIR)zlib.map
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)

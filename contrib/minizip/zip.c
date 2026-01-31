@@ -1141,6 +1141,7 @@ extern zipFile ZEXPORT zipOpen2_64(const void *pathname, int append, zipcharpc* 
     {
         zlib_filefunc64_32_def zlib_filefunc64_32_def_fill;
         zlib_filefunc64_32_def_fill.zfile_func64 = *pzlib_filefunc_def;
+        zlib_filefunc64_32_def_fill.zopen32_file = NULL;
         zlib_filefunc64_32_def_fill.ztell32_file = NULL;
         zlib_filefunc64_32_def_fill.zseek32_file = NULL;
         return zipOpen3(pathname, append, globalcomment, &zlib_filefunc64_32_def_fill);
@@ -1247,32 +1248,32 @@ local int Write_LocalFileHeader(zip64_internal* zi, const char* filename, uInt s
   return err;
 }
 
-// Return the length of the UTF-8 code at str[0..len-1] in [1..4], or negative
-// if there is no valid UTF-8 code there. If negative, it is minus the number
-// of bytes examined in order to determine it was bad. Or if minus the return
-// code is one less than len, then at least one more byte than provided would
-// be needed to complete the code.
-local inline int utf8len(unsigned char const *str, size_t len) {
+/* Return the length of the UTF-8 code at str[0..len-1] in [1..4], or negative
+   if there is no valid UTF-8 code there. If negative, it is minus the number
+   of bytes examined in order to determine it was bad. Or if minus the return
+   code is one less than len, then at least one more byte than provided would
+   be needed to complete the code. */
+local int utf8len(unsigned char const *str, size_t len) {
     return
-        len == 0 ? -1 :                         // empty input
-        str[0] < 0x80 ? 1 :                     // good one-byte
-        str[0] < 0xc0 ? -1 :                    // bad first byte
-        len < 2 || (str[1] >> 6) != 2 ? -2 :    // missing or bad second byte
-        str[0] < 0xc2 ? -2 :                    // overlong code
-        str[0] < 0xe0 ? 2 :                     // good two-byte
-        len < 3 || (str[2] >> 6) != 2 ? -3 :    // missing or bad third byte
-        str[0] == 0xe0 && str[1] < 0xa0 ? -3 :  // overlong code
-        str[0] < 0xf0 ? 3 :                     // good three-byte
-        len < 4 || (str[3] >> 6) != 2 ? -4 :    // missing or bad fourth byte
-        str[0] == 0xf0 && str[1] < 0x90 ? -4 :  // overlong code
+        len == 0 ? -1 :                         /* empty input */
+        str[0] < 0x80 ? 1 :                     /* good one-byte */
+        str[0] < 0xc0 ? -1 :                    /* bad first byte */
+        len < 2 || (str[1] >> 6) != 2 ? -2 :    /* missing or bad 2nd byte */
+        str[0] < 0xc2 ? -2 :                    /* overlong code */
+        str[0] < 0xe0 ? 2 :                     /* good two-byte */
+        len < 3 || (str[2] >> 6) != 2 ? -3 :    /* missing or bad 3rd byte */
+        str[0] == 0xe0 && str[1] < 0xa0 ? -3 :  /* overlong code */
+        str[0] < 0xf0 ? 3 :                     /* good three-byte */
+        len < 4 || (str[3] >> 6) != 2 ? -4 :    /* missing or bad 4th byte */
+        str[0] == 0xf0 && str[1] < 0x90 ? -4 :  /* overlong code */
         str[0] < 0xf4 ||
-        (str[0] == 0xf4 && str[1] < 0x90) ? 4 : // good four-byte
-        -4;                                     // code > 0x10ffff
+        (str[0] == 0xf4 && str[1] < 0x90) ? 4 : /* good four-byte */
+        -4;                                     /* code > 0x10ffff */
 }
 
-// Return true if str[0..len-1] is valid UTF-8 *and* it contains at least one
-// code of two or more bytes. This is used to determine whether or not to set
-// bit 11 in the zip header flags.
+/* Return true if str[0..len-1] is valid UTF-8 *and* it contains at least one
+   code of two or more bytes. This is used to determine whether or not to set
+   bit 11 in the zip header flags. */
 local int isutf8(char const *str, size_t len) {
     int utf8 = 0;
     while (len) {
