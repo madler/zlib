@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 project(
     zlibAda
     VERSION 1.0.0
-    LANGUAGES ADA
+    LANGUAGES C ADA
     DESCRIPTION "A library for creating zipfiles based in zlib"
     HOMEPAGE_URL "https://www.zlib.net")
 
