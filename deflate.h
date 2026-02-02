@@ -271,6 +271,9 @@ typedef struct internal_state {
     /* Number of valid bits in bi_buf.  All bits above the last valid bit
      * are always zero.
      */
+    int bi_used;
+    /* Last number of used bits when going to a byte boundary.
+     */
 
     ulg high_water;
     /* High water mark offset in window for initialized bytes -- bytes above
@@ -278,6 +281,9 @@ typedef struct internal_state {
      * longest match routines access bytes past the input.  This is then
      * updated to the new high water mark.
      */
+
+    int slid;
+    /* True if the hash table has been slid since it was cleared. */
 
 } FAR deflate_state;
 
