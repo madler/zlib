@@ -2212,7 +2212,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
     }
     else
     {
-      // Extra Info block should not be removed, So copy it to the temp buffer.
+      /* Extra Info block should not be removed, So copy it to the temp buffer. */
       memcpy(pTmp, p, (size_t)(dataSize + 4));
       p += dataSize + 4;
       size += dataSize + 4;
@@ -2222,7 +2222,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
 
   if(size < *dataLen)
   {
-    // clean old extra info block.
+    /* clean old extra info block. */
     memset(pData,0, (size_t)(*dataLen));
 
     /* copy the new extra info block over the old */
