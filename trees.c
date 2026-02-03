@@ -152,7 +152,7 @@ local TCONST static_tree_desc static_bl_desc =
  * IN assertion: 1 <= len <= 15
  */
 local unsigned bi_reverse(unsigned code, int len) {
-    register unsigned res = 0;
+    unsigned res = 0;
     do {
         res |= code & 1;
         code >>= 1, res <<= 1;
