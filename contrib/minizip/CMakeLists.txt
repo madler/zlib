@@ -36,12 +36,8 @@ endif(ZLIB_BUILD_MINIZIP)
 option(MINIZIP_BUILD_SHARED "Enable building minizip shared library" ON)
 option(MINIZIP_BUILD_STATIC "Enable building minizip static library" ON)
 option(MINIZIP_BUILD_TESTING "Enable testing of minizip" ON)
-option(MINIZIP_ENABLE_BZIP2 "Build minizip withj bzip2 support" ON)
+option(MINIZIP_ENABLE_BZIP2 "Build minizip with bzip2 support" ON)
 option(MINIZIP_INSTALL "Enable installation of minizip" ON)
-
-if(MINGW)
-    option(MINIZIP_INSTALL_COMPAT_DLL "Install a copy as libminizip-1.dll" ON)
-endif(MINGW)
 
 include(CheckCSourceCompiles)
 include(CheckFunctionExists)
@@ -235,13 +231,6 @@ if(MINIZIP_INSTALL)
             FILE minizip-shared.cmake
             NAMESPACE MINIZIP::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minizip)
-        if(MINIZIP_INSTALL_COMPAT_DLL)
-            install(
-                FILES $<TARGET_FILE:libminizip>
-                COMPONENT Runtime
-                RENAME libminizip-${minizip_VERSION_MAJOR}.dll
-                DESTINATION "${CMAKE_INSTALL_BINDIR}")
-        endif(MINIZIP_INSTALL_COMPAT_DLL)
 
         if(MSVC)
             install(

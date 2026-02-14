@@ -27,10 +27,6 @@ option(ZLIB_PREFIX "prefix for all types and library functions, see zconf.h.in"
        OFF)
 mark_as_advanced(ZLIB_PREFIX)
 
-if(WIN32)
-    option(ZLIB_INSTALL_COMPAT_DLL "Install a copy as zlib1.dll" ON)
-endif(WIN32)
-
 get_property(IS_MULTI GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 if(NOT DEFINED CMAKE_BUILD_TYPE AND NOT IS_MULTI)
@@ -240,13 +236,6 @@ if(ZLIB_INSTALL)
             FILE ZLIB-shared.cmake
             NAMESPACE ZLIB::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
-        if(ZLIB_INSTALL_COMPAT_DLL)
-            install(
-                FILES $<TARGET_FILE:zlib>
-                COMPONENT Development
-                RENAME zlib1.dll
-                DESTINATION "${CMAKE_INSTALL_BINDIR}")
-        endif(ZLIB_INSTALL_COMPAT_DLL)
 
         if(MSVC)
             install(
@@ -271,14 +260,6 @@ if(ZLIB_INSTALL)
             FILE ZLIB-static.cmake
             NAMESPACE ZLIB::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
-
-        if(ZLIB_INSTALL_COMPAT_DLL AND MINGW)
-            install(
-                FILES $<TARGET_FILE:zlibstatic>
-                COMPONENT Development
-                RENAME libz.dll.a
-                DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-        endif(ZLIB_INSTALL_COMPAT_DLL AND MINGW)
     endif(ZLIB_BUILD_STATIC)
 
     configure_package_config_file(
