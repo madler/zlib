@@ -632,6 +632,7 @@ int main(int argc, char *argv[]) {
 #endif
         {
           printf("Error changing into %s, aborting\n", dirname);
+          unzClose(uf);
           exit(-1);
         }
 
