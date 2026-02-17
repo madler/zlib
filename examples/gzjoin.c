@@ -63,11 +63,10 @@
 #define local static
 
 /* exit with an error (return a value to allow use in an expression) */
-local int bail(char *why1, char *why2)
+local void bail(char *why1, char *why2)
 {
     fprintf(stderr, "gzjoin error: %s%s, output incomplete\n", why1, why2);
     exit(1);
-    return 0;
 }
 
 /* -- simple buffered file input with access to the buffer -- */
