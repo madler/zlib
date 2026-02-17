@@ -26,12 +26,14 @@ libminizip_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 -lz
 
 minizip_includedir = $(includedir)/minizip
 minizip_include_HEADERS = \
-	crypt.h \
 	ioapi.h \
 	mztools.h \
 	unzip.h \
 	zip.h \
 	${iowin32_h}
+
+noinst_HEADERS = \
+	crypt.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = minizip.pc
