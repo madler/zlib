@@ -112,6 +112,16 @@ check_c_source_compiles(
 
 unset(CMAKE_COMPILE_FLAGS)
 set(ZLIB_PC ${zlib_BINARY_DIR}/zlib.pc)
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(pc_includedir "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+    set(pc_includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(pc_libdir "${CMAKE_INSTALL_LIBDIR}")
+else()
+    set(pc_libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
 configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
 
