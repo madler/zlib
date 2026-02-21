@@ -13,6 +13,7 @@ jobs:
       uses: vmactions/dragonflybsd-vm@v1
       with:
         copyback: false
+        sync: scp
         prepare: |
           pkg install -y cmake gcc14 bzip2
 
@@ -37,6 +38,7 @@ jobs:
       with:
         arch: ${{ matrix.name }}
         copyback: false
+        sync: scp
         release: "15.0"
         prepare: |
           pkg install -y cmake gcc14 bzip2
@@ -61,6 +63,7 @@ jobs:
       uses: vmactions/netbsd-vm@v1
       with:
         copyback: false
+        sync: scp
         prepare: |
           export PATH="/usr/pkg/sbin:/usr/pkg/bin:$PATH"
           export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages"
@@ -82,6 +85,7 @@ jobs:
       uses: vmactions/omnios-vm@v1
       with:
         copyback: false
+        sync: scp
         prepare: |
           pkg install cmake gcc14 make bzip2
 
@@ -107,6 +111,7 @@ jobs:
       with:
         arch: ${{ matrix.name }}
         copyback: false
+        sync: scp
         prepare: |
           pkg_add cmake
           bzip2
@@ -125,6 +130,7 @@ jobs:
 #      uses: vmactions/openindiana-vm@v0
 #      with:
 #        copyback: false
+#        sync: scp
 #        prepare: |
 #          pkg install cmake gcc-14 make bzip2
 
@@ -142,6 +148,7 @@ jobs:
       uses: vmactions/solaris-vm@v1
       with:
         copyback: false
+        sync: scp
         release: "11.4-gcc"
         prepare: |
           pkgutil -U
