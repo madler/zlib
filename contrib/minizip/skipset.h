@@ -91,10 +91,12 @@ void set_uniq(set_rand_t *gen, const void *ptr) {
 }
 /* Return 32 random bits, advancing the state *gen. */
 ui32_t set_rand(set_rand_t *gen) {
+    ui32_t mix;
+    int rot;
     ui64_t state = gen->state;
     gen->state = state * 6364136223846793005ULL + gen->inc;
-    ui32_t mix = (ui32_t)(((state >> 18) ^ state) >> 27);
-    int rot = state >> 59;
+    mix = (ui32_t)(((state >> 18) ^ state) >> 27);
+    rot = state >> 59;
     return (mix >> rot) | (mix << ((-rot) & 31));
 }
 /* End of PCG32 code. */
@@ -185,6 +187,7 @@ void set_free(set_t *set, void *ptr) {
 // setting them to set->head if not previously filled in. Otherwise it is
 // assumed that the first want links are about to be filled in. */
 void set_grow(set_t *set, set_node_t *node, int want, int fill) {
+    int i;
     if (node->size < want) {
         int more = node->size ? node->size : 1;
         while (more < want)
@@ -193,7 +196,6 @@ void set_grow(set_t *set, set_node_t *node, int want, int fill) {
                                 (size_t)more * sizeof(set_node_t *));
         node->size = (i16_t)more;
     }
-    int i;
     if (fill)
         for (i = node->fill; i < want; i++)
             node->right[i] = set->head;
@@ -298,11 +300,14 @@ void set_end(set_t *set) {
 /* Look for key. Return 1 if found or 0 if not. This also puts the path to get
 // there in set->path, for use by set_insert(). */
 int set_found(set_t *set, set_key_t key) {
+    set_node_t *head, *here;
+    int i;
     assert(set_ok(set) && "improper use");
 
     /* Start at depth and work down and right as determined by key comparisons. */
-    set_node_t *head = set->head, *here = head;
-    int i = set->depth;
+    head = set->head;
+    here = head;
+    i = set->depth;
     set_grow(set, set->path, i + 1, 0);
     do {
         while (here->right[i] != head &&
@@ -318,6 +323,9 @@ int set_found(set_t *set, set_key_t key) {
 
 /* Insert the key key. Return 0 on success, or 1 if key is already in the set. */
 int set_insert(set_t *set, set_key_t key) {
+    int level = 0;
+    int bit;
+    int i;
     assert(set_ok(set) && "improper use");
 
     if (set_found(set, key))
@@ -326,12 +334,11 @@ int set_insert(set_t *set, set_key_t key) {
 
     /* Randomly generate a new level-- level 0 with probability 1/2, 1 with
     // probability 1/4, 2 with probability 1/8, etc. */
-    int level = 0;
     for (;;) {
         if (set->ran == 1)
             /* Ran out. Get another 32 random bits. */
             set->ran = set_rand(&set->gen) | (1ULL << 32);
-        int bit = set->ran & 1;
+        bit = set->ran & 1;
         set->ran >>= 1;
         if (bit)
             break;
@@ -351,7 +358,6 @@ int set_insert(set_t *set, set_key_t key) {
     set->node = set_node(set);
     set->node->key = key;
     set_grow(set, set->node, level + 1, 0);
-    int i;
     for (i = 0; i <= level; i++) {
         set->node->right[i] = set->path->right[i]->right[i];
         set->path->right[i]->right[i] = set->node;
