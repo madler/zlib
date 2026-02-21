@@ -1,5 +1,5 @@
 /* compress.c -- compress a memory buffer
- * Copyright (C) 1995-2005, 2014, 2016 Jean-loup Gailly, Mark Adler
+ * Copyright (C) 1995-2026 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -27,6 +27,10 @@ int ZEXPORT compress2_z(Bytef *dest, z_size_t *destLen, const Bytef *source,
     int err;
     const uInt max = (uInt)-1;
     z_size_t left;
+
+    if ((sourceLen > 0 && source == NULL) ||
+        destLen == NULL || (*destLen > 0 && dest == NULL))
+        return Z_STREAM_ERROR;
 
     left = *destLen;
     *destLen = 0;
@@ -56,7 +60,7 @@ int ZEXPORT compress2_z(Bytef *dest, z_size_t *destLen, const Bytef *source,
         err = deflate(&stream, sourceLen ? Z_NO_FLUSH : Z_FINISH);
     } while (err == Z_OK);
 
-    *destLen = stream.next_out - dest;
+    *destLen = (z_size_t)(stream.next_out - dest);
     deflateEnd(&stream);
     return err == Z_STREAM_END ? Z_OK : err;
 }

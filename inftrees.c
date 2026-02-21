@@ -1,5 +1,5 @@
 /* inftrees.c -- generate Huffman trees for efficient decoding
- * Copyright (C) 1995-2025 Mark Adler
+ * Copyright (C) 1995-2026 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -16,10 +16,14 @@
 #include "inftrees.h"
 #include "inflate.h"
 
+#ifndef NULL
+#  define NULL 0
+#endif
+
 #define MAXBITS 15
 
 const char inflate_copyright[] =
-   " inflate 1.3.1.2 Copyright 1995-2025 Mark Adler ";
+   " inflate 1.3.2 Copyright 1995-2026 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -57,9 +61,9 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
     unsigned mask;              /* mask for low root bits */
     code here;                  /* table entry for duplication */
     code FAR *next;             /* next available space in table */
-    const unsigned short FAR *base;     /* base value table to use */
-    const unsigned short FAR *extra;    /* extra bits table to use */
-    unsigned match;             /* use base and extra for symbol >= match */
+    const unsigned short FAR *base = NULL;  /* base value table to use */
+    const unsigned short FAR *extra = NULL; /* extra bits table to use */
+    unsigned match = 0;         /* use base and extra for symbol >= match */
     unsigned short count[MAXBITS+1];    /* number of codes of each length */
     unsigned short offs[MAXBITS+1];     /* offsets in table for each length */
     static const unsigned short lbase[31] = { /* Length codes 257..285 base */
@@ -67,7 +71,7 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
     static const unsigned short lext[31] = { /* Length codes 257..285 extra */
         16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
-        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 64, 204};
+        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 199, 75};
     static const unsigned short dbase[32] = { /* Distance codes 0..29 base */
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
@@ -185,7 +189,6 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
     /* set up for code type */
     switch (type) {
     case CODES:
-        base = extra = work;    /* dummy value--not used */
         match = 20;
         break;
     case LENS:
@@ -193,10 +196,9 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
         extra = lext;
         match = 257;
         break;
-    default:    /* DISTS */
+    case DISTS:
         base = dbase;
         extra = dext;
-        match = 0;
     }
 
     /* initialize state for loop */

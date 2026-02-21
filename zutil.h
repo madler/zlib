@@ -1,5 +1,5 @@
 /* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2024 Jean-loup Gailly, Mark Adler
+ * Copyright (C) 1995-2026 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -35,6 +35,10 @@
 /* since "static" is used to mean two completely different things in C, we
    define "local" for the non-static meaning of "static", for readability
    (compile with -Dlocal if your debugger can't find static symbols) */
+
+extern const char deflate_copyright[];
+extern const char inflate_copyright[];
+extern const char inflate9_copyright[];
 
 typedef unsigned char  uch;
 typedef uch FAR uchf;
@@ -214,9 +218,9 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #    define zmemzero(dest, len) memset(dest, 0, len)
 #  endif
 #else
-   void ZLIB_INTERNAL zmemcpy(Bytef* dest, const Bytef* source, uInt len);
-   int ZLIB_INTERNAL zmemcmp(const Bytef* s1, const Bytef* s2, uInt len);
-   void ZLIB_INTERNAL zmemzero(Bytef* dest, uInt len);
+   void ZLIB_INTERNAL zmemcpy(void FAR *, const void FAR *, z_size_t);
+   int ZLIB_INTERNAL zmemcmp(const void FAR *, const void FAR *, z_size_t);
+   void ZLIB_INTERNAL zmemzero(void FAR *, z_size_t);
 #endif
 
 /* Diagnostic functions */

@@ -2,7 +2,7 @@
 //  ZLIB.INC - Interface to the general purpose compression library
 
 //  ILE RPG400 version by Patrick Monnerat, DATASPHERE.
-//  Version 1.3.1.1
+//  Version 1.3.2
 
 
 //  WARNING:
@@ -23,12 +23,12 @@
 
 //  Versioning information.
 
-Dcl-C ZLIB_VERSION '1.3.1.1';
-Dcl-C ZLIB_VERNUM X'12A0';
+Dcl-C ZLIB_VERSION '1.3.2';
+Dcl-C ZLIB_VERNUM X'1320';
 Dcl-C ZLIB_VER_MAJOR 1;
 Dcl-C ZLIB_VER_MINOR 3;
-Dcl-C ZLIB_VER_REVISION 1;
-Dcl-C ZLIB_VER_SUBREVISION 1;
+Dcl-C ZLIB_VER_REVISION 2;
+Dcl-C ZLIB_VER_SUBREVISION 0;
 
 //  Other equates.
 
@@ -113,6 +113,13 @@ Dcl-Pr compress Int(10) Extproc('compress');
     sourceLen Uns(10) Value; // Source length
 End-Pr;
 
+Dcl-Pr compress_z Int(10) Extproc('compress_z');
+    dest Char(65535) Options(*VARSIZE); // Destination buffer
+    destLen Uns(20); // Destination length
+    source Char(65535) Const Options(*VARSIZE); // Source buffer
+    sourceLen Uns(20) Value; // Source length
+End-Pr;
+
 Dcl-Pr compress2 Int(10) Extproc('compress2');
     dest Char(65535) Options(*VARSIZE); // Destination buffer
     destLen Uns(10); // Destination length
@@ -121,8 +128,20 @@ Dcl-Pr compress2 Int(10) Extproc('compress2');
     level Int(10) Value; // Compression level
 End-Pr;
 
+Dcl-Pr compress2_z Int(10) Extproc('compress2_z');
+    dest Char(65535) Options(*VARSIZE); // Destination buffer
+    destLen Uns(20); // Destination length
+    source Char(65535) Const Options(*VARSIZE); // Source buffer
+    sourceLen Uns(20) Value; // Source length
+    level Int(10) Value; // Compression level
+End-Pr;
+
 Dcl-Pr compressBound Uns(10) Extproc('compressBound');
     sourceLen Uns(10) Value;
+End-Pr;
+
+Dcl-Pr compressBound_z Uns(10) Extproc('compressBound_z');
+    sourceLen Uns(20) Value;
 End-Pr;
 
 Dcl-Pr uncompress Int(10) Extproc('uncompress');
@@ -132,11 +151,25 @@ Dcl-Pr uncompress Int(10) Extproc('uncompress');
     sourceLen Uns(10) Value; // Source length
 End-Pr;
 
+Dcl-Pr uncompress_z Int(10) Extproc('uncompress_z');
+    dest Char(65535) Options(*VARSIZE); // Destination buffer
+    destLen Uns(20); // Destination length
+    source Char(65535) Const Options(*VARSIZE); // Source buffer
+    sourceLen Uns(20) Value; // Source length
+End-Pr;
+
 Dcl-Pr uncompress2 Int(10) Extproc('uncompress2');
     dest Char(65535) Options(*VARSIZE); // Destination buffer
     destLen Uns(10); // Destination length
     source Char(65535) Const Options(*VARSIZE); // Source buffer
     sourceLen Uns(10); // Source length
+End-Pr;
+
+Dcl-Pr uncompress2_z Int(10) Extproc('uncompress2_z');
+    dest Char(65535) Options(*VARSIZE); // Destination buffer
+    destLen Uns(20); // Destination length
+    source Char(65535) Const Options(*VARSIZE); // Source buffer
+    sourceLen Uns(20); // Source length
 End-Pr;
 
 /if not defined(LARGE_FILES)
@@ -397,7 +430,12 @@ End-Pr;
 
 Dcl-Pr deflateBound Uns(10) Extproc('deflateBound'); // Change level & strat
     strm Like(z_stream); // Compression stream
-    sourcelen Uns(10) Value; // Compression level
+    sourcelen Uns(10) Value; // Source length
+End-Pr;
+
+Dcl-Pr deflateBound_z Uns(10) Extproc('deflateBound_z'); // Change level & strat
+    strm Like(z_stream); // Compression stream
+    sourcelen Uns(20) Value; // Source length
 End-Pr;
 
 Dcl-Pr deflatePending Int(10) Extproc('deflatePending'); // Change level & strat
@@ -542,13 +580,27 @@ End-Pr;
 Dcl-Pr crc32_combine Uns(10) Extproc('crc32_combine'); // New checksum
     crc1 Uns(10) Value; // Old checksum
     crc2 Uns(10) Value; // Old checksum
-    len2 Uns(20) Value; // Buffer length
+    len2 Uns(20) Value; // 2nd Buffer length
 End-Pr;
 
 Dcl-Pr crc32_z Uns(10) Extproc('crc32_z'); // New checksum
     crc Uns(10) Value; // Old checksum
     buf Char(65535) Const Options(*VARSIZE); // Bytes to accumulate
     len Uns(20) Value; // Buffer length
+End-Pr;
+
+Dcl-Pr crc32_combine_gen Uns(10) Extproc('crc32_combine_gen');
+    len Uns(20) Value; // 2nd Buffer length
+End-Pr;
+
+Dcl-Pr crc32_combine_gen64 Uns(10) Extproc('crc32_combine_gen64');
+    len Uns(20) Value; // 2nd Buffer length
+End-Pr;
+
+Dcl-Pr crc32_combine_op Uns(10) Extproc('crc32_combine_op'); // New checksum
+    crc1 Uns(10) Value; // Old checksum
+    crc2 Uns(10) Value; // Old checksum
+    op Uns(10) Value; // Operator
 End-Pr;
 
 //*************************************************************************

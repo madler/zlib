@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-2024 Jean-loup Gailly, Mark Adler
+# Copyright (C) 1995-2026 Jean-loup Gailly, Mark Adler
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
@@ -31,7 +31,7 @@ VGFMAFLAG=
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.3.1.2
+SHAREDLIBV=libz.so.1.3.2
 SHAREDLIBM=libz.so.1
 LIBS=$(STATICLIB) $(SHAREDLIBV)
 
@@ -122,13 +122,9 @@ infcover: infcover.o libz.a
 	$(CC) $(CFLAGS) -coverage -o $@ infcover.o libz.a
 
 cover: infcover
-ifdef $(GCOV)
 	rm -f *.gcda
 	${QEMU_RUN} ./infcover
 	${GCOV} ${LLVM_GCOV_FLAG} inf*.c -o ./infcover.gcda
-else
-	@echo 'cover disabled as no suitable gcov was found'
-endif
 
 libz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)

@@ -43,7 +43,7 @@ zlib_add_contrib_feature("GVMAT64"
     gcc_gvmat64)
 
 zlib_add_contrib_feature(INFBACK9 "with support for method 9 deflate" infback9)
-zlib_add_contrib_feature(CRC32VX "with S390X-CRC32VX implementation" crc32vx On)
+zlib_add_contrib_feature(CRC32VX "with S390X-CRC32VX implementation" crc32vx)
 zlib_add_contrib_lib(ADA "Ada bindings" ada)
 zlib_add_contrib_lib(BLAST "blast binary" blast)
 zlib_add_contrib_lib(IOSTREAM3 "IOStream C++ bindings V3" iostream3)
@@ -52,4 +52,10 @@ zlib_add_contrib_lib(PUFF "puff decompress library" puff)
 
 if(WIN32)
     zlib_add_contrib_lib(TESTZLIB "testzlib binary" testzlib)
+
+    if (ZLIB_BUILD_ZLIB1_DLL)
+        add_subdirectory(zlib1-dll/)
+    endif (ZLIB_BUILD_ZLIB1_DLL)
+
+    option(ZLIB_BUILD_ZLIB1_DLL "Build the legacy zlib + minizip DLL" OFF)
 endif(WIN32)

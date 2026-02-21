@@ -1,7 +1,7 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.3.1.2, December 8th, 2025
+  version 1.3.2, February 17th, 2026
 
-  Copyright (C) 1995-2025 Jean-loup Gailly and Mark Adler
+  Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -41,12 +41,12 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.3.1.2-audit"
-#define ZLIB_VERNUM 0x1312
+#define ZLIB_VERSION "1.3.2"
+#define ZLIB_VERNUM 0x1320
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 3
-#define ZLIB_VER_REVISION 1
-#define ZLIB_VER_SUBREVISION 2
+#define ZLIB_VER_REVISION 2
+#define ZLIB_VER_SUBREVISION 0
 
 /*
     The 'zlib' compression library provides in-memory compression and
@@ -795,7 +795,10 @@ ZEXTERN int ZEXPORT deflatePending(z_streamp strm,
    or bits are Z_NULL, then those values are not set.
 
      deflatePending returns Z_OK if success, or Z_STREAM_ERROR if the source
-   stream state was inconsistent.
+   stream state was inconsistent.  If an int is 16 bits and memLevel is 9, then
+   it is possible for the number of pending bytes to not fit in an unsigned. In
+   that case Z_BUF_ERROR is returned and *pending is set to the maximum value
+   of an unsigned.
  */
 
 ZEXTERN int ZEXPORT deflateUsed(z_streamp strm,

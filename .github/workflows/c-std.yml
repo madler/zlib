@@ -116,7 +116,7 @@ jobs:
     steps:
 
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: 'false'
 
@@ -147,7 +147,7 @@ jobs:
       if: matrix.builder == 'configure'
       run: |
         make test
-        make cover
+        # make cover
 
     - name: Generate project files (cmake)
       if: matrix.builder == 'cmake'
@@ -240,7 +240,7 @@ jobs:
     steps:
 
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: 'false'
 

@@ -1,7 +1,7 @@
       *  ZLIB.INC - Interface to the general purpose compression library
       *
       *  ILE RPG400 version by Patrick Monnerat, DATASPHERE.
-      *  Version 1.3.1.2
+      *  Version 1.3.2
       *
       *
       *  WARNING:
@@ -22,14 +22,14 @@
       *
       *  Versioning information.
       *
-     D ZLIB_VERSION    C                   '1.3.1.2'
-     D ZLIB_VERNUM     C                   X'12a0'
+     D ZLIB_VERSION    C                   '1.3.2'
+     D ZLIB_VERNUM     C                   X'1320'
      D ZLIB_VER_MAJOR  C                   1
      D ZLIB_VER_MINOR  C                   3
      D ZLIB_VER_REVISION...
-     D                 C                   1
-     D ZLIB_VER_SUBREVISION...
      D                 C                   2
+     D ZLIB_VER_SUBREVISION...
+     D                 C                   0
       *
       *  Other equates.
       *
@@ -534,6 +534,20 @@
      D  crc                          10U 0 value                                Old checksum
      D  buf                       65535    const options(*varsize)              Bytes to accumulate
      D  len                          20U 0 value                                Buffer length
+      *
+     D crc32_combine_gen...
+     D                 PR            10U 0 extproc('crc32_combine_gen')         Operator
+     D  len2                         20U 0 value                                Buffer length
+      *
+     D crc32_combine_gen64...
+     D                 PR            10U 0 extproc('crc32_combine_gen64')       Operator
+     D  len2                         20U 0 value                                Buffer length
+      *
+     D crc32_combine_op...
+     D                 PR            10U 0 extproc('crc32_combine_op')          New Checksum
+     D  crc1                         10U 0 value                                Old checksum
+     D  crc2                         10U 0 value                                Old checksum
+     D  op                           10U 0 value                                Operator
       *
       **************************************************************************
       *                     Miscellaneous function prototypes

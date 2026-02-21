@@ -1,5 +1,5 @@
 /* gzwrite.c -- zlib functions for writing gzip files
- * Copyright (C) 2004-2025 Mark Adler
+ * Copyright (C) 2004-2026 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -77,7 +77,7 @@ local int gz_comp(gz_statep state, int flush) {
             errno = 0;
             state->again = 0;
             put = strm->avail_in > max ? max : strm->avail_in;
-            writ = write(state->fd, strm->next_in, put);
+            writ = (int)write(state->fd, strm->next_in, put);
             if (writ < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK)
                     state->again = 1;
@@ -112,7 +112,7 @@ local int gz_comp(gz_statep state, int flush) {
                 state->again = 0;
                 put = strm->next_out - state->x.next > (int)max ? max :
                       (unsigned)(strm->next_out - state->x.next);
-                writ = write(state->fd, state->x.next, put);
+                writ = (int)write(state->fd, state->x.next, put);
                 if (writ < 0) {
                     if (errno == EAGAIN || errno == EWOULDBLOCK)
                         state->again = 1;

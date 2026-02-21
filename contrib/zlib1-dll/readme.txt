@@ -1,5 +1,7 @@
-The pre-made Visual Studio projects have been removed in lieu of the ability to
-use cmake to build such projects on demand.
+Use this directory to build the legacy zlib1.dll for Windows, which contains
+both zlib and minizip. Use cmake either at the command prompt, or with Visual
+Studio as outlined below.
+
 
 To create a Visual Studio project
 ---------------------------------
@@ -17,6 +19,3 @@ To create a Visual Studio project
 9. Hit open project.
 
 Now you can Build > Build solution.
-
-
-See contrib/zlib1-dll/readme.txt for how to build the legacy zlib1.dll.
