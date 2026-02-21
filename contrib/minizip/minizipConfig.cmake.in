@@ -1,5 +1,3 @@
-@PACKAGE_INIT@
-
 set(_MINIZIP_supported_components "shared" "static")
 include(CMakeFindDependencyMacro)
 

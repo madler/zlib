@@ -1,5 +1,3 @@
-@PACKAGE_INIT@
-
 set(_ZLIB_supported_components "shared" "static")
 
 if(ZLIB_FIND_COMPONENTS)
