@@ -149,16 +149,16 @@ if(MINIZIP_BUILD_SHARED)
                 $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
                 $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
 
-    if(NOT CYGWIN)
-        set_target_properties(libminizip PROPERTIES SOVERSION
-                                                    ${minizip_VERSION_MAJOR})
-    endif(NOT CYGWIN)
+    if(CYGWIN)
+        set_target_properties(libminizip PROPERTIES PREFIX "lib")
+    else(CYGWIN)
+        set_target_properties(libminizip
+            PROPERTIES
+                SOVERSION ${zlib_VERSION_MAJOR}
+                VERSION ${INSTALL_VERSION})
+    endif(CYGWIN)
 
-    set_target_properties(
-        libminizip
-        PROPERTIES EXPORT_NAME minizip
-                   VERSION ${minizip_VERSION}
-                   SOVERSION ${minizip_VERSION_MAJOR})
+    set_target_properties(libminizip PROPERTIES EXPORT_NAME minizip)
 
     if(MSVC)
         set_target_properties(libminizip PROPERTIES OUTPUT_NAME libminizip)
@@ -199,6 +199,10 @@ if(MINIZIP_BUILD_STATIC)
                 $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
     set_target_properties(
         libminizipstatic PROPERTIES EXPORT_NAME minizipstatic)
+
+    if(CYGWIN)
+        set_target_properties(libminizipstatic PROPERTIES PREFIX "lib")
+    endif(CYGWIN)
 
     if(MSVC)
         set_target_properties(libminizipstatic

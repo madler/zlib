@@ -174,10 +174,12 @@ if(ZLIB_BUILD_SHARED)
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
     set(INSTALL_VERSION ${zlib_VERSION})
 
-    if(NOT CYGWIN)
+    if(CYGWIN)
+        set_target_properties(zlib PROPERTIES PREFIX "lib")
+    else(CYGWIN)
         set_target_properties(zlib PROPERTIES SOVERSION ${zlib_VERSION_MAJOR}
                                               VERSION ${INSTALL_VERSION})
-    endif(NOT CYGWIN)
+    endif(CYGWIN)
 
     set_target_properties(
         zlib
@@ -223,6 +225,10 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
+
+    if(CYGWIN)
+        set_target_properties(zlibstatic PROPERTIES PREFIX "lib")
+    endif(CYGWIN)
 
     if(MSVC)
         set_target_properties(zlibstatic
