@@ -157,9 +157,14 @@ if(MINIZIP_BUILD_SHARED)
     set_target_properties(
         libminizip
         PROPERTIES EXPORT_NAME minizip
-                   OUTPUT_NAME minizip
                    VERSION ${minizip_VERSION}
                    SOVERSION ${minizip_VERSION_MAJOR})
+
+    if(MSVC)
+        set_target_properties(libminizip PROPERTIES OUTPUT_NAME libminizip)
+    else(MSVC)
+        set_target_properties(libminizip PROPERTIES OUTPUT_NAME minizip)
+    endif(MSVC)
 
     target_link_libraries(libminizip
         PUBLIC ZLIB::ZLIB
@@ -193,8 +198,17 @@ if(MINIZIP_BUILD_STATIC)
                 $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
                 $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
     set_target_properties(
-        libminizipstatic PROPERTIES EXPORT_NAME minizipstatic
-                                    OUTPUT_NAME minizip${minizip_static_suffix})
+        libminizipstatic PROPERTIES EXPORT_NAME minizipstatic)
+
+    if(MSVC)
+        set_target_properties(libminizipstatic
+            PROPERTIES
+                ARCHIVE_OUTPUT_NAME libminizip${minizip_static_suffix})
+    else(MSVC)
+        set_target_properties(libminizipstatic
+            PROPERTIES
+                ARCHIVE_OUTPUT_NAME minizip${minizip_static_suffix})
+    endif(MSVC)
 
     if(CYGWIN)
         set_target_properties(libminizipstatic PROPERTIES SUFFIX ".dll.a")
