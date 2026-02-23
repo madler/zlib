@@ -71,7 +71,7 @@ found, either by checking for existence of the target, or by checking the ZLIB_s
 
 When you search for minizip, it will search zlib for you, so only one of both is needed.
 
-Note: If you don't list the components you want to use and one of them is not present, this is an hard error.
+Note: If you don't list the components you want to use and one of them is not present, this is a hard error.
 
 ## Imported targets ##
 
