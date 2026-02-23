@@ -67,7 +67,7 @@ or
 As it's possible to only build the shared or the static lib, you can make sure that everything you need
 is found. If no COMPONENTS are requested, everything needs to be found to satisfy your request. If the
 libraries are optional in your project, you can omit the REQUIRED and check yourself which components were
-found, either by checking for existence of the target, or by checking i.e ZLIB_shared_FOUND variable.
+found, either by checking for existence of the target, or by checking the ZLIB_shared_FOUND variable, for example.
 
 When you search for minizip, it will search zlib for you, so only one of both is needed.
 
