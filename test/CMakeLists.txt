@@ -219,12 +219,6 @@ set_tests_properties(
     zlib_find_package_no_components_configure
         PROPERTIES FIXTURES_REQUIRED zlib_install)
 
-if(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
-    set_tests_properties(
-        zlib_find_package_no_components_configure
-            PROPERTIES WILL_FAIL TRUE)
-endif(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
-
 #
 # findpackage_no_component_test
 #
