@@ -1,13 +1,11 @@
-enable_language(ASM)
-
-# Need to push CMAKE_ASM_COMPILE_OBJECT to cache as otherwise it's not
-# available in top-level
-
-set(CMAKE_ASM_COMPILE_OBJECT ${CMAKE_ASM_COMPILE_OBJECT} CACHE INTERNAL "" FORCE)
-
 if(MSVC)
-    #cmake 4.1 doesn't consider cl an asm compiler
-    cmake_policy(SET CMP0194 NEW)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.1)
+        cmake_policy(SET CMP0194 NEW)
+    endif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.1)
+
+    enable_language(ASM_MASM)
+else(MSVC)
+    enable_language(ASM)
 endif(MSVC)
 
 add_library(gvmat64 OBJECT gvmat64.S)
