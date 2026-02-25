@@ -1,9 +1,15 @@
 set(_MINIZIP_supported_components "shared" "static")
 include(CMakeFindDependencyMacro)
 
-if(@MINIZIP_ENABLE_BZIP2@)
+set(minizip_HAS_BZIP2
+    @MINIZIP_ENABLE_BZIP2@
+    CACHE
+    Bool
+    "Indicates if minizip was compiled with bzip2 support")
+
+if(minizip_HAS_BZIP2)
     find_dependency(BZip2)
-endif(@MINIZIP_ENABLE_BZIP2@)
+endif(minizip_HAS_BZIP2)
 
 if(minizip_FIND_COMPONENTS)
     find_dependency(ZLIB CONFIG COMPONENTS ${minizip_FIND_COMPONENTS})
