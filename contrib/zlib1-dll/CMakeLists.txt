@@ -23,8 +23,11 @@ include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
-include(CPack)
 include(GNUInstallDirs)
+
+if(NOT CPACK_INCLUDED)
+    include(CPack)
+endif(NOT CPACK_INCLUDED)
 
 if(NOT ZLIB_CONF_WRITTEN)
     set(CONF_OUT_FILE ${zlib1-dll_BINARY_DIR}/zconf.h.cmakein)
@@ -50,6 +53,8 @@ if(NOT ZLIB_CONF_WRITTEN)
         TRUE
         CACHE BOOL "zconf.h.cmakein was created")
     mark_as_advanced(ZLIB_CONF_WRITTEN)
+
+    set(ZCONF_IN_ZLIB1 True)
 endif(NOT ZLIB_CONF_WRITTEN)
 
 if(ENABLE_BZIP2)
@@ -101,13 +106,20 @@ check_c_source_compiles(
     HAVE___ATTR__VIS_HIDDEN)
 
 unset(CMAKE_COMPILE_FLAGS)
-configure_file(${zlib1-dll_BINARY_DIR}/zconf.h.cmakein ${zlib1-dll_BINARY_DIR}/zconf.h)
+
+if(ZCONF_IN_ZLIB1)
+    configure_file(${zlib1-dll_BINARY_DIR}/zconf.h.cmakein
+                   ${zlib1-dll_BINARY_DIR}/zconf.h)
+    set(ZCONF_H "${zlib1-dll_BINARY_DIR}/zconf.h")
+else(ZCONF_IN_ZLIB1)
+    set(ZCONF_H "${zlib1-dll_BINARY_DIR}/../../zconf.h")
+endif(ZCONF_IN_ZLIB1)
 
 # ============================================================================
 # zlib1-dll
 # ============================================================================
 set(ZLIB1-DLL_PUBLIC_HDRS
-    ${zlib1-dll_BINARY_DIR}/zconf.h
+    ${ZCONF_H}
     ../../zlib.h
     ../minizip/crypt.h
     ../minizip/ints.h
