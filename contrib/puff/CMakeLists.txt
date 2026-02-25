@@ -30,6 +30,7 @@ endif(NOT DEFINED ZLIB_BUILD_PUFF)
 if(WIN32 OR CYGWIN)
     set(zlibpuff_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif(WIN32 OR CYGWIN)
 
 if(ZLIB_PUFF_BUILD_TESTING)
