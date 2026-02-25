@@ -57,12 +57,12 @@ if(ZLIB_BLAST_BUILD_SHARED)
 
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
-        add_executable(zlib_blast_blast-test blast-test.c)
-        target_link_libraries(zlib_blast_blast-test PRIVATE zlib_blast_blast)
+        add_executable(zlib_blast_test blast-test.c)
+        target_link_libraries(zlib_blast_test PRIVATE zlib_blast_blast)
 
         add_test(NAME zlib_blast_blast-test
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:zlib_blast_blast-test>"
+                    "$<TARGET_FILE:zlib_blast_test>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
 
