@@ -7,9 +7,29 @@ project(
     DESCRIPTION "A little program to test zlib"
     HOMEPAGE_URL "https://www.zlib.net")
 
+# ============================================================================
+# set options if build from zlib
+# ============================================================================
+if(ZLIB_BUILD_TESTZLIB)
+    set(ZLIB_TESTZLIB_BUILD_SHARED ${ZLIB_BUILD_SHARED} CACHE BOOL "")
+    set(ZLIB_TESTZLIB_BUILD_STATIC ${ZLIB_BUILD_STATIC} CACHE BOOL "")
+endif(ZLIB_BUILD_TESTZLIB)
+
 option(ZLIB_TESTZLIB_BUILD_SHARED "Enable building testzlib" ON)
 option(ZLIB_TESTZLIB_BUILD_STATIC "Enable building static linked testzlib" ON)
 option(ZLIB_TESTZLIB_INSTALL "Enable installation of testzlib" ON)
+
+if(NOT ZLIB_BUILD_TESTZLIB)
+    if(ZLIB_TESTZLIB_BUILD_SHARED)
+        list(APPEND REQUIRED_COMPONENTS "shared")
+    endif(ZLIB_TESTZLIB_BUILD_SHARED)
+endif(NOT ZLIB_BUILD_TESTZLIB)
+
+if(ZLIB_TESTZLIB_BUILD_STATIC)
+    list(APPEND REQUIRED_COMPONENTS "static"))
+endif(ZLIB_TESTZLIB_BUILD_STATIC)
+
+find_package(ZLIB REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} CONFIG)
 
 if(ZLIB_TESTZLIB_BUILD_SHARED)
     add_executable(zlib_testzlib testzlib.c)
