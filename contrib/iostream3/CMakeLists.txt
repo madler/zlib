@@ -50,6 +50,8 @@ function(iostreamv3_findTestEnv testName)
 endfunction(iostreamv3_findTestEnv testName)
 
 if(ZLIB_IOSTREAM3_BUILD_SHARED)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+
     add_library(zlib_iostream3_iostreamv3 SHARED
                 zfstream.cc
                 zfstream.h)
