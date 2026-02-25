@@ -17,7 +17,6 @@ if(ZLIB_FIND_COMPONENTS)
         else(NOT _comp_loaded)
             set(ZLIB_${_comp}_FOUND TRUE)
         endif(NOT _comp_loaded)
-
     endforeach(_comp ${ZLIB_FIND_COMPONENTS})
 else(ZLIB_FIND_COMPONENTS)
     foreach(_component_config IN LISTS _ZLIB_supported_components)
