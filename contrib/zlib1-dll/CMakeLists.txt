@@ -15,7 +15,11 @@ if(NOT WIN32)
     message(FATAL_ERROR "This creates zlib1.<DLL>, Nothing else")
 endif(NOT WIN32)
 
-option(ENABLE_BZIP2 "Build with bzip2 support" OFF)
+if(ZLIB_BUILD_ZLIB1_DLL)
+    set(ZLIB1_DLL_ENABLE_BZIP2 ${MINIZIP_ENABLE_BZIP2} CACHE BOOL "")
+endif(ZLIB_BUILD_MINIZIP)
+
+option(ZLIB1_DLL_ENABLE_BZIP2 "Build with bzip2 support" OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 
 include(CheckCSourceCompiles)
@@ -57,9 +61,9 @@ if(NOT ZLIB_CONF_WRITTEN)
     set(ZCONF_IN_ZLIB1 True)
 endif(NOT ZLIB_CONF_WRITTEN)
 
-if(ENABLE_BZIP2)
+if(ZLIB1_DLL_ENABLE_BZIP2)
     find_package(BZip2 REQUIRED)
-endif(ENABLE_BZIP2)
+endif(ZLIB1_DLL_ENABLE_BZIP2)
 
 #
 # Check for fopen64
