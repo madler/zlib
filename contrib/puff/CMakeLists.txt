@@ -34,6 +34,7 @@ if(WIN32 OR CYGWIN)
 endif(WIN32 OR CYGWIN)
 
 if(ZLIB_PUFF_BUILD_TESTING)
+    enable_testing()
     add_executable(zlib_puff_bin-writer bin-writer.c)
 
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
@@ -61,7 +62,7 @@ if(ZLIB_PUFF_BUILD_TESTING)
     endif(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
           ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
 
-      add_subdirectory(test)
+    add_subdirectory(test)
 endif(ZLIB_PUFF_BUILD_TESTING)
 
 if(ZLIB_PUFF_BUILD_SHARED)
