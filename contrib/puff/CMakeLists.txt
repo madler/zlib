@@ -7,6 +7,14 @@ project(
     DESCRIPTION "A library for decompressing deflate with very little footprint"
     HOMEPAGE_URL "https://www.zlib.net")
 
+
+if(ZLIB_BUILD_PUFF)
+    set(ZLIB_PUFF_BUILD_SHARED ${ZLIB_BUILD_SHARED} CACHE BOOL "")
+    set(ZLIB_PUFF_BUILD_STATIC ${ZLIB_BUILD_STATIC} CACHE BOOL "")
+    set(ZLIB_PUFF_BUILD_TESTING ${ZLIB_BUILD_TESTING} CACHE BOOL "")
+    set(ZLIB_PUFF_INSTALL ${ZLIB_INSTALL} CACHE BOOL "")
+endif(ZLIB_BUILD_PUFF)
+
 option(ZLIB_PUFF_BUILD_SHARED "Enable building blast shared library" ON)
 option(ZLIB_PUFF_BUILD_STATIC "Enable building blast static library" ON)
 option(ZLIB_PUFF_BUILD_TESTING "Enable building tests for blast" ON)
