@@ -60,7 +60,7 @@ if(NOT ZLIB_CONF_WRITTEN)
         CACHE BOOL "zconf.h.cmakein was created")
     mark_as_advanced(ZLIB_CONF_WRITTEN)
 
-    set(ZCONF_IN_ZLIB1 True)
+    set(ZCONF_IN_ZLIB1 True CACHE INTERNAL "find zconf.h in zlib1-dll")
 endif(NOT ZLIB_CONF_WRITTEN)
 
 if(ZLIB1_DLL_ENABLE_BZIP2)
