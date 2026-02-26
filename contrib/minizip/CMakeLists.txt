@@ -7,11 +7,6 @@ project(
     DESCRIPTION "A library for creating zipfiles based in zlib"
     HOMEPAGE_URL "https://www.winimage.com/zLibDll/minizip.html")
 
-if(CMAKE_SIZEOF_VOID_P LESS 8 AND NOT MINGW)
-    message(WARNING "libminizip needs 64bit - stopping here")
-    return()
-endif(CMAKE_SIZEOF_VOID_P LESS 8 AND NOT MINGW)
-
 # ============================================================================
 # CPack
 # ============================================================================
