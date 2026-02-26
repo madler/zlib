@@ -176,6 +176,7 @@ add_library(zlib1 SHARED ${ZLIB1-DLL_SRCS}
                          ${ZLIB1-DLL_PUBLIC_HDRS}
                          ${ZLIB1-DLL_PRIVATE_HDRS})
 
+add_library(ZLIB1DLL::ZLIB1DLL ALIAS zlib1)
 
 target_compile_definitions(zlib1
     PRIVATE ZLIB_BUILD
@@ -193,6 +194,7 @@ target_include_directories(zlib1
            $<BUILD_INTERFACE:${DOTMINIZIP}>
            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
 target_link_libraries(zlib1
     PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
 
