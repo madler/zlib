@@ -1,8 +1,5 @@
 # if we are built from with zlib, use this path's)
-if(DEFINED ZLIB_BUILD_PUFF)
-    set(WORK_DIR ${zlib_BINARY_DIR})
-    set(inst_setup zlib_install)
-else(DEFINED ZLIB_BUILD_PUFF)
+if(NOT DEFINED ZLIB_BUILD_PUFF)
     set(WORK_DIR ${puff_BINARY_DIR})
     set(inst_setup zlib_puff_install)
     set(ZLIB_ARG "-DZLIB_DIR=${ZLIB_DIR}")
@@ -16,7 +13,7 @@ else(DEFINED ZLIB_BUILD_PUFF)
     set_tests_properties(zlib_puff_install
         PROPERTIES
             FIXTURES_SETUP zlib_puff_install)
-endif(DEFINED ZLIB_BUILD_PUFF)
+endif(NOT DEFINED ZLIB_BUILD_PUFF)
 
 if(ZLIB_PUFF_BUILD_SHARED AND NOT WIN32)
     add_executable(zlib_puff_test
