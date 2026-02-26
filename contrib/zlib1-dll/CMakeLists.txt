@@ -19,9 +19,12 @@ endif(WIN32)
 
 if(ZLIB_BUILD_ZLIB1_DLL)
     set(ZLIB1_DLL_ENABLE_BZIP2 ${MINIZIP_ENABLE_BZIP2} CACHE BOOL "")
+    set(ZLIB1_DLL_INSTALL ${ZLIB_INSTALL} CACHE BOOL "")
 endif(ZLIB_BUILD_ZLIB1_DLL)
 
 option(ZLIB1_DLL_ENABLE_BZIP2 "Build with bzip2 support" OFF)
+option(ZLIB1_DLL_INSTALL "Install zlib1.dll" ON)
+option(ZLIB1_DLL_BUILD_TESTING "Build and run tests for zlib1.dll" ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 
 include(CheckCSourceCompiles)
@@ -198,25 +201,94 @@ target_include_directories(zlib1
 target_link_libraries(zlib1
     PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
 
+set_target_properties(zlib1 PROPERTIES
+    DEFINE_SYMBOL ZLIB_DLL
+    EXPORT_NAME ZLIB1DLL)
+
+add_library(zlibwapi SHARED ${ZLIB1-DLL_SRCS}
+                         ${ZLIB1-DLL_PUBLIC_HDRS}
+                         ${ZLIB1-DLL_PRIVATE_HDRS})
+
+add_library(ZLIB1DLL::ZLIBWAPI ALIAS zlibwapi)
+
+target_include_directories(zlibwapi
+    PUBLIC $<BUILD_INTERFACE:${DOTDOT}>
+           $<BUILD_INTERFACE:${DOTMINIZIP}>
+           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+target_compile_definitions(zlibwapi
+    PRIVATE ZLIB_BUILD
+            $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
+            $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
+            $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
+            $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
+            $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
+    PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
+           $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
+           $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>
+           ZLIB_WINAPI)
+
+target_link_libraries(zlibwapi
+    PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
+
 if(NOT CYGWIN)
-    set_target_properties(zlib1 PROPERTIES
-        SOVERSION ${zlib1-dll_VERSION_MAJOR}
-        VERSION ${zlib1-dll_VERSION})
+    set_target_properties(zlib1
+        PROPERTIES
+            SOVERSION ${zlib1-dll_VERSION_MAJOR}
+            VERSION ${zlib1-dll_VERSION})
+    set_target_properties(zlibwapi
+        PROPERTIES
+            SOVERSION ${zlib1-dll_VERSION_MAJOR}
+            VERSION ${zlib1-dll_VERSION})
 endif(NOT CYGWIN)
 
-set_target_properties(zlib1 PROPERTIES
-    DEFINE_SYMBOL ZLIB_DLL)
+set_target_properties(zlibwapi PROPERTIES
+    DEFINE_SYMBOL ZLIB_DLL
+    EXPORT_NAME ZLIBWAPI)
 
-install(
-    TARGETS zlib1
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+if(ZLIB1_DLL_INSTALL)
+    install(
+        TARGETS zlib1 zlibwapi
+        COMPONENT Runtime
+        EXPORT zlibDllExport
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
-install(
-    FILES ${ZLIB1-DLL_PUBLIC_HDRS}
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    install(
+        EXPORT zlibDllExport
+        FILE ZLIB1DLLTargets.cmake
+        NAMESPACE ZLIB1DLL::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib1dll)
 
-install(
-    FILES ../../LICENSE
-    DESTINATION "${CMAKE_INSTALL_DOCDIR}/zlib1-dll")
+    install(
+        FILES $<TARGET_PDB_FILE:zlib1>
+              $<TARGET_PDB_FILE:zlibwapi>
+        COMPONENT Runtime
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        CONFIGURATIONS Debug OR RelWithDebInfo
+        OPTIONAL)
+
+    configure_package_config_file(
+        ${zlib1-dll_SOURCE_DIR}/zlib1dllConfig.cmake.in
+        ${zlib1-dll_BINARY_DIR}/ZLIB1DLLConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
+
+    write_basic_package_version_file(
+        "${zlib1-dll_BINARY_DIR}/ZLIB1DLLConfigVersion.cmake"
+        VERSION "${zlib1-dll_VERSION}"
+        COMPATIBILITY AnyNewerVersion)
+
+    install(FILES ${zlib1-dll_BINARY_DIR}/ZLIB1DLLConfig.cmake
+                  ${zlib1-dll_BINARY_DIR}/ZLIB1DLLConfigVersion.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib1dll)
+
+    install(
+        FILES ${ZLIB1-DLL_PUBLIC_HDRS}
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+    install(
+        FILES ../../LICENSE
+        DESTINATION "${CMAKE_INSTALL_DOCDIR}/zlib1-dll")
+endif(ZLIB1_DLL_INSTALL)
