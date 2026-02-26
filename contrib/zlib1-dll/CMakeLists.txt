@@ -11,9 +11,11 @@ project(
 # configuration
 # ============================================================================
 
-if(NOT WIN32)
+if(WIN32)
+    set(CMAKE_DEBUG_POSTFIX "d")
+else(WIN32)
     message(FATAL_ERROR "This creates zlib1.<DLL>, Nothing else")
-endif(NOT WIN32)
+endif(WIN32)
 
 if(ZLIB_BUILD_ZLIB1_DLL)
     set(ZLIB1_DLL_ENABLE_BZIP2 ${MINIZIP_ENABLE_BZIP2} CACHE BOOL "")
