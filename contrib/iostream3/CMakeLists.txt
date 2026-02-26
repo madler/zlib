@@ -78,7 +78,7 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
         add_executable(zlib_iostream3_test test.cc zfstream.h)
 
         target_link_libraries(zlib_iostream3_test
-            PRIVATE zlib_iostream3_iostreamv3)
+            PRIVATE IOSTREAMV3::IOSTREAMV3)
 
         add_test(NAME zlib_iostream3_test COMMAND zlib_iostream3_test)
 
@@ -121,7 +121,7 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
         add_executable(zlib_iostream3_testStatic test.cc zfstream.h)
 
         target_link_libraries(zlib_iostream3_testStatic
-            PRIVATE zlib_iostream3_iostreamv3Static)
+            PRIVATE IOSTREAMV3::IOSTREAMV3STATIC)
 
         add_test(NAME zlib_iostream3_testStatic
                  COMMAND zlib_iostream3_testStatic)
