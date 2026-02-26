@@ -9,6 +9,13 @@ project(
     DESCRIPTION "A library for creating zipfiles based in zlib"
     HOMEPAGE_URL "https://www.zlib.net")
 
+if(ZLIB_BUILD_ADA)
+    set(ZLIB_ADA_BUILD_SHARED ${ZLIB_BUILD_SHARED} CACHE BOOL "")
+    set(ZLIB_ADA_BUILD_STATIC ${ZLIB_BUILD_STATIC} CACHE BOOL "")
+    set(ZLIB_ADA_BUILD_TESTING ${ZLIB_BUILD_TESTING} CACHE BOOL "")
+    set(ZLIB_ADA_INSTALL ${ZLIB_INSTALL} CACHE BOOL "")
+endif(ZLIB_BUILD_ADA)
+
 option(ZLIB_ADA_BUILD_SHARED "Enable building ada bindings shared library" ON)
 option(ZLIB_ADA_BUILD_STATIC "Enable building ada bindings static library" ON)
 option(ZLIB_ADA_BUILD_TESTING "Enable building tests for ada bindings library" ON)
