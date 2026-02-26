@@ -46,7 +46,6 @@ jobs:
             compiler-opt: -m32
             cmake-opt: -A Win32
 
-
         builder:
           - configure
           - cmake
@@ -152,7 +151,7 @@ jobs:
     - name: Generate project files (cmake)
       if: matrix.builder == 'cmake'
       run: |
-        cmake -S . -B ./build1 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_TESTING=OFF
+        cmake -S . -B ./build1 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_MINIZIP=OFF
       env:
         CC: ${{ matrix.compiler }}
         CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
