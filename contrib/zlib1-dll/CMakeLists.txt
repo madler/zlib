@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12...3.31)
+cmake_minimum_required(VERSION 3.20...3.31)
 
 project(
     zlib1-dll
@@ -167,14 +167,15 @@ set(ZLIB1-DLL_SRCS
     ../minizip/unzip.c
     ../minizip/zip.c)
 
+cmake_path(SET p1 "../../")
+cmake_path(SET p2 "../../")
+cmake_path(ABSOLUTE_PATH "p1" OUTPUT_VARIABLE DOTDOT)
+cmake_path(ABSOLUTE_PATH "p2" OUTPUT_VARIABLE DOTMINIZIP)
+
 add_library(zlib1 SHARED ${ZLIB1-DLL_SRCS}
                          ${ZLIB1-DLL_PUBLIC_HDRS}
                          ${ZLIB1-DLL_PRIVATE_HDRS})
 
-#taget_include_directories doesn't like relative paths
-include_directories(../../
-                    ../minizip
-                    ${CMAKE_CURRENT_BINARY_DIR})
 
 target_compile_definitions(zlib1
     PRIVATE ZLIB_BUILD
@@ -187,6 +188,11 @@ target_compile_definitions(zlib1
            $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
 
+target_include_directories(zlib1
+    PUBLIC $<BUILD_INTERFACE:${DOTDOT}>
+           $<BUILD_INTERFACE:${DOTMINIZIP}>
+           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(zlib1
     PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
 
