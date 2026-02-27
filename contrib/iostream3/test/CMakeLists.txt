@@ -6,8 +6,10 @@ if(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
 
     add_test(
         NAME zlib_iostream3_install
-        COMMAND ${CMAKE_COMMAND} --install ${iostreamV3_BINARY_DIR} --prefix
-                ${WORK_DIR}/test_install --config $<CONFIG>
+        COMMAND ${CMAKE_COMMAND}
+                --install ${iostreamV3_BINARY_DIR}
+                --prefix ${WORK_DIR}/test_install
+                --config $<CONFIG>
         WORKING_DIRECTORY ${WORK_DIR})
 
     set_tests_properties(zlib_iostream3_install
@@ -57,7 +59,8 @@ add_test(
         -DCMAKE_BUILD_TYPE=$<CONFIG>
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_find_package_test)
@@ -114,11 +117,14 @@ set_tests_properties(zlib_iostream3_add_subdirectory_build
 add_test(
     NAME zlib_iostream3_add_subdirectory_exclude_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/iostream3_add_subdirectory_exclude_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_add_subdirectory_exclude_test)
@@ -139,16 +145,19 @@ set_tests_properties(zlib_iostream3_add_subdirectory_exclude_build
         FIXTURES_REQUIRED iostream3_asx_config)
 
 #
-# findpackage_no_components_test
+# find_package_no_components_test
 #
 add_test(
     NAME zlib_iostream3_find_package_no_components_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/iostream3_find_package_no_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_find_package_no_components_test)
@@ -164,16 +173,19 @@ if(NOT ZLIB_IOSTREAM3_BUILD_SHARED OR NOT ZLIB_IOSTREAM3_BUILD_STATIC)
 endif(NOT ZLIB_IOSTREAM3_BUILD_SHARED OR NOT ZLIB_IOSTREAM3_BUILD_STATIC)
 
 #
-# findpackage_no_components_test
+# find_package_no_components_test
 #
 add_test(
     NAME zlib_iostream3_find_package_wrong_components_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/iostream3_find_package_wrong_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_find_package_wrong_components_test)

@@ -6,8 +6,10 @@ if(NOT DEFINED ZLIB_BUILD_BLAST)
 
     add_test(
         NAME zlib_blast_install
-        COMMAND ${CMAKE_COMMAND} --install ${blast_BINARY_DIR} --prefix
-                ${WORK_DIR}/test_install --config $<CONFIG>
+        COMMAND ${CMAKE_COMMAND}
+                --install ${blast_BINARY_DIR}
+                --prefix ${WORK_DIR}/test_install
+                --config $<CONFIG>
         WORKING_DIRECTORY ${WORK_DIR})
 
     set_tests_properties(zlib_blast_install
@@ -46,17 +48,19 @@ if(GENERATOR)
 endif(GENERATOR)
 
 #
-# findpackage_test
+# find_package_test
 #
 add_test(
     NAME zlib_blast_find_package_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/blast_find_package_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG>
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/blast_find_package_test)
@@ -66,11 +70,10 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/blast_find_package_test_build)
 
-set_tests_properties(
-    zlib_blast_find_package_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup}
-            FIXTURES_SETUP blast_fp_config)
+set_tests_properties(zlib_blast_find_package_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        FIXTURES_SETUP blast_fp_config)
 
 set_tests_properties(zlib_blast_find_package_build
     PROPERTIES
@@ -82,12 +85,14 @@ set_tests_properties(zlib_blast_find_package_build
 add_test(
     NAME zlib_blast_add_subdirectory_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/blast_add_subdirectory_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG>
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/blast_add_subdirectory_test)
@@ -97,8 +102,7 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/blast_add_subdirectory_test_build)
 
-set_tests_properties(
-    zlib_blast_add_subdirectory_configure
+set_tests_properties(zlib_blast_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP blast_as_config)
@@ -113,12 +117,14 @@ set_tests_properties(zlib_blast_add_subdirectory_build
 add_test(
     NAME zlib_blast_add_subdirectory_exclude_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/blast_add_subdirectory_exclude_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG>
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/blast_add_subdirectory_exclude_test)
@@ -144,19 +150,21 @@ set_tests_properties(zlib_blast_add_subdirectory_exclude_build
 add_test(
     NAME zlib_blast_find_package_no_components_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/blast_find_package_no_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/blast_find_package_no_components_test)
 
-set_tests_properties(
-    zlib_blast_find_package_no_components_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup})
+set_tests_properties(zlib_blast_find_package_no_components_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup})
 
 if(NOT ZLIB_BLAST_BUILD_SHARED OR NOT ZLIB_BLAST_BUILD_STATIC)
     set_tests_properties(zlib_blast_find_package_no_components_configure
@@ -165,16 +173,19 @@ if(NOT ZLIB_BLAST_BUILD_SHARED OR NOT ZLIB_BLAST_BUILD_STATIC)
 endif(NOT ZLIB_BLAST_BUILD_SHARED OR NOT ZLIB_BLAST_BUILD_STATIC)
 
 #
-# findpackage_wrong_components_test
+# find_package_wrong_components_test
 #
 add_test(
     NAME zlib_blast_find_package_wrong_components_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/blast_find_package_wrong_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
         --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/blast_find_package_wrong_components_test)
@@ -183,4 +194,3 @@ set_tests_properties(zlib_blast_find_package_wrong_components_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         WILL_FAIL TRUE)
-

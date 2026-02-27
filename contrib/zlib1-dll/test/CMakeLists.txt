@@ -6,8 +6,10 @@ if(NOT DEFINED ZLIB_BUILD_ZLIB1_DLL)
 
     add_test(
         NAME zlib1-dll_install
-        COMMAND ${CMAKE_COMMAND} --install ${zlib1-dll_BINARY_DIR} --prefix
-                ${WORK_DIR}/test_install --config $<CONFIG>
+        COMMAND ${CMAKE_COMMAND}
+                --install ${zlib1-dll_BINARY_DIR}
+                --prefix ${WORK_DIR}/test_install
+                --config $<CONFIG>
         WORKING_DIRECTORY ${WORK_DIR})
 
     set_tests_properties(zlib1-dll_install
@@ -41,12 +43,16 @@ endif(GENERATOR)
 add_test(
     NAME zlib1-dll_find_package_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/zlib1-dll_find_package_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
-        --fresh -G "${CMAKE_GENERATOR}"
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
+        --fresh
+        -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/zlib1-dll_find_package_test)
 
 add_test(
@@ -54,11 +60,10 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/zlib1-dll_find_package_test_build)
 
-set_tests_properties(
-    zlib1-dll_find_package_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup}
-            FIXTURES_SETUP z1dll_config)
+set_tests_properties(zlib1-dll_find_package_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        FIXTURES_SETUP z1dll_config)
 
 set_tests_properties(zlib1-dll_find_package_build
     PROPERTIES
@@ -70,12 +75,16 @@ set_tests_properties(zlib1-dll_find_package_build
 add_test(
     NAME zlib1-dll_add_subdirectory_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/zlib1-dll_add_subdirectory_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
-        --fresh -G "${CMAKE_GENERATOR}"
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
+        --fresh
+        -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/zlib1-dll_add_subdirectory_test)
 
 add_test(
@@ -83,9 +92,10 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/zlib1-dll_add_subdirectory_test_build)
 
-set_tests_properties(
-    zlib1-dll_add_subdirectory_configure
-    PROPERTIES FIXTURES_REQUIRED ${inst_setup} FIXTURES_SETUP z1dll_config)
+set_tests_properties(zlib1-dll_add_subdirectory_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        FIXTURES_SETUP z1dll_config)
 
 set_tests_properties(zlib1-dll_add_subdirectory_build
     PROPERTIES
@@ -97,12 +107,16 @@ set_tests_properties(zlib1-dll_add_subdirectory_build
 add_test(
     NAME zlib1-dll_add_subdirectory_exclude_configure
     COMMAND
-        ${CMAKE_COMMAND} ${PLATFORM}
+        ${CMAKE_COMMAND}
+        ${PLATFORM}
         -B${WORK_DIR}/zlib1-dll_add_subdirectory_exclude_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
-        --fresh -G "${CMAKE_GENERATOR}"
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+        ${ZLIB_ARG}
+        --fresh
+        -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/zlib1-dll_add_subdirectory_exclude_test)
 
 add_test(
@@ -111,11 +125,11 @@ add_test(
     WORKING_DIRECTORY
         ${WORK_DIR}/zlib1-dll_add_subdirectory_exclude_test_build)
 
-set_tests_properties(
-    zlib1-dll_add_subdirectory_exclude_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup}
-            FIXTURES_SETUP z1dllx_config)
+set_tests_properties(zlib1-dll_add_subdirectory_exclude_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        FIXTURES_SETUP z1dllx_config)
 
 set_tests_properties(zlib1-dll_add_subdirectory_exclude_build
-                     PROPERTIES FIXTURES_REQUIRED z1dllx_config)
+    PROPERTIES
+        FIXTURES_REQUIRED z1dllx_config)
