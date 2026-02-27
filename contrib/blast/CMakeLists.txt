@@ -106,7 +106,7 @@ if(ZLIB_BLAST_BUILD_STATIC)
         target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_testStatic
             PRIVATE ${ZLIB_CONTRIB_PREFIX}blast_blastStatic)
 
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_testStatic
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_blast-testStatic
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
                     "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
