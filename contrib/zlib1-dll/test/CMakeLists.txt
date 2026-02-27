@@ -15,10 +15,6 @@ if(NOT DEFINED ZLIB_BUILD_ZLIB1_DLL)
             FIXTURES_SETUP zlib1-dll_install)
 endif(NOT DEFINED ZLIB_BUILD_ZLIB1_DLL)
 
-file(MAKE_DIRECTORY ${WORK_DIR}/zlib1-dll_find_package_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/zlib1-dll_add_subdirectory_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/zlib1-dll_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/zlib1-dll_find_package_test/CMakeLists.txt @ONLY)

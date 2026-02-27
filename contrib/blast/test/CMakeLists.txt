@@ -15,10 +15,6 @@ if(NOT DEFINED ZLIB_BUILD_BLAST)
             FIXTURES_SETUP zlib_blast_install)
 endif(NOT DEFINED ZLIB_BUILD_BLAST)
 
-file(MAKE_DIRECTORY ${WORK_DIR}/blast_find_package_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/blast_add_subdirectory_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/blast_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/blast_find_package_test/CMakeLists.txt @ONLY)

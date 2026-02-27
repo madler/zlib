@@ -15,12 +15,6 @@ if(NOT DEFINED ZLIB_BUILD_MINIZIP)
             FIXTURES_SETUP minizip_install)
 endif(NOT DEFINED ZLIB_BUILD_MINIZIP)
 
-file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_no_componentstest)
-file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_wrong_components_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/minizip_find_package_test/CMakeLists.txt @ONLY)

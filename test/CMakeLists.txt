@@ -133,12 +133,6 @@ add_test(
 
 set_tests_properties(zlib_install PROPERTIES FIXTURES_SETUP zlib_install)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test/CMakeLists.txt @ONLY)

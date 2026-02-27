@@ -15,10 +15,6 @@ if(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
             FIXTURES_SETUP zlib_iostream3_install)
 endif(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
 
-file(MAKE_DIRECTORY ${WORK_DIR}/iostream3_find_package_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/iostream3_add_subdirectory_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/iostream3_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/iostream3_find_package_test/CMakeLists.txt @ONLY)

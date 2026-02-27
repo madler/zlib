@@ -86,10 +86,6 @@ if(ZLIB_PUFF_BUILD_STATIC AND NOT WIN32)
     endif(GCOV_EXECUTABLE)
 endif(ZLIB_PUFF_BUILD_STATIC AND NOT WIN32)
 
-file(MAKE_DIRECTORY ${WORK_DIR}/puff_findpackage_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/puff_add_subdirectory_test)
-file(MAKE_DIRECTORY ${WORK_DIR}/puff_add_subdirectory_exclude_test)
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/puff_find_package_test/CMakeLists.txt @ONLY)
