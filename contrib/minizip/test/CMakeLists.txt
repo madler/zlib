@@ -1,47 +1,47 @@
 # if we are built from with zlib, use this path's)
 if(NOT DEFINED ZLIB_BUILD_MINIZIP)
-    set(WORK_DIR ${minizip_BINARY_DIR})
+    set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
     set(inst_setup minizip_install)
     set(ZLIB_ARG "-DZLIB_DIR=${ZLIB_DIR}")
 
     add_test(
         NAME minizip_install
         COMMAND ${CMAKE_COMMAND} --install ${minizip_BINARY_DIR} --prefix
-                ${CMAKE_CURRENT_BINARY_DIR}/test_install --config $<CONFIG>
-        WORKING_DIRECTORY ${minizip_BINARY_DIR})
+                ${WORK_DIR}/test_install --config $<CONFIG>
+        WORKING_DIRECTORY ${WORK_DIR})
 
     set_tests_properties(minizip_install
         PROPERTIES
             FIXTURES_SETUP minizip_install)
 endif(NOT DEFINED ZLIB_BUILD_MINIZIP)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findpackage_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findpackage_no_componentstest)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findpackage_wrong_components_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test)
+file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_test)
+file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_no_componentstest)
+file(MAKE_DIRECTORY ${WORK_DIR}/minizip_find_package_wrong_components_test)
+file(MAKE_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_test)
+file(MAKE_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_exclude_test)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/findpackage_test/CMakeLists.txt @ONLY)
+    ${WORK_DIR}/minizip_find_package_test/CMakeLists.txt @ONLY)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_no_components_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/findpackage_no_components_test/CMakeLists.txt
+    ${WORK_DIR}/minizip_find_package_no_components_test/CMakeLists.txt
     @ONLY)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_wrong_components_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/findpackage_wrong_components_test/CMakeLists.txt
+    ${WORK_DIR}/minizip_find_package_wrong_components_test/CMakeLists.txt
     @ONLY)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test/CMakeLists.txt @ONLY)
+    ${WORK_DIR}/minizip_add_subdirectory_test/CMakeLists.txt @ONLY)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_exclude_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test/CMakeLists.txt
+    ${WORK_DIR}/minizip_add_subdirectory_exclude_test/CMakeLists.txt
     @ONLY)
 
 # CMAKE_GENERATOR_PLATFORM doesn't work in the if
@@ -58,17 +58,17 @@ add_test(
     NAME minizip_find_package_configure
     COMMAND
         ${CMAKE_COMMAND} ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/findpackage_test_build
+        -B${WORK_DIR}/minizip_find_package_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
         --fresh -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_test)
+        -S${WORK_DIR}/minizip_find_package_test)
 
 add_test(
     NAME minizip_find_package_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findpackage_test_build)
+    WORKING_DIRECTORY ${WORK_DIR}/minizip_find_package_test_build)
 
 set_tests_properties(
     minizip_find_package_configure PROPERTIES FIXTURES_REQUIRED ${inst_setup}
@@ -84,12 +84,12 @@ add_test(
     NAME minizip_find_package_no_components_configure
     COMMAND
         ${CMAKE_COMMAND} ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/findpackage_no_components_test_build
+        -B${WORK_DIR}/minizip_find_package_no_components_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
         --fresh -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_no_components_test)
+        -S${WORK_DIR}/minizip_find_package_no_components_test)
 
 set_tests_properties(
    minizip_find_package_no_components_configure PROPERTIES FIXTURES_REQUIRED ${inst_setup})
@@ -106,12 +106,12 @@ add_test(
     NAME minizip_find_package_wrong_components_configure
     COMMAND
         ${CMAKE_COMMAND} ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/findpackage_wrong_components_test_build
+        -B${WORK_DIR}/minizip_find_package_wrong_components_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
         --fresh -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_wrong_components_test)
+        -S${WORK_DIR}/minizip_find_package_wrong_components_test)
 
 set_tests_properties(
    minizip_find_package_wrong_components_configure
@@ -126,17 +126,17 @@ add_test(
     NAME minizip_add_subdirectory_configure
     COMMAND
         ${CMAKE_COMMAND} ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test_build
+        -B${WORK_DIR}/minizip_add_subdirectory_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
         --fresh -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test)
+        -S${WORK_DIR}/minizip_add_subdirectory_test)
 
 add_test(
     NAME minizip_add_subdirectory_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test_build)
+    WORKING_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_test_build)
 
 set_tests_properties(
     minizip_add_subdirectory_configure
@@ -152,18 +152,18 @@ add_test(
     NAME minizip_add_subdirectory_exclude_configure
     COMMAND
         ${CMAKE_COMMAND} ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test_build
+        -B${WORK_DIR}/minizip_add_subdirectory_exclude_test_build
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
+        -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
         --fresh -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test)
+        -S${WORK_DIR}/minizip_add_subdirectory_exclude_test)
 
 add_test(
     NAME minizip_add_subdirectory_exclude_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test_build)
+        ${WORK_DIR}/minizip_add_subdirectory_exclude_test_build)
 
 set_tests_properties(
     minizip_add_subdirectory_exclude_configure
