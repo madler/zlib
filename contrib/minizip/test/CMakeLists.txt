@@ -51,7 +51,7 @@ endif(GENERATOR)
 # find_package_test
 #
 add_test(
-    NAME minizip_find_package_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_find_package_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -66,16 +66,16 @@ add_test(
         -S${WORK_DIR}/minizip_find_package_test)
 
 add_test(
-    NAME minizip_find_package_build
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_find_package_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/minizip_find_package_test_build)
 
-set_tests_properties(minizip_find_package_configure
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_find_package_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP mzfp_config)
 
-set_tests_properties(minizip_find_package_build
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_find_package_build
     PROPERTIES
         FIXTURES_REQUIRED mzfp_config)
 
@@ -83,7 +83,7 @@ set_tests_properties(minizip_find_package_build
 # find_package_no_components_test
 #
 add_test(
-    NAME minizip_find_package_no_components_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_find_package_no_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -97,21 +97,23 @@ add_test(
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/minizip_find_package_no_components_test)
 
-set_tests_properties(minizip_find_package_no_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup})
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}minizip_find_package_no_components_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup})
 
 if(NOT MINIZIP_BUILD_SHARED OR NOT MINIZIP_BUILD_STATIC)
-    set_tests_properties(minizip_find_package_no_components_configure
-        PROPERTIES
-            WILL_FAIL TRUE)
+    set_tests_properties(
+        ${ZLIB_CONTRIB_PREFIX}minizip_find_package_no_components_configure
+            PROPERTIES
+                WILL_FAIL TRUE)
 endif(NOT MINIZIP_BUILD_SHARED OR NOT MINIZIP_BUILD_STATIC)
 
 #
 # find_package_no_components_test
 #
 add_test(
-    NAME minizip_find_package_wrong_components_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_find_package_wrong_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -125,16 +127,17 @@ add_test(
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/minizip_find_package_wrong_components_test)
 
-set_tests_properties(minizip_find_package_wrong_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup}
-        WILL_FAIL TRUE)
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}minizip_find_package_wrong_components_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            WILL_FAIL TRUE)
 
 #
 # add_subdirectory_test
 #
 add_test(
-    NAME minizip_add_subdirectory_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -148,16 +151,16 @@ add_test(
         -S${WORK_DIR}/minizip_add_subdirectory_test)
 
 add_test(
-    NAME minizip_add_subdirectory_build
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/minizip_add_subdirectory_test_build)
 
-set_tests_properties(minizip_add_subdirectory_configure
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP mzas_config)
 
-set_tests_properties(minizip_add_subdirectory_build
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_build
     PROPERTIES
         FIXTURES_REQUIRED mzas_config)
 
@@ -165,7 +168,7 @@ set_tests_properties(minizip_add_subdirectory_build
 # add_subdirectory_exclude_test
 #
 add_test(
-    NAME minizip_add_subdirectory_exclude_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_exclude_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -180,16 +183,17 @@ add_test(
         -S${WORK_DIR}/minizip_add_subdirectory_exclude_test)
 
 add_test(
-    NAME minizip_add_subdirectory_exclude_build
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_exclude_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY
         ${WORK_DIR}/minizip_add_subdirectory_exclude_test_build)
 
-set_tests_properties(minizip_add_subdirectory_exclude_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup}
-        FIXTURES_SETUP mzasx_config)
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_exclude_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            FIXTURES_SETUP mzasx_config)
 
-set_tests_properties(minizip_add_subdirectory_exclude_build
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_add_subdirectory_exclude_build
     PROPERTIES
         FIXTURES_REQUIRED mzasx_config)

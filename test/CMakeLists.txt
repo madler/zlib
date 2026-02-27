@@ -19,10 +19,13 @@ if(ZLIB_BUILD_SHARED)
     target_compile_definitions(zlib_example PRIVATE ZLIB_BUILD)
     add_test(NAME zlib_example COMMAND zlib_example)
 
-    add_executable(minigzip minigzip.c)
+    add_executable(zlib_minigzip minigzip.c)
     target_compile_definitions(
-        minigzip PRIVATE $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
-    target_link_libraries(minigzip ZLIB::ZLIB)
+        zlib_minigzip PRIVATE $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
+    target_link_libraries(zlib_minigzip ZLIB::ZLIB)
+    set_target_properties(zlib_minigzip
+        PROPERTIES
+            OUTPUT_NAME minigzip)
 
     if(MSVC
        OR MSYS
@@ -66,8 +69,11 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
     add_test(NAME zlib_examplestatic COMMAND zlib_examplestatic)
 
-    add_executable(minigzipstatic minigzip.c)
-    target_link_libraries(minigzipstatic ZLIB::ZLIBSTATIC)
+    add_executable(zlib_minigzipstatic minigzip.c)
+    target_link_libraries(zlib_minigzipstatic ZLIB::ZLIBSTATIC)
+    set_target_properties(zlib_minigzipstatic
+        PROPERTIES
+        OUTPUT_NAME minigzipstatic)
 
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
        ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")

@@ -23,7 +23,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 if(WIN32 OR CYGWIN)
-    set(zlibblast_static_suffix "s")
+    set(${ZLIB_CONTRIB_PREFIX}blast_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif(WIN32 OR CYGWIN)
@@ -44,32 +44,34 @@ function(blast_findTestEnv testName)
 endfunction(blast_findTestEnv testName)
 
 if(ZLIB_BLAST_BUILD_SHARED)
-    add_library(zlib_blast_blast SHARED
+    add_library(${ZLIB_CONTRIB_PREFIX}blast_blast SHARED
                 blast.c
                 blast.h)
 
-    add_library(BLAST::BLAST ALIAS zlib_blast_blast)
+    add_library(BLAST::BLAST ALIAS ${ZLIB_CONTRIB_PREFIX}blast_blast)
 
     if(NOT CYGWIN)
-        set_target_properties(zlib_blast_blast
+        set_target_properties(${ZLIB_CONTRIB_PREFIX}blast_blast
             PROPERTIES
                 SOVERSION ${blast_VERSION_MAJOR}
                 VERSION ${blast_VERSION})
     endif(NOT CYGWIN)
 
-    set_target_properties(zlib_blast_blast
+    set_target_properties(${ZLIB_CONTRIB_PREFIX}blast_blast
         PROPERTIES
             EXPORT_NAME BLAST
             OUTPUT_NAME blast)
 
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
-        add_executable(zlib_blast_test blast-test.c)
-        target_link_libraries(zlib_blast_test PRIVATE zlib_blast_blast)
+        add_executable(${ZLIB_CONTRIB_PREFIX}blast_test blast-test.c)
+        target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_test
+            PRIVATE
+                ${ZLIB_CONTRIB_PREFIX}blast_blast)
 
-        add_test(NAME zlib_blast_blast-test
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_blast-test
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:zlib_blast_test>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_test>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -77,7 +79,7 @@ if(ZLIB_BLAST_BUILD_SHARED)
            OR MSYS
            OR MINGW
            OR CYGWIN)
-            blast_findtestenv(zlib_blast_blast-test)
+            blast_findtestenv(${ZLIB_CONTRIB_PREFIX}blast_blast-test)
         endif(
             MSVC
             OR MSYS
@@ -87,26 +89,26 @@ if(ZLIB_BLAST_BUILD_SHARED)
 endif(ZLIB_BLAST_BUILD_SHARED)
 
 if(ZLIB_BLAST_BUILD_STATIC)
-    add_library(zlib_blast_blastStatic STATIC
+    add_library(${ZLIB_CONTRIB_PREFIX}blast_blastStatic STATIC
                 blast.c
                 blast.h)
 
-    add_library(BLAST::BLASTSTATIC ALIAS zlib_blast_blastStatic)
+    add_library(BLAST::BLASTSTATIC ALIAS ${ZLIB_CONTRIB_PREFIX}blast_blastStatic)
 
-    set_target_properties(zlib_blast_blastStatic
+    set_target_properties(${ZLIB_CONTRIB_PREFIX}blast_blastStatic
         PROPERTIES
             EXPORT_NAME BLASTSTATIC
-            OUTPUT_NAME blast${zlibblast_static_suffix})
+            OUTPUT_NAME blast${${ZLIB_CONTRIB_PREFIX}blast_static_suffix})
 
     if(ZLIB_BLAST_BUILD_TESTING)
         enable_testing()
-        add_executable(zlib_blast_testStatic blast-test.c)
-        target_link_libraries(zlib_blast_testStatic
-            PRIVATE zlib_blast_blastStatic)
+        add_executable(${ZLIB_CONTRIB_PREFIX}blast_testStatic blast-test.c)
+        target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_testStatic
+            PRIVATE ${ZLIB_CONTRIB_PREFIX}blast_blastStatic)
 
-        add_test(NAME zlib_blast_testStatic
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_testStatic
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:zlib_blast_testStatic>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
     endif(ZLIB_BLAST_BUILD_TESTING)
@@ -119,20 +121,20 @@ endif(ZLIB_BLAST_BUILD_TESTING)
 if(ZLIB_BLAST_INSTALL)
     if(ZLIB_BLAST_BUILD_SHARED)
         install(
-            TARGETS zlib_blast_blast
+            TARGETS ${ZLIB_CONTRIB_PREFIX}blast_blast
             COMPONENT Runtime
-            EXPORT zlibBlastSharedExport
+            EXPORT blastSharedExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         install(
-            EXPORT zlibBlastSharedExport
+            EXPORT blastSharedExport
             FILE blast-shared.cmake
             NAMESPACE BLAST::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)
 
         if(MSVC)
             install(
-                FILES $<TARGET_PDB_FILE:zlib_blast_blast>
+                FILES $<TARGET_PDB_FILE:${ZLIB_CONTRIB_PREFIX}blast_blast>
                 COMPONENT Development
                 DESTINATION ${CMAKE_INSTALL_BINDIR}
                 CONFIGURATIONS Debug OR RelWithDebInfo
@@ -142,12 +144,12 @@ if(ZLIB_BLAST_INSTALL)
 
     if(ZLIB_BLAST_BUILD_STATIC)
         install(
-            TARGETS zlib_blast_blastStatic
+            TARGETS ${ZLIB_CONTRIB_PREFIX}blast_blastStatic
             COMPONENT Development
-            EXPORT zlibBlastStaticExport
+            EXPORT blastStaticExport
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         install(
-            EXPORT zlibBlastStaticExport
+            EXPORT blastStaticExport
             FILE blast-static.cmake
             NAMESPACE BLAST::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blast)

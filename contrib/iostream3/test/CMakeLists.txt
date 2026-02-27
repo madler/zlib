@@ -1,20 +1,20 @@
 # if we are built from with zlib, use this path's)
 if(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
     set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
-    set(inst_setup zlib_iostream3_install)
+    set(inst_setup ${ZLIB_CONTRIB_PREFIX}iostream3_install)
     set(ZLIB_ARG "-DZLIB_DIR=${ZLIB_DIR}")
 
     add_test(
-        NAME zlib_iostream3_install
+        NAME ${ZLIB_CONTRIB_PREFIX}iostream3_install
         COMMAND ${CMAKE_COMMAND}
                 --install ${iostreamV3_BINARY_DIR}
                 --prefix ${WORK_DIR}/test_install
                 --config $<CONFIG>
         WORKING_DIRECTORY ${WORK_DIR})
 
-    set_tests_properties(zlib_iostream3_install
+    set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_install
         PROPERTIES
-            FIXTURES_SETUP zlib_iostream3_install)
+            FIXTURES_SETUP ${ZLIB_CONTRIB_PREFIX}iostream3_install)
 endif(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
 
 configure_file(
@@ -51,7 +51,7 @@ endif(GENERATOR)
 # findpackage_test
 #
 add_test(
-    NAME zlib_iostream3_find_package_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -66,16 +66,16 @@ add_test(
         -S${WORK_DIR}/iostream3_find_package_test)
 
 add_test(
-    NAME zlib_iostream3_find_package_build
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/iostream3_find_package_test_build)
 
-set_tests_properties(zlib_iostream3_find_package_configure
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_find_package_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP iostream3_fp_config)
 
-set_tests_properties(zlib_iostream3_find_package_build
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_find_package_build
     PROPERTIES
         FIXTURES_REQUIRED iostream3_fp_config)
 
@@ -83,7 +83,7 @@ set_tests_properties(zlib_iostream3_find_package_build
 # add_subdirectory_test
 #
 add_test(
-    NAME zlib_iostream3_add_subdirectory_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -98,16 +98,16 @@ add_test(
         -S${WORK_DIR}/iostream3_add_subdirectory_test)
 
 add_test(
-    NAME zlib_iostream3_add_subdirectory_build
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/iostream3_add_subdirectory_test_build)
 
-set_tests_properties(zlib_iostream3_add_subdirectory_configure
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP iostream3as_config)
 
-set_tests_properties(zlib_iostream3_add_subdirectory_build
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_build
     PROPERTIES
         FIXTURES_REQUIRED iostream3_as_config)
 
@@ -115,7 +115,7 @@ set_tests_properties(zlib_iostream3_add_subdirectory_build
 # add_subdirectory_exclude_test
 #
 add_test(
-    NAME zlib_iostream3_add_subdirectory_exclude_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_exclude_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -130,25 +130,27 @@ add_test(
         -S${WORK_DIR}/iostream3_add_subdirectory_exclude_test)
 
 add_test(
-    NAME zlib_iostream3_add_subdirectory_exclude_build
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_exclude_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY
         ${WORK_DIR}/iostream3_add_subdirectory_exclude_test_build)
 
-set_tests_properties(zlib_iostream3_add_subdirectory_exclude_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup}
-        FIXTURES_SETUP iostream3_asx_config)
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_exclude_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            FIXTURES_SETUP iostream3_asx_config)
 
-set_tests_properties(zlib_iostream3_add_subdirectory_exclude_build
-    PROPERTIES
-        FIXTURES_REQUIRED iostream3_asx_config)
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}iostream3_add_subdirectory_exclude_build
+        PROPERTIES
+            FIXTURES_REQUIRED iostream3_asx_config)
 
 #
 # find_package_no_components_test
 #
 add_test(
-    NAME zlib_iostream3_find_package_no_components_configure
+    NAME ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_no_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -162,21 +164,24 @@ add_test(
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_find_package_no_components_test)
 
-set_tests_properties(zlib_iostream3_find_package_no_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup})
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_no_components_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup})
 
 if(NOT ZLIB_IOSTREAM3_BUILD_SHARED OR NOT ZLIB_IOSTREAM3_BUILD_STATIC)
-    set_tests_properties(zlib_iostream3_find_package_no_components_configure
-        PROPERTIES
-            WILL_FAIL TRUE)
+    set_tests_properties(
+        ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_no_components_configure
+            PROPERTIES
+                WILL_FAIL TRUE)
 endif(NOT ZLIB_IOSTREAM3_BUILD_SHARED OR NOT ZLIB_IOSTREAM3_BUILD_STATIC)
 
 #
 # find_package_no_components_test
 #
 add_test(
-    NAME zlib_iostream3_find_package_wrong_components_configure
+    NAME
+        ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_wrong_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -190,7 +195,8 @@ add_test(
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/iostream3_find_package_wrong_components_test)
 
-set_tests_properties(zlib_iostream3_find_package_wrong_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED ${inst_setup}
-        WILL_FAIL TRUE)
+set_tests_properties(
+    ${ZLIB_CONTRIB_PREFIX}iostream3_find_package_wrong_components_configure
+        PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            WILL_FAIL TRUE)

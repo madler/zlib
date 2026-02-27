@@ -36,14 +36,14 @@ if(NOT DEFINED ZLIB_BUILD_PUFF)
 endif(NOT DEFINED ZLIB_BUILD_PUFF)
 
 if(WIN32 OR CYGWIN)
-    set(zlibpuff_static_suffix "s")
+    set(puff_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif(WIN32 OR CYGWIN)
 
 if(ZLIB_PUFF_BUILD_TESTING)
     enable_testing()
-    add_executable(zlib_puff_bin-writer bin-writer.c)
+    add_executable(${ZLIB_CONTRIB_PREFIX}puff_bin-writer bin-writer.c)
 
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
        ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
@@ -74,43 +74,43 @@ if(ZLIB_PUFF_BUILD_TESTING)
 endif(ZLIB_PUFF_BUILD_TESTING)
 
 if(ZLIB_PUFF_BUILD_SHARED)
-    add_library(zlib_puff_puff SHARED
+    add_library(${ZLIB_CONTRIB_PREFIX}puff_puff SHARED
                 puff.c
                 puff.h)
 
-    add_library(PUFF::PUFF ALIAS zlib_puff_puff)
+    add_library(PUFF::PUFF ALIAS ${ZLIB_CONTRIB_PREFIX}puff_puff)
 
     if(NOT CYGWIN)
-        set_target_properties(zlib_puff_puff
+        set_target_properties(${ZLIB_CONTRIB_PREFIX}puff_puff
             PROPERTIES
                 SOVERSION ${puff_VERSION_MAJOR}
                 VERSION ${puff_VERSION})
     endif(NOT CYGWIN)
 
     set_target_properties(
-        zlib_puff_puff
+        ${ZLIB_CONTRIB_PREFIX}puff_puff
             PROPERTIES
                 EXPORT_NAME PUFF
                 OUTPUT_NAME puff)
 endif(ZLIB_PUFF_BUILD_SHARED)
 
 if(ZLIB_PUFF_BUILD_STATIC)
-    add_library(zlib_puff_puffStatic STATIC
+    add_library(${ZLIB_CONTRIB_PREFIX}puff_puffStatic STATIC
                 puff.c
                 puff.h)
 
-    add_library(PUFF::PUFFSTATIC ALIAS zlib_puff_puffStatic)
+    add_library(PUFF::PUFFSTATIC ALIAS ${ZLIB_CONTRIB_PREFIX}puff_puffStatic)
 
-    set_target_properties(zlib_puff_puffStatic
+    set_target_properties(${ZLIB_CONTRIB_PREFIX}puff_puffStatic
         PROPERTIES
             EXPORT_NAME PUFFSTATIC
-            OUTPUT_NAME puff${zlib_puff_static_suffix})
+            OUTPUT_NAME puff${puff_static_suffix})
 endif(ZLIB_PUFF_BUILD_STATIC)
 
 if(ZLIB_PUFF_INSTALL)
     if(ZLIB_PUFF_BUILD_SHARED)
         install(
-            TARGETS zlib_puff_puff
+            TARGETS ${ZLIB_CONTRIB_PREFIX}puff_puff
             COMPONENT Runtime
             EXPORT puffSharedExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
@@ -123,7 +123,7 @@ if(ZLIB_PUFF_INSTALL)
 
         if(MSVC)
             install(
-                FILES $<TARGET_PDB_FILE:zlib_puff_puff>
+                FILES $<TARGET_PDB_FILE:${ZLIB_CONTRIB_PREFIX}puff_puff>
                 COMPONENT Development
                 DESTINATION ${CMAKE_INSTALL_BINDIR}
                 CONFIGURATIONS Debug OR RelWithDebInfo
@@ -133,7 +133,7 @@ if(ZLIB_PUFF_INSTALL)
 
     if(ZLIB_PUFF_BUILD_STATIC)
         install(
-            TARGETS zlib_puff_puffStatic
+            TARGETS ${ZLIB_CONTRIB_PREFIX}puff_puffStatic
             COMPONENT Development
             EXPORT puffStaticExport
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")

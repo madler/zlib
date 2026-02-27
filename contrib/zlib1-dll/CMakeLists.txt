@@ -176,13 +176,17 @@ cmake_path(SET p2 "../../")
 cmake_path(ABSOLUTE_PATH "p1" OUTPUT_VARIABLE DOTDOT)
 cmake_path(ABSOLUTE_PATH "p2" OUTPUT_VARIABLE DOTMINIZIP)
 
-add_library(zlib1 SHARED ${ZLIB1-DLL_SRCS}
+add_library(${ZLIB_CONTRIB_PREFIX}zlib1 SHARED ${ZLIB1-DLL_SRCS}
                          ${ZLIB1-DLL_PUBLIC_HDRS}
                          ${ZLIB1-DLL_PRIVATE_HDRS})
 
-add_library(ZLIB1DLL::ZLIB1DLL ALIAS zlib1)
+add_library(ZLIB1DLL::ZLIB1DLL ALIAS ${ZLIB_CONTRIB_PREFIX}zlib1)
 
-target_compile_definitions(zlib1
+set_target_properties(${ZLIB_CONTRIB_PREFIX}zlib1
+    PROPERTIES
+        OUTPUT_NAME zlib1)
+
+target_compile_definitions(${ZLIB_CONTRIB_PREFIX}zlib1
     PRIVATE ZLIB_BUILD
             $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
             $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
@@ -193,32 +197,36 @@ target_compile_definitions(zlib1
            $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
 
-target_include_directories(zlib1
+target_include_directories(${ZLIB_CONTRIB_PREFIX}zlib1
     PUBLIC $<BUILD_INTERFACE:${DOTDOT}>
            $<BUILD_INTERFACE:${DOTMINIZIP}>
            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(zlib1
+target_link_libraries(${ZLIB_CONTRIB_PREFIX}zlib1
     PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
 
-set_target_properties(zlib1 PROPERTIES
+set_target_properties(${ZLIB_CONTRIB_PREFIX}zlib1 PROPERTIES
     DEFINE_SYMBOL ZLIB_DLL
     EXPORT_NAME ZLIB1DLL)
 
-add_library(zlibwapi SHARED ${ZLIB1-DLL_SRCS}
+add_library(${ZLIB_CONTRIB_PREFIX}zlibwapi SHARED ${ZLIB1-DLL_SRCS}
                          ${ZLIB1-DLL_PUBLIC_HDRS}
                          ${ZLIB1-DLL_PRIVATE_HDRS})
 
-add_library(ZLIB1DLL::ZLIBWAPI ALIAS zlibwapi)
+add_library(ZLIB1DLL::ZLIBWAPI ALIAS ${ZLIB_CONTRIB_PREFIX}zlibwapi)
 
-target_include_directories(zlibwapi
+set_target_properties(${ZLIB_CONTRIB_PREFIX}zlibwapi
+    PROPERTIES
+        OUTPUT_NAME zlibwapi)
+
+target_include_directories(${ZLIB_CONTRIB_PREFIX}zlibwapi
     PUBLIC $<BUILD_INTERFACE:${DOTDOT}>
            $<BUILD_INTERFACE:${DOTMINIZIP}>
            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_compile_definitions(zlibwapi
+target_compile_definitions(${ZLIB_CONTRIB_PREFIX}zlibwapi
     PRIVATE ZLIB_BUILD
             $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
             $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
@@ -230,27 +238,27 @@ target_compile_definitions(zlibwapi
            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>
            ZLIB_WINAPI)
 
-target_link_libraries(zlibwapi
+target_link_libraries(${ZLIB_CONTRIB_PREFIX}zlibwapi
     PUBLIC $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
 
 if(NOT CYGWIN)
-    set_target_properties(zlib1
+    set_target_properties(${ZLIB_CONTRIB_PREFIX}zlib1
         PROPERTIES
             SOVERSION ${zlib1-dll_VERSION_MAJOR}
             VERSION ${zlib1-dll_VERSION})
-    set_target_properties(zlibwapi
+    set_target_properties(${ZLIB_CONTRIB_PREFIX}zlibwapi
         PROPERTIES
             SOVERSION ${zlib1-dll_VERSION_MAJOR}
             VERSION ${zlib1-dll_VERSION})
 endif(NOT CYGWIN)
 
-set_target_properties(zlibwapi PROPERTIES
+set_target_properties(${ZLIB_CONTRIB_PREFIX}zlibwapi PROPERTIES
     DEFINE_SYMBOL ZLIB_DLL
     EXPORT_NAME ZLIBWAPI)
 
 if(ZLIB1_DLL_INSTALL)
     install(
-        TARGETS zlib1 zlibwapi
+        TARGETS ${ZLIB_CONTRIB_PREFIX}zlib1 ${ZLIB_CONTRIB_PREFIX}zlibwapi
         COMPONENT Runtime
         EXPORT zlibDllExport
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -264,8 +272,8 @@ if(ZLIB1_DLL_INSTALL)
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib1dll)
 
     install(
-        FILES $<TARGET_PDB_FILE:zlib1>
-              $<TARGET_PDB_FILE:zlibwapi>
+        FILES $<TARGET_PDB_FILE:${ZLIB_CONTRIB_PREFIX}zlib1>
+              $<TARGET_PDB_FILE:${ZLIB_CONTRIB_PREFIX}zlibwapi>
         COMPONENT Runtime
         DESTINATION ${CMAKE_INSTALL_BINDIR}
         CONFIGURATIONS Debug OR RelWithDebInfo
