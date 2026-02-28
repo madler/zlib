@@ -8,7 +8,8 @@ if(NOT CMAKE_ARGV3)
     message(FATAL_ERROR "binder not set")
 endif(NOT CMAKE_ARGV3)
 
-string(REPLACE ".o" ".ali" ALI ${CMAKE_ARGV4})
+string(REPLACE ".o" ".ali" ALIPATH ${CMAKE_ARGV4})
+cmake_path(GET ALIPATH FILENAME ALI)
 
 set (REACHED_FLAGS FALSE)
 #iterate over additional objects, only the main one is needed
