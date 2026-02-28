@@ -344,10 +344,10 @@ endif(MINIZIP_INSTALL)
 if(MINIZIP_BUILD_TESTING)
     enable_testing()
 
-    if(MINIZIP_BUILD_SHARED AND NOT ${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL
-                                ".dll")
+    if(MINIZIP_BUILD_SHARED AND
+       NOT ${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dll")
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_shared_zip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_zip_shared
             COMMAND ${CMAKE_COMMAND} -DCREATE_SHARED=ON -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/test_helper.cm
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
@@ -356,14 +356,14 @@ if(MINIZIP_BUILD_TESTING)
             COMMAND ${ZLIB_CONTRIB_PREFIX}minizip test_file_shared.zip test_file_shared.txt
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_shared_unzip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_unzip_shared
             COMMAND ${CMAKE_COMMAND}
                 -DMOVE_SHARED=ON
                 -P
                 ${CMAKE_CURRENT_SOURCE_DIR}/test/test_helper.cm
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_shared.zip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_shared
             COMMAND ${ZLIB_CONTRIB_PREFIX}miniunzip test_file_shared.zip
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
@@ -372,40 +372,39 @@ if(MINIZIP_BUILD_TESTING)
                     test_file_shared.orig
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_clean_shared_zip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_clean_shared
             COMMAND ${CMAKE_COMMAND} -DDELETE_SHARED=ON -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/test_helper.cm
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_shared_zip
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_zip_shared
             PROPERTIES
-                FIXTURES_SETUP prepare_shared)
+                FIXTURES_SETUP "prepare_shared;mz_shared")
         set_tests_properties(
             ${ZLIB_CONTRIB_PREFIX}minizip_zipping_test_file_shared
                 PROPERTIES
-                    FIXTURES_REQUIRED prepare_shared
+                    FIXTURES_REQUIRED "prepare_shared;mz_shared"
                     FIXTURES_SETUP zip_shared)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_shared_unzip
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_unzip_shared
             PROPERTIES
-                FIXTURES_REQUIRED zip_shared
+                FIXTURES_REQUIRED "zip_shared;mz_shared"
                 FIXTURES_SETUP prepare_unzip_shared)
         set_tests_properties(
-            ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_shared.zip
+            ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_shared
                 PROPERTIES
-                    FIXTURES_REQUIRED prepare_unzip_shared
+                    FIXTURES_REQUIRED "prepare_unzip_shared;mz_shared"
                     FIXTURES_SETUP prepare_compare_shared)
         set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_compare_shared
             PROPERTIES
-                FIXTURES_REQUIRED prepare_compare_shared
-                FIXTURES_SETUP compared_shared)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_clean_shared_zip
+                FIXTURES_REQUIRED "prepare_compare_shared;mz_shared")
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_clean_shared
             PROPERTIES
-                FIXTURES_CLEANUP compared_shared)
-    endif(MINIZIP_BUILD_SHARED AND NOT ${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL
-                                   ".dll")
+                FIXTURES_CLEANUP mz_shared)
+    endif(MINIZIP_BUILD_SHARED AND
+          NOT ${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dll")
 
     if(MINIZIP_BUILD_STATIC)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_static_zip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_zip_static
             COMMAND ${CMAKE_COMMAND}
                     -DCREATE_STATIC=ON
                     -P
@@ -418,7 +417,7 @@ if(MINIZIP_BUILD_TESTING)
                 test_file_static.txt
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_static_unzip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_prepare_unzip_static
             COMMAND ${CMAKE_COMMAND}
                     -DMOVE_STATIC=ON
                     -P
@@ -426,7 +425,7 @@ if(MINIZIP_BUILD_TESTING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
             NAME
-                ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_static.zip
+                ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_static
             COMMAND ${ZLIB_CONTRIB_PREFIX}miniunzipstatic
                 test_file_static.zip
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
@@ -438,33 +437,35 @@ if(MINIZIP_BUILD_TESTING)
                     test_file_static.orig
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
         add_test(
-            NAME ${ZLIB_CONTRIB_PREFIX}minizip_clean_static_zip
+            NAME ${ZLIB_CONTRIB_PREFIX}minizip_clean_static
             COMMAND ${CMAKE_COMMAND} -DDELETE_STATIC=ON -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/test_helper.cm
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_static_zip
-            PROPERTIES
-                FIXTURES_SETUP prepare_static)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_zipping_test_file_static
-            PROPERTIES
-                FIXTURES_REQUIRED prepare_static
-                FIXTURES_SETUP zip_static)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_static_unzip
-            PROPERTIES
-                FIXTURES_REQUIRED zip_static
-                FIXTURES_SETUP prepare_unzip_static)
         set_tests_properties(
-            ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_static.zip
+            ${ZLIB_CONTRIB_PREFIX}minizip_prepare_zip_static
                 PROPERTIES
-                    FIXTURES_REQUIRED prepare_unzip_static
-                    FIXTURES_SETUP prepare_compare_static)
+                    FIXTURES_SETUP "prepare_zip_static;mz_static")
+        set_tests_properties(
+            ${ZLIB_CONTRIB_PREFIX}minizip_zipping_test_file_static
+                PROPERTIES
+                    FIXTURES_REQUIRED "prepare_zip_static;mz_static"
+                    FIXTURES_SETUP "create_zip_static")
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_prepare_unzip_static
+            PROPERTIES
+                FIXTURES_REQUIRED "create_zip_static;mz_static"
+                FIXTURES_SETUP "prepare_unzip_static")
+        set_tests_properties(
+            ${ZLIB_CONTRIB_PREFIX}minizip_miniunzipping_test_file_static
+                PROPERTIES
+                    FIXTURES_REQUIRED "prepare_unzip_static;mz_static"
+                    FIXTURES_SETUP "prepare_compare_static")
         set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_compare_static
             PROPERTIES
-                FIXTURES_REQUIRED prepare_compare_static
-                FIXTURES_SETUP compared_static)
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_clean_static_zip
+                FIXTURES_REQUIRED "prepare_compare_static;mz_static")
+                #FIXTURES_SETUP "compared_static")
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}minizip_clean_static
             PROPERTIES
-                FIXTURES_CLEANUP compared_static)
+                FIXTURES_CLEANUP mz_static)
     endif(MINIZIP_BUILD_STATIC)
 
     add_subdirectory(test)
