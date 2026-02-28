@@ -104,7 +104,9 @@ if(ZLIB_BUILD_STATIC)
         target_link_options(infcover PRIVATE -coverage)
         target_compile_definitions(
             infcover PRIVATE $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
+
         add_test(NAME zlib_coverage COMMAND infcover)
+        set_tests_properties(zlib_coverage PROPERTIES FIXTURES_SETUP z_cover)
         set(INFCOVER_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/infcover.dir)
         add_test(
             NAME zlib_coverage-summary
@@ -114,7 +116,7 @@ if(ZLIB_BUILD_STATIC)
                 ${INFCOVER_DIR}/infcover.c.gcda)
         set_tests_properties(zlib_coverage-summary
             PROPERTIES
-                DEPENDS zlib-coverage)
+                FIXTURES_REQUIRED z_cover)
         set(CMAKE_C_FLAGS
             ${CFLAGS_OLD}
             CACHE STRING "" FORCE)
