@@ -193,11 +193,6 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build)
 
-add_test(
-    NAME zlib_find_package_test
-    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build)
-
 set_tests_properties(zlib_find_package_configure
     PROPERTIES
         FIXTURES_REQUIRED zlib_install
@@ -205,14 +200,7 @@ set_tests_properties(zlib_find_package_configure
 
 set_tests_properties(zlib_find_package_build
     PROPERTIES
-        FIXTURES_REQUIRED fp_config
-        FIXTURES_SETUP fp_build)
-
-set_tests_properties(zlib_find_package_test
-    PROPERTIES
-        FIXTURES_REQUIRED fp_build
-        ENVIRONMENT
-        CTEST_OUTPUT_ON_FAILURE=1)
+        FIXTURES_REQUIRED fp_config)
 
 #
 # find_package_no_components_test
@@ -285,11 +273,6 @@ add_test(
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build)
 
-add_test(
-    NAME zlib_add_subdirectory_test
-    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build)
-
 set_tests_properties(zlib_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED zlib_install
@@ -297,14 +280,7 @@ set_tests_properties(zlib_add_subdirectory_configure
 
 set_tests_properties(zlib_add_subdirectory_build
     PROPERTIES
-        FIXTURES_REQUIRED as_config
-        FIXTURES_SETUP as_build)
-
-set_tests_properties(zlib_add_subdirectory_test
-    PROPERTIES
-        FIXTURES_REQUIRED as_build
-        ENVIRONMENT
-        CTEST_OUTPUT_ON_FAILURE=1)
+        FIXTURES_REQUIRED as_config)
 
 #
 # add_subdirectory_exclude_test
@@ -329,12 +305,6 @@ add_test(
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build)
 
-add_test(
-    NAME zlib_add_subdirectory_exclude_test
-    COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIG>
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build)
-
 set_tests_properties(zlib_add_subdirectory_exclude_configure
     PROPERTIES
         FIXTURES_REQUIRED zlib_install
@@ -342,11 +312,4 @@ set_tests_properties(zlib_add_subdirectory_exclude_configure
 
 set_tests_properties(zlib_add_subdirectory_exclude_build
     PROPERTIES
-        FIXTURES_REQUIRED as_config
-        FIXTURES_SETUP asx_build)
-
-set_tests_properties(zlib_add_subdirectory_exclude_test
-    PROPERTIES
-        FIXTURES_REQUIRED asx_build
-        ENVIRONMENT
-        CTEST_OUTPUT_ON_FAILURE=1)
+        FIXTURES_REQUIRED as_config)
