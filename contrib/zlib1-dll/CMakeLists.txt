@@ -164,7 +164,6 @@ set(ZLIB1-DLL_SRCS
     ../../inffast.c
     ../../trees.c
     ../../uncompr.c
-    ../../win32/zlib1.rc
     ../../zutil.c
     ../minizip/ioapi.c
     ../minizip/mztools.c
@@ -176,9 +175,11 @@ cmake_path(SET p2 "../../")
 cmake_path(ABSOLUTE_PATH "p1" OUTPUT_VARIABLE DOTDOT)
 cmake_path(ABSOLUTE_PATH "p2" OUTPUT_VARIABLE DOTMINIZIP)
 
-add_library(${ZLIB_CONTRIB_PREFIX}zlib1 SHARED ${ZLIB1-DLL_SRCS}
-                         ${ZLIB1-DLL_PUBLIC_HDRS}
-                         ${ZLIB1-DLL_PRIVATE_HDRS})
+add_library(${ZLIB_CONTRIB_PREFIX}zlib1 SHARED
+    ${ZLIB1-DLL_SRCS}
+    ${ZLIB1-DLL_PUBLIC_HDRS}
+    ${ZLIB1-DLL_PRIVATE_HDRS}
+    zlib1.rc)
 
 add_library(ZLIB1DLL::ZLIB1DLL ALIAS ${ZLIB_CONTRIB_PREFIX}zlib1)
 
@@ -210,9 +211,11 @@ set_target_properties(${ZLIB_CONTRIB_PREFIX}zlib1 PROPERTIES
     DEFINE_SYMBOL ZLIB_DLL
     EXPORT_NAME ZLIB1DLL)
 
-add_library(${ZLIB_CONTRIB_PREFIX}zlibwapi SHARED ${ZLIB1-DLL_SRCS}
-                         ${ZLIB1-DLL_PUBLIC_HDRS}
-                         ${ZLIB1-DLL_PRIVATE_HDRS})
+add_library(${ZLIB_CONTRIB_PREFIX}zlibwapi SHARED
+    ${ZLIB1-DLL_SRCS}
+    ${ZLIB1-DLL_PUBLIC_HDRS}
+    ${ZLIB1-DLL_PRIVATE_HDRS}
+    zlibwapi.rc)
 
 add_library(ZLIB1DLL::ZLIBWAPI ALIAS ${ZLIB_CONTRIB_PREFIX}zlibwapi)
 
