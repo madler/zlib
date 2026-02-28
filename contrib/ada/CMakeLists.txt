@@ -83,8 +83,11 @@ if(ZLIB_ADA_BUILD_SHARED)
 
         ada_find_ali(zlib_ada_test)
 
-        add_test(NAME zlib_ada_ada-test COMMAND zlib_ada_test)
-        set_tests_properties(zlib_ada_ada-test PROPERTIES FIXTURES_REQUIRED zlib_ada_cleanup)
+        add_test(NAME zlib_ada_test COMMAND zlib_ada_test)
+        set_tests_properties(zlib_ada_test
+            PROPERTIES
+                FIXTURES_REQUIRED zlib_ada_cleanup
+                RESOURCE_LOCK ada_test_files)
 
         if(MSVC
            OR MSYS
@@ -183,7 +186,10 @@ if(ZLIB_ADA_BUILD_STATIC)
         ada_find_ali(zlib_ada_testStatic)
 
         add_test(NAME zlib_ada_testStatic COMMAND zlib_ada_testStatic)
-        set_tests_properties(zlib_ada_testStatic PROPERTIES FIXTURES_REQUIRED zlib_ada_cleanup)
+        set_tests_properties(zlib_ada_testStatic
+            PROPERTIES
+                FIXTURES_REQUIRED zlib_ada_cleanup
+                RESOURCE_LOCK ada_test_files)
 
         ada_add_executable(zlib_ada_buffer-demoStatic buffer_demo.adb)
 
@@ -193,7 +199,8 @@ if(ZLIB_ADA_BUILD_STATIC)
 
         ada_find_ali(zlib_ada_buffer-demoStatic)
 
-        add_test(NAME zlib_ada_buffer-demoStatic COMMAND zlib_ada_buffer-demoStatic)
+        add_test(NAME zlib_ada_buffer-demoStatic
+                 COMMAND zlib_ada_buffer-demoStatic)
 
         ada_add_executable(zlib_ada_mtestStatic mtest.adb)
 
@@ -218,7 +225,12 @@ if(ZLIB_ADA_BUILD_STATIC)
 endif(ZLIB_ADA_BUILD_STATIC)
 
 if(ZLIB_ADA_BUILD_TESTING)
-    add_test(NAME zlib_ada_cleanup COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/testzlib.in
-        ${CMAKE_CURRENT_BINARY_DIR}/testzlib.out ${CMAKE_CURRENT_BINARY_DIR}/testzlib.zlb)
-    set_tests_properties(zlib_ada_cleanup PROPERTIES FIXTURES_CLEANUP zlib_ada_cleanup)
+    add_test(NAME zlib_ada_cleanup
+        COMMAND ${CMAKE_COMMAND} -E rm
+        ${CMAKE_CURRENT_BINARY_DIR}/testzlib.in
+        ${CMAKE_CURRENT_BINARY_DIR}/testzlib.out
+        ${CMAKE_CURRENT_BINARY_DIR}/testzlib.zlb)
+    set_tests_properties(zlib_ada_cleanup
+        PROPERTIES
+            FIXTURES_CLEANUP zlib_ada_cleanup)
 endif(ZLIB_ADA_BUILD_TESTING)
