@@ -10,6 +10,7 @@ endif(NOT CMAKE_ARGV3)
 
 string(REPLACE ".o" ".ali" ALIPATH ${CMAKE_ARGV4})
 cmake_path(GET ALIPATH FILENAME ALI)
+cmake_path(REMOVE_FILENAME ALIPATH OUTPUT_VARIABLE ALI_SEARCH_PATH)
 
 set (REACHED_FLAGS FALSE)
 #iterate over additional objects, only the main one is needed
@@ -30,6 +31,8 @@ foreach(arg RANGE 5 ${CMAKE_ARGC})
     endif(REACHED_FLAGS)
 endforeach(arg RANGE 5 CMAKE_ARGC)
 
+list(APPEND FLAGS "-aO${ALI_SEARCH_PATH}")
+
 #first see if there is a main function
 execute_process(COMMAND ${CMAKE_ARGV3} bind ${ALI} ${FLAGS}
                 RESULT_VARIABLE MAIN_RESULT
@@ -46,3 +49,5 @@ endif(MAIN_RESULT)
 if(RESULT)
     message(FATAL_ERROR ${RESULT} ${ERROR})
 endif(RESULT)
+
+execute_process(COMMAND ${CMAKE_ARGV0} -E touch "${CMAKE_ARGV4}")
