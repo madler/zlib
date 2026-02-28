@@ -17,6 +17,23 @@ if(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
             FIXTURES_SETUP ${ZLIB_CONTRIB_PREFIX}iostream3_install)
 endif(NOT DEFINED ZLIB_BUILD_IOSTREAM3)
 
+function(iostreamv3_findTestEnv testName)
+    set(testEnv "PATH=")
+
+    if(MSVC OR MINGW)
+        set(separator "\\\;")
+    else()
+        set(separator ":")
+    endif()
+
+    string(APPEND testEnv
+        "$<TARGET_FILE_DIR:${ZLIB_CONTRIB_PREFIX}iostream3_iostreamv3>${separator}")
+    string(APPEND testEnv "$<TARGET_FILE_DIR:ZLIB::ZLIB>${separator}")
+    string(APPEND testEnv "$ENV{PATH}")
+
+    set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
+endfunction(iostreamv3_findTestEnv testName)
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/iostream3_find_package_test/CMakeLists.txt @ONLY)
@@ -200,3 +217,57 @@ set_tests_properties(
         PROPERTIES
             FIXTURES_REQUIRED ${inst_setup}
             WILL_FAIL TRUE)
+
+if(ZLIB_IOSTREAM3_BUILD_SHARED)
+    add_executable(${ZLIB_CONTRIB_PREFIX}iostream3_test
+        ${iostreamV3_SOURCE_DIR}/test.cc
+        ${iostreamV3_SOURCE_DIR}/zfstream.h)
+
+    target_link_libraries(${ZLIB_CONTRIB_PREFIX}iostream3_test
+        PRIVATE IOSTREAMV3::IOSTREAMV3)
+
+    add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_test
+        COMMAND ${ZLIB_CONTRIB_PREFIX}iostream3_test)
+
+    set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_test
+        PROPERTIES
+            FIXTURES_SETUP iostream3_tests
+            RESOURCE_LOCK iostram_txt_gz)
+
+    if(MSVC
+       OR MSYS
+       OR MINGW
+       OR CYGWIN)
+        iostreamv3_findtestenv(${ZLIB_CONTRIB_PREFIX}iostream3_test)
+    endif(
+        MSVC
+        OR MSYS
+        OR MINGW
+        OR CYGWIN)
+endif(ZLIB_IOSTREAM3_BUILD_SHARED)
+
+if(ZLIB_IOSTREAM3_BUILD_STATIC)
+    add_executable(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
+        ${iostreamV3_SOURCE_DIR}/test.cc
+        ${iostreamV3_SOURCE_DIR}/zfstream.h)
+
+    target_link_libraries(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
+        PRIVATE IOSTREAMV3::IOSTREAMV3STATIC)
+
+    add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
+             COMMAND ${ZLIB_CONTRIB_PREFIX}iostream3_testStatic)
+
+    set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
+        PROPERTIES
+            FIXTURES_SETUP iostream3_tests
+            RESOURCE_LOCK iostram_txt_gz)
+endif(ZLIB_IOSTREAM3_BUILD_STATIC)
+
+add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_cleanup
+    COMMAND ${CMAKE_COMMAND} -E rm
+        ${CMAKE_CURRENT_BINARY_DIR}/test1.txt.gz
+        ${CMAKE_CURRENT_BINARY_DIR}/test2.txt.gz)
+
+set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_cleanup
+    PROPERTIES
+        FIXTURES_CLEANUP iostream3_tests)

@@ -40,24 +40,6 @@ if(WIN32 OR CYGWIN)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif(WIN32 OR CYGWIN)
 
-
-function(iostreamv3_findTestEnv testName)
-    set(testEnv "PATH=")
-
-    if(MSVC OR MINGW)
-        set(separator "\\\;")
-    else()
-        set(separator ":")
-    endif()
-
-    string(APPEND testEnv
-        "$<TARGET_FILE_DIR:${ZLIB_CONTRIB_PREFIX}iostream3_iostreamv3>${separator}")
-    string(APPEND testEnv "$<TARGET_FILE_DIR:ZLIB::ZLIB>${separator}")
-    string(APPEND testEnv "$ENV{PATH}")
-
-    set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
-endfunction(iostreamv3_findTestEnv testName)
-
 if(ZLIB_IOSTREAM3_BUILD_SHARED)
     add_library(${ZLIB_CONTRIB_PREFIX}iostream3_iostreamv3 SHARED
                 zfstream.cc
@@ -80,33 +62,6 @@ if(ZLIB_IOSTREAM3_BUILD_SHARED)
 
     target_link_libraries(${ZLIB_CONTRIB_PREFIX}iostream3_iostreamv3
         PUBLIC ZLIB::ZLIB)
-
-    if(ZLIB_IOSTREAM3_BUILD_TESTING)
-        enable_testing()
-
-        add_executable(${ZLIB_CONTRIB_PREFIX}iostream3_test test.cc zfstream.h)
-
-        target_link_libraries(${ZLIB_CONTRIB_PREFIX}iostream3_test
-            PRIVATE IOSTREAMV3::IOSTREAMV3)
-
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_test
-            COMMAND ${ZLIB_CONTRIB_PREFIX}iostream3_test)
-
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_test
-            PROPERTIES
-                FIXTURES_REQUIRED ${ZLIB_CONTRIB_PREFIX}iostream3_cleanup)
-
-        if(MSVC
-           OR MSYS
-           OR MINGW
-           OR CYGWIN)
-            iostreamv3_findtestenv(${ZLIB_CONTRIB_PREFIX}iostream3_test)
-        endif(
-            MSVC
-            OR MSYS
-            OR MINGW
-            OR CYGWIN)
-    endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 endif(ZLIB_IOSTREAM3_BUILD_SHARED)
 
 if(ZLIB_IOSTREAM3_BUILD_STATIC)
@@ -125,41 +80,7 @@ if(ZLIB_IOSTREAM3_BUILD_STATIC)
             EXPORT_NAME IOSTREAMV3STATIC
             OUTPUT_NAME
                 iostream3${${ZLIB_CONTRIB_PREFIX}IOStream3_static_suffix})
-
-    if(ZLIB_IOSTREAM3_BUILD_TESTING)
-        enable_testing()
-
-        add_executable(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
-            test.cc
-            zfstream.h)
-
-        target_link_libraries(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
-            PRIVATE IOSTREAMV3::IOSTREAMV3STATIC)
-
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
-                 COMMAND ${ZLIB_CONTRIB_PREFIX}iostream3_testStatic)
-
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_testStatic
-            PROPERTIES
-                FIXTURES_REQUIRED ${ZLIB_CONTRIB_PREFIX}iostream3_cleanup)
-    endif(ZLIB_IOSTREAM3_BUILD_TESTING)
 endif(ZLIB_IOSTREAM3_BUILD_STATIC)
-
-if(ZLIB_IOSTREAM3_BUILD_TESTING)
-    add_test(NAME ${ZLIB_CONTRIB_PREFIX}iostream3_cleanup
-        COMMAND ${CMAKE_COMMAND}
-            -E
-            rm
-            ${CMAKE_CURRENT_BINARY_DIR}/test1.txt.gz
-            ${CMAKE_CURRENT_BINARY_DIR}/test2.txt.gz)
-
-    set_tests_properties(${ZLIB_CONTRIB_PREFIX}iostream3_cleanup
-        PROPERTIES
-            FIXTURES_CLEANUP ${ZLIB_CONTRIB_PREFIX}iostream3_cleanup)
-
-        add_subdirectory(test)
-endif(ZLIB_IOSTREAM3_BUILD_TESTING)
-
 if(ZLIB_IOSTREAM3_INSTALL)
     if(ZLIB_IOSTREAM3_BUILD_SHARED)
         install(
@@ -216,3 +137,8 @@ if(ZLIB_IOSTREAM3_INSTALL)
         COMPONENT Development
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif(ZLIB_IOSTREAM3_INSTALL)
+
+if(ZLIB_IOSTREAM3_BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(test/)
+endif(ZLIB_IOSTREAM3_BUILD_TESTING)
