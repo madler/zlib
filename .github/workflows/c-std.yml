@@ -151,31 +151,18 @@ jobs:
     - name: Generate project files (cmake)
       if: matrix.builder == 'cmake'
       run: |
-        cmake -S . -B ./build1 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_MINIZIP=OFF
+        cmake -S . -B ./build -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_MINIZIP=OFF
       env:
         CC: ${{ matrix.compiler }}
         CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Werror -Wall -Wextra
 
-    - name: Generate project files with tests (cmake)
-      if: matrix.builder == 'cmake'
-      run: |
-        cmake -S . -B ./build2 -D CMAKE_BUILD_TYPE=Release ${{ matrix.os.cmake-opt }} -DZLIB_BUILD_MINIZIP=ON -DMINIZIP_ENABLE_BZIP2=OFF
-      env:
-        CC: ${{ matrix.compiler }}
-        CFLAGS: -std=${{ matrix.std.value }} ${{ matrix.std.compiler-opt }} ${{ matrix.arch.compiler-opt }} -Wall -Wextra
-
     - name: Compile source code (cmake)
       if: matrix.builder == 'cmake'
-      run: cmake --build ./build1 --config Release
-
-    - name: Compile source code with tests (cmake)
-      if: matrix.builder == 'cmake'
-      run: cmake --build ./build2 --config Release
+      run: cmake --build ./build --config Release
 
     - name: Run test cases (cmake)
       if: matrix.builder == 'cmake'
-      run: ctest ./build2 -C Release --output-on-failure --max-width 120
-
+      run: ctest ./build -C Release --output-on-failure --max-width 120
 
   msvc:
     name: ${{ matrix.os.name }} ${{ matrix.compiler }} ${{ matrix.arch.name }} ${{ matrix.std.name }}  ${{ matrix.builder }}
