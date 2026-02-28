@@ -69,17 +69,20 @@ if(ZLIB_BLAST_BUILD_SHARED)
             PRIVATE
                 ${ZLIB_CONTRIB_PREFIX}blast_blast)
 
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_blast-test
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_test
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
                     "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_test>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}blast_test
+            PROPERTIES
+                RESOURCE_LOCK blast_test_files)
 
         if(MSVC
            OR MSYS
            OR MINGW
            OR CYGWIN)
-            blast_findtestenv(${ZLIB_CONTRIB_PREFIX}blast_blast-test)
+            blast_findtestenv(${ZLIB_CONTRIB_PREFIX}blast_test)
         endif(
             MSVC
             OR MSYS
@@ -106,11 +109,14 @@ if(ZLIB_BLAST_BUILD_STATIC)
         target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_testStatic
             PRIVATE ${ZLIB_CONTRIB_PREFIX}blast_blastStatic)
 
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_blast-testStatic
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_testStatic
             COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
                     "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_testStatic>"
                     "${CMAKE_CURRENT_SOURCE_DIR}"
                     "${CMAKE_CURRENT_BINARY_DIR}")
+        set_tests_properties(${ZLIB_CONTRIB_PREFIX}blast_testStatic
+            PROPERTIES
+                RESOURCE_LOCK blast_test_files)
     endif(ZLIB_BLAST_BUILD_TESTING)
 endif(ZLIB_BLAST_BUILD_STATIC)
 
