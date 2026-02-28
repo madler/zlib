@@ -28,21 +28,6 @@ if(WIN32 OR CYGWIN)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif(WIN32 OR CYGWIN)
 
-function(blast_findTestEnv testName)
-    set(testEnv "PATH=")
-
-    if(MSVC OR MINGW)
-        set(separator "\\\;")
-    else()
-        set(separator ":")
-    endif()
-
-    string(APPEND testEnv "$<TARGET_FILE_DIR:BLAST::BLAST>${separator}")
-    string(APPEND testEnv "$ENV{PATH}")
-
-    set_tests_properties(${testName} PROPERTIES ENVIRONMENT "${testEnv}")
-endfunction(blast_findTestEnv testName)
-
 if(ZLIB_BLAST_BUILD_SHARED)
     add_library(${ZLIB_CONTRIB_PREFIX}blast_blast SHARED
                 blast.c
@@ -61,34 +46,6 @@ if(ZLIB_BLAST_BUILD_SHARED)
         PROPERTIES
             EXPORT_NAME BLAST
             OUTPUT_NAME blast)
-
-    if(ZLIB_BLAST_BUILD_TESTING)
-        enable_testing()
-        add_executable(${ZLIB_CONTRIB_PREFIX}blast_test blast-test.c)
-        target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_test
-            PRIVATE
-                ${ZLIB_CONTRIB_PREFIX}blast_blast)
-
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_test
-            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_test>"
-                    "${CMAKE_CURRENT_SOURCE_DIR}"
-                    "${CMAKE_CURRENT_BINARY_DIR}")
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}blast_test
-            PROPERTIES
-                RESOURCE_LOCK blast_test_files)
-
-        if(MSVC
-           OR MSYS
-           OR MINGW
-           OR CYGWIN)
-            blast_findtestenv(${ZLIB_CONTRIB_PREFIX}blast_test)
-        endif(
-            MSVC
-            OR MSYS
-            OR MINGW
-            OR CYGWIN)
-    endif(ZLIB_BLAST_BUILD_TESTING)
 endif(ZLIB_BLAST_BUILD_SHARED)
 
 if(ZLIB_BLAST_BUILD_STATIC)
@@ -102,25 +59,10 @@ if(ZLIB_BLAST_BUILD_STATIC)
         PROPERTIES
             EXPORT_NAME BLASTSTATIC
             OUTPUT_NAME blast${${ZLIB_CONTRIB_PREFIX}blast_static_suffix})
-
-    if(ZLIB_BLAST_BUILD_TESTING)
-        enable_testing()
-        add_executable(${ZLIB_CONTRIB_PREFIX}blast_testStatic blast-test.c)
-        target_link_libraries(${ZLIB_CONTRIB_PREFIX}blast_testStatic
-            PRIVATE ${ZLIB_CONTRIB_PREFIX}blast_blastStatic)
-
-        add_test(NAME ${ZLIB_CONTRIB_PREFIX}blast_testStatic
-            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}blast_testStatic>"
-                    "${CMAKE_CURRENT_SOURCE_DIR}"
-                    "${CMAKE_CURRENT_BINARY_DIR}")
-        set_tests_properties(${ZLIB_CONTRIB_PREFIX}blast_testStatic
-            PROPERTIES
-                RESOURCE_LOCK blast_test_files)
-    endif(ZLIB_BLAST_BUILD_TESTING)
 endif(ZLIB_BLAST_BUILD_STATIC)
 
 if(ZLIB_BLAST_BUILD_TESTING)
+    enable_testing()
     add_subdirectory(test)
 endif(ZLIB_BLAST_BUILD_TESTING)
 
