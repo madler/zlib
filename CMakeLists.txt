@@ -200,6 +200,12 @@ if(ZLIB_BUILD_SHARED)
         AND NOT (CMAKE_SYSTEM_NAME STREQUAL SunOS))
 endif(ZLIB_BUILD_SHARED)
 
+if (MSVC)
+    if(ZLIB_BUILD_STATIC)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif(ZLIB_BUILD_STATIC)
+endif(MSVC)
+
 if(ZLIB_BUILD_STATIC)
     add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
                                   ${ZLIB_PRIVATE_HDRS})
