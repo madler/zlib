@@ -463,7 +463,7 @@ local char *block_central_name(block_t *block, set_t *set) {
 // the central directory is invalid, -2 if out of memory, or ZIP_PARAMERROR if
 // file is NULL. */
 extern int ZEXPORT zipAlreadyThere(zipFile file, char const *name) {
-    zip64_internal *zip = file;
+    zip64_internal *zip = (zip64_internal*)file;
     if (zip == NULL)
         return ZIP_PARAMERROR;
     if (zip->central_dir.first_block == NULL)
