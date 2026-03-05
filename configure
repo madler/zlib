@@ -650,7 +650,7 @@ cat > $test.c <<EOF
 int main() { return 0; }
 EOF
 if try $CC -c $CFLAGS $test.c; then
-  sed < zconf.h "/^#if HAVE_UNISTD_H-0.* may be/s/ HAVE_UNISTD_H-0\(.*\) may be/ 1\1 was/" > zconf.temp.h
+  sed < zconf.h "/^#if defined(HAVE_UNISTD_H).* may be/s/ defined.*-0\(.*\) may be/ 1\1 was changed to/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for unistd.h... Yes." | tee -a configure.log
 else
@@ -665,7 +665,7 @@ cat > $test.c <<EOF
 int main() { return 0; }
 EOF
 if try $CC -c $CFLAGS $test.c; then
-  sed < zconf.h "/^#if HAVE_STDARG_H-0.* may be/s/ HAVE_STDARG_H-0\(.*\) may be/ 1\1 was/" > zconf.temp.h
+  sed < zconf.h "/^#if defined(HAVE_STDARG_H).* may be/s/ defined.*-0\(.*\) may be/ 1\1 was changed to/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for stdarg.h... Yes." | tee -a configure.log
 else
