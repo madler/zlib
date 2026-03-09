@@ -249,7 +249,7 @@ void addFileToZip(zipFile zf, const char *filenameinzip, const char *password, i
     unsigned long crcFile=0;
     int zip64 = 0;
     int err=0;
-    int size_buf=WRITEBUFFERSIZE;
+    unsigned long size_buf=WRITEBUFFERSIZE;
     unsigned char buf[WRITEBUFFERSIZE];
     zi.tmz_date.tm_sec = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
     zi.tmz_date.tm_mday = zi.tmz_date.tm_mon = zi.tmz_date.tm_year = 0;
