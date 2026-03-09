@@ -373,7 +373,7 @@ void addPathToZip(zipFile zf, const char *filenameinzip, const char *password, i
         if(strcmp(dp->d_name,".")==0) continue;
         if(strcmp(dp->d_name,"..")==0) continue;
         snprintf(newname, sizeof(newname), "%.*s/%.*s", MAXFILENAME, filenameinzip, MAXFILENAME, dp->d_name);
-        addPathToZip(zf,newname,password,opt_exclude_path,opt_compress_level));
+        addPathToZip(zf,newname,password,opt_exclude_path,opt_compress_level);
     }
 
     closedir(dir);
