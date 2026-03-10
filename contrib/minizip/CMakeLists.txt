@@ -274,7 +274,7 @@ if(MINIZIP_INSTALL)
     install(
         FILES ${LIBMINIZIP_HDRS}
         COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
     install(
         FILES ${LIBMINIZIP_HDRS_COMPAT}
         COMPONENT Development
