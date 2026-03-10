@@ -25,13 +25,13 @@ libminizip_la_SOURCES = \
 libminizip_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 -lz
 
 minizip_includedir = $(includedir)/minizip
-minizip_include_HEADERS = \
-	crypt.h \
-	ints.h \
-	ioapi.h \
-	mztools.h \
-	unzip.h \
-	zip.h \
+nobase_minizip_include_HEADERS = \
+	crypt.h compat/crypt.h \
+	ints.h compat/ints.h \
+	ioapi.h compat/ioapi.h \
+	mztools.h compat/mztools.h \
+	unzip.h compat/unzip.h \
+	zip.h compat/zip.h \
 	${iowin32_h}
 
 pkgconfigdir = $(libdir)/pkgconfig

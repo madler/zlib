@@ -10,4 +10,4 @@ Version: @PACKAGE_VERSION@
 License: Zlib
 Libs: -L${libdir} -lminizip
 Libs.private: -lz
-Cflags: -I${includedir}
+Cflags: -I${includedir} -I${includedir}/minizip/compat
