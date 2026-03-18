@@ -138,7 +138,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_test)
 
@@ -170,7 +170,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_add_subdirectory_test)
 
@@ -202,7 +202,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_add_subdirectory_exclude_test)
 
@@ -236,7 +236,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_no_components_test)
 
@@ -266,7 +266,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_wrong_components_test)
 

@@ -64,7 +64,7 @@ if(ZLIB_MINIZIP_INSTALL)
             -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
             -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
             ${ZLIB_ARG}
-            --fresh
+            $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
             -G "${CMAKE_GENERATOR}"
             -S${WORK_DIR}/minizip_find_package_test)
 
@@ -96,7 +96,7 @@ if(ZLIB_MINIZIP_INSTALL)
             -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
             -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
             ${ZLIB_ARG}
-            --fresh
+            $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
             -G "${CMAKE_GENERATOR}"
             -S${WORK_DIR}/minizip_find_package_no_components_test)
 
@@ -126,7 +126,7 @@ if(ZLIB_MINIZIP_INSTALL)
             -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
             -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
             ${ZLIB_ARG}
-            --fresh
+            $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
             -G "${CMAKE_GENERATOR}"
             -S${WORK_DIR}/minizip_find_package_wrong_components_test)
 
@@ -149,7 +149,7 @@ if(ZLIB_MINIZIP_INSTALL)
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
             -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install ${ZLIB_ARG}
-            --fresh
+            $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
             -G "${CMAKE_GENERATOR}"
             -S${WORK_DIR}/minizip_add_subdirectory_test)
 
@@ -182,7 +182,7 @@ if(ZLIB_MINIZIP_INSTALL)
             -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
             -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
             ${ZLIB_ARG}
-            --fresh
+            $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
             -G "${CMAKE_GENERATOR}"
             -S${WORK_DIR}/minizip_add_subdirectory_exclude_test)
 
