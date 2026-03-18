@@ -134,182 +134,188 @@ if(ZLIB_BUILD_STATIC)
     endif(HAVE_OFF64_T)
 endif(ZLIB_BUILD_STATIC)
 
-add_test(
-    NAME zlib_install
-    COMMAND ${CMAKE_COMMAND}
-            --install ${zlib_BINARY_DIR}
-            --prefix ${CMAKE_CURRENT_BINARY_DIR}/test_install
-            --config $<CONFIG>
-    WORKING_DIRECTORY ${zlib_BINARY_DIR})
+if(ZLIB_INSTALL)
+    add_test(
+        NAME zlib_install
+        COMMAND ${CMAKE_COMMAND}
+                --install ${zlib_BINARY_DIR}
+                --prefix ${CMAKE_CURRENT_BINARY_DIR}/test_install
+                --config $<CONFIG>
+        WORKING_DIRECTORY ${zlib_BINARY_DIR})
 
-set_tests_properties(zlib_install PROPERTIES FIXTURES_SETUP zlib_install)
+    set_tests_properties(zlib_install PROPERTIES FIXTURES_SETUP zlib_install)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test/CMakeLists.txt @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test/CMakeLists.txt
+        @ONLY)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/find_package_no_components_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test/CMakeLists.txt @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/find_package_no_components_test.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test/CMakeLists.txt
+        @ONLY)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/find_package_wrong_components_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/zlib_findpackage_wrong_components_test/CMakeLists.txt @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/find_package_wrong_components_test.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_findpackage_wrong_components_test/CMakeLists.txt
+        @ONLY)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test/CMakeLists.txt @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_test.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test/CMakeLists.txt
+        @ONLY)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_exclude_test.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test/CMakeLists.txt
-    @ONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/add_subdirectory_exclude_test.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test/CMakeLists.txt
+        @ONLY)
 
-# CMAKE_GENERATOR_PLATFORM doesn't work in the if
-set(GENERATOR ${CMAKE_GENERATOR_PLATFORM})
+    # CMAKE_GENERATOR_PLATFORM doesn't work in the if
+    set(GENERATOR ${CMAKE_GENERATOR_PLATFORM})
 
-if(GENERATOR)
-    set(PLATFORM "-A ${GENERATOR}")
-endif(GENERATOR)
-#
-# find_package_test
-#
-add_test(
-    NAME zlib_find_package_configure
-    COMMAND
-        ${CMAKE_COMMAND}
-        ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
-        -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test)
+    if(GENERATOR)
+        set(PLATFORM "-A ${GENERATOR}")
+    endif(GENERATOR)
+    #
+    # find_package_test
+    #
+    add_test(
+        NAME zlib_find_package_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            ${PLATFORM}
+            -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
+            --fresh
+            -G "${CMAKE_GENERATOR}"
+            -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test)
 
-add_test(
-    NAME zlib_find_package_build
-    COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build)
+    add_test(
+        NAME zlib_find_package_build
+        COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test_build)
 
-set_tests_properties(zlib_find_package_configure
-    PROPERTIES
-        FIXTURES_REQUIRED zlib_install
-        FIXTURES_SETUP fp_config)
+    set_tests_properties(zlib_find_package_configure
+        PROPERTIES
+            FIXTURES_REQUIRED zlib_install
+            FIXTURES_SETUP fp_config)
 
-set_tests_properties(zlib_find_package_build
-    PROPERTIES
-        FIXTURES_REQUIRED fp_config)
+    set_tests_properties(zlib_find_package_build
+        PROPERTIES
+            FIXTURES_REQUIRED fp_config)
 
-#
-# find_package_no_components_test
-#
-add_test(
-    NAME zlib_find_package_no_components_configure
-    COMMAND
-        ${CMAKE_COMMAND}
-        ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
-        -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test)
+    #
+    # find_package_no_components_test
+    #
+    add_test(
+        NAME zlib_find_package_no_components_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            ${PLATFORM}
+            -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test_build
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
+            --fresh
+            -G "${CMAKE_GENERATOR}"
+            -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test)
 
-set_tests_properties(zlib_find_package_no_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED zlib_install)
-
-if(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
     set_tests_properties(zlib_find_package_no_components_configure
         PROPERTIES
+            FIXTURES_REQUIRED zlib_install)
+
+    if(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
+        set_tests_properties(zlib_find_package_no_components_configure
+            PROPERTIES
+                WILL_FAIL TRUE)
+    endif(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
+
+    #
+    # find_package_no_component_test
+    #
+    add_test(
+        NAME zlib_find_package_wrong_components_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            ${PLATFORM}
+            -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test_build
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
+            --fresh
+            -G "${CMAKE_GENERATOR}"
+            -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test)
+
+    set_tests_properties(zlib_find_package_wrong_components_configure
+        PROPERTIES
+            FIXTURES_REQUIRED zlib_install
             WILL_FAIL TRUE)
-endif(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
 
-#
-# find_package_no_component_test
-#
-add_test(
-    NAME zlib_find_package_wrong_components_configure
-    COMMAND
-        ${CMAKE_COMMAND}
-        ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
-        -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test)
+    #
+    # add_subdirectory_test
+    #
+    add_test(
+        NAME zlib_add_subdirectory_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            ${PLATFORM}
+            -B${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
+            --fresh
+            -G "${CMAKE_GENERATOR}"
+            -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test)
 
-set_tests_properties(zlib_find_package_wrong_components_configure
-    PROPERTIES
-        FIXTURES_REQUIRED zlib_install
-        WILL_FAIL TRUE)
+    add_test(
+        NAME zlib_add_subdirectory_build
+        COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build)
 
-#
-# add_subdirectory_test
-#
-add_test(
-    NAME zlib_add_subdirectory_configure
-    COMMAND
-        ${CMAKE_COMMAND}
-        ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
-        -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test)
+    set_tests_properties(zlib_add_subdirectory_configure
+        PROPERTIES
+            FIXTURES_REQUIRED zlib_install
+            FIXTURES_SETUP as_config)
 
-add_test(
-    NAME zlib_add_subdirectory_build
-    COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test_build)
+    set_tests_properties(zlib_add_subdirectory_build
+        PROPERTIES
+            FIXTURES_REQUIRED as_config)
 
-set_tests_properties(zlib_add_subdirectory_configure
-    PROPERTIES
-        FIXTURES_REQUIRED zlib_install
-        FIXTURES_SETUP as_config)
+    #
+    # add_subdirectory_exclude_test
+    #
+    add_test(
+        NAME zlib_add_subdirectory_exclude_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            ${PLATFORM}
+            -B${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build
+            -DCMAKE_BUILD_TYPE=$<CONFIG>
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
+            --fresh
+            -G "${CMAKE_GENERATOR}"
+            -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test)
 
-set_tests_properties(zlib_add_subdirectory_build
-    PROPERTIES
-        FIXTURES_REQUIRED as_config)
+    add_test(
+        NAME zlib_add_subdirectory_exclude_build
+        COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build)
 
-#
-# add_subdirectory_exclude_test
-#
-add_test(
-    NAME zlib_add_subdirectory_exclude_configure
-    COMMAND
-        ${CMAKE_COMMAND}
-        ${PLATFORM}
-        -B${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
-        -G "${CMAKE_GENERATOR}"
-        -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test)
+    set_tests_properties(zlib_add_subdirectory_exclude_configure
+        PROPERTIES
+            FIXTURES_REQUIRED zlib_install
+            FIXTURES_SETUP asx_config)
 
-add_test(
-    NAME zlib_add_subdirectory_exclude_build
-    COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test_build)
-
-set_tests_properties(zlib_add_subdirectory_exclude_configure
-    PROPERTIES
-        FIXTURES_REQUIRED zlib_install
-        FIXTURES_SETUP asx_config)
-
-set_tests_properties(zlib_add_subdirectory_exclude_build
-    PROPERTIES
-        FIXTURES_REQUIRED as_config)
+    set_tests_properties(zlib_add_subdirectory_exclude_build
+        PROPERTIES
+            FIXTURES_REQUIRED as_config)
+endif(ZLIB_INSTALL)
