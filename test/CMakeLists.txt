@@ -86,7 +86,8 @@ if(ZLIB_BUILD_STATIC)
             find_program(GCOV_EXECUTABLE gcov)
         endif(${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 
-        if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+        if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang"
+           AND NOT CMAKE_CROSSCOMPILING)
             set(llvm_names llvm_cov)
             list(APPEND llvm_names llvm-cov)
 
@@ -96,7 +97,8 @@ if(ZLIB_BUILD_STATIC)
 
             find_program(GCOV_EXECUTABLE NAMES ${llvm_names})
             set(llvm_option "gcov")
-        endif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+        endif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang"
+              AND NOT CMAKE_CROSSCOMPILING)
 
         add_executable(infcover infcover.c)
         target_link_libraries(infcover ZLIB::ZLIBSTATIC)

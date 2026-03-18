@@ -56,7 +56,8 @@ if(ZLIB_PUFF_BUILD_TESTING)
             find_program(GCOV_EXECUTABLE gcov)
         endif(${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 
-        if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+        if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang"
+           AND NOT CMAKE_CROSSCOMPILING)
             set(llvm_names llvm_cov)
             list(APPEND llvm_names llvm-cov)
 
@@ -66,7 +67,8 @@ if(ZLIB_PUFF_BUILD_TESTING)
 
             find_program(GCOV_EXECUTABLE NAMES ${llvm_names})
             set(llvm_option "gcov")
-        endif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+        endif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang"
+              AND NOT CMAKE_CROSSCOMPILING)
     endif(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
           ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
 
