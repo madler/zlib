@@ -1394,7 +1394,7 @@ ZEXTERN gzFile ZEXPORT gzopen(const char *path, const char *mode);
    errno can be checked to determine if the reason gzopen failed was that the
    file could not be opened. Note that if 'N' is in mode for non-blocking, the
    open() itself can fail in order to not block. In that case gzopen() will
-   return NULL and errno will be EAGAIN or ENONBLOCK. The call to gzopen() can
+   return NULL and errno will be EAGAIN or EWOULDBLOCK. The call to gzopen() can
    then be re-tried. If the application would like to block on opening the
    file, then it can use open() without O_NONBLOCK, and then gzdopen() with the
    resulting file descriptor and 'N' in the mode, which will set it to non-
