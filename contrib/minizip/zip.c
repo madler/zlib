@@ -1341,8 +1341,9 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
         return ZIP_PARAMERROR;
     /* The extra field length must fit in 16 bits. If the member also requires
     // a Zip64 extra block, that will also need to fit within that 16-bit
-    // length, but that will be checked for later. */
-    if ((size_extrafield_local>0xffff) || (size_extrafield_global>0xffff))
+    // length. */
+    if ((size_extrafield_local>0xffff) || (size_extrafield_global>0xffff) ||
+        (zip64 && size_extrafield_local > 0xffff - 20))
         return ZIP_PARAMERROR;
 
     zi = (zip64_internal*)file;
