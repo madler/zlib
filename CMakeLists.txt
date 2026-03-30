@@ -178,7 +178,7 @@ if(ZLIB_BUILD_SHARED)
     target_compile_definitions(
         zlib
         PRIVATE ZLIB_BUILD
-                $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
+                $<$<NOT:$<BOOL:${HAVE_FSEEKO}>>:NO_FSEEKO>
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
@@ -231,7 +231,7 @@ if(ZLIB_BUILD_STATIC)
     target_compile_definitions(
         zlibstatic
         PRIVATE ZLIB_BUILD
-                $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
+                $<$<NOT:$<BOOL:${HAVE_FSEEKO}>>:NO_FSEEKO>
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
