@@ -27,27 +27,6 @@ endif(ZLIB_FIND_COMPONENTS)
 
 # Compatibility: if only static was built, expose ZLIB::ZLIB and legacy vars.
 if(TARGET ZLIB::ZLIBSTATIC AND NOT TARGET ZLIB::ZLIB)
-    add_library(ZLIB::ZLIB INTERFACE IMPORTED)
-    set_property(TARGET ZLIB::ZLIB PROPERTY INTERFACE_LINK_LIBRARIES ZLIB::ZLIBSTATIC)
-
-    get_target_property(_zlib_include_dirs ZLIB::ZLIBSTATIC INTERFACE_INCLUDE_DIRECTORIES)
-    if(_zlib_include_dirs)
-        set_property(TARGET ZLIB::ZLIB PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${_zlib_include_dirs}")
-    endif()
+    add_library(ZLIB::ZLIB ALIAS ZLIB::ZLIBSTATIC)
 endif()
 
-if(NOT DEFINED ZLIB_INCLUDE_DIRS AND TARGET ZLIB::ZLIB)
-    get_target_property(ZLIB_INCLUDE_DIRS ZLIB::ZLIB INTERFACE_INCLUDE_DIRECTORIES)
-endif()
-
-if(NOT DEFINED ZLIB_INCLUDE_DIR AND ZLIB_INCLUDE_DIRS)
-    list(GET ZLIB_INCLUDE_DIRS 0 ZLIB_INCLUDE_DIR)
-endif()
-
-if(NOT DEFINED ZLIB_LIBRARIES)
-    if(TARGET ZLIB::ZLIB)
-        set(ZLIB_LIBRARIES ZLIB::ZLIB)
-    elseif(TARGET ZLIB::ZLIBSTATIC)
-        set(ZLIB_LIBRARIES ZLIB::ZLIBSTATIC)
-    endif()
-endif()
