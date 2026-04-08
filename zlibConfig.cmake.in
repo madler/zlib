@@ -1,6 +1,14 @@
 @PACKAGE_INIT@
 
-set(_ZLIB_supported_components "shared" "static")
+set(_ZLIB_supported_components "")
+
+if(@ZLIB_BUILD_SHARED@)
+    list(APPEND _ZLIB_supported_components shared)
+endif(@ZLIB_BUILD_SHARED@)
+
+if(@ZLIB_BUILD_STATIC@)
+    list(APPEND _ZLIB_supported_components static)
+endif(@ZLIB_BUILD_STATIC@)
 
 if(ZLIB_FIND_COMPONENTS)
     foreach(_comp ${ZLIB_FIND_COMPONENTS})
@@ -16,3 +24,9 @@ else(ZLIB_FIND_COMPONENTS)
         include("${CMAKE_CURRENT_LIST_DIR}/ZLIB-${_component_config}.cmake")
     endforeach(_component_config IN LISTS _ZLIB_supported_components)
 endif(ZLIB_FIND_COMPONENTS)
+
+# Compatibility: if only static was built, expose ZLIB::ZLIB and legacy vars.
+if(TARGET ZLIB::ZLIBSTATIC AND NOT TARGET ZLIB::ZLIB)
+    add_library(ZLIB::ZLIB ALIAS ZLIB::ZLIBSTATIC)
+endif()
+
