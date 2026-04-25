@@ -125,6 +125,12 @@ endif()
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
 configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
 
+if(ZLIB_PREFIX)
+    set(Z_PREFIX_STR "z_")
+endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zlib.map.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zlib.map @ONLY)
+
 # ============================================================================
 # zlib
 # ============================================================================
@@ -202,7 +208,7 @@ if(ZLIB_BUILD_SHARED)
         set_target_properties(
             zlib
             PROPERTIES LINK_FLAGS
-                       "-Wl,--version-script,\"${zlib_SOURCE_DIR}/zlib.map\"")
+                       "-Wl,--version-script,\"${zlib_BINARY_DIR}/zlib.map\"")
     endif(
         UNIX
         AND NOT APPLE

@@ -285,7 +285,7 @@ gzwrite.lo: $(SRCDIR)gzwrite.c
 	-@mv objs/gzwrite.o $@
 
 
-placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a $(SRCDIR)zlib.map
+placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a zlib.map
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)

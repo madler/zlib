@@ -15,7 +15,7 @@ zconf.h.cmakein zconf.h template for cmake
 zconf.h.in      zconf.h template for configure
 zlib.3          Man page for zlib
 zlib.3.pdf      Man page in PDF format
-zlib.map        Linux symbol information
+zlib.map.in     Template for Linux symbol information
 zlib.pc.in      Template for pkg-config descriptor
 zlib.pc.cmakein zlib.pc template for cmake
 zlib2ansi       perl script to convert source files for C++ compilation
