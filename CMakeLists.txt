@@ -45,7 +45,6 @@ include(GNUInstallDirs)
 set(CPACK_INCLUDED TRUE)
 
 if(NOT ZLIB_CONF_WRITTEN)
-    set(Z_PREFIX ${ZLIB_PREFIX})
     set(CONF_OUT_FILE ${zlib_BINARY_DIR}/zconf.h.cmakein)
     file(READ ${zlib_SOURCE_DIR}/zconf.h.in ZCONF_CONTENT LIMIT 245)
     file(WRITE ${CONF_OUT_FILE} ${ZCONF_CONTENT})
@@ -68,8 +67,16 @@ if(NOT ZLIB_CONF_WRITTEN)
     set(ZLIB_CONF_WRITTEN
         TRUE
         CACHE BOOL "zconf.h.cmakein was created")
-    mark_as_advanced(ZLIB_CONF_WRITTEN)
-endif(NOT ZLIB_CONF_WRITTEN)
+    set(ZLIB_CONF_CMAKE_TEMPLATE
+        "${CONF_OUT_FILE}"
+        CACHE FILEPATH "Path to generated zconf.h.cmakein")
+    mark_as_advanced(ZLIB_CONF_WRITTEN ZLIB_CONF_CMAKE_TEMPLATE)
+elseif(NOT DEFINED ZLIB_CONF_CMAKE_TEMPLATE)
+    message(
+        SEND_ERROR
+            "If zconf.h.cmakein has already been written then the (cache)"
+            "variable ZLIB_CONF_CMAKE_TEMPLATE should have been defined!")
+endif()
 
 #
 # Check to see if we have large file support
@@ -123,11 +130,12 @@ else()
     set(pc_libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
 endif()
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
-configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
 
 if(ZLIB_PREFIX)
+    set(Z_PREFIX ON)
     set(Z_PREFIX_STR "z_")
 endif()
+configure_file(${ZLIB_CONF_CMAKE_TEMPLATE} ${zlib_BINARY_DIR}/zconf.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zlib.map.in
                ${CMAKE_CURRENT_BINARY_DIR}/zlib.map @ONLY)
 

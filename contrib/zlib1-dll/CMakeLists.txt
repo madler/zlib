@@ -49,8 +49,16 @@ if(NOT ZLIB_CONF_WRITTEN)
     set(ZLIB_CONF_WRITTEN
         TRUE
         CACHE BOOL "zconf.h.cmakein was created")
-    mark_as_advanced(ZLIB_CONF_WRITTEN)
-endif(NOT ZLIB_CONF_WRITTEN)
+    set(ZLIB_CONF_CMAKE_TEMPLATE
+        "${CONF_OUT_FILE}"
+        CACHE FILEPATH "Path to generated zconf.h.cmakein")
+    mark_as_advanced(ZLIB_CONF_WRITTEN ZLIB_CONF_CMAKE_TEMPLATE)
+elseif(NOT DEFINED ZLIB_CONF_CMAKE_TEMPLATE)
+    message(
+        SEND_ERROR
+            "If zconf.h.cmakein has already been written then the (cache)"
+            "variable ZLIB_CONF_CMAKE_TEMPLATE should have been defined!")
+endif()
 
 if(ENABLE_BZIP2)
     find_package(BZip2 REQUIRED)
@@ -101,7 +109,12 @@ check_c_source_compiles(
     HAVE___ATTR__VIS_HIDDEN)
 
 unset(CMAKE_COMPILE_FLAGS)
-configure_file(${zlib1-dll_BINARY_DIR}/zconf.h.cmakein ${zlib1-dll_BINARY_DIR}/zconf.h)
+
+
+if(ZLIB_PREFIX)
+    set(Z_PREFIX ON)
+endif()
+configure_file(${ZLIB_CONF_CMAKE_TEMPLATE} ${zlib1-dll_BINARY_DIR}/zconf.h)
 
 # ============================================================================
 # zlib1-dll
