@@ -19,7 +19,7 @@
    strm provides memory allocation functions in zalloc and zfree, or
    Z_NULL to use the library memory allocation functions.
 
-   windowBits is in the range 8..15, and window is a user-supplied
+   windowBits is in the range 8..16, and window is a user-supplied
    window and output buffer that is 2**windowBits bytes.
  */
 int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
@@ -31,7 +31,7 @@ int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
         stream_size != (int)(sizeof(z_stream)))
         return Z_VERSION_ERROR;
     if (strm == Z_NULL || window == Z_NULL ||
-        windowBits < 8 || windowBits > 15)
+        windowBits < 8 || windowBits > 16)
         return Z_STREAM_ERROR;
     strm->msg = Z_NULL;                 /* in case we return an error */
     if (strm->zalloc == (alloc_func)0) {
@@ -301,7 +301,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             state->ncode = BITS(4) + 4;
             DROPBITS(4);
 #ifndef PKZIP_BUG_WORKAROUND
-            if (state->nlen > 286 || state->ndist > 30) {
+            if (state->nlen > 286 || state->ndist > state->wbits * 2) {
                 strm->msg = (z_const char *)
                     "too many length or distance symbols";
                 state->mode = BAD;
@@ -421,7 +421,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
 
         case LEN:
             /* use inflate_fast() if we have enough input and output */
-            if (have >= 6 && left >= 258) {
+            if (state->wbits < 16 && have >= 6 && left >= 258) {
                 RESTORE();
                 inflate_fast(strm, state->wsize);
                 LOAD();

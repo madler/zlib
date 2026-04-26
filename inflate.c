@@ -143,7 +143,8 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
 
     /* extract wrap request from windowBits parameter */
     if (windowBits < 0) {
-        if (windowBits < -15)
+        /* raw inflate additionally supports 16 window bits */
+        if (windowBits < -16)
             return Z_STREAM_ERROR;
         wrap = 0;
         windowBits = -windowBits;
@@ -153,11 +154,14 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
 #ifdef GUNZIP
         if (windowBits < 48)
             windowBits &= 15;
+#else
+        if (windowBits > 15)
+            return Z_STREAM_ERROR;
 #endif
     }
 
     /* set number of window bits, free window if different */
-    if (windowBits && (windowBits < 8 || windowBits > 15))
+    if (windowBits && (windowBits < 8 || windowBits > 16))
         return Z_STREAM_ERROR;
     if (state->window != Z_NULL && state->wbits != (unsigned)windowBits) {
         ZFREE(strm, state->window);
@@ -788,7 +792,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->ncode = BITS(4) + 4;
             DROPBITS(4);
 #ifndef PKZIP_BUG_WORKAROUND
-            if (state->nlen > 286 || state->ndist > 30) {
+            if (state->nlen > 286 || state->ndist > state->wbits * 2) {
                 strm->msg = (z_const char *)
                     "too many length or distance symbols";
                 state->mode = BAD;
@@ -912,7 +916,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->mode = LEN;
                 /* fallthrough */
         case LEN:
-            if (have >= 6 && left >= 258) {
+            if (state->wbits < 16 && have >= 6 && left >= 258) {
                 RESTORE();
                 inflate_fast(strm, out);
                 LOAD();
