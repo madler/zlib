@@ -260,7 +260,8 @@ static int do_list(unzFile uf) {
         if (file_info.compression_method==0)
             string_method="Stored";
         else
-        if (file_info.compression_method==Z_DEFLATED)
+        if (file_info.compression_method==Z_DEFLATED ||
+            file_info.compression_method==Z_ENHANCED_DEFLATED)
         {
             uInt iLevel=(uInt)((file_info.flag & 0x6)/2);
             if (iLevel==0)

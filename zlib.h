@@ -210,7 +210,8 @@ typedef gz_header FAR *gz_headerp;
 #define Z_UNKNOWN  2
 /* Possible values of the data_type field for deflate() */
 
-#define Z_DEFLATED   8
+#define Z_DEFLATED           8
+#define Z_ENHANCED_DEFLATED  9
 /* The deflate compression method (the only one supported in this version) */
 
 #define Z_NULL  0  /* for initializing zalloc, zfree, opaque */
