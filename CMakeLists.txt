@@ -160,7 +160,6 @@ set(ZLIB_SRCS
     zutil.c)
 
 if(WIN32)
-    set(zlib_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
 endif(WIN32)
 
@@ -193,7 +192,8 @@ if(ZLIB_BUILD_SHARED)
         zlib
         PROPERTIES DEFINE_SYMBOL ZLIB_DLL
                    EXPORT_NAME ZLIB
-                   OUTPUT_NAME z)
+		   OUTPUT_NAME $<IF:$<BOOL:${WIN32}>,zlib1,z>
+		   PDB_NAME $<IF:$<BOOL:${WIN32}>,zlib,z>)
     if(UNIX
         AND NOT APPLE
         AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
@@ -229,7 +229,7 @@ if(ZLIB_BUILD_STATIC)
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
     set_target_properties(
         zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
-                                                     z${zlib_static_suffix})
+		   ARCHIVE_OUTPUT_NAME $<IF:$<BOOL:${WIN32}>,zlib,z>)
 endif(ZLIB_BUILD_STATIC)
 
 if(ZLIB_INSTALL)
