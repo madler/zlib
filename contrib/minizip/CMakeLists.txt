@@ -126,6 +126,8 @@ set(MINIUNZIP_HDRS
     zip.h)
 
 if(WIN32)
+    list(APPEND LIBMINIZIP_SRCS iowin32.c)
+    list(APPEND LIBMINIZIP_HDRS iowin32.h)
     list(APPEND MINIZIP_SRCS iowin32.c)
     list(APPEND MINIZIP_HDRS iowin32.h)
     list(APPEND MINIUNZIP_SRCS iowin32.c)
