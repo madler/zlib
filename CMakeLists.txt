@@ -193,7 +193,9 @@ if(ZLIB_BUILD_SHARED)
         zlib
         PROPERTIES DEFINE_SYMBOL ZLIB_DLL
                    EXPORT_NAME ZLIB
-                   OUTPUT_NAME z)
+		   OUTPUT_NAME $<IF:$<BOOL:${WIN32}>,zlib1,z>
+		   ARCHIVE_OUTPUT_NAME $<IF:$<BOOL:${WIN32}>,zlib,z>
+		   PDB_NAME $<IF:$<BOOL:${WIN32}>,zlib,z>)
     if(UNIX
         AND NOT APPLE
         AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
