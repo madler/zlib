@@ -111,22 +111,26 @@ set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
 
 set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
 
-set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
+set(MINIZIP_SRCS ioapi.c minizip.c zip.c)
 
-set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> skipset.h
-                 zip.h)
+set(MINIZIP_HDRS crypt.h ints.h ioapi.h skipset.h zip.h)
 
-set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> miniunz.c unzip.c
-                   zip.c)
+set(MINIUNZIP_SRCS ioapi.c miniunz.c unzip.c zip.c)
 
 set(MINIUNZIP_HDRS
     crypt.h
     ints.h
     ioapi.h
-    $<$<BOOL:${WIN32}>:iowin32.h>
     skipset.h
     unzip.h
     zip.h)
+
+if(WIN32)
+    list(APPEND MINIZIP_SRCS iowin32.c)
+    list(APPEND MINIZIP_HDRS iowin32.h)
+    list(APPEND MINIUNZIP_SRCS iowin32.c)
+    list(APPEND MINIUNZIP_HDRS iowin32.h)
+endif()
 
 if(WIN32 OR CYGWIN)
     set(minizip_static_suffix "s")
