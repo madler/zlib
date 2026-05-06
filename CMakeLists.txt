@@ -192,10 +192,11 @@ if(ZLIB_BUILD_SHARED)
                                               VERSION ${INSTALL_VERSION})
     endif(CYGWIN)
 
-    set_target_properties(
-        zlib
-        PROPERTIES DEFINE_SYMBOL ZLIB_DLL
-                   EXPORT_NAME ZLIB)
+    set_target_properties(zlib
+        PROPERTIES
+            DEFINE_SYMBOL ZLIB_DLL
+            EXPORT_NAME ZLIB
+            PUBLIC_HEADER "${ZLIB_PUBLIC_HDRS}")
 
     if(MSVC)
         set_target_properties(zlib PROPERTIES OUTPUT_NAME libz)
@@ -251,8 +252,10 @@ if(ZLIB_BUILD_STATIC)
                 ARCHIVE_OUTPUT_NAME z${zlib_static_suffix})
     endif(MSVC)
 
-    set_target_properties(
-        zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC)
+    set_target_properties(zlibstatic
+        PROPERTIES
+            EXPORT_NAME ZLIBSTATIC
+            PUBLIC_HEADER "${ZLIB_PUBLIC_HDRS}")
 endif(ZLIB_BUILD_STATIC)
 
 if(ZLIB_INSTALL)
@@ -263,7 +266,10 @@ if(ZLIB_INSTALL)
             EXPORT zlibSharedExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER
+                DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+                COMPONENT Development)
         install(
             EXPORT zlibSharedExport
             FILE ZLIB-shared.cmake
@@ -287,7 +293,8 @@ if(ZLIB_INSTALL)
             EXPORT zlibStaticExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
         install(
             EXPORT zlibStaticExport
             FILE ZLIB-static.cmake
@@ -308,10 +315,6 @@ if(ZLIB_INSTALL)
     install(FILES ${zlib_BINARY_DIR}/ZLIBConfig.cmake
                   ${zlib_BINARY_DIR}/ZLIBConfigVersion.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
-    install(
-        FILES ${ZLIB_PUBLIC_HDRS}
-        COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
     install(
         FILES zlib.3
         COMPONENT Docs
