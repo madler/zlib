@@ -161,7 +161,8 @@ if(MINIZIP_BUILD_SHARED)
 
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
         PROPERTIES
-            EXPORT_NAME minizip)
+            EXPORT_NAME minizip
+            PUBLIC_HEADER "${LIBMINIZIP_HDRS}")
 
     if(MSVC)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -224,7 +225,8 @@ if(MINIZIP_BUILD_STATIC)
             $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PROPERTIES
-            EXPORT_NAME minizipstatic)
+            EXPORT_NAME minizipstatic
+            PUBLIC_HEADER "${LIBMINIZIP_HDRS}")
 
     if(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizipstatic
@@ -288,7 +290,10 @@ if(MINIZIP_INSTALL)
             EXPORT minizipSharedExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER
+                COMPONENT Development
+                DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
         install(
             EXPORT minizipSharedExport
             FILE minizip-shared.cmake
@@ -312,11 +317,13 @@ if(MINIZIP_INSTALL)
                 ${ZLIB_CONTRIB_PREFIX}minizipstatic
                 ${ZLIB_CONTRIB_PREFIX}miniunzipstatic
             COMPONENT Development
-            COMPONENT Runtime
             EXPORT minizipStaticExport
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RUNTIME
+                DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT Runtime
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
         install(
             EXPORT minizipStaticExport
             FILE minizip-static.cmake
@@ -336,9 +343,7 @@ if(MINIZIP_INSTALL)
                   ${minizip_BINARY_DIR}/minizipConfigVersion.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minizip)
     install(
-        FILES ${LIBMINIZIP_HDRS}
         COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)
