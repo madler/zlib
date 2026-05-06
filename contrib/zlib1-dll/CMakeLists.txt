@@ -21,11 +21,15 @@ if(ZLIB_BUILD_ZLIB1_DLL)
     set(ZLIB1_DLL_BUILD_TESTING ${ZLIB_BUILD_TESTING} CACHE BOOL "")
     set(ZLIB1_DLL_ENABLE_BZIP2 ${MINIZIP_ENABLE_BZIP2} CACHE BOOL "")
     set(ZLIB1_DLL_INSTALL ${ZLIB_INSTALL} CACHE BOOL "")
+    set(ZLIB1_DLL_PREFIX "${ZLIB_PREFIX}" CACHE STRING
+    "prefix for all types and library functions, see zconf.h.in")
 endif(ZLIB_BUILD_ZLIB1_DLL)
 
 option(ZLIB1_DLL_ENABLE_BZIP2 "Build with bzip2 support" OFF)
 option(ZLIB1_DLL_INSTALL "Install zlib1.dll" ON)
 option(ZLIB1_DLL_BUILD_TESTING "Build and run tests for zlib1.dll" ON)
+set(ZLIB1_DLL_PREFIX "" CACHE STRING
+    "prefix for all types and library functions, see zconf.h.in")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 
 include(CheckCSourceCompiles)
@@ -43,7 +47,7 @@ if(NOT ZLIB_CONF_WRITTEN)
     set(CONF_OUT_FILE ${zlib1-dll_BINARY_DIR}/zconf.h.cmakein)
     file(READ ../../zconf.h ZCONF_CONTENT LIMIT 245)
     file(WRITE ${CONF_OUT_FILE} ${ZCONF_CONTENT})
-    file(APPEND ${CONF_OUT_FILE} "#cmakedefine Z_PREFIX 1\n")
+    file(APPEND ${CONF_OUT_FILE} "#cmakedefine Z_PREFIX @Z_PREFIX@\n")
     file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_STDARG_H 1\n")
     file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_UNISTD_H 1\n")
     file(READ ../../zconf.h ZCONF_CONTENT OFFSET 244)
@@ -66,6 +70,8 @@ if(NOT ZLIB_CONF_WRITTEN)
 
     set(ZCONF_IN_ZLIB1 True CACHE INTERNAL "find zconf.h in zlib1-dll")
 endif(NOT ZLIB_CONF_WRITTEN)
+
+set(Z_PREFIX "${ZLIB1_DLL_PREFIX}")
 
 if(ZLIB1_DLL_ENABLE_BZIP2)
     find_package(BZip2 REQUIRED)
@@ -194,6 +200,7 @@ target_compile_definitions(${ZLIB_CONTRIB_PREFIX}zlib1
             $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
             $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
+            $<$<BOOL:${ZLIB1_DLL_PREFIX}>:Z_PREFIX=${ZLIB1_DLL_PREFIX}>
     PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
            $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
