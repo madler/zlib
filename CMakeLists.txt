@@ -23,8 +23,8 @@ option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ON)
 option(ZLIB_BUILD_SHARED "Enable building zlib shared library" ON)
 option(ZLIB_BUILD_STATIC "Enable building zlib static library" ON)
 option(ZLIB_INSTALL "Enable installation of zlib" ON)
-option(ZLIB_PREFIX "prefix for all types and library functions, see zconf.h.in"
-       OFF)
+set(ZLIB_PREFIX "" CACHE STRING
+    "prefix for all types and library functions, see zconf.h.in")
 mark_as_advanced(ZLIB_PREFIX)
 
 get_property(IS_MULTI GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -44,12 +44,16 @@ include(GNUInstallDirs)
 
 set(CPACK_INCLUDED TRUE)
 
+set(Z_PREFIX "${ZLIB_PREFIX}")
+
+#
+# Create zconf.h.cmakein
+#
 if(NOT ZLIB_CONF_WRITTEN)
-    set(Z_PREFIX ${ZLIB_PREFIX})
     set(CONF_OUT_FILE ${zlib_BINARY_DIR}/zconf.h.cmakein)
     file(READ ${zlib_SOURCE_DIR}/zconf.h ZCONF_CONTENT LIMIT 245)
     file(WRITE ${CONF_OUT_FILE} ${ZCONF_CONTENT})
-    file(APPEND ${CONF_OUT_FILE} "#cmakedefine Z_PREFIX 1\n")
+    file(APPEND ${CONF_OUT_FILE} "#cmakedefine Z_PREFIX @Z_PREFIX@\n")
     file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_STDARG_H 1\n")
     file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_UNISTD_H 1\n")
     file(READ ${zlib_SOURCE_DIR}/zconf.h ZCONF_CONTENT OFFSET 244)
@@ -70,6 +74,73 @@ if(NOT ZLIB_CONF_WRITTEN)
         CACHE BOOL "zconf.h.cmakein was created")
     mark_as_advanced(ZLIB_CONF_WRITTEN)
 endif(NOT ZLIB_CONF_WRITTEN)
+
+#
+# Create zlib.def.cmakein
+#
+if(NOT ZLIB_DEF_WRITTEN)
+    file(STRINGS "${zlib_SOURCE_DIR}/win32/zlib.def" ZLIB_DEF_LINES)
+
+    set(ZLIB_DEF_OUT "")
+
+    foreach(line IN LISTS ZLIB_DEF_LINES)
+        if(line MATCHES "^;")
+            string(APPEND ZLIB_DEF_OUT "${line}\n")
+        elseif(line MATCHES "^(LIBRARY|EXPORTS|DESCRIPTION)")
+            string(APPEND ZLIB_DEF_OUT "${line}\n")
+        elseif(line MATCHES "^ *$")
+            string(APPEND ZLIB_DEF_OUT "\n")
+        elseif(line MATCHES "^ *[A-Za-z_][A-Za-z0-9_]*")
+            string(REGEX REPLACE "^ +" "" sym "${line}")
+            string(APPEND ZLIB_DEF_OUT
+                    "    @ZLIB_PREFIX@${sym}\n")
+        else()
+            string(APPEND ZLIB_DEF_OUT "${line}\n")
+        endif()
+    endforeach()
+
+    file(WRITE
+      "${CMAKE_CURRENT_BINARY_DIR}/zlib.def.cmakein"
+      "${ZLIB_DEF_OUT}"
+    )
+
+    set(ZLIB_DEF_WRITTEN
+        TRUE
+        CACHE BOOL "zlib.def.cmakein was created")
+    mark_as_advanced(ZLIB_DEF_WRITTEN)
+endif(NOT ZLIB_DEF_WRITTEN)
+
+#
+#Create zlib.map
+#
+if(NOT ZLIB_MAP_WRITTEN)
+    file(STRINGS "${zlib_SOURCE_DIR}/zlib.map" ZLIB_MAP_CONTENT)
+    set(ZLIB_MAP_OUT "")
+
+    foreach(line IN LISTS ZLIB_MAP_CONTENT)
+        if(line MATCHES "^ *[A-Za-z_][A-Za-z0-9_]* *; *$")
+            if(line MATCHES "^ *\\* *; *$")
+                string(APPEND ZLIB_MAP_OUT "${line}\n")
+            else()
+                string(REGEX REPLACE "^ +" "" sym "${line}")
+                string(APPEND ZLIB_MAP_OUT
+                       "    @ZLIB_PREFIX@${sym}\n")
+            endif()
+        else()
+            string(APPEND ZLIB_MAP_OUT "${line}\n")
+        endif()
+    endforeach()
+
+    file(WRITE
+      "${zlib_BINARY_DIR}/zlib.map.cmakein"
+      "${ZLIB_MAP_OUT}"
+    )
+
+    set(ZLIB_MAP_WRITTEN
+        TRUE
+        CACHE BOOL "zlib.map.cmakein was created")
+    mark_as_advanced(ZLIB_MAP_WRITTEN)
+endif(NOT ZLIB_MAP_WRITTEN)
 
 #
 # Check to see if we have large file support
@@ -122,8 +193,11 @@ if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
 else()
     set(pc_libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
 endif()
+
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
 configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
+configure_file(${zlib_BINARY_DIR}/zlib.def.cmakein ${zlib_BINARY_DIR}/zlib.def)
+configure_file(${zlib_BINARY_DIR}/zlib.map.cmakein ${zlib_BINARY_DIR}/zlib.map)
 
 # ============================================================================
 # zlib
@@ -166,8 +240,10 @@ endif(WIN32)
 
 if(ZLIB_BUILD_SHARED)
     add_library(
-        zlib SHARED ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS}
-                    $<$<OR:$<BOOL:${WIN32}>,$<BOOL:${CYGWIN}>>:win32/zlib-cmake.rc>)
+        zlib SHARED ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
+                    ${ZLIB_PRIVATE_HDRS}
+                    $<$<OR:$<BOOL:${WIN32}>,$<BOOL:${CYGWIN}>>:win32/zlib-cmake.rc>
+                    $<$<BOOL:${MSVC}>:${zlib_BINARY_DIR}/zlib.def>)
     add_library(ZLIB::ZLIB ALIAS zlib)
 
     target_include_directories(
@@ -182,7 +258,9 @@ if(ZLIB_BUILD_SHARED)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
-        PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
+        PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
+               $<$<BOOL:${ZLIB_PREFIX}>:Z_PREFIX=${ZLIB_PREFIX}>)
+
     set(INSTALL_VERSION ${zlib_VERSION})
 
     if(CYGWIN)
@@ -212,7 +290,7 @@ if(ZLIB_BUILD_SHARED)
         set_target_properties(
             zlib
             PROPERTIES LINK_FLAGS
-                       "-Wl,--version-script,\"${zlib_SOURCE_DIR}/zlib.map\"")
+                       "-Wl,--version-script,\"${zlib_BINARY_DIR}/zlib.map\"")
     endif(
         UNIX
         AND NOT APPLE
@@ -236,7 +314,8 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
-        PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
+        PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
+               $<$<BOOL:${ZLIB_PREFIX}>:Z_PREFIX=${ZLIB_PREFIX}>)
 
     if(CYGWIN)
         set_target_properties(zlibstatic PROPERTIES PREFIX "lib")
