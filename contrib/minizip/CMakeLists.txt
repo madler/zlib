@@ -123,6 +123,9 @@ set(MINIUNZIP_HDRS
     unzip.h
     zip.h)
 
+set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/minizip.pc)
+configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt ${LIBMINIZIP_PC} @ONLY)
+
 if(WIN32 OR CYGWIN)
     set(minizip_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
@@ -343,7 +346,9 @@ if(MINIZIP_INSTALL)
                   ${minizip_BINARY_DIR}/minizipConfigVersion.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minizip)
     install(
+        FILES ${LIBMINIZIP_PC}
         COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)
