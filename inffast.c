@@ -116,9 +116,9 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                     "inflate:         literal 0x%02x\n", here->val));
             *out++ = (unsigned char)(here->val);
         }
-        else if (op & 16) {                     /* length base */
+        else if (op & 128) {                    /* length base */
             len = (unsigned)(here->val);
-            op &= 15;                           /* number of extra bits */
+            op &= 31;                           /* number of extra bits */
             if (op) {
                 if (bits < op) {
                     hold += (unsigned long)(*in++) << bits;
@@ -141,9 +141,9 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
             hold >>= op;
             bits -= op;
             op = (unsigned)(here->op);
-            if (op & 16) {                      /* distance base */
+            if (op & 128) {                     /* distance base */
                 dist = (unsigned)(here->val);
-                op &= 15;                       /* number of extra bits */
+                op &= 31;                       /* number of extra bits */
                 if (bits < op) {
                     hold += (unsigned long)(*in++) << bits;
                     bits += 8;
