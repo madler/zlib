@@ -1131,9 +1131,9 @@ ZEXTERN int ZEXPORT inflateBackInit(z_streamp strm, int windowBits,
    the version of the header file.
 */
 
-typedef unsigned (*in_func)(void FAR *,
+typedef unsigned long (*in_func)(void FAR *,
                             z_const unsigned char FAR * FAR *);
-typedef int (*out_func)(void FAR *, unsigned char FAR *, unsigned);
+typedef int (*out_func)(void FAR *, unsigned char FAR *, unsigned long);
 
 ZEXTERN int ZEXPORT inflateBack(z_streamp strm,
                                 in_func in, void FAR *in_desc,
