@@ -811,7 +811,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->lencode = state->distcode = (const code FAR *)(state->next);
             state->lenbits = 7;
             ret = inflate_table(CODES, state->lens, 19, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid code lengths set";
                 state->mode = BAD;
@@ -889,7 +889,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->lencode = (const code FAR *)(state->next);
             state->lenbits = 9;
             ret = inflate_table(LENS, state->lens, state->nlen, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid literal/lengths set";
                 state->mode = BAD;
@@ -898,7 +898,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->distcode = (const code FAR *)(state->next);
             state->distbits = 6;
             ret = inflate_table(DISTS, state->lens + state->nlen, state->ndist,
-                            &(state->next), &(state->distbits), state->work);
+                            &(state->next), &(state->distbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid distances set";
                 state->mode = BAD;
