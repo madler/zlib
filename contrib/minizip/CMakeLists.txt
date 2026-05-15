@@ -102,23 +102,42 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
-set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
+set(LIBMINIZIP_SRCS
+    ioapi.c
+    mztools.c
+    unzip.c
+    zip.c)
 
-set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
+set(LIBMINIZIP_HDRS
+    crypt.h
+    ints.h
+    ioapi.h
+    mztools.h
+    unzip.h
+    zip.h)
 
-set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
+set(MINIZIP_SRCS
+    ioapi.c
+    minizip.c
+    zip.c)
 
-set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> skipset.h
-                 zip.h)
+set(MINIZIP_HDRS
+    crypt.h
+    ints.h
+    ioapi.h
+    skipset.h
+    zip.h)
 
-set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> miniunz.c unzip.c
-                   zip.c)
+set(MINIUNZIP_SRCS
+    ioapi.c
+    miniunz.c
+    unzip.c
+    zip.c)
 
 set(MINIUNZIP_HDRS
     crypt.h
     ints.h
     ioapi.h
-    $<$<BOOL:${WIN32}>:iowin32.h>
     skipset.h
     unzip.h
     zip.h)
@@ -135,7 +154,8 @@ endif(WIN32 OR CYGWIN)
 if(MINIZIP_BUILD_SHARED)
     add_library(${ZLIB_CONTRIB_PREFIX}libminizip SHARED
         ${LIBMINIZIP_SRCS}
-        ${LIBMINIZIP_HDRS})
+        ${LIBMINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>)
     add_library(MINIZIP::minizip ALIAS ${ZLIB_CONTRIB_PREFIX}libminizip)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizip
         PUBLIC
@@ -184,7 +204,8 @@ if(MINIZIP_BUILD_SHARED)
 
     add_executable(${ZLIB_CONTRIB_PREFIX}minizip
         ${MINIZIP_SRCS}
-        ${MINIZIP_HDRS})
+        ${MINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}minizip
         PROPERTIES
             EXPORT_NAME minizip_executable
@@ -195,7 +216,9 @@ if(MINIZIP_BUILD_SHARED)
         PRIVATE MINIZIP::minizip)
     add_executable(${ZLIB_CONTRIB_PREFIX}miniunzip
         ${MINIUNZIP_SRCS}
-        ${MINIUNZIP_HDRS})
+        ${MINIUNZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}miniunzip
         PROPERTIES
             EXPORT_NAME miniunzip_executable
@@ -210,7 +233,8 @@ if(MINIZIP_BUILD_STATIC)
     add_library(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         STATIC
         ${LIBMINIZIP_SRCS}
-        ${LIBMINIZIP_HDRS})
+        ${LIBMINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>)
     add_library(MINIZIP::minizipstatic ALIAS
         ${ZLIB_CONTRIB_PREFIX}libminizipstatic)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizipstatic
@@ -260,7 +284,8 @@ if(MINIZIP_BUILD_STATIC)
 
     add_executable(${ZLIB_CONTRIB_PREFIX}minizipstatic
         ${MINIZIP_SRCS}
-        ${MINIZIP_HDRS})
+        ${MINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}minizipstatic
         PROPERTIES
             EXPORT_NAME minizip_static_executable
@@ -271,7 +296,9 @@ if(MINIZIP_BUILD_STATIC)
         PRIVATE MINIZIP::minizipstatic)
     add_executable(${ZLIB_CONTRIB_PREFIX}miniunzipstatic
         ${MINIUNZIP_SRCS}
-        ${MINIUNZIP_HDRS})
+        ${MINIUNZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}miniunzipstatic
         PROPERTIES
             EXPORT_NAME miniunzip_static_executable
