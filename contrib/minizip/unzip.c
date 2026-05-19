@@ -130,7 +130,7 @@ typedef struct
     z_stream stream;            /* zLib stream structure for inflate */
 
 #ifdef HAVE_BZIP2
-    bz_stream bstream;          /* bzLib stream structure for bziped */
+    bz_stream bstream;          /* bzLib stream structure for bzipped */
 #endif
 
     ZPOS64_T pos_in_zipfile;       /* position in byte on the zipfile, for fseek*/

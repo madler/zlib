@@ -153,7 +153,7 @@ add_library(zlib1 SHARED ${ZLIB1-DLL_SRCS}
                          ${ZLIB1-DLL_PUBLIC_HDRS}
                          ${ZLIB1-DLL_PRIVATE_HDRS})
 
-#taget_include_directories doesn't like relative paths
+#target_include_directories doesn't like relative paths
 include_directories(../../
                     ../minizip
                     ${CMAKE_CURRENT_BINARY_DIR})

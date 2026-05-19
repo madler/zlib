@@ -145,7 +145,7 @@ typedef struct
 {
     z_stream stream;            /* zLib stream structure for inflate */
 #ifdef HAVE_BZIP2
-    bz_stream bstream;          /* bzLib stream structure for bziped */
+    bz_stream bstream;          /* bzLib stream structure for bzipped */
 #endif
 
     int  stream_initialised;    /* 1 is stream is initialised */
