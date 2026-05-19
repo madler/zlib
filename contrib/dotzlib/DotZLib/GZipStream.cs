@@ -98,7 +98,7 @@ namespace DotZLib
         }
 
         /// <summary>
-        /// Returns true if this tsream is writeable, false otherwise
+        /// Returns true if this stream is writeable, false otherwise
         /// </summary>
         public override bool CanWrite
         {
