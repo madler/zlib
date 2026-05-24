@@ -5,9 +5,8 @@ includedir=@includedir@
 
 Name: minizip
 Description: Minizip zip file manipulation library
-Requires:
 Version: @PACKAGE_VERSION@
 License: Zlib
+Requires.private: zlib @MINIZIP_REQUIRES_PRIVATE@
 Libs: -L${libdir} -lminizip
-Libs.private: -lz
 Cflags: -I${includedir}
