@@ -100,11 +100,13 @@ int inflate_table9(codetype type, unsigned short FAR *lens, unsigned codes,
        decoding tables.
      */
 
-    /* accumulate lengths for codes (assumes lens[] all in 0..MAXBITS) */
+    /* validate and accumulate lengths for codes */
     for (len = 0; len <= MAXBITS; len++)
         count[len] = 0;
-    for (sym = 0; sym < codes; sym++)
+    for (sym = 0; sym < codes; sym++) {
+        if (lens[sym] > MAXBITS) return -1;     /* invalid code length */
         count[lens[sym]]++;
+    }
 
     /* bound code lengths, force root to be within code lengths */
     root = *bits;
