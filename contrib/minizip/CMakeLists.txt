@@ -146,7 +146,7 @@ if(MINIZIP_BUILD_SHARED)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
-                $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
+                $<$<BOOL:${MINIZIP_ENABLE_BZIP2}>:HAVE_BZIP2=1>
                 $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
 
     if(NOT CYGWIN)
@@ -163,7 +163,7 @@ if(MINIZIP_BUILD_SHARED)
 
     target_link_libraries(libminizip
         PUBLIC ZLIB::ZLIB
-            $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
+            $<$<BOOL:${MINIZIP_ENABLE_BZIP2}>:BZip2::BZip2>)
 
     add_executable(minizip ${MINIZIP_SRCS} ${MINIZIP_HDRS})
     set_target_properties(minizip PROPERTIES EXPORT_NAME minizip_executable)
@@ -190,7 +190,7 @@ if(MINIZIP_BUILD_STATIC)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
                 $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
-                $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
+                $<$<BOOL:${MINIZIP_ENABLE_BZIP2}>:HAVE_BZIP2=1>
                 $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
     set_target_properties(
         libminizipstatic PROPERTIES EXPORT_NAME minizipstatic
@@ -201,7 +201,7 @@ if(MINIZIP_BUILD_STATIC)
     endif(CYGWIN)
 
     target_link_libraries(libminizipstatic PUBLIC ZLIB::ZLIBSTATIC
-        $<$<BOOL:${BZIP2_FOUND}>:BZip2::BZip2>)
+        $<$<BOOL:${MINIZIP_ENABLE_BZIP2}>:BZip2::BZip2>)
 
     add_executable(minizipstatic ${MINIZIP_SRCS} ${MINIZIP_HDRS})
     set_target_properties(minizipstatic PROPERTIES EXPORT_NAME
