@@ -128,8 +128,8 @@
 #  include <windows.h>
 #  define zstrerror() gz_strwinerror((DWORD)GetLastError())
 #else
+#  include <errno.h>
 #  ifndef NO_STRERROR
-#    include <errno.h>
 #    define zstrerror() strerror(errno)
 #  else
 #    define zstrerror() "stdio error (consult errno)"
