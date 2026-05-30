@@ -345,6 +345,11 @@ int ZEXPORT inflateBack9(z_stream FAR *strm, in_func in, void FAR *in_desc,
                 mode = BAD;
                 break;
             }
+            if (state->ndist > 30) {
+                strm->msg = (z_const char *)"too many distance symbols";
+                mode = BAD;
+                break;
+            }
             Tracev((stderr, "inflate:       table sizes ok\n"));
 
             /* get code length code lengths (not a typo) */
