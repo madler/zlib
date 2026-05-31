@@ -198,8 +198,15 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 
     /* save the path name for error messages */
 #ifdef WIDECHAR
-    if (fd == -2)
+    if (fd == -2) {
         len = wcstombs(NULL, path, 0);
+        if (len == (z_size_t)-1) {
+            /* path has a character not representable as a multibyte sequence --
+               len + 1 would wrap to zero below, leaving an unterminated path */
+            free(state);
+            return NULL;
+        }
+    }
     else
 #endif
         len = strlen((const char *)path);
