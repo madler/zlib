@@ -4,6 +4,8 @@
 # Usage:
 #   nmake -f win32/Makefile.msc                          (standard build)
 #   nmake -f win32/Makefile.msc LOC=-DFOO                (nonstandard build)
+#
+# On ARM64 Windows, using the ARCH=arm64 option is required to ensure the build does not fail.
 
 # The toplevel directory of the source tree.
 #
@@ -11,6 +13,7 @@ TOP = .
 
 # optional build flags
 LOC =
+ARCH =
 
 # variables
 STATICLIB = zlib.lib
@@ -33,6 +36,12 @@ OBJS = adler32.obj compress.obj crc32.obj deflate.obj gzclose.obj gzlib.obj gzre
        gzwrite.obj infback.obj inflate.obj inftrees.obj inffast.obj trees.obj uncompr.obj zutil.obj
 OBJA =
 
+# arch dependent variables
+!IF "$(ARCH)" == "arm64"
+SHAREDLIBBASE =
+!ELSE
+SHAREDLIBBASE = -base:0x5A4C0000
+!ENDIF
 
 # targets
 all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) \
@@ -45,7 +54,7 @@ $(IMPLIB): $(SHAREDLIB)
 
 $(SHAREDLIB): $(TOP)/win32/zlib.def $(OBJS) $(OBJA) zlib1.res
 	$(LD) $(LDFLAGS) -def:$(TOP)/win32/zlib.def -dll -implib:$(IMPLIB) \
-	  -out:$@ -base:0x5A4C0000 $(OBJS) $(OBJA) zlib1.res
+	  -out:$@ $(SHAREDLIBBASE) $(OBJS) $(OBJA) zlib1.res
 	if exist $@.manifest \
 	  mt -nologo -manifest $@.manifest -outputresource:$@;2
 
