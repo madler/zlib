@@ -2202,8 +2202,9 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
   int remaining;
   char* pNewHeader;
   char* pTmp;
-  short header;
-  unsigned short dataSize;
+  unsigned header;
+  unsigned dataSize;
+  unsigned remove = (unsigned short)sHeader;
 
   int retVal = ZIP_OK;
 
@@ -2225,8 +2226,10 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
       break;
     }
 
-    header = *(short*)p;
-    dataSize = (unsigned short)*(((unsigned short*)p)+1);
+    header = (unsigned)(unsigned char)p[0] |
+             ((unsigned)(unsigned char)p[1] << 8);
+    dataSize = (unsigned)(unsigned char)p[2] |
+               ((unsigned)(unsigned char)p[3] << 8);
 
     if((int)dataSize > remaining - 4)
     {
@@ -2234,7 +2237,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
       break;
     }
 
-    if( header == sHeader ) /* Header found. */
+    if( header == remove ) /* Header found. */
     {
       p += dataSize + 4; /* skip it. do not copy to temp buffer */
     }
