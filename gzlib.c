@@ -385,8 +385,18 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         return -1;
 
     /* normalize offset to a SEEK_CUR specification */
-    if (whence == SEEK_SET)
+    if (whence == SEEK_SET) {
+        /* Guard against signed integer overflow when normalising SEEK_SET offset:
+         * (offset - state->x.pos) overflows when offset < INT64_MIN + pos.
+         * File position is always >= 0, so INT64_MIN + pos cannot itself
+         * underflow.  Use INT64_MIN from <limits.h> (included via gzguts.h)
+         * rather than a raw literal for portability and readability. */
+        if (offset < (z_off64_t)INT64_MIN + state->x.pos) {
+            gz_error(state, Z_STREAM_ERROR, "invalid offset");
+            return -1;
+        }
         offset -= state->x.pos;
+    }
     else {
         offset += state->past ? 0 : state->skip;
         state->skip = 0;
