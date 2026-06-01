@@ -174,3 +174,11 @@ set_tests_properties(
 
 set_tests_properties(minizip_add_subdirectory_exclude_build
                      PROPERTIES FIXTURES_REQUIRED mzasx_config)
+
+add_executable(minizip_remove_extra_test remove_extra_test.c)
+if(MINIZIP_BUILD_STATIC)
+    target_link_libraries(minizip_remove_extra_test PRIVATE MINIZIP::minizipstatic)
+else(MINIZIP_BUILD_STATIC)
+    target_link_libraries(minizip_remove_extra_test PRIVATE MINIZIP::minizip)
+endif(MINIZIP_BUILD_STATIC)
+add_test(NAME minizip_remove_extra_test COMMAND minizip_remove_extra_test)
