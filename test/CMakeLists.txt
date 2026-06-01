@@ -75,6 +75,10 @@ if(ZLIB_BUILD_STATIC)
         PROPERTIES
         OUTPUT_NAME minigzipstatic)
 
+    add_executable(gzseek64 gzseek64.c)
+    target_link_libraries(gzseek64 ZLIB::ZLIBSTATIC)
+    add_test(NAME zlib_gzseek64 COMMAND gzseek64)
+
     if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
        ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
         set(CFLAGS_OLD ${CMAKE_C_FLAGS})
