@@ -150,7 +150,7 @@ case "$1" in
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
-    -w* | --warn) warn=$((warn + 1)); shift ;;
+    -w* | --warn) warn=`expr $warn + 1`; shift ;;
     -d* | --debug) debug=1; shift ;;
     --sanitize) address=1; shift ;;
     --address) address=1; shift ;;

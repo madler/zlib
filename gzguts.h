@@ -37,8 +37,14 @@
 #  include <limits.h>
 #endif
 
-#ifndef _POSIX_C_SOURCE
-#  define _POSIX_C_SOURCE 200112L
+#ifdef __sun
+    #ifndef _POSIX_SOURCE
+        #define _POSIX_SOURCE
+    #endif
+#else
+    #ifndef _POSIX_C_SOURCE
+    #  define _POSIX_C_SOURCE 200112L
+    #endif
 #endif
 #include <fcntl.h>
 
