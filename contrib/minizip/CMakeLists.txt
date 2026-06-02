@@ -102,26 +102,17 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
-set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
+set(LIBMINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> mztools.c unzip.c zip.c)
 
-set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
+set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> mztools.h unzip.h zip.h)
 
-set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
+set(MINIZIP_SRCS minizip.c)
 
-set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> skipset.h
-                 zip.h)
+set(MINIZIP_HDRS skipset.h)
 
-set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> miniunz.c unzip.c
-                   zip.c)
+set(MINIUNZIP_SRCS miniunz.c)
 
-set(MINIUNZIP_HDRS
-    crypt.h
-    ints.h
-    ioapi.h
-    $<$<BOOL:${WIN32}>:iowin32.h>
-    skipset.h
-    unzip.h
-    zip.h)
+set(MINIUNZIP_HDRS skipset.h)
 
 if(WIN32 OR CYGWIN)
     set(minizip_static_suffix "s")
