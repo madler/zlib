@@ -57,8 +57,10 @@ if(NOT DEFINED ZLIB_BUILD_MINIZIP)
     find_package(ZLIB REQUIRED COMPONENTS ${REQUIRED_COMPONENTS} CONFIG)
 endif(NOT DEFINED ZLIB_BUILD_MINIZIP)
 
+set(MINIZIP_REQUIRES_PRIVATE "")
 if(MINIZIP_ENABLE_BZIP2)
     find_package(BZip2 REQUIRED)
+    string(APPEND MINIZIP_REQUIRES_PRIVATE " bzip2")
 endif(MINIZIP_ENABLE_BZIP2)
 
 #
@@ -339,6 +341,18 @@ if(MINIZIP_INSTALL)
         FILES ${LIBMINIZIP_HDRS}
         COMPONENT Development
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+    set(prefix "${CMAKE_INSTALL_PREFIX}")
+    set(exec_prefix "\${prefix}")
+    set(libdir "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+    set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+    set(PACKAGE_VERSION "${minizip_VERSION}")
+    configure_file(
+        ${minizip_SOURCE_DIR}/minizip.pc.in
+        ${minizip_BINARY_DIR}/minizip.pc)
+    install(
+        FILES ${minizip_BINARY_DIR}/minizip.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)
