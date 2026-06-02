@@ -25,7 +25,7 @@ If this option is turned on, additional options are available from minizip (see 
 
     ZLIB_PREFIX=OFF -- prefix for all types and library functions, see zconf.h.in
 
-This option is only on windows available and may/will be turned off and removed somewhen in the future.
+This option is only on windows available and may/will be turned off and removed sometime in the future.
 If you rely cmake for finding and using zlib, this can be turned off, as `zlib1.dll` will never be used.
 
 ## minizip-options with defaults ##
@@ -36,14 +36,14 @@ If you rely cmake for finding and using zlib, this can be turned off, as `zlib1.
 
     MINIZIP_BUILD_TESTING=ON -- Enable testing of minizip
 
-    MINIZIP_ENABLE_BZIP2=ON -- Build minizip withj bzip2 support
+    MINIZIP_ENABLE_BZIP2=ON -- Build minizip with bzip2 support
 
-A usable installation of bzip2 is needed or config will fail. Turn this option of in this case.
+A usable installation of bzip2 is needed or config will fail. Turn this option off in this case.
 
     MINIZIP_INSTALL=ON -- Enable installation of minizip
 
 This option is only available on mingw as they tend to name this lib different. Maybe this will also be
-removed in the future as. If you rely cmake for finding and using zlib, this can be turned off, as
+removed in the future as well. If you rely cmake for finding and using zlib, this can be turned off, as
 the other file will never be used.
 
 ## Using the libs ##
@@ -69,7 +69,7 @@ is found. If no COMPONENTS are requested, everything needs to be found to satisf
 libraries are optional in your project, you can omit the REQUIRED and check yourself which components were
 found, either by checking for existence of the target, or by checking the ZLIB_shared_FOUND variable, for example.
 
-When you search for minizip, it will search zlib for you, so only one of both is needed.
+When you search for minizip, it will search zlib for you, so only one of the two is needed.
 
 When you don't give any COMPONENTS, and not all components are found, the package itself is considered not found.
 
