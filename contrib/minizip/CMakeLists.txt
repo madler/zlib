@@ -105,6 +105,10 @@ unset(CMAKE_REQUIRED_FLAGS)
 set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
 
 set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
+list(TRANSFORM LIBMINIZIP_HDRS PREPEND compat/ OUTPUT_VARIABLE LIBMINIZIP_HDRS_COMPAT)
+
+set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/minizip.pc)
+configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt ${LIBMINIZIP_PC} @ONLY)
 
 set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
 
@@ -338,7 +342,15 @@ if(MINIZIP_INSTALL)
     install(
         FILES ${LIBMINIZIP_HDRS}
         COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
+    install(
+        FILES ${LIBMINIZIP_HDRS_COMPAT}
+        COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip/compat")
+    install(
+        FILES ${LIBMINIZIP_PC}
+        COMPONENT Development
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)

@@ -10,4 +10,4 @@ Version: @minizip_VERSION@
 
 Requires:
 Libs: -L${libdir} -L${sharedlibdir} -lz -lminizip
-Cflags: -I${includedir}
+Cflags: -I${includedir} -I${includedir}/minizip/compat
