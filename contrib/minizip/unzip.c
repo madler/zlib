@@ -110,6 +110,8 @@
 
 #define SIZECENTRALDIRITEM (0x2e)
 #define SIZEZIPLOCALHEADER (0x1e)
+#define SIZEEOCD (0x16)
+#define SIZEZIP64EOCDLOCATOR (0x14)
 
 
 const char unz_copyright[] =
@@ -326,7 +328,7 @@ local ZPOS64_T unz64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
     unsigned char* buf;
     ZPOS64_T uSizeFile;
     ZPOS64_T uBackRead;
-    ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
+    ZPOS64_T uMaxBack= SIZEEOCD + 0xffff; /* EOCD record + maximum size of global comment */
     ZPOS64_T uPosFound=CENTRALDIRINVALID;
 
     if (ZSEEK64(*pzlib_filefunc_def,filestream,0,ZLIB_FILEFUNC_SEEK_END) != 0)
@@ -387,7 +389,7 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
     unsigned char* buf;
     ZPOS64_T uSizeFile;
     ZPOS64_T uBackRead;
-    ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
+    ZPOS64_T uMaxBack= SIZEZIP64EOCDLOCATOR + SIZEEOCD + 0xffff; /* EOCD locator/record + maximum size of global comment */
     ZPOS64_T uPosFound=CENTRALDIRINVALID;
     uLong uL;
                 ZPOS64_T relativeOffset;
