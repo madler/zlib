@@ -1099,9 +1099,10 @@ ZEXTERN int ZEXPORT inflateGetHeader(z_streamp strm,
    a terminating zero.  If any of extra, name, or comment are not present in
    the header, then that field's pointer is set to Z_NULL.  This allows the use
    of deflateSetHeader() with the returned structure to duplicate the header.
-   Note that if those fields initially pointed to allocated memory, then the
-   application will need to save them elsewhere so that they can be eventually
-   freed.
+   Though take care that none of the fields were truncated before so using it,
+   lest havoc ensue.  Note that if those fields initially pointed to allocated
+   memory, then the application will need to save them elsewhere so that they
+   can be eventually freed.
 
      If inflateGetHeader is not used, then the header information is simply
    discarded.  The header is always checked for validity, including the header
