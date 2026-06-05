@@ -1468,40 +1468,38 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     zi->ci.stream.total_out = 0;
     zi->ci.stream.data_type = Z_BINARY;
 
-#ifdef HAVE_BZIP2
-    if ((err==ZIP_OK) && (zi->ci.method == Z_DEFLATED || zi->ci.method == Z_BZIP2ED) && (!zi->ci.raw))
-#else
-    if ((err==ZIP_OK) && (zi->ci.method == Z_DEFLATED) && (!zi->ci.raw))
-#endif
+    if ((err==ZIP_OK) && (!zi->ci.raw))
     {
-        if(zi->ci.method == Z_DEFLATED)
+        switch (zi->ci.method)
         {
-          zi->ci.stream.zalloc = (alloc_func)0;
-          zi->ci.stream.zfree = (free_func)0;
-          zi->ci.stream.opaque = (voidpf)0;
+        case Z_DEFLATED:
+            zi->ci.stream.zalloc = (alloc_func)0;
+            zi->ci.stream.zfree = (free_func)0;
+            zi->ci.stream.opaque = (voidpf)0;
 
-          if (windowBits>0)
-              windowBits = -windowBits;
+            if (windowBits>0)
+                windowBits = -windowBits;
 
-          err = deflateInit2(&zi->ci.stream, level, Z_DEFLATED, windowBits, memLevel, strategy);
+            err = deflateInit2(&zi->ci.stream, level, Z_DEFLATED, windowBits, memLevel, strategy);
 
-          if (err==Z_OK)
-              zi->ci.stream_initialised = Z_DEFLATED;
-        }
-        else if(zi->ci.method == Z_BZIP2ED)
-        {
+            if (err==Z_OK)
+                zi->ci.stream_initialised = Z_DEFLATED;
+            break;
 #ifdef HAVE_BZIP2
+        case Z_BZIP2ED:
             /* Init BZip stuff here */
-          zi->ci.bstream.bzalloc = 0;
-          zi->ci.bstream.bzfree = 0;
-          zi->ci.bstream.opaque = (voidpf)0;
+            zi->ci.bstream.bzalloc = 0;
+            zi->ci.bstream.bzfree = 0;
+            zi->ci.bstream.opaque = (voidpf)0;
 
-          err = BZ2_bzCompressInit(&zi->ci.bstream, level, 0,35);
-          if(err == BZ_OK)
-            zi->ci.stream_initialised = Z_BZIP2ED;
+            err = BZ2_bzCompressInit(&zi->ci.bstream, level, 0,35);
+            if(err == BZ_OK)
+                zi->ci.stream_initialised = Z_BZIP2ED;
+            break;
 #endif
+        default:
+            break;
         }
-
     }
 
 #    ifndef NOCRYPT
@@ -1929,7 +1927,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
       if(zi->ci.pos_local_header >= 0xffffffff)
       {
         zip64local_putValue_inmemory(p, zi->ci.pos_local_header, 8);
-        p += 8;
+/*        p += 8; never using this value */
       }
 
       /* Update how much extra free space we got in the memory buffer
