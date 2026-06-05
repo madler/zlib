@@ -315,6 +315,8 @@ local int gz_skip(gz_statep state) {
         else if (state->eof && state->strm.avail_in == 0) {
             if (state->how == GZIP && state->err == Z_OK)
                 gz_error(state, Z_BUF_ERROR, "unexpected end of file");
+            state->skip = 0;
+            state->past = 1;
             break;
         }
 
