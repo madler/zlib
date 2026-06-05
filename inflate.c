@@ -127,6 +127,13 @@ int ZEXPORT inflateReset(z_streamp strm) {
 
     if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
+    if (state->wbits != state->reqbits) {
+        if (state->window != Z_NULL) {
+            ZFREE(strm, state->window);
+            state->window = Z_NULL;
+        }
+        state->wbits = state->reqbits;
+    }
     state->wsize = 0;
     state->whave = 0;
     state->wnext = 0;
@@ -166,7 +173,7 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
 
     /* update state and reset the rest of it */
     state->wrap = wrap;
-    state->wbits = (unsigned)windowBits;
+    state->reqbits = state->wbits = (unsigned)windowBits;
     return inflateReset(strm);
 }
 
