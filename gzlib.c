@@ -256,9 +256,9 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
         if (oflag & O_NONBLOCK)
             fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 #endif
-#ifdef O_CLOEXEC
+#if defined(O_CLOEXEC) && defined(FD_CLOEXEC)
         if (oflag & O_CLOEXEC)
-            fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | O_CLOEXEC);
+            fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
 #endif
         state->fd = fd;
     }
