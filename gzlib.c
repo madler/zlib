@@ -88,9 +88,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
     gz_statep state;
     z_size_t len;
     int oflag = 0;
-#ifdef O_EXCL
     int exclusive = 0;
-#endif
 
     /* check input */
     if (path == NULL || mode == NULL)
@@ -136,11 +134,9 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
                 oflag |= O_CLOEXEC;
                 break;
 #endif
-#ifdef O_EXCL
             case 'x':
                 exclusive = 1;
                 break;
-#endif
             case 'f':
                 state->strategy = Z_FILTERED;
                 break;
@@ -195,6 +191,14 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
     }
     /* if reading, direct == 1 for auto-detect, -1 for gzip only; if writing or
        appending, direct == 0 for gzip, 1 for transparent (copy in to out) */
+
+#ifndef O_EXCL
+    if (exclusive && state->mode != GZ_READ && fd < 0) {
+        /* exclusive creation request can't be honored -- fail out */
+        free(state);
+        return NULL;
+    }
+#endif
 
     /* save the path name for error messages */
 #ifdef WIDECHAR
