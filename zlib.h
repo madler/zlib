@@ -2039,7 +2039,7 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);       /* backward compatibility */
 
 #endif /* !Z_SOLO */
 
-/* undocumented functions */
+/* undocumented functions (not part of the zlib API) */
 ZEXTERN const char   * ZEXPORT zError(int);
 ZEXTERN int            ZEXPORT inflateSyncPoint(z_streamp);
 ZEXTERN const z_crc_t FAR * ZEXPORT get_crc_table(void);
