@@ -445,7 +445,6 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
     s->status = INIT_STATE;     /* to pass state test in deflateReset() */
 
     s->wrap = wrap;
-    s->gzhead = Z_NULL;
     s->w_bits = (uInt)windowBits;
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
@@ -670,6 +669,8 @@ int ZEXPORT deflateResetKeep(z_streamp strm) {
 #endif
         adler32(0L, Z_NULL, 0);
     s->last_flush = -2;
+
+    s->gzhead = Z_NULL;
 
     _tr_init(s);
 
