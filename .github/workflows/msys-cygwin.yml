@@ -2,6 +2,8 @@ name: mingw/cygwin
 
 on: [push, pull_request]
 
+permissions: read-all
+
 jobs:
   MSys:
     runs-on: ${{ matrix.os || 'windows-latest' }}
@@ -18,11 +20,11 @@ jobs:
         shell: msys2 {0}
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       with:
         fetch-depth: 0
     - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c # v2
       with:
         msystem: ${{ matrix.sys }}
         update: true
@@ -66,11 +68,11 @@ jobs:
     name: Cygwin
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       with:
         fetch-depth: 0
     - name: Setup cygwin
-      uses: cygwin/cygwin-install-action@master
+      uses: cygwin/cygwin-install-action@781ea34f8c7c28e794b807fb7120e93bfdac3089 # master
       with:
         packages: >-
           cmake

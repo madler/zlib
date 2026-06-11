@@ -1,24 +1,26 @@
 name: OSS-Fuzz
 on: [pull_request]
+permissions: read-all
+
 jobs:
   Fuzzing:
     runs-on: ubuntu-latest
     steps:
     - name: Build Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@439b356d09b53fe1161e9fe22ac42536926983db # master
       with:
         oss-fuzz-project-name: 'zlib'
         dry-run: false
 
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@439b356d09b53fe1161e9fe22ac42536926983db # master
       with:
         oss-fuzz-project-name: 'zlib'
         fuzz-seconds: 300
         dry-run: false
 
     - name: Upload Crash
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       if: failure()
       with:
         name: artifacts
