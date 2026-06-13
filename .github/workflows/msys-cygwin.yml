@@ -62,4 +62,31 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: C:
+        shell: C:\cygwin\bin\bash.exe --login -o igncr '{0}'
+    name: Cygwin
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Setup cygwin
+      uses: cygwin/cygwin-install-action@781ea34f8c7c28e794b807fb7120e93bfdac3089 # master
+      with:
+        packages: >-
+          cmake
+          cygwin-devel
+          gcc-core
+          gcc-g++
+          ninja
+    - name: Configure
+      run: |
+        cmake /cygdrive/d/a/zlib/zlib \
+          -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DZLIB_BUILD_MINIZIP=ON \
+          -DMINIZIP_ENABLE_BZIP2=OFF \
+          -G Ninja
+    - name: Build
+      run: cmake --build build --config Release -v -j1
+    - name: Run tests
+      run: ctest --output-on-failure --test-dir build -C Release
