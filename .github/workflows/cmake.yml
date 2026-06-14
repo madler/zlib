@@ -1,5 +1,8 @@
 name: CMake
 on: [push, pull_request]
+permissions:
+  contents: read
+
 jobs:
   ci-cmake:
     name: ${{ matrix.name }}
@@ -109,7 +112,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
@@ -137,7 +140,7 @@ jobs:
       run: cmake --build ../build --config ${{ matrix.build-config || 'Release' }} -t ${{ matrix.pkgtgt }}
 
     - name: Upload build errors
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       if: failure()
       with:
         name: ${{ matrix.name }} (cmake)
