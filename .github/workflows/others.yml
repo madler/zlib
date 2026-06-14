@@ -2,15 +2,18 @@ name: anyVM-OSes
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
 
   dragonflybsd:
     runs-on: ubuntu-latest
     name: DragonflyBSD
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: DragonflyBSD
-      uses: vmactions/dragonflybsd-vm@v1
+      uses: vmactions/dragonflybsd-vm@4ba8127bd95c94b66fc4b885e37c99955ba308ea # v1
       with:
         copyback: false
         prepare: |
@@ -31,9 +34,9 @@ jobs:
           - name: aarch64
           - name: x86_64
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: FreeBSD - ${{ matrix.name }}
-      uses: vmactions/freebsd-vm@v1
+      uses: vmactions/freebsd-vm@a6de9343ef5747433d9c25784c90e84998b9d69a # v1
       with:
         arch: ${{ matrix.name }}
         copyback: false
@@ -56,9 +59,9 @@ jobs:
           - name: aarch64
           - name: x86_64
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: NetBSD - ${{ matrix.name }}
-      uses: vmactions/netbsd-vm@v1
+      uses: vmactions/netbsd-vm@99816dccf75edf233ed6cd00a159e3a5b85ea373 # v1
       with:
         copyback: false
         prepare: |
@@ -77,9 +80,9 @@ jobs:
     runs-on: ubuntu-latest
     name: OmniOS
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: OmniOS
-      uses: vmactions/omnios-vm@v1
+      uses: vmactions/omnios-vm@7f2be0b927aad1a78498c8aeeac4c4ce1fabd322 # v1
       with:
         copyback: false
         prepare: |
@@ -101,9 +104,9 @@ jobs:
           - name: x86_64
           - name: riscv64
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: OpenBSD - ${{ matrix.name }}
-      uses: vmactions/openbsd-vm@v1
+      uses: vmactions/openbsd-vm@fcf799d7ce9c305ad89eabef1fb2fa5c1c42d0ee # v1
       with:
         arch: ${{ matrix.name }}
         copyback: false
@@ -120,7 +123,7 @@ jobs:
 #    runs-on: ubuntu-latest
 #    name: OpenIndiana
 #    steps:
-#    - uses: actions/checkout@v6
+#    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 #    - name: OpenIndiana
 #      uses: vmactions/openindiana-vm@v0
 #      with:
@@ -137,9 +140,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Solaris
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
     - name: Solaris
-      uses: vmactions/solaris-vm@v1
+      uses: vmactions/solaris-vm@d30dd6c228c8661ade859e36ead7660b9a62efcc # v1
       with:
         copyback: false
         release: "11.4-gcc"
