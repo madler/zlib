@@ -18,73 +18,73 @@ if(NOT DEFINED ZLIB_BUILD_PUFF)
 endif(NOT DEFINED ZLIB_BUILD_PUFF)
 
 if(ZLIB_PUFF_BUILD_SHARED AND NOT WIN32)
-    add_executable(zlib_puff_test
+    add_executable(${ZLIB_CONTRIB_PREFIX}puff_test
         ${puff_SOURCE_DIR}/pufftest.c
         ${puff_SOURCE_DIR}/puff.h)
 
-    target_link_libraries(zlib_puff_test
-        PRIVATE zlib_puff_puff)
+    target_link_libraries(${ZLIB_CONTRIB_PREFIX}puff_test
+        PRIVATE ${ZLIB_CONTRIB_PREFIX}puff_puff)
 
-    add_test(NAME zlib_puff_test
+    add_test(NAME ${ZLIB_CONTRIB_PREFIX}puff_test
         COMMAND ${CMAKE_COMMAND} -P
                 ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                "$<TARGET_FILE:zlib_puff_test>"
+                "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_test>"
                 "${puff_SOURCE_DIR}")
 
     if(GCOV_EXECUTABLE)
-        add_executable(zlib_puff_test-coverage
+        add_executable(${ZLIB_CONTRIB_PREFIX}puff_test-coverage
             ${puff_SOURCE_DIR}/pufftest.c
             ${puff_SOURCE_DIR}/puff.c
             ${puff_SOURCE_DIR}/puff.h)
 
-        target_compile_options(zlib_puff_test-coverage PRIVATE -coverage)
+        target_compile_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage PRIVATE -coverage)
 
-        target_link_options(zlib_puff_test-coverage PRIVATE -coverage)
+        target_link_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage PRIVATE -coverage)
 
-        add_test(NAME zlib_puff_test-coverage
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}puff_test-coverage
             COMMAND ${CMAKE_COMMAND}
                     -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/tester-cov.cmake
-                    "$<TARGET_FILE:zlib_puff_test-coverage>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_test-coverage>"
                     "${puff_SOURCE_DIR}"
-                    "$<TARGET_FILE:zlib_puff_bin-writer>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_bin-writer>"
                     ${GCOV_EXECUTABLE}
                     ${llvm_option})
     endif(GCOV_EXECUTABLE)
 endif(ZLIB_PUFF_BUILD_SHARED AND NOT WIN32)
 
 if(ZLIB_PUFF_BUILD_STATIC AND NOT WIN32)
-    add_executable(zlib_puff_testStatic
+    add_executable(${ZLIB_CONTRIB_PREFIX}puff_testStatic
         ${puff_SOURCE_DIR}/pufftest.c
         ${puff_SOURCE_DIR}/puff.h)
 
-    target_link_libraries(zlib_puff_testStatic
-        PRIVATE zlib_puff_puffStatic)
-    add_test(NAME zlib_puff_testStatic
+    target_link_libraries(${ZLIB_CONTRIB_PREFIX}puff_testStatic
+        PRIVATE ${ZLIB_CONTRIB_PREFIX}puff_puffStatic)
+    add_test(NAME ${ZLIB_CONTRIB_PREFIX}puff_testStatic
         COMMAND ${CMAKE_COMMAND} -P
                 ${CMAKE_CURRENT_SOURCE_DIR}/tester.cmake
-                "$<TARGET_FILE:zlib_puff_testStatic>"
+                "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_testStatic>"
                 "${puff_SOURCE_DIR}")
 
     if(GCOV_EXECUTABLE)
-        add_executable(zlib_puff_testStatic-coverage
+        add_executable(${ZLIB_CONTRIB_PREFIX}puff_testStatic-coverage
             ${puff_SOURCE_DIR}/pufftest.c
             ${puff_SOURCE_DIR}/puff.c
             ${puff_SOURCE_DIR}/puff.h)
 
-        target_compile_options(zlib_puff_testStatic-coverage
+        target_compile_options(${ZLIB_CONTRIB_PREFIX}puff_testStatic-coverage
             PRIVATE -coverage)
 
-        target_link_options(zlib_puff_testStatic-coverage
+        target_link_options(${ZLIB_CONTRIB_PREFIX}puff_testStatic-coverage
             PRIVATE -coverage)
 
-        add_test(NAME zlib_puff_testStatic-coverage
+        add_test(NAME ${ZLIB_CONTRIB_PREFIX}puff_testStatic-coverage
             COMMAND ${CMAKE_COMMAND}
                     -P
                     ${CMAKE_CURRENT_SOURCE_DIR}/tester-cov.cmake
-                    "$<TARGET_FILE:zlib_puff_testStatic-coverage>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_testStatic-coverage>"
                     "${puff_SOURCE_DIR}"
-                    "$<TARGET_FILE:zlib_puff_bin-writer>"
+                    "$<TARGET_FILE:${ZLIB_CONTRIB_PREFIX}puff_bin-writer>"
                     ${GCOV_EXECUTABLE}
                     ${llvm_option})
     endif(GCOV_EXECUTABLE)
