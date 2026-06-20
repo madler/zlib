@@ -161,7 +161,7 @@ if(ZLIB_INSTALL)
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/find_package_wrong_components_test.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/zlib_findpackage_wrong_components_test/CMakeLists.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test/CMakeLists.txt
         @ONLY)
 
     configure_file(
@@ -239,7 +239,7 @@ if(ZLIB_INSTALL)
     endif(NOT ZLIB_BUILD_SHARED OR NOT ZLIB_BUILD_STATIC)
 
     #
-    # find_package_no_component_test
+    # find_package_wrong_components_test
     #
     add_test(
         NAME zlib_find_package_wrong_components_configure
