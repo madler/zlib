@@ -1,3 +1,4 @@
+#include <limits.h>
 /* gzlib.c -- zlib functions common to reading and writing gzip files
  * Copyright (C) 2004-2026 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -221,7 +222,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
         (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #else
-        strcpy(state->path, path);
+        memcpy(state->path, path, strlen(path) + 1);
 #endif
     }
 
@@ -583,7 +584,7 @@ void ZLIB_INTERNAL gz_error(gz_statep state, int err, const char *msg) {
     (void)snprintf(state->msg, strlen(state->path) + strlen(msg) + 3,
                    "%s%s%s", state->path, ": ", msg);
 #else
-    strcpy(state->msg, state->path);
+    memcpy(state->msg, state->path, strlen(state->path) + 1);
     strcat(state->msg, ": ");
     strcat(state->msg, msg);
 #endif
