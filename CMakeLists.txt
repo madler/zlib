@@ -44,32 +44,16 @@ include(GNUInstallDirs)
 
 set(CPACK_INCLUDED TRUE)
 
-if(NOT ZLIB_CONF_WRITTEN)
-    set(Z_PREFIX ${ZLIB_PREFIX})
-    set(CONF_OUT_FILE ${zlib_BINARY_DIR}/zconf.h.cmakein)
-    file(READ ${zlib_SOURCE_DIR}/zconf.h ZCONF_CONTENT LIMIT 245)
-    file(WRITE ${CONF_OUT_FILE} ${ZCONF_CONTENT})
-    file(APPEND ${CONF_OUT_FILE} "#cmakedefine Z_PREFIX 1\n")
-    file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_STDARG_H 1\n")
-    file(APPEND ${CONF_OUT_FILE} "#cmakedefine HAVE_UNISTD_H 1\n")
-    file(READ ${zlib_SOURCE_DIR}/zconf.h ZCONF_CONTENT OFFSET 244)
-    set(FIRST_ITEM TRUE)
+set(Z_PREFIX ${ZLIB_PREFIX})
 
-    foreach(item IN LISTS ZCONF_CONTENT)
-        if(FIRST_ITEM)
-            string(APPEND OUT_CONTENT ${item})
-            set(FIRST_ITEM FALSE)
-        else(FIRST_ITEM)
-            string(APPEND OUT_CONTENT "\;" ${item})
-        endif(FIRST_ITEM)
-    endforeach(item IN LISTS ${ZCONF_CONTENT})
-
-    file(APPEND ${CONF_OUT_FILE} ${OUT_CONTENT})
-    set(ZLIB_CONF_WRITTEN
-        TRUE
-        CACHE BOOL "zconf.h.cmakein was created")
-    mark_as_advanced(ZLIB_CONF_WRITTEN)
-endif(NOT ZLIB_CONF_WRITTEN)
+file(READ ${zlib_SOURCE_DIR}/zconf.h zconf_content)
+set(zconf_inc_guard "#define ZCONF_H\n")
+string(CONCAT zconf_new_content
+    "#cmakedefine Z_PREFIX 1\n"
+    "#cmakedefine HAVE_STDARG_H 1\n"
+    "#cmakedefine HAVE_UNISTD_H 1\n")
+string(REPLACE "${zconf_inc_guard}" "${zconf_inc_guard}\n${zconf_new_content}"
+    zconf_cmake_in "${zconf_content}")
 
 #
 # Check to see if we have large file support
@@ -123,7 +107,8 @@ else()
     set(pc_libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
 endif()
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
-configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
+string(CONFIGURE "${zconf_cmake_in}" zconf_configured)
+file(GENERATE OUTPUT ${zlib_BINARY_DIR}/zconf.h CONTENT "${zconf_configured}")
 
 # ============================================================================
 # zlib
