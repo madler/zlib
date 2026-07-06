@@ -979,6 +979,14 @@ EOF
     fi
 fi
 
+# prepare compiling for x86_64
+#ifdef __x86_64__
+CFLAGS="$CFLAGS -DUNALIGNED_OK"
+SFLAGS="$SFLAGS -DUNALIGNED_OK"
+OBJC="$OBJC crc32_x86_pclmul.o crc32_x86_vpclmulqdq.o crc32_x86.o"
+PIC_OBJC="$PIC_OBJC crc32_x86_pclmul.lo crc32_x86_vpclmulqdq.lo crc32_x86.lo"
+#endif
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
