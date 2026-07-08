@@ -2212,8 +2212,20 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
 
   while(p < (pData + *dataLen))
   {
+    if ((pData + *dataLen) - p < 4)
+    {
+      free(pNewHeader);
+      return ZIP_PARAMERROR;
+    }
+
     header = *(short*)p;
     dataSize = *(((short*)p)+1);
+
+    if (dataSize < 0 || dataSize + 4 > (pData + *dataLen) - p)
+    {
+      free(pNewHeader);
+      return ZIP_PARAMERROR;
+    }
 
     if( header == sHeader ) /* Header found. */
     {
