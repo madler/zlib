@@ -104,3 +104,9 @@ jobs:
     - name: Run test cases
       run: ctest -C Release --output-on-failure --max-width 120
       working-directory: ../build
+
+  reuse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: fsfe/reuse-action@v5
