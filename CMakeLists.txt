@@ -164,6 +164,12 @@ if(WIN32)
     set(CMAKE_DEBUG_POSTFIX "d")
 endif(WIN32)
 
+# Set directory for installed CMake configuration files
+if(NOT DEFINED ZLIB_INSTALL_CMAKEDIR)
+  set(ZLIB_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/zlib"
+      CACHE STRING "Directory to install zlib CMake configuration files to")
+endif()
+
 if(ZLIB_BUILD_SHARED)
     add_library(
         zlib SHARED ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS}
@@ -268,7 +274,7 @@ if(ZLIB_INSTALL)
             EXPORT zlibSharedExport
             FILE ZLIB-shared.cmake
             NAMESPACE ZLIB::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
+            DESTINATION ${ZLIB_INSTALL_CMAKEDIR})
 
         if(MSVC)
             install(
@@ -292,13 +298,13 @@ if(ZLIB_INSTALL)
             EXPORT zlibStaticExport
             FILE ZLIB-static.cmake
             NAMESPACE ZLIB::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
+            DESTINATION ${ZLIB_INSTALL_CMAKEDIR})
     endif(ZLIB_BUILD_STATIC)
 
     configure_package_config_file(
         ${zlib_SOURCE_DIR}/zlibConfig.cmake.in
         ${zlib_BINARY_DIR}/ZLIBConfig.cmake
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
+        INSTALL_DESTINATION ${ZLIB_INSTALL_CMAKEDIR})
 
     write_basic_package_version_file(
         "${zlib_BINARY_DIR}/ZLIBConfigVersion.cmake"
@@ -307,7 +313,7 @@ if(ZLIB_INSTALL)
 
     install(FILES ${zlib_BINARY_DIR}/ZLIBConfig.cmake
                   ${zlib_BINARY_DIR}/ZLIBConfigVersion.cmake
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zlib)
+            DESTINATION ${ZLIB_INSTALL_CMAKEDIR})
     install(
         FILES ${ZLIB_PUBLIC_HDRS}
         COMPONENT Development
