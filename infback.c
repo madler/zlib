@@ -197,7 +197,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
     unsigned long left;         /* available output */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
-    unsigned copy;              /* number of stored or match bytes to copy */
+    unsigned long copy;         /* number of stored or match bytes to copy */
     unsigned char FAR *from;    /* where to copy match bytes from */
     code here;                  /* current decoding table entry */
     code last;                  /* parent table entry */
