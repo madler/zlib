@@ -19,7 +19,7 @@
    strm provides memory allocation functions in zalloc and zfree, or
    Z_NULL to use the library memory allocation functions.
 
-   windowBits is in the range 8..15, and window is a user-supplied
+   windowBits is in the range 8..16, and window is a user-supplied
    window and output buffer that is 2**windowBits bytes.
  */
 int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
@@ -31,7 +31,7 @@ int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
         stream_size != (int)(sizeof(z_stream)))
         return Z_VERSION_ERROR;
     if (strm == Z_NULL || window == Z_NULL ||
-        windowBits < 8 || windowBits > 15)
+        windowBits < 8 || windowBits > 16)
         return Z_STREAM_ERROR;
     strm->msg = Z_NULL;                 /* in case we return an error */
     if (strm->zalloc == (alloc_func)0) {
@@ -193,10 +193,11 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
     struct inflate_state FAR *state;
     z_const unsigned char FAR *next;    /* next input */
     unsigned char FAR *put;     /* next output */
-    unsigned have, left;        /* available input and output */
+    unsigned have;              /* available input */
+    unsigned long left;         /* available output */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
-    unsigned copy;              /* number of stored or match bytes to copy */
+    unsigned long copy;         /* number of stored or match bytes to copy */
     unsigned char FAR *from;    /* where to copy match bytes from */
     code here;                  /* current decoding table entry */
     code last;                  /* parent table entry */
@@ -301,7 +302,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             state->ncode = BITS(4) + 4;
             DROPBITS(4);
 #ifndef PKZIP_BUG_WORKAROUND
-            if (state->nlen > 286 || state->ndist > 30) {
+            if (state->nlen > 286 || state->ndist > state->wbits * 2) {
                 strm->msg = (z_const char *)
                     "too many length or distance symbols";
                 state->mode = BAD;
@@ -323,7 +324,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             state->lencode = (code const FAR *)(state->next);
             state->lenbits = 7;
             ret = inflate_table(CODES, state->lens, 19, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid code lengths set";
                 state->mode = BAD;
@@ -400,7 +401,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             state->lencode = (code const FAR *)(state->next);
             state->lenbits = 9;
             ret = inflate_table(LENS, state->lens, state->nlen, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid literal/lengths set";
                 state->mode = BAD;
@@ -409,7 +410,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             state->distcode = (code const FAR *)(state->next);
             state->distbits = 6;
             ret = inflate_table(DISTS, state->lens + state->nlen, state->ndist,
-                            &(state->next), &(state->distbits), state->work);
+                            &(state->next), &(state->distbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid distances set";
                 state->mode = BAD;
@@ -421,7 +422,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
 
         case LEN:
             /* use inflate_fast() if we have enough input and output */
-            if (have >= 6 && left >= 258) {
+            if (state->wbits < 16 && have >= 6 && left >= 258) {
                 RESTORE();
                 inflate_fast(strm, state->wsize);
                 LOAD();
@@ -474,7 +475,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc,
             }
 
             /* length code -- get extra bits, if any */
-            state->extra = (unsigned)(here.op) & 15;
+            state->extra = (unsigned)(here.op) & 31;
             if (state->extra != 0) {
                 NEEDBITS(state->extra);
                 state->length += BITS(state->extra);

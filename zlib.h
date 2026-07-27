@@ -210,7 +210,8 @@ typedef gz_header FAR *gz_headerp;
 #define Z_UNKNOWN  2
 /* Possible values of the data_type field for deflate() */
 
-#define Z_DEFLATED   8
+#define Z_DEFLATED           8
+#define Z_ENHANCED_DEFLATED  9
 /* The deflate compression method (the only one supported in this version) */
 
 #define Z_NULL  0  /* for initializing zalloc, zfree, opaque */
@@ -875,7 +876,7 @@ ZEXTERN int ZEXPORT inflateInit2(z_streamp strm,
      windowBits can also be zero to request that inflate use the window size in
    the zlib header of the compressed stream.
 
-     windowBits can also be -8..-15 for raw inflate.  In this case, -windowBits
+     windowBits can also be -8..-16 for raw inflate.  In this case, -windowBits
    determines the window size.  inflate() will then process raw deflate data,
    not looking for a zlib or gzip header, not generating a check value, and not
    looking for any check values for comparison at the end of the stream.  This
@@ -1117,11 +1118,11 @@ ZEXTERN int ZEXPORT inflateBackInit(z_streamp strm, int windowBits,
    calls.  The fields zalloc, zfree and opaque in strm must be initialized
    before the call.  If zalloc and zfree are Z_NULL, then the default library-
    derived memory allocation routines are used.  windowBits is the base two
-   logarithm of the window size, in the range 8..15.  window is a caller
+   logarithm of the window size, in the range 8..16.  window is a caller
    supplied buffer of that size.  Except for special applications where it is
-   assured that deflate was used with small window sizes, windowBits must be 15
-   and a 32K byte window must be supplied to be able to decompress general
-   deflate streams.
+   assured that deflate was used with small or large window sizes, windowBits
+   must be 15 and a 32K byte window must be supplied to be able to decompress
+   general deflate streams.
 
      See inflateBack() for the usage of these routines.
 
@@ -1131,9 +1132,9 @@ ZEXTERN int ZEXPORT inflateBackInit(z_streamp strm, int windowBits,
    the version of the header file.
 */
 
-typedef unsigned (*in_func)(void FAR *,
+typedef unsigned long (*in_func)(void FAR *,
                             z_const unsigned char FAR * FAR *);
-typedef int (*out_func)(void FAR *, unsigned char FAR *, unsigned);
+typedef int (*out_func)(void FAR *, unsigned char FAR *, unsigned long);
 
 ZEXTERN int ZEXPORT inflateBack(z_streamp strm,
                                 in_func in, void FAR *in_desc,
