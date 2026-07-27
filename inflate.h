@@ -102,8 +102,8 @@ struct inflate_state {
     unsigned long hold;         /* input bit accumulator */
     unsigned bits;              /* number of bits in hold */
         /* for string and stored block copying */
-    unsigned length;            /* literal or length of data to copy */
-    unsigned offset;            /* distance back to copy string from */
+    unsigned long length;       /* literal or length of data to copy */
+    unsigned long offset;       /* distance back to copy string from */
         /* for table and code decoding */
     unsigned extra;             /* extra bits needed */
         /* fixed and dynamic code tables */
