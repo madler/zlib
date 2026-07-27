@@ -67,21 +67,36 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
     unsigned match = 0;         /* use base and extra for symbol >= match */
     unsigned short count[MAXBITS+1];    /* number of codes of each length */
     unsigned short offs[MAXBITS+1];     /* offsets in table for each length */
-    const unsigned short lbase[31] = { /* Length codes 257..285 base */
+    static const unsigned short lbase[31] = { /* Length codes 257..285 base */
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-        35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, wbits > 15 ? 3 : 258, 0, 0};
-    const unsigned short lext[31] = { /* Length codes 257..285 extra */
+        35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
+    static const unsigned short lext[31] = { /* Length codes 257..285 extra */
         128, 128, 128, 128, 128, 128, 128, 128, 129, 129, 129, 129,
         130, 130, 130, 130, 131, 131, 131, 131, 132, 132, 132, 132,
-        133, 133, 133, 133, wbits > 15 ? 144 : 128, 68, 193 };
-    const unsigned short dbase[32] = { /* Distance codes 0..31 base */
+        133, 133, 133, 133, 128, 68, 193 };
+    static const unsigned short dbase[32] = { /* Distance codes 0..29 base */
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
-        8193, 12289, 16385, 24577, wbits > 15 ? 32769 : 0, wbits > 15 ? 49153 : 0};
-    const unsigned short dext[32] = { /* Distance codes 0..31 extra */
+        8193, 12289, 16385, 24577, 0, 0};
+    static const unsigned short dext[32] = { /* Distance codes 0..29 extra */
         128, 128, 128, 128, 129, 129, 130, 130, 131, 131, 132, 132,
         133, 133, 134, 134, 135, 135, 136, 136, 137, 137, 138, 138,
-        139, 139, 140, 140, 141, 141, wbits > 15 ? 142 : 64, wbits > 15 ? 142 : 64};
+        139, 139, 140, 140, 141, 141, 64, 64};
+    static const unsigned short lbase64[31] = { /* 64K Length codes 257..285 base */
+        3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
+        35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 3, 0, 0};
+    static const unsigned short lext64[31] = { /* 64K Length codes 257..285 extra */
+        128, 128, 128, 128, 128, 128, 128, 128, 129, 129, 129, 129,
+        130, 130, 130, 130, 131, 131, 131, 131, 132, 132, 132, 132,
+        133, 133, 133, 133, 144, 68, 193 };
+    static const unsigned short dbase64[32] = { /* 64K Distance codes 0..31 base */
+        1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
+        257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
+        8193, 12289, 16385, 24577, 32769, 49153};
+    static const unsigned short dext64[32] = { /* 64K Distance codes 0..31 extra */
+        128, 128, 128, 128, 129, 129, 130, 130, 131, 131, 132, 132,
+        133, 133, 134, 134, 135, 135, 136, 136, 137, 137, 138, 138,
+        139, 139, 140, 140, 141, 141, 142, 142};
 
     /*
        Process a set of code lengths to create a canonical Huffman code.  The
@@ -194,13 +209,13 @@ int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
         match = 20;
         break;
     case LENS:
-        base = lbase;
-        extra = lext;
+        base = wbits > 15 ? lbase64 : lbase;
+        extra = wbits > 15 ? lext64 : lext;
         match = 257;
         break;
     case DISTS:
-        base = dbase;
-        extra = dext;
+        base = wbits > 15 ? dbase64 : dbase;
+        extra = wbits > 15 ? dext64 : dext;
     }
 
     /* initialize state for loop */
