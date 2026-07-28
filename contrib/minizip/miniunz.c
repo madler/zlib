@@ -34,7 +34,6 @@
 #else
 #define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
 #define FTELLO_FUNC(stream) ftello64(stream)
-#define FSEEKO_FUNC(stream) ftello64(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
 #endif
 
@@ -599,7 +598,7 @@ int main(int argc, char *argv[]) {
     int ret_value=0;
     int opt_do_list=0;
     int opt_do_extract=1;
-    int opt_extract_withoutpath=0;
+    int opt_do_extract_withoutpath=0;
     int opt_overwrite=0;
     int opt_extractdir=0;
     const char *dirname=NULL;
@@ -629,7 +628,7 @@ int main(int argc, char *argv[]) {
                     if ((c=='x') || (c=='X'))
                         opt_do_extract = 1;
                     if ((c=='e') || (c=='E'))
-                        opt_do_extract = opt_extract_withoutpath = 1;
+                        opt_do_extract = opt_do_extract_withoutpath = 1;
                     if ((c=='o') || (c=='O'))
                         opt_overwrite=1;
                     if ((c=='d') || (c=='D'))
@@ -705,9 +704,9 @@ int main(int argc, char *argv[]) {
         }
 
         if (filename_to_extract == NULL)
-            ret_value = do_extract(uf, opt_extract_withoutpath, opt_overwrite, password);
+            ret_value = do_extract(uf, opt_do_extract_withoutpath, opt_overwrite, password);
         else
-            ret_value = do_extract_onefile(uf, filename_to_extract, opt_extract_withoutpath, opt_overwrite, password);
+            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password);
     }
 
     unzClose(uf);
