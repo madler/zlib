@@ -69,6 +69,12 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
     add_test(NAME zlib_examplestatic COMMAND zlib_examplestatic)
 
+    if(UNIX)
+        add_executable(gznonblock gznonblock.c)
+        target_link_libraries(gznonblock ZLIB::ZLIBSTATIC)
+        add_test(NAME zlib_gznonblock COMMAND gznonblock)
+    endif(UNIX)
+
     add_executable(zlib_minigzipstatic minigzip.c)
     target_link_libraries(zlib_minigzipstatic ZLIB::ZLIBSTATIC)
     set_target_properties(zlib_minigzipstatic
