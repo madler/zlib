@@ -242,9 +242,17 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
             n -= state->strm.avail_in;
             state->x.pos += n;
             len -= n;
-            if (ret == -1)
+            if (ret == -1) {
+                /*
+                 * The bytes not reported as consumed remain owned by the
+                 * caller. Do not keep their address after returning.
+                 */
+                state->strm.avail_in = 0;
+                state->strm.next_in = Z_NULL;
                 return state->again ? put - len : 0;
+            }
         } while (len);
+        state->strm.next_in = Z_NULL;
     }
 
     /* input was all buffered or compressed */
