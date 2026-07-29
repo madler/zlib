@@ -531,6 +531,8 @@ int ZEXPORT gzungetc(int c, gzFile file) {
 
     /* if output buffer empty, put byte at end (allows more pushing) */
     if (state->x.have == 0) {
+        if (state->out == NULL || state->size == 0)
+            return -1;
         state->x.have = 1;
         state->x.next = state->out + (state->size << 1) - 1;
         state->x.next[0] = (unsigned char)c;
