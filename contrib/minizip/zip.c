@@ -1055,6 +1055,11 @@ local int LoadCentralDirectoryRecord(zip64_internal* pziinit) {
   if (ZSEEK64(pziinit->z_filefunc, pziinit->filestream, offset_central_dir+byte_before_the_zipfile,ZLIB_FILEFUNC_SEEK_SET) != 0)
     err=ZIP_ERRNO;
 
+  if (err != ZIP_OK)
+  {
+    ZCLOSE64(pziinit->z_filefunc, pziinit->filestream);
+  }
+
   return err;
 }
 
@@ -1123,6 +1128,7 @@ extern zipFile ZEXPORT zipOpen3(const void *pathname, int append, zipcharpc* glo
     {
 #    ifndef NO_ADDFILEINEXISTINGZIP
         free(ziinit.globalcomment);
+        free_linkedlist(&(ziinit.central_dir));
 #    endif /* !NO_ADDFILEINEXISTINGZIP*/
         free(zi);
         return NULL;
