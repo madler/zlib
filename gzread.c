@@ -125,6 +125,13 @@ local int gz_look(gz_statep state) {
        if we're looking for a gzip member after the first one, which is not at
        the start, then proceed directly to look for a gzip member next */
     if (state->direct == -1 || state->junk == 0) {
+        /* wait for input before committing to another gzip member */
+        if (state->junk == 0 && strm->avail_in == 0) {
+            if (gz_avail(state) == -1)
+                return -1;
+            if (strm->avail_in == 0)
+                return 0;
+        }
         inflateReset(strm);
         state->how = GZIP;
         state->junk = state->junk != -1;
