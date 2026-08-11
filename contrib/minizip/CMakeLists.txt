@@ -106,7 +106,8 @@ set(LIBMINIZIP_SRCS
     ioapi.c
     mztools.c
     unzip.c
-    zip.c)
+    zip.c
+    $<$<BOOL:${WIN32}>:iowin32.c>)
 
 set(LIBMINIZIP_HDRS
     crypt.h
@@ -114,7 +115,8 @@ set(LIBMINIZIP_HDRS
     ioapi.h
     mztools.h
     unzip.h
-    zip.h)
+    zip.h
+    $<$<BOOL:${WIN32}>:${minizip_SOURCE_DIR}/iowin32.h>)
 
 set(MINIZIP_SRCS
     ioapi.c
@@ -154,8 +156,7 @@ endif(WIN32 OR CYGWIN)
 if(MINIZIP_BUILD_SHARED)
     add_library(${ZLIB_CONTRIB_PREFIX}libminizip SHARED
         ${LIBMINIZIP_SRCS}
-        ${LIBMINIZIP_HDRS}
-        $<$<BOOL:${WIN32}>:iowin32.c>)
+        ${LIBMINIZIP_HDRS})
     add_library(MINIZIP::minizip ALIAS ${ZLIB_CONTRIB_PREFIX}libminizip)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizip
         PUBLIC
@@ -169,7 +170,7 @@ if(MINIZIP_BUILD_SHARED)
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
-            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
+            $<$<AND:$<NOT:$<BOOL:${HAVE_FOPEN64}>>,$<NOT:$<BOOL:${MSVC}>>>:USE_FILE32API=1>)
 
     if(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -233,8 +234,7 @@ if(MINIZIP_BUILD_STATIC)
     add_library(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         STATIC
         ${LIBMINIZIP_SRCS}
-        ${LIBMINIZIP_HDRS}
-        $<$<BOOL:${WIN32}>:iowin32.c>)
+        ${LIBMINIZIP_HDRS})
     add_library(MINIZIP::minizipstatic ALIAS
         ${ZLIB_CONTRIB_PREFIX}libminizipstatic)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizipstatic
@@ -249,7 +249,7 @@ if(MINIZIP_BUILD_STATIC)
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
-            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
+            $<$<AND:$<NOT:$<BOOL:${HAVE_FOPEN64}>>,$<NOT:$<BOOL:${MSVC}>>>:USE_FILE32API=1>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PROPERTIES
             EXPORT_NAME minizipstatic
