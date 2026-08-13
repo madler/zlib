@@ -2,6 +2,9 @@ name: mingw/cygwin
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   MSys:
     runs-on: ${{ matrix.os || 'windows-latest' }}

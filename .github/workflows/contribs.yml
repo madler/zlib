@@ -1,5 +1,9 @@
 name: contribs
 on: [push, pull_request]
+
+permissions:
+  contents: read
+
 jobs:
   ci-cmake:
     name: ${{ matrix.name }}
