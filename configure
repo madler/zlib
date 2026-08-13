@@ -1024,6 +1024,7 @@ sed < ${SRCDIR}Makefile.in "
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^CPP *=/s#=.*#=$CPP#
+/^VGFMAFLAG *=/s#=.*#=$VGFMAFLAG#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
@@ -1054,6 +1055,7 @@ sed < ${SRCDIR}zlib.pc.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
 /^CPP *=/s#=.*#=$CPP#
+/^VGFMAFLAG *=/s#=.*#=$VGFMAFLAG#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#

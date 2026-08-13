@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12...3.31)
 project(
     zlib
     LANGUAGES C
-    VERSION 1.3.2
+    VERSION 1.3.2.1
     HOMEPAGE_URL "https://zlib.net/"
     DESCRIPTION "a general-purpose lossless data-compression library")
 
@@ -112,6 +112,16 @@ check_c_source_compiles(
 
 unset(CMAKE_COMPILE_FLAGS)
 set(ZLIB_PC ${zlib_BINARY_DIR}/zlib.pc)
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(pc_includedir "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+    set(pc_includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(pc_libdir "${CMAKE_INSTALL_LIBDIR}")
+else()
+    set(pc_libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
 configure_file(${zlib_SOURCE_DIR}/zlib.pc.cmakein ${ZLIB_PC} @ONLY)
 configure_file(${zlib_BINARY_DIR}/zconf.h.cmakein ${zlib_BINARY_DIR}/zconf.h)
 
@@ -157,8 +167,9 @@ endif(WIN32)
 if(ZLIB_BUILD_SHARED)
     add_library(
         zlib SHARED ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS}
-                    $<$<OR:$<BOOL:${WIN32}>,$<BOOL:${CYGWIN}>>:win32/zlib1.rc>)
+                    $<$<OR:$<BOOL:${WIN32}>,$<BOOL:${CYGWIN}>>:win32/zlib-cmake.rc>)
     add_library(ZLIB::ZLIB ALIAS zlib)
+
     target_include_directories(
         zlib
         PUBLIC $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
@@ -174,16 +185,24 @@ if(ZLIB_BUILD_SHARED)
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
     set(INSTALL_VERSION ${zlib_VERSION})
 
-    if(NOT CYGWIN)
+    if(CYGWIN)
+        set_target_properties(zlib PROPERTIES PREFIX "lib")
+    else(CYGWIN)
         set_target_properties(zlib PROPERTIES SOVERSION ${zlib_VERSION_MAJOR}
                                               VERSION ${INSTALL_VERSION})
-    endif(NOT CYGWIN)
+    endif(CYGWIN)
 
     set_target_properties(
         zlib
         PROPERTIES DEFINE_SYMBOL ZLIB_DLL
-                   EXPORT_NAME ZLIB
-                   OUTPUT_NAME z)
+                   EXPORT_NAME ZLIB)
+
+    if(MSVC)
+        set_target_properties(zlib PROPERTIES OUTPUT_NAME libz)
+    else(MSVC)
+        set_target_properties(zlib PROPERTIES OUTPUT_NAME z)
+    endif(MSVC)
+
     if(UNIX
         AND NOT APPLE
         AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
@@ -217,9 +236,23 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_DEPRECATE>
                 $<$<BOOL:${MSVC}>:_CRT_NONSTDC_NO_DEPRECATE>
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
+
+    if(CYGWIN)
+        set_target_properties(zlibstatic PROPERTIES PREFIX "lib")
+    endif(CYGWIN)
+
+    if(MSVC)
+        set_target_properties(zlibstatic
+            PROPERTIES
+                ARCHIVE_OUTPUT_NAME libz${zlib_static_suffix})
+    else(MSVC)
+        set_target_properties(zlibstatic
+            PROPERTIES
+                ARCHIVE_OUTPUT_NAME z${zlib_static_suffix})
+    endif(MSVC)
+
     set_target_properties(
-        zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
-                                                     z${zlib_static_suffix})
+        zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC)
 endif(ZLIB_BUILD_STATIC)
 
 if(ZLIB_INSTALL)

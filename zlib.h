@@ -1,5 +1,5 @@
 /* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.3.2, February 17th, 2026
+  version 1.3.2.1, February xxth, 2026
 
   Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
@@ -41,12 +41,12 @@
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.3.2"
-#define ZLIB_VERNUM 0x1320
+#define ZLIB_VERSION "1.3.2.1-motley"
+#define ZLIB_VERNUM 0x1321
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 3
 #define ZLIB_VER_REVISION 2
-#define ZLIB_VER_SUBREVISION 0
+#define ZLIB_VER_SUBREVISION 1
 
 /*
     The 'zlib' compression library provides in-memory compression and
@@ -1394,8 +1394,8 @@ ZEXTERN gzFile ZEXPORT gzopen(const char *path, const char *mode);
    errno can be checked to determine if the reason gzopen failed was that the
    file could not be opened. Note that if 'N' is in mode for non-blocking, the
    open() itself can fail in order to not block. In that case gzopen() will
-   return NULL and errno will be EAGAIN or ENONBLOCK. The call to gzopen() can
-   then be re-tried. If the application would like to block on opening the
+   return NULL and errno will be EAGAIN or EWOULDBLOCK. The call to gzopen()
+   can then be re-tried. If the application would like to block on opening the
    file, then it can use open() without O_NONBLOCK, and then gzdopen() with the
    resulting file descriptor and 'N' in the mode, which will set it to non-
    blocking.

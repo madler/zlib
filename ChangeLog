@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.3.2.1 (xx Feb 2026)
+- 
+
 Changes in 1.3.2 (17 Feb 2026)
 - Continued rewrite of CMake build [Vollstrecker]
 - Various portability improvements

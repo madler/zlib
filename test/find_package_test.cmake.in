@@ -5,7 +5,6 @@ project(
     LANGUAGES C
     VERSION @zlib_VERSION@)
 
-enable_testing()
 option(ZLIB_BUILD_SHARED "" @ZLIB_BUILD_SHARED@)
 option(ZLIB_BUILD_STATIC "" @ZLIB_BUILD_STATIC@)
 
