@@ -700,6 +700,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
         case DICT:
             if (state->havedict == 0) {
                 RESTORE();
+                strm->total_in += in - strm->avail_in;
                 return Z_NEED_DICT;
             }
             strm->adler = state->check = adler32(0L, Z_NULL, 0);
