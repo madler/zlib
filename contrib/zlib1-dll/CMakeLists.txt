@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12...3.31)
 project(
     zlib1-dll
     LANGUAGES C
-    VERSION 1.3.2
+    VERSION 1.3.2.1
     HOMEPAGE_URL "https://zlib.net/"
     DESCRIPTION "zlib1.dll is the legacy DLL with zlib and minizip")
 
