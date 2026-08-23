@@ -383,7 +383,8 @@ local int gz_vacate(gz_statep state) {
     z_streamp strm;
 
     strm = &(state->strm);
-    if (strm->next_in + strm->avail_in <= state->in + state->size)
+    if (strm->next_in == NULL ||
+        strm->next_in + strm->avail_in <= state->in + state->size)
         return 0;
     (void)gz_comp(state, Z_NO_FLUSH);
     if (strm->avail_in == 0) {

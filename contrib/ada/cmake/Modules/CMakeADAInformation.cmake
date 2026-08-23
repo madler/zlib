@@ -90,6 +90,7 @@ function(ada_add_executable)
         set_target_properties(${ARGV0}
             PROPERTIES
                 ADDITIONAL_CLEAN_FILES "${CLEAN_FILES}")
+        target_link_options(${ARGV0} PRIVATE "-aOCMakeFiles/${ARGV0}.dir/")
     endif(ARGC GREATER 1)
 endfunction(ada_add_executable)
 
@@ -113,6 +114,7 @@ function(ada_add_library)
             PROPERTIES
                 ADDITIONAL_CLEAN_FILES "${CLEAN_FILES};dummylib.adb;dummylib.ali;dummylib.o"
                 ALI_FLAG "-aO${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${ARGV0}.dir/")
+        target_link_options(${ARGV0} PRIVATE "-aOCMakeFiles/${ARGV0}.dir/")
     endif(ARGC GREATER 2)
 endfunction(ada_add_library)
 

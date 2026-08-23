@@ -1167,13 +1167,12 @@ extern int ZEXPORT unzLocateFile(unzFile file, const char *szFileName, int iCase
 
 
 /*
-///////////////////////////////////////////
-// Contributed by Ryan Haksi (mailto://cryogen@infoserve.net)
-// I need random access
-//
-// Further optimization could be realized by adding an ability
-// to cache the directory in memory. The goal being a single
-// comprehensive file read to put the file I need in a memory.
+   Contributed by Ryan Haksi (mailto://cryogen@infoserve.net)
+   I need random access
+
+   Further optimization could be realized by adding an ability
+   to cache the directory in memory. The goal being a single
+   comprehensive file read to put the file I need in a memory.
 */
 
 /*
@@ -1242,8 +1241,7 @@ extern int ZEXPORT unzGoToFilePos(unzFile file, unz_file_pos* file_pos) {
 }
 
 /*
-// Unzip Helper Functions - should be here?
-///////////////////////////////////////////
+   Unzip Helper Functions - should be here?
 */
 
 /*

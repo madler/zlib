@@ -66,10 +66,12 @@ or
 
 As it's possible to only build the shared or the static lib, you can make sure that everything you need
 is found. If no COMPONENTS are requested, everything needs to be found to satisfy your request. If the
-libraries are optional in you project, you can omit the REQUIRED and check yourself if the targets you
-want to link against are created.
+libraries are optional in your project, you can omit the REQUIRED and check yourself which components were
+found, either by checking for existence of the target, or by checking the ZLIB_shared_FOUND variable, for example.
 
 When you search for minizip, it will search zlib for you, so only one of both is needed.
+
+When you don't give any COMPONENTS, and not all components are found, the package itself is considered not found.
 
 ## Imported targets ##
 
