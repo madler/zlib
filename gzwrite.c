@@ -183,7 +183,7 @@ local int gz_zero(gz_statep state) {
 
 /* Write len bytes from buf to file.  Return the number of bytes written.  If
    the returned value is less than len, then there was an error. If the error
-   was a non-blocking stall, then the number of bytes consumed is returned.
+   was a non-blocking stall, then the number of bytes accepted is returned.
    For any other error, 0 is returned. */
 local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     z_size_t put = len;
@@ -242,8 +242,25 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
             n -= state->strm.avail_in;
             state->x.pos += n;
             len -= n;
-            if (ret == -1)
-                return state->again ? put - len : 0;
+            if (ret == -1) {
+                if (state->again) {
+                    /* Save an accepted prefix of the remaining input.  Never
+                       leave next_in pointing into the caller's buffer after
+                       returning. */
+                    unsigned save = state->strm.avail_in;
+
+                    if (save > state->size)
+                        save = state->size;
+                    if (save)
+                        memcpy(state->in, state->strm.next_in, save);
+                    state->strm.next_in = state->in;
+                    state->strm.avail_in = save;
+                    state->x.pos += save;
+                    len -= save;
+                    return put - len;
+                }
+                return 0;
+            }
         } while (len);
     }
 
