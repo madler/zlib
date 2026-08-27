@@ -954,7 +954,11 @@ local void putShortMSB(deflate_state *s, uInt b) {
  * applications may wish to modify it to avoid allocating a large
  * strm->next_out buffer and copying into it. (See also read_buf()).
  */
+#ifdef HAVE_S390X_DFLTCC
 void ZLIB_INTERNAL flush_pending(z_streamp strm) {
+#else
+local void flush_pending(z_streamp strm) {
+#endif
     unsigned len;
     deflate_state *s = strm->state;
 

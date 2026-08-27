@@ -242,7 +242,11 @@ int ZEXPORT inflatePrime(z_streamp strm, int bits, int value) {
     return Z_OK;
 }
 
+#ifdef HAVE_S390X_DFLTCC
 int ZLIB_INTERNAL inflate_ensure_window(struct inflate_state *state)
+#else
+local int inflate_ensure_window(struct inflate_state *state)
+#endif
 {
     /* if it hasn't been done already, allocate space for the window */
     if (state->window == Z_NULL) {

@@ -125,4 +125,6 @@ struct inflate_state {
     unsigned was;               /* initial length of match */
 };
 
+#ifdef HAVE_S390X_DFLTCC
 int ZLIB_INTERNAL inflate_ensure_window(struct inflate_state *state);
+#endif

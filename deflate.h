@@ -388,8 +388,13 @@ typedef enum {
     finish_done     /* finish done, accept no more input or output */
 } block_state;
 
+/* When HAVE_S390X_DFLTCC is defined, the following functions are promoted
+ * from local to ZLIB_INTERNAL so that the DFLTCC code in contrib can call
+ * them. */
+#ifdef HAVE_S390X_DFLTCC
 unsigned ZLIB_INTERNAL bi_reverse(unsigned code, int len);
 void ZLIB_INTERNAL bi_windup(deflate_state *s);
 void ZLIB_INTERNAL flush_pending(z_streamp strm);
+#endif /* HAVE_S390X_DFLTCC */
 
 #endif /* DEFLATE_H */
