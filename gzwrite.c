@@ -211,6 +211,11 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
                 state->strm.next_in = state->in;
             have = (unsigned)((state->strm.next_in + state->strm.avail_in) -
                               state->in);
+            if (have >= state->size) {
+                if (gz_comp(state, Z_NO_FLUSH) == -1)
+                    return state->again ? put - len : 0;
+                continue;
+            }
             copy = state->size - have;
             if (copy > len)
                 copy = (unsigned)len;
