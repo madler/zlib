@@ -1191,7 +1191,8 @@ int ZEXPORT inflateSetDictionary(z_streamp strm, const Bytef *dictionary,
     int ret;
 
     /* check state */
-    if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
+    if (inflateStateCheck(strm) || dictionary == Z_NULL)
+        return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
     if (state->wrap != 0 && state->mode != DICT)
         return Z_STREAM_ERROR;
