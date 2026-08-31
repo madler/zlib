@@ -151,7 +151,11 @@ local TCONST static_tree_desc static_bl_desc =
  * method would use a table)
  * IN assertion: 1 <= len <= 15
  */
+#ifdef HAVE_S390X_DFLTCC
+unsigned ZLIB_INTERNAL bi_reverse(unsigned code, int len) {
+#else
 local unsigned bi_reverse(unsigned code, int len) {
+#endif
     unsigned res = 0;
     do {
         res |= code & 1;
@@ -178,7 +182,11 @@ local void bi_flush(deflate_state *s) {
 /* ===========================================================================
  * Flush the bit buffer and align the output on a byte boundary
  */
+#ifdef HAVE_S390X_DFLTCC
+void ZLIB_INTERNAL bi_windup(deflate_state *s) {
+#else
 local void bi_windup(deflate_state *s) {
+#endif
     if (s->bi_valid > 8) {
         put_short(s, s->bi_buf);
     } else if (s->bi_valid > 0) {
@@ -286,6 +294,9 @@ local void send_bits(deflate_state *s, int value, int length) {
 }
 #endif /* ZLIB_DEBUG */
 
+void ZLIB_INTERNAL _tr_send_bits(deflate_state *s, int value, int length) {
+    send_bits(s, value, length);
+}
 
 /* the arguments must not have side effects */
 
