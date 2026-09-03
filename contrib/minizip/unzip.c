@@ -859,8 +859,16 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
             *(szFileName+file_info.size_filename)='\0';
             uSizeRead = file_info.size_filename;
         }
+        else if (fileNameBufferSize>0)
+        {
+            /* stored name doesn't fit: keep one byte back so we can still
+               null-terminate inside the caller's buffer instead of filling
+               it completely and leaving callers to strlen() past the end */
+            uSizeRead = fileNameBufferSize-1;
+            *(szFileName+uSizeRead)='\0';
+        }
         else
-            uSizeRead = fileNameBufferSize;
+            uSizeRead = 0;
 
         if ((file_info.size_filename>0) && (fileNameBufferSize>0))
             if (ZREAD64(s->z_filefunc, s->filestream,szFileName,uSizeRead)!=uSizeRead)
