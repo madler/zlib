@@ -201,6 +201,22 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     if (state->skip && gz_zero(state) == -1)
         return 0;
 
+    /* If input is still pending from a previous write that stalled on a
+       non-blocking destination, and that pending input is not in the input
+       buffer, then it is in the caller's buffer, left there by a direct
+       (large) write.  Such input was not counted as consumed when the
+       previous partial result was returned, so the caller will provide it
+       again, starting at the current position of the new call's buffer.
+       Since that pending input has not yet been given to deflate, nothing
+       is lost by dropping the pending reference to it here and letting
+       this call's input be compressed in its place.  (Input pending in
+       the input buffer itself must be kept, as it was already counted as
+       consumed and is not being provided again.) */
+    if (state->strm.avail_in &&
+        (state->strm.next_in < state->in ||
+         state->strm.next_in >= state->in + state->size))
+        state->strm.avail_in = 0;
+
     /* for small len, copy to input buffer, otherwise compress directly */
     if (len < state->size) {
         /* copy to input buffer, compress when full */

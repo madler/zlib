@@ -2,7 +2,11 @@
                 ChangeLog file for zlib
 
 Changes in 1.3.2.1 (xx Feb 2026)
-- 
+- Fix gz_write() crash and corruption after a stall on a non-blocking
+  destination: input left pending in the caller's buffer by a partial
+  direct write was assumed to be in the internal input buffer, causing
+  an out-of-bounds copy on the next write, and could be compressed a
+  second time when the caller resubmitted it
 
 Changes in 1.3.2 (17 Feb 2026)
 - Continued rewrite of CMake build [Vollstrecker]
