@@ -68,9 +68,9 @@ char ZLIB_INTERNAL *gz_strwinerror(DWORD error) {
 /* Reset gzip file state */
 local void gz_reset(gz_statep state) {
     state->x.have = 0;              /* no output data available */
+    state->past = 0;                /* have not read past end yet */
     if (state->mode == GZ_READ) {   /* for reading ... */
         state->eof = 0;             /* not at end of file */
-        state->past = 0;            /* have not read past end yet */
         state->how = LOOK;          /* look for gzip header */
         state->junk = -1;           /* mark first member */
     }
