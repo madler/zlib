@@ -97,7 +97,16 @@ struct inflate_state {
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if needed */
+    /* window <-> wsize: NULL iff wsize == 0. Attribute is inert when the
+       compiler does not support it (default builds unchanged). */
+#if defined(__has_attribute) && __has_attribute(__sized_by_or_null__)
+    unsigned char FAR *window __attribute__((__sized_by_or_null__(wsize)));
+#elif defined(__has_attribute) && __has_attribute(__counted_by_or_null__)
+    unsigned char FAR *window __attribute__((__counted_by_or_null__(wsize)));
+#else
+    unsigned char FAR *window;
+#endif
+                                /* allocated sliding window, if needed */
         /* bit accumulator */
     unsigned long hold;         /* input bit accumulator */
     unsigned bits;              /* number of bits in hold */
