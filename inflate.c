@@ -127,7 +127,11 @@ int ZEXPORT inflateReset(z_streamp strm) {
 
     if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
     state = (struct inflate_state FAR *)strm->state;
-    state->wsize = 0;
+    /* Keep wsize when the sliding window allocation is retained so the
+       window/wsize relationship remains consistent across reset. Clear
+       wsize only when there is no window. Indices always restart at zero. */
+    if (state->window == Z_NULL)
+        state->wsize = 0;
     state->whave = 0;
     state->wnext = 0;
     return inflateResetKeep(strm);
@@ -162,6 +166,7 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
     if (state->window != Z_NULL && state->wbits != (unsigned)windowBits) {
         ZFREE(strm, state->window);
         state->window = Z_NULL;
+        state->wsize = 0;
     }
 
     /* update state and reset the rest of it */
@@ -255,16 +260,22 @@ local int updatewindow(z_streamp strm, const Bytef *end, unsigned copy) {
 
     state = (struct inflate_state FAR *)strm->state;
 
-    /* if it hasn't been done already, allocate space for the window */
+    /* if it hasn't been done already, allocate space for the window.
+       Set capacity (wsize) before binding the pointer so the window/wsize
+       relationship stays consistent for bounds annotations. */
     if (state->window == Z_NULL) {
+        state->wsize = 1U << state->wbits;
+        state->wnext = 0;
+        state->whave = 0;
         state->window = (unsigned char FAR *)
-                        ZALLOC(strm, 1U << state->wbits,
-                               sizeof(unsigned char));
-        if (state->window == Z_NULL) return 1;
+                        ZALLOC(strm, state->wsize, sizeof(unsigned char));
+        if (state->window == Z_NULL) {
+            state->wsize = 0;
+            return 1;
+        }
     }
-
-    /* if window not in use yet, initialize */
-    if (state->wsize == 0) {
+    else if (state->wsize == 0) {
+        /* Defensive: allocation present but capacity cleared — restore. */
         state->wsize = 1U << state->wbits;
         state->wnext = 0;
         state->whave = 0;
