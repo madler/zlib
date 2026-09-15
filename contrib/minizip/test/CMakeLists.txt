@@ -1,4 +1,18 @@
 # if we are built from with zlib, use this path's)
+
+set(MINIZIP_TEST_LIBRARY MINIZIP::minizipstatic)
+
+add_executable(
+    ${ZLIB_CONTRIB_PREFIX}minizip_filename_termination_test
+    unzip_filename_termination.c)
+target_link_libraries(
+    ${ZLIB_CONTRIB_PREFIX}minizip_filename_termination_test
+    PRIVATE ${MINIZIP_TEST_LIBRARY})
+add_test(
+    NAME ${ZLIB_CONTRIB_PREFIX}minizip_filename_termination_test
+    COMMAND ${ZLIB_CONTRIB_PREFIX}minizip_filename_termination_test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 if(ZLIB_MINIZIP_INSTALL)
     if(NOT DEFINED ZLIB_BUILD_MINIZIP)
         set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
