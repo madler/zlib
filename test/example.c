@@ -16,6 +16,11 @@
 #  include <string.h>
 #  include <stdlib.h>
 #endif
+#if defined(Z_HAVE_UNISTD_H) && !defined(_WIN32)
+#  include <errno.h>
+#  include <fcntl.h>
+#  define TEST_GZPRINTF_STALL
+#endif
 
 #if defined(VMS)
 #  define TESTFILE "foo-gz"
@@ -163,6 +168,88 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     gzclose(file);
 #endif
 }
+
+#ifdef TEST_GZPRINTF_STALL
+/* ===========================================================================
+ * Test gzprintf() after a non-blocking gzwrite() stall.
+ */
+static void test_gzprintf_stall(void) {
+#ifdef NO_GZCOMPRESS
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int err, flags, ret;
+    int pipefd[2];
+    unsigned have, left;
+    unsigned long seed;
+    gzFile file;
+    char fill[4096];
+    char *data;
+    const char *msg;
+
+    memset(fill, 0xa5, sizeof(fill));
+    data = (char *)malloc(262144);
+    if (data == NULL) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+    seed = 1;
+    for (have = 0; have < 262144; have++) {
+        seed = seed * 1103515245 + 12345;
+        data[have] = (char)(seed >> 16);
+    }
+
+    if (pipe(pipefd) == -1) {
+        fprintf(stderr, "pipe error\n");
+        exit(1);
+    }
+
+    flags = fcntl(pipefd[1], F_GETFL, 0);
+    if (flags == -1 || fcntl(pipefd[1], F_SETFL, flags | O_NONBLOCK) == -1) {
+        fprintf(stderr, "fcntl error\n");
+        exit(1);
+    }
+
+    left = 1;
+    while (left) {
+        ret = (int)write(pipefd[1], fill, sizeof(fill));
+        if (ret == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                break;
+            fprintf(stderr, "write error while filling pipe\n");
+            exit(1);
+        }
+    }
+
+    file = gzdopen(pipefd[1], "wb");
+    if (file == NULL) {
+        fprintf(stderr, "gzdopen error\n");
+        exit(1);
+    }
+    if (gzbuffer(file, 64) != 0) {
+        fprintf(stderr, "gzbuffer error\n");
+        exit(1);
+    }
+
+    ret = gzwrite(file, data, 262144);
+    if (ret == 262144) {
+        fprintf(stderr, "gzwrite unexpectedly did not stall\n");
+        exit(1);
+    }
+    ret = gzprintf(file, "%s", "x");
+    if (ret != Z_BUF_ERROR) {
+        msg = gzerror(file, &err);
+        fprintf(stderr, "gzprintf stall err: ret=%d, err=%d, msg=%s\n",
+                ret, err, msg);
+        exit(1);
+    }
+
+    free(data);
+    (void)gzclose(file);
+    close(pipefd[0]);
+    printf("gzprintf() stall: ok\n");
+#endif
+}
+#endif
 
 #endif /* Z_SOLO */
 
@@ -530,6 +617,9 @@ int main(int argc, char *argv[]) {
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
               uncompr, uncomprLen);
+#ifdef TEST_GZPRINTF_STALL
+    test_gzprintf_stall();
+#endif
 #endif
 
     test_deflate(compr, comprLen);

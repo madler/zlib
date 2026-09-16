@@ -374,26 +374,30 @@ int ZEXPORT gzputs(gzFile file, const char *s) {
 #if (((!defined(STDC) && !defined(Z_HAVE_STDARG_H)) || !defined(NO_vsnprintf)) && \
      (defined(STDC) || defined(Z_HAVE_STDARG_H) || !defined(NO_snprintf))) || \
     defined(ZLIB_INSECURE)
-/* If the second half of the input buffer is occupied, write out the contents.
-   If there is any input remaining due to a non-blocking stall on write, move
-   it to the start of the buffer. Return true if this did not open up the
-   second half of the buffer.  state->err should be checked after this to
+/* If more than half of the input buffer is occupied, write out the contents.
+   If there is room for any remaining input due to a non-blocking stall on
+   write, move it to the start of the buffer. Return true if this did not open
+   up the second half of the buffer. state->err should be checked after this to
    handle a gz_comp() error. */
 local int gz_vacate(gz_statep state) {
     z_streamp strm;
 
     strm = &(state->strm);
-    if (strm->next_in == NULL ||
-        strm->next_in + strm->avail_in <= state->in + state->size)
+    if (strm->next_in == NULL || strm->avail_in == 0) {
+        strm->next_in = state->in;
         return 0;
-    (void)gz_comp(state, Z_NO_FLUSH);
+    }
+    if (strm->avail_in > state->size)
+        (void)gz_comp(state, Z_NO_FLUSH);
     if (strm->avail_in == 0) {
         strm->next_in = state->in;
         return 0;
     }
+    if (strm->avail_in > state->size)
+        return 1;
     memmove(state->in, strm->next_in, strm->avail_in);
     strm->next_in = state->in;
-    return strm->avail_in > state->size;
+    return 0;
 }
 #endif
 
@@ -444,13 +448,14 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
                a Z_BUF_ERROR to let the application know that this gzprintf()
                needs to be retried. */
             gz_error(state, Z_BUF_ERROR, "stalled write on gzprintf");
+            return state->err;
         }
         if (!state->again)
             return state->err;
     }
     if (strm->avail_in == 0)
         strm->next_in = state->in;
-    next = (char *)(state->in + (strm->next_in - state->in) + strm->avail_in);
+    next = (char *)(state->in + strm->avail_in);
     next[state->size - 1] = 0;
 #ifdef NO_vsnprintf
 #  ifdef HAS_vsprintf_void
@@ -552,13 +557,14 @@ int ZEXPORTVA gzprintf(gzFile file, const char *format, int a1, int a2, int a3,
                a Z_BUF_ERROR to let the application know that this gzprintf()
                needs to be retried. */
             gz_error(state, Z_BUF_ERROR, "stalled write on gzprintf");
+            return state->err;
         }
         if (!state->again)
             return state->err;
     }
     if (strm->avail_in == 0)
         strm->next_in = state->in;
-    next = (char *)(strm->next_in + strm->avail_in);
+    next = (char *)(state->in + strm->avail_in);
     next[state->size - 1] = 0;
 #ifdef NO_snprintf
 #  ifdef HAS_sprintf_void
