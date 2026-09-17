@@ -885,7 +885,15 @@ z_size_t ZEXPORT deflateBound_z(z_streamp strm, z_size_t sourceLen) {
         wraplen = 0;
         break;
     case 1:                                 /* zlib wrapper */
-        wraplen = 6 + (s->strstart ? 4 : 0);
+        /* A preset dictionary adds four bytes of its Adler-32 right after
+           the two-byte header.  This can happen if a dictionary was already
+           provided (strstart is then non-zero), or if deflateBound() was
+           called before deflateSetDictionary() and the header has not yet
+           been emitted (status is still INIT_STATE, as no data has been
+           compressed).  Include the four bytes in the latter case as well,
+           so the returned bound covers the documented use of allocating an
+           output buffer for a single-pass deflate(). */
+        wraplen = 6 + (s->strstart || s->status == INIT_STATE ? 4 : 0);
         break;
 #ifdef GZIP
     case 2:                                 /* gzip wrapper */
