@@ -762,6 +762,8 @@ EOF
 
     if try $CC -c $CFLAGS $test.c; then
       echo "Checking for return value of vsnprintf()... Yes." | tee -a configure.log
+      CFLAGS="$CFLAGS -DHAS_vsnprintf"
+      SFLAGS="$SFLAGS -DHAS_vsnprintf"
     else
       CFLAGS="$CFLAGS -DHAS_vsnprintf_void"
       SFLAGS="$SFLAGS -DHAS_vsnprintf_void"
