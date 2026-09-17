@@ -35,7 +35,7 @@ if(NOT DEFINED CMAKE_BUILD_TYPE AND NOT IS_MULTI)
 endif(NOT DEFINED CMAKE_BUILD_TYPE AND NOT IS_MULTI)
 
 include(CheckCSourceCompiles)
-include(CheckFunctionExists)
+include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
@@ -81,7 +81,7 @@ unset(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 #
 # Check for fseeko
 #
-check_function_exists(fseeko HAVE_FSEEKO)
+check_symbol_exists(fseeko stdio.h HAVE_FSEEKO)
 
 #
 # Check for stdarg.h
