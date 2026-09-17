@@ -363,10 +363,46 @@ int ZEXPORT gzrewind(gzFile file) {
     return 0;
 }
 
+/* Return the maximum value of a z_off64_t. */
+local z_off64_t gz_offmax(void) {
+    if (sizeof(z_off64_t) == sizeof(int))
+        return INT_MAX;
+    if (sizeof(z_off64_t) == sizeof(long))
+        return LONG_MAX;
+#ifdef LLONG_MAX
+    if (sizeof(z_off64_t) == sizeof(long long))
+        return LLONG_MAX;
+#endif
+    return (z_off64_t)-1;
+}
+
+/* Return true and set *result if a + b is representable.  This deliberately
+   uses -max as the lower bound, which is portable to sign-magnitude and one's
+   complement machines and only rejects the extra negative value on two's
+   complement machines. */
+local int gz_add(z_off64_t a, z_off64_t b, z_off64_t *result) {
+    z_off64_t max = gz_offmax();
+
+    if ((b > 0 && a > max - b) || (b < 0 && a < -max - b))
+        return 0;
+    *result = a + b;
+    return 1;
+}
+
+/* Return true and set *result if a - b is representable. */
+local int gz_sub(z_off64_t a, z_off64_t b, z_off64_t *result) {
+    z_off64_t max = gz_offmax();
+
+    if ((b > 0 && a < -max + b) || (b < 0 && a > max + b))
+        return 0;
+    *result = a - b;
+    return 1;
+}
+
 /* -- see zlib.h -- */
 z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
     unsigned n;
-    z_off64_t ret;
+    z_off64_t pos, ret;
     gz_statep state;
 
     /* get internal structure and check integrity */
@@ -385,17 +421,22 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         return -1;
 
     /* normalize offset to a SEEK_CUR specification */
-    if (whence == SEEK_SET)
-        offset -= state->x.pos;
+    if (whence == SEEK_SET) {
+        if (!gz_sub(offset, state->x.pos, &offset))
+            return -1;
+    }
     else {
-        offset += state->past ? 0 : state->skip;
+        if (!gz_add(offset, state->past ? 0 : state->skip, &offset))
+            return -1;
         state->skip = 0;
     }
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY &&
-            state->x.pos + offset >= 0) {
-        ret = LSEEK(state->fd, offset - (z_off64_t)state->x.have, SEEK_CUR);
+            gz_add(state->x.pos, offset, &pos) && pos >= 0) {
+        if (!gz_sub(offset, (z_off64_t)state->x.have, &ret))
+            return -1;
+        ret = LSEEK(state->fd, ret, SEEK_CUR);
         if (ret == -1)
             return -1;
         state->x.have = 0;
@@ -404,7 +445,7 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         state->skip = 0;
         gz_error(state, Z_OK, NULL);
         state->strm.avail_in = 0;
-        state->x.pos += offset;
+        state->x.pos = pos;
         return state->x.pos;
     }
 
@@ -412,8 +453,8 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
     if (offset < 0) {
         if (state->mode != GZ_READ)         /* writing -- can't go backwards */
             return -1;
-        offset += state->x.pos;
-        if (offset < 0)                     /* before start of file! */
+        if (!gz_add(offset, state->x.pos, &offset) || offset < 0)
+                                             /* before start of file! */
             return -1;
         if (gzrewind(file) == -1)           /* rewind, then skip to offset */
             return -1;
@@ -430,8 +471,10 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
     }
 
     /* request skip (if not zero) */
+    if (!gz_add(state->x.pos, offset, &ret))
+        return -1;
     state->skip = offset;
-    return state->x.pos + offset;
+    return ret;
 }
 
 /* -- see zlib.h -- */
@@ -444,6 +487,7 @@ z_off_t ZEXPORT gzseek(gzFile file, z_off_t offset, int whence) {
 
 /* -- see zlib.h -- */
 z_off64_t ZEXPORT gztell64(gzFile file) {
+    z_off64_t ret;
     gz_statep state;
 
     /* get internal structure and check integrity */
@@ -454,7 +498,8 @@ z_off64_t ZEXPORT gztell64(gzFile file) {
         return -1;
 
     /* return position */
-    return state->x.pos + (state->past ? 0 : state->skip);
+    return gz_add(state->x.pos, state->past ? 0 : state->skip, &ret) ?
+        ret : -1;
 }
 
 /* -- see zlib.h -- */
