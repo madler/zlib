@@ -483,6 +483,14 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
 
     /* write out buffer if more than half is occupied */
     ret = gz_vacate(state);
+    if (ret) {
+        /* discard unwritten formatted output */
+        strm->avail_in -= (unsigned)len;
+        state->x.pos -= len;
+        if (state->again)
+            gz_error(state, Z_BUF_ERROR, "stalled write on gzprintf");
+        return state->err;
+    }
     if (state->err && !state->again)
         return state->err;
     return len;
@@ -597,6 +605,14 @@ int ZEXPORTVA gzprintf(gzFile file, const char *format, int a1, int a2, int a3,
 
     /* write out buffer if more than half is occupied */
     ret = gz_vacate(state);
+    if (ret) {
+        /* discard unwritten formatted output */
+        strm->avail_in -= (unsigned)len;
+        state->x.pos -= len;
+        if (state->again)
+            gz_error(state, Z_BUF_ERROR, "stalled write on gzprintf");
+        return state->err;
+    }
     if (state->err && !state->again)
         return state->err;
     return (int)len;

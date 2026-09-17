@@ -1569,7 +1569,7 @@ ZEXTERN int ZEXPORTVA gzprintf();
    these possibilities can be determined using zlibCompileFlags().
 
      If a Z_BUF_ERROR is returned, then nothing was written due to a stall on
-   the non-blocking write destination.
+   the non-blocking write destination. The operation can be retried.
 */
 
 ZEXTERN int ZEXPORT gzputs(gzFile file, const char *s);
