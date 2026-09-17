@@ -385,9 +385,11 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         return -1;
 
     /* normalize offset to a SEEK_CUR specification */
-    if (whence == SEEK_SET)
+    if (whence == SEEK_SET) {
+        if (offset < 0)
+            return -1;
         offset -= state->x.pos;
-    else {
+    } else {
         offset += state->past ? 0 : state->skip;
         state->skip = 0;
     }
