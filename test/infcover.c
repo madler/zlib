@@ -361,6 +361,9 @@ local void cover_support(void)
     ret = inflatePrime(&strm, -1, 0);           assert(ret == Z_OK);
     ret = inflateSetDictionary(&strm, Z_NULL, 0);
                                                 assert(ret == Z_STREAM_ERROR);
+    ret = inflateReset2(&strm, -15);            assert(ret == Z_OK);
+    ret = inflateSetDictionary(&strm, Z_NULL, 1);
+                                                assert(ret == Z_STREAM_ERROR);
     ret = inflateEnd(&strm);                    assert(ret == Z_OK);
     mem_done(&strm, "prime");
 
