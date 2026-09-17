@@ -5,16 +5,16 @@ if(NOT DEFINED ZLIB_BUILD_PUFF)
     set(ZLIB_ARG "-DZLIB_DIR=${ZLIB_DIR}")
 
     add_test(
-        NAME puff_install
+        NAME zlib_puff_install
         COMMAND ${CMAKE_COMMAND}
                 --install ${puff_BINARY_DIR}
                 --prefix ${WORK_DIR}/test_install
                 --config $<CONFIG>
         WORKING_DIRECTORY ${WORK_DIR})
 
-    set_tests_properties(puff_install
+    set_tests_properties(zlib_puff_install
         PROPERTIES
-            FIXTURES_SETUP puff_install)
+            FIXTURES_SETUP zlib_puff_install)
 endif(NOT DEFINED ZLIB_BUILD_PUFF)
 
 if(ZLIB_PUFF_BUILD_SHARED AND NOT WIN32)
@@ -37,13 +37,9 @@ if(ZLIB_PUFF_BUILD_SHARED AND NOT WIN32)
             ${puff_SOURCE_DIR}/puff.c
             ${puff_SOURCE_DIR}/puff.h)
 
-        target_compile_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage
-            PRIVATE
-                -coverage)
+        target_compile_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage PRIVATE -coverage)
 
-        target_link_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage
-            PRIVATE
-                -coverage)
+        target_link_options(${ZLIB_CONTRIB_PREFIX}puff_test-coverage PRIVATE -coverage)
 
         add_test(NAME ${ZLIB_CONTRIB_PREFIX}puff_test-coverage
             COMMAND ${CMAKE_COMMAND}
@@ -128,7 +124,7 @@ endif(GENERATOR)
 # find_package_test
 #
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_find_package_configure
+    NAME zlib_puff_find_package_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -138,21 +134,21 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
+        --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_test)
 
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_find_package_build
+    NAME zlib_puff_find_package_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/puff_find_package_test_build)
 
-set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_find_package_configure
+set_tests_properties(zlib_puff_find_package_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
         FIXTURES_SETUP puff_fp_config)
 
-set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_find_package_build
+set_tests_properties(zlib_puff_find_package_build
     PROPERTIES
         FIXTURES_REQUIRED puff_fp_config)
 
@@ -160,7 +156,7 @@ set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_find_package_build
 # add_subdirectory_test
 #
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_configure
+    NAME zlib_puff_add_subdirectory_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -170,21 +166,21 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
+        --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_add_subdirectory_test)
 
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_build
+    NAME zlib_puff_add_subdirectory_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY ${WORK_DIR}/puff_add_subdirectory_test_build)
 
-set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_configure
+set_tests_properties(zlib_puff_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
-        FIXTURES_SETUP puff_as_config)
+        FIXTURES_SETUP puiff_as_config)
 
-set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_build
+set_tests_properties(zlib_puff_add_subdirectory_build
     PROPERTIES
         FIXTURES_REQUIRED puff_as_config)
 
@@ -192,7 +188,7 @@ set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_build
 # add_subdirectory_exclude_test
 #
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_exclude_configure
+    NAME zlib_puff_add_subdirectory_exclude_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -202,23 +198,22 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
+        --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_add_subdirectory_exclude_test)
 
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_exclude_build
+    NAME zlib_puff_add_subdirectory_exclude_build
     COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
     WORKING_DIRECTORY
         ${WORK_DIR}/puff_add_subdirectory_exclude_test_build)
 
-set_tests_properties(
-    ${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_exclude_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup}
-            FIXTURES_SETUP puff_asx_config)
+set_tests_properties(zlib_puff_add_subdirectory_exclude_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        FIXTURES_SETUP puff_asx_config)
 
-set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_exclude_build
+set_tests_properties(zlib_puff_add_subdirectory_exclude_build
     PROPERTIES
         FIXTURES_REQUIRED puff_asx_config)
 
@@ -226,7 +221,7 @@ set_tests_properties(${ZLIB_CONTRIB_PREFIX}puff_add_subdirectory_exclude_build
 # find_package_no_components_test
 #
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_find_package_no_components_configure
+    NAME zlib_puff_find_package_no_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -236,27 +231,25 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
+        --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_no_components_test)
 
-set_tests_properties(
-    ${ZLIB_CONTRIB_PREFIX}puff_find_package_no_components_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup})
+set_tests_properties(zlib_puff_find_package_no_components_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup})
 
 if(NOT ZLIB_PUFF_BUILD_SHARED OR NOT ZLIB_PUFF_BUILD_STATIC)
-    set_tests_properties(
-        ${ZLIB_CONTRIB_PREFIX}puff_find_package_no_components_configure
-            PROPERTIES
-                WILL_FAIL TRUE)
+    set_tests_properties(zlib_puff_find_package_no_components_configure
+        PROPERTIES
+            WILL_FAIL TRUE)
 endif(NOT ZLIB_PUFF_BUILD_SHARED OR NOT ZLIB_PUFF_BUILD_STATIC)
 
 #
 # find_package_no_components_test
 #
 add_test(
-    NAME ${ZLIB_CONTRIB_PREFIX}puff_find_package_wrong_components_configure
+    NAME zlib_puff_find_package_wrong_components_configure
     COMMAND
         ${CMAKE_COMMAND}
         ${PLATFORM}
@@ -266,12 +259,11 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
         ${ZLIB_ARG}
-        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},"3.24">:--fresh>
+        --fresh
         -G "${CMAKE_GENERATOR}"
         -S${WORK_DIR}/puff_find_package_wrong_components_test)
 
-set_tests_properties(
-    ${ZLIB_CONTRIB_PREFIX}puff_find_package_wrong_components_configure
-        PROPERTIES
-            FIXTURES_REQUIRED ${inst_setup}
-            WILL_FAIL TRUE)
+set_tests_properties(zlib_puff_find_package_wrong_components_configure
+    PROPERTIES
+        FIXTURES_REQUIRED ${inst_setup}
+        WILL_FAIL TRUE)

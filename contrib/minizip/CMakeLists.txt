@@ -21,7 +21,7 @@ set(CPACK_RESOURCE_FILE_README ${minizip_SOURCE_DIR}/MiniZip64_info.txt)
 if(ZLIB_BUILD_MINIZIP)
     set(MINIZIP_BUILD_SHARED ${ZLIB_MINIZIP_BUILD_SHARED} CACHE BOOL "")
     set(MINIZIP_BUILD_STATIC ${ZLIB_MINIZIP_BUILD_STATIC} CACHE BOOL "")
-    set(MINIZIP_BUILD_TESTING ${ZLIB_MINIZIP_INSTALL} CACHE BOOL "")
+    set(MINIZIP_BUILD_TESTING ${ZLIB_MINIZIP_BUILD_TESTING} CACHE BOOL "")
     set(MINIZIP_INSTALL ${ZLIB_MINIZIP_INSTALL} CACHE BOOL "")
 endif(ZLIB_BUILD_MINIZIP)
 
@@ -102,26 +102,50 @@ check_c_source_compiles(
 
 unset(CMAKE_REQUIRED_FLAGS)
 
-set(LIBMINIZIP_SRCS ioapi.c mztools.c unzip.c zip.c)
+set(LIBMINIZIP_SRCS
+    ioapi.c
+    mztools.c
+    unzip.c
+    zip.c
+    $<$<BOOL:${WIN32}>:iowin32.c>)
 
-set(LIBMINIZIP_HDRS crypt.h ints.h ioapi.h mztools.h unzip.h zip.h)
+set(LIBMINIZIP_HDRS
+    crypt.h
+    ints.h
+    ioapi.h
+    mztools.h
+    unzip.h
+    zip.h
+    $<$<BOOL:${WIN32}>:${minizip_SOURCE_DIR}/iowin32.h>)
 
-set(MINIZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> minizip.c zip.c)
+set(MINIZIP_SRCS
+    ioapi.c
+    minizip.c
+    zip.c)
 
-set(MINIZIP_HDRS crypt.h ints.h ioapi.h $<$<BOOL:${WIN32}>:iowin32.h> skipset.h
-                 zip.h)
+set(MINIZIP_HDRS
+    crypt.h
+    ints.h
+    ioapi.h
+    skipset.h
+    zip.h)
 
-set(MINIUNZIP_SRCS ioapi.c $<$<BOOL:${WIN32}>:iowin32.c> miniunz.c unzip.c
-                   zip.c)
+set(MINIUNZIP_SRCS
+    ioapi.c
+    miniunz.c
+    unzip.c
+    zip.c)
 
 set(MINIUNZIP_HDRS
     crypt.h
     ints.h
     ioapi.h
-    $<$<BOOL:${WIN32}>:iowin32.h>
     skipset.h
     unzip.h
     zip.h)
+
+set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/minizip.pc)
+configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt ${LIBMINIZIP_PC} @ONLY)
 
 if(WIN32 OR CYGWIN)
     set(minizip_static_suffix "s")
@@ -146,7 +170,7 @@ if(MINIZIP_BUILD_SHARED)
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
-            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
+            $<$<AND:$<NOT:$<BOOL:${HAVE_FOPEN64}>>,$<NOT:$<BOOL:${MSVC}>>>:USE_FILE32API=1>)
 
     if(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -161,7 +185,8 @@ if(MINIZIP_BUILD_SHARED)
 
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
         PROPERTIES
-            EXPORT_NAME minizip)
+            EXPORT_NAME minizip
+            PUBLIC_HEADER "${LIBMINIZIP_HDRS}")
 
     if(MSVC)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -180,7 +205,8 @@ if(MINIZIP_BUILD_SHARED)
 
     add_executable(${ZLIB_CONTRIB_PREFIX}minizip
         ${MINIZIP_SRCS}
-        ${MINIZIP_HDRS})
+        ${MINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}minizip
         PROPERTIES
             EXPORT_NAME minizip_executable
@@ -191,7 +217,9 @@ if(MINIZIP_BUILD_SHARED)
         PRIVATE MINIZIP::minizip)
     add_executable(${ZLIB_CONTRIB_PREFIX}miniunzip
         ${MINIUNZIP_SRCS}
-        ${MINIUNZIP_HDRS})
+        ${MINIUNZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}miniunzip
         PROPERTIES
             EXPORT_NAME miniunzip_executable
@@ -221,10 +249,11 @@ if(MINIZIP_BUILD_STATIC)
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
-            $<$<BOOL:NOT:${HAVE_FOPEN64}>:USE_FILE32API=1>)
+            $<$<AND:$<NOT:$<BOOL:${HAVE_FOPEN64}>>,$<NOT:$<BOOL:${MSVC}>>>:USE_FILE32API=1>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PROPERTIES
-            EXPORT_NAME minizipstatic)
+            EXPORT_NAME minizipstatic
+            PUBLIC_HEADER "${LIBMINIZIP_HDRS}")
 
     if(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizipstatic
@@ -255,7 +284,8 @@ if(MINIZIP_BUILD_STATIC)
 
     add_executable(${ZLIB_CONTRIB_PREFIX}minizipstatic
         ${MINIZIP_SRCS}
-        ${MINIZIP_HDRS})
+        ${MINIZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}minizipstatic
         PROPERTIES
             EXPORT_NAME minizip_static_executable
@@ -266,7 +296,9 @@ if(MINIZIP_BUILD_STATIC)
         PRIVATE MINIZIP::minizipstatic)
     add_executable(${ZLIB_CONTRIB_PREFIX}miniunzipstatic
         ${MINIUNZIP_SRCS}
-        ${MINIUNZIP_HDRS})
+        ${MINIUNZIP_HDRS}
+        $<$<BOOL:${WIN32}>:iowin32.c>
+        $<$<BOOL:${WIN32}>:iowin32.h>)
     set_target_properties(${ZLIB_CONTRIB_PREFIX}miniunzipstatic
         PROPERTIES
             EXPORT_NAME miniunzip_static_executable
@@ -288,7 +320,10 @@ if(MINIZIP_INSTALL)
             EXPORT minizipSharedExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER
+                COMPONENT Development
+                DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
         install(
             EXPORT minizipSharedExport
             FILE minizip-shared.cmake
@@ -312,11 +347,13 @@ if(MINIZIP_INSTALL)
                 ${ZLIB_CONTRIB_PREFIX}minizipstatic
                 ${ZLIB_CONTRIB_PREFIX}miniunzipstatic
             COMPONENT Development
-            COMPONENT Runtime
             EXPORT minizipStaticExport
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RUNTIME
+                DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT Runtime
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/minizip")
         install(
             EXPORT minizipStaticExport
             FILE minizip-static.cmake
@@ -336,9 +373,9 @@ if(MINIZIP_INSTALL)
                   ${minizip_BINARY_DIR}/minizipConfigVersion.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minizip)
     install(
-        FILES ${LIBMINIZIP_HDRS}
+        FILES ${LIBMINIZIP_PC}
         COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)
