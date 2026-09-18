@@ -285,8 +285,8 @@ local int strcmpcasenosensitive_internal(const char* fileName1, const char* file
 #define CASESENSITIVITYDEFAULTVALUE 1
 #endif
 
-#ifndef STRCMPCASENOSENTIVEFUNCTION
-#define STRCMPCASENOSENTIVEFUNCTION strcmpcasenosensitive_internal
+#ifndef STRCMPCASENOSENSITIVEFUNCTION
+#define STRCMPCASENOSENSITIVEFUNCTION strcmpcasenosensitive_internal
 #endif
 
 /*
@@ -307,7 +307,7 @@ extern int ZEXPORT unzStringFileNameCompare (const char*  fileName1,
     if (iCaseSensitivity==1)
         return strcmp(fileName1,fileName2);
 
-    return STRCMPCASENOSENTIVEFUNCTION(fileName1,fileName2);
+    return STRCMPCASENOSENSITIVEFUNCTION(fileName1,fileName2);
 }
 
 #ifndef BUFREADCOMMENT
