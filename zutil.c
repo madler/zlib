@@ -1,3 +1,4 @@
+#include <limits.h>
 /* zutil.c -- target dependent utility functions for the compression library
  * Copyright (C) 1995-2026 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -298,6 +299,12 @@ extern void free(voidpf ptr);
 
 voidpf ZLIB_INTERNAL zcalloc(voidpf opaque, unsigned items, unsigned size) {
     (void)opaque;
+    /* ZLB-01-008: Guard against integer overflow in allocation size.
+     * On LLP64 platforms (Windows x64) unsigned is 32-bit while
+     * size_t is 64-bit, so items*size can silently overflow before
+     * reaching malloc/calloc. */
+    if (items != 0 && size > (unsigned)(-1) / items)
+        return NULL;
     return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
                               (voidpf)calloc(items, size);
 }
