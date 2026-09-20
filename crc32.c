@@ -36,6 +36,10 @@
 #  include "contrib/crc32vx/crc32_vx_hooks.h"
 #endif
 
+#ifdef __x86_64__
+#  include "contrib/x86_64/crc32_x86_hooks.h"
+#endif
+
  /*
   A CRC of a message is computed on N braids of words in the message, where
   each word consists of W bytes (4 or 8). If N is 3, for example, then three
@@ -944,7 +948,7 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
 
 /* ========================================================================= */
 uLong ZEXPORT crc32(uLong crc, const unsigned char FAR *buf, uInt len) {
-    #ifdef HAVE_S390X_VX
+    #if defined (HAVE_S390X_VX) || defined (__x86_64__)
     return crc32_z_hook(crc, buf, len);
     #endif
     return crc32_z(crc, buf, len);
