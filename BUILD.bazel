@@ -36,6 +36,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
+load(":copy_files.bzl", "copy_files")
 
 package(
     default_applicable_licenses = [":license"],
@@ -70,15 +71,10 @@ _ZLIB_PREFIXED_HEADERS = ["zlib/include/" + hdr for hdr in _ZLIB_HEADERS]
 # In order to limit the damage from the `includes` propagation
 # via `:zlib`, copy the public headers to a subdirectory and
 # expose those.
-genrule(
+copy_files(
     name = "copy_public_headers",
     srcs = _ZLIB_HEADERS,
-    outs = _ZLIB_PREFIXED_HEADERS,
-    cmd_bash = "cp $(SRCS) $(@D)/zlib/include/",
-    cmd_bat = " && ".join(
-        ["@copy /Y \"$(location %s)\" \"$(@D)\\zlib\\include\\\"  >NUL" %
-         s for s in _ZLIB_HEADERS],
-    ),
+    subdirectory = "zlib/include",
 )
 
 config_setting(
