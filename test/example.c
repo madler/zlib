@@ -479,6 +479,11 @@ static void test_dict_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
         CHECK_ERR(err, "inflate with dict");
     }
 
+    if (d_stream.total_in != comprLen - d_stream.avail_in) {
+        fprintf(stderr, "bad total_in after dictionary inflate\n");
+        exit(1);
+    }
+
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
