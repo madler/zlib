@@ -248,6 +248,7 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
                 return state->again ? put - len : 0;
             }
         } while (len);
+        state->strm.next_in = state->in;
     }
 
     /* input was all buffered or compressed */
@@ -386,8 +387,11 @@ local int gz_vacate(gz_statep state) {
     z_streamp strm;
 
     strm = &(state->strm);
-    if (strm->next_in == NULL ||
-        strm->next_in + strm->avail_in <= state->in + state->size)
+    if (strm->next_in == NULL || strm->avail_in == 0) {
+        strm->next_in = state->in;
+        return 0;
+    }
+    if (strm->next_in + strm->avail_in <= state->in + state->size)
         return 0;
     (void)gz_comp(state, Z_NO_FLUSH);
     if (strm->avail_in == 0) {
@@ -454,7 +458,7 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
     }
     if (strm->avail_in == 0)
         strm->next_in = state->in;
-    next = (char *)(state->in + (strm->next_in - state->in) + strm->avail_in);
+    next = (char *)(strm->next_in + strm->avail_in);
     next[state->size - 1] = 0;
 #ifdef NO_vsnprintf
 #  ifdef HAS_vsprintf_void
