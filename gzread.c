@@ -302,8 +302,11 @@ local int gz_skip(gz_statep state) {
         }
 
         /* output buffer empty -- return if we're at the end of the input */
-        else if (state->eof && state->strm.avail_in == 0)
+        else if (state->eof && state->strm.avail_in == 0) {
+            if (state->how == GZIP && state->err == Z_OK)
+                gz_error(state, Z_BUF_ERROR, "unexpected end of file");
             break;
+        }
 
         /* need more data to skip -- load up output buffer */
         else {
@@ -356,8 +359,11 @@ local z_size_t gz_read(gz_statep state, voidp buf, z_size_t len) {
         }
 
         /* output buffer empty -- return if we're at the end of the input */
-        else if (state->eof && state->strm.avail_in == 0)
+        else if (state->eof && state->strm.avail_in == 0) {
+            if (state->how == GZIP && state->err == Z_OK)
+                gz_error(state, Z_BUF_ERROR, "unexpected end of file");
             break;
+        }
 
         /* need output data -- for small len or new stream load up our output
            buffer, so that gzgetc() can be fast */
