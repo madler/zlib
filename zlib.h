@@ -1677,7 +1677,8 @@ ZEXTERN z_off_t ZEXPORT gzseek(gzFile file,
      gzseek returns the resulting offset location as measured in bytes from
    the beginning of the uncompressed stream, or -1 in case of error, in
    particular if the file is opened for writing and the new starting position
-   would be before the current position.
+   would be before the current position, or if the resulting position would
+   not be representable in the offset type.
 */
 
 ZEXTERN int ZEXPORT gzrewind(gzFile file);
