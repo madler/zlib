@@ -389,8 +389,6 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
           state->x.pos + (state->past ? 0 : state->skip);
     if (offset > GZ_OFF_MAX - pos)
         return -1;                          /* would overflow z_off64_t */
-    if (whence != SEEK_SET)
-        state->skip = 0;
     if (offset < -pos)
         return -1;                          /* before start of file */
     pos += offset;
