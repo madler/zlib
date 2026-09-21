@@ -413,7 +413,8 @@ int ZEXPORT gzread(gzFile file, voidp buf, unsigned len) {
     /* check that there was no (serious) error */
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
         return -1;
-    gz_error(state, Z_OK, NULL);
+    if (state->again)
+        gz_error(state, Z_OK, NULL);
 
     /* since an int is returned, make sure len fits in one, otherwise return
        with an error (this avoids a flaw in the interface) */
@@ -458,7 +459,8 @@ z_size_t ZEXPORT gzfread(voidp buf, z_size_t size, z_size_t nitems,
     /* check that there was no (serious) error */
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
         return 0;
-    gz_error(state, Z_OK, NULL);
+    if (state->again)
+        gz_error(state, Z_OK, NULL);
 
     /* compute bytes to read -- error on overflow */
     len = nitems * size;
@@ -491,7 +493,8 @@ int ZEXPORT gzgetc(gzFile file) {
     /* check that there was no (serious) error */
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
         return -1;
-    gz_error(state, Z_OK, NULL);
+    if (state->again)
+        gz_error(state, Z_OK, NULL);
 
     /* try output buffer (no need to check for skip request) */
     if (state->x.have) {
@@ -526,7 +529,8 @@ int ZEXPORT gzungetc(int c, gzFile file) {
     /* check that there was no (serious) error */
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
         return -1;
-    gz_error(state, Z_OK, NULL);
+    if (state->again)
+        gz_error(state, Z_OK, NULL);
 
     /* process a skip request */
     if (state->skip && gz_skip(state) == -1)
@@ -587,7 +591,8 @@ char * ZEXPORT gzgets(gzFile file, char *buf, int len) {
     /* check that there was no (serious) error */
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
         return NULL;
-    gz_error(state, Z_OK, NULL);
+    if (state->again)
+        gz_error(state, Z_OK, NULL);
 
     /* process a skip request */
     if (state->skip && gz_skip(state) == -1)
