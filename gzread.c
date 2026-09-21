@@ -3,6 +3,12 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include "gzguts.h"
 
 /* Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
