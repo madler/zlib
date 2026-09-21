@@ -33,7 +33,7 @@ set(ZLIB1_DLL_PREFIX "" CACHE STRING
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 
 include(CheckCSourceCompiles)
-include(CheckFunctionExists)
+include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
@@ -80,7 +80,7 @@ endif(ZLIB1_DLL_ENABLE_BZIP2)
 #
 # Check for fopen64
 #
-check_function_exists(fopen64 HAVE_FOPEN64)
+check_symbol_exists(fopen64 stdio.h HAVE_FOPEN64)
 
 #
 # Check to see if we have large file support
@@ -92,7 +92,7 @@ unset(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 #
 # Check for fseeko
 #
-check_function_exists(fseeko HAVE_FSEEKO)
+check_symbol_exists(fseeko stdio.h HAVE_FSEEKO)
 
 #
 # Check for stdarg.h

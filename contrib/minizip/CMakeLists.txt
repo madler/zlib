@@ -35,7 +35,7 @@ option(MINIZIP_ENABLE_BZIP2 "Build minizip with bzip2 support" OFF)
 option(MINIZIP_INSTALL "Enable installation of minizip" ON)
 
 include(CheckCSourceCompiles)
-include(CheckFunctionExists)
+include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
@@ -64,12 +64,12 @@ endif(MINIZIP_ENABLE_BZIP2)
 #
 # Check for fopen64
 #
-check_function_exists(fopen64 HAVE_FOPEN64)
+check_symbol_exists(fopen64 stdio.h HAVE_FOPEN64)
 
 #
 # Check for fseeko
 #
-check_function_exists(fseeko HAVE_FSEEKO)
+check_symbol_exists(fseeko stdio.h HAVE_FSEEKO)
 
 #
 # Check for unistd.h
