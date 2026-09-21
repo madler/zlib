@@ -2,7 +2,9 @@
                 ChangeLog file for zlib
 
 Changes in 1.3.2.1 (xx Feb 2026)
-- 
+- deflateBound() now includes the preset-dictionary Adler-32 when the stream
+  header has not yet been emitted, so the bound holds when a dictionary is
+  provided after deflateBound() and before the first deflate()
 
 Changes in 1.3.2 (17 Feb 2026)
 - Continued rewrite of CMake build [Vollstrecker]
