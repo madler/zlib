@@ -103,20 +103,6 @@
 #  endif
 #endif
 
-#ifdef EAGAIN
-#  ifdef EWOULDBLOCK
-#    define BLOCKED(e) ((e) == EAGAIN || (e) == EWOULDBLOCK)
-#  else
-#    define BLOCKED(e) ((e) == EAGAIN)
-#  endif
-#else
-#  ifdef EWOULDBLOCK
-#    define BLOCKED(e) ((e) == EWOULDBLOCK)
-#  else
-#    define BLOCKED(e) (0)
-#  endif
-#endif
-
 /* unlike snprintf (which is required in C99), _snprintf does not guarantee
    null termination of the result -- however this is only used in gzlib.c where
    the result is assured to fit in the space provided */
@@ -147,6 +133,20 @@
 #    define zstrerror() strerror(errno)
 #  else
 #    define zstrerror() "stdio error (consult errno)"
+#  endif
+#endif
+
+#ifdef EAGAIN
+#  ifdef EWOULDBLOCK
+#    define BLOCKED(e) ((e) == EAGAIN || (e) == EWOULDBLOCK)
+#  else
+#    define BLOCKED(e) ((e) == EAGAIN)
+#  endif
+#else
+#  ifdef EWOULDBLOCK
+#    define BLOCKED(e) ((e) == EWOULDBLOCK)
+#  else
+#    define BLOCKED(e) (0)
 #  endif
 #endif
 
