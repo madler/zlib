@@ -161,6 +161,26 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     }
 
     gzclose(file);
+
+    /* Test large buffer gzwrite followed immediately by gzprintf */
+    file = gzopen(fname, "wb");
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    {
+        char large_buf[16384];
+        memset(large_buf, 'A', sizeof(large_buf));
+        if (gzwrite(file, large_buf, (unsigned)sizeof(large_buf)) != (int)sizeof(large_buf)) {
+            fprintf(stderr, "gzwrite err: %s\n", gzerror(file, &err));
+            exit(1);
+        }
+    }
+    if (gzprintf(file, "%s", "test") != 4) {
+        fprintf(stderr, "gzprintf after large gzwrite err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    gzclose(file);
 #endif
 }
 
