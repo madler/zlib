@@ -46,7 +46,6 @@ zlib_add_contrib_feature("GVMAT64"
     "of an optimized longest_match for 32 bits x86_64"
     gcc_gvmat64)
 
-zlib_add_contrib_feature(INFBACK9 "with support for method 9 deflate" infback9)
 zlib_add_contrib_feature(CRC32VX "with S390X-CRC32VX implementation" crc32vx)
 zlib_add_contrib_lib(ADA "Ada bindings" ada)
 zlib_add_contrib_lib(BLAST "blast binary" blast)

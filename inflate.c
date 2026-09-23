@@ -143,7 +143,8 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
 
     /* extract wrap request from windowBits parameter */
     if (windowBits < 0) {
-        if (windowBits < -15)
+        /* raw inflate additionally supports 16 window bits */
+        if (windowBits < -16)
             return Z_STREAM_ERROR;
         wrap = 0;
         windowBits = -windowBits;
@@ -153,11 +154,14 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
 #ifdef GUNZIP
         if (windowBits < 48)
             windowBits &= 15;
+#else
+        if (windowBits > 15)
+            return Z_STREAM_ERROR;
 #endif
     }
 
     /* set number of window bits, free window if different */
-    if (windowBits && (windowBits < 8 || windowBits > 15))
+    if (windowBits && (windowBits < 8 || windowBits > 16))
         return Z_STREAM_ERROR;
     if (state->window != Z_NULL && state->wbits != (unsigned)windowBits) {
         ZFREE(strm, state->window);
@@ -475,11 +479,12 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
     struct inflate_state FAR *state;
     z_const unsigned char FAR *next;    /* next input */
     unsigned char FAR *put;     /* next output */
-    unsigned have, left;        /* available input and output */
+    unsigned have;              /* available input */
+    unsigned long left;         /* available output */
     unsigned long hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
     unsigned in, out;           /* save starting available input and output */
-    unsigned copy;              /* number of stored or match bytes to copy */
+    unsigned long copy;         /* number of stored or match bytes to copy */
     unsigned char FAR *from;    /* where to copy match bytes from */
     code here;                  /* current decoding table entry */
     code last;                  /* parent table entry */
@@ -788,7 +793,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->ncode = BITS(4) + 4;
             DROPBITS(4);
 #ifndef PKZIP_BUG_WORKAROUND
-            if (state->nlen > 286 || state->ndist > 30) {
+            if (state->nlen > 286 || state->ndist > state->wbits * 2) {
                 strm->msg = (z_const char *)
                     "too many length or distance symbols";
                 state->mode = BAD;
@@ -811,7 +816,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->lencode = state->distcode = (const code FAR *)(state->next);
             state->lenbits = 7;
             ret = inflate_table(CODES, state->lens, 19, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid code lengths set";
                 state->mode = BAD;
@@ -889,7 +894,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->lencode = (const code FAR *)(state->next);
             state->lenbits = 9;
             ret = inflate_table(LENS, state->lens, state->nlen, &(state->next),
-                                &(state->lenbits), state->work);
+                                &(state->lenbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid literal/lengths set";
                 state->mode = BAD;
@@ -898,7 +903,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->distcode = (const code FAR *)(state->next);
             state->distbits = 6;
             ret = inflate_table(DISTS, state->lens + state->nlen, state->ndist,
-                            &(state->next), &(state->distbits), state->work);
+                            &(state->next), &(state->distbits), state->work, state->wbits);
             if (ret) {
                 strm->msg = (z_const char *)"invalid distances set";
                 state->mode = BAD;
@@ -912,7 +917,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             state->mode = LEN;
                 /* fallthrough */
         case LEN:
-            if (have >= 6 && left >= 258) {
+            if (state->wbits < 16 && have >= 6 && left >= 258) {
                 RESTORE();
                 inflate_fast(strm, out);
                 LOAD();
@@ -958,7 +963,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 state->mode = BAD;
                 break;
             }
-            state->extra = (unsigned)(here.op) & 15;
+            state->extra = (unsigned)(here.op) & 31;
             state->mode = LENEXT;
                 /* fallthrough */
         case LENEXT:
@@ -997,7 +1002,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 break;
             }
             state->offset = (unsigned)here.val;
-            state->extra = (unsigned)(here.op) & 15;
+            state->extra = (unsigned)(here.op) & 31;
             state->mode = DISTEXT;
                 /* fallthrough */
         case DISTEXT:

@@ -1294,7 +1294,8 @@ local int unz64local_CheckCurrentFileCoherencyHeader(unz64_s* s, uInt* piSizeVar
 /* #ifdef HAVE_BZIP2 */
                          (s->cur_file_info.compression_method!=Z_BZIP2ED) &&
 /* #endif */
-                         (s->cur_file_info.compression_method!=Z_DEFLATED))
+                         (s->cur_file_info.compression_method!=Z_DEFLATED) &&
+                         (s->cur_file_info.compression_method!=Z_ENHANCED_DEFLATED))
         err=UNZ_BADZIPFILE;
 
     if (unz64local_getLong(&s->z_filefunc, s->filestream,&uData) != UNZ_OK) /* date/time */
@@ -1400,7 +1401,8 @@ extern int ZEXPORT unzOpenCurrentFile3(unzFile file, int* method,
 /* #ifdef HAVE_BZIP2 */
         (s->cur_file_info.compression_method!=Z_BZIP2ED) &&
 /* #endif */
-        (s->cur_file_info.compression_method!=Z_DEFLATED))
+        (s->cur_file_info.compression_method!=Z_DEFLATED) &&
+        (s->cur_file_info.compression_method!=Z_ENHANCED_DEFLATED))
 
         err=UNZ_BADZIPFILE;
 
@@ -1441,7 +1443,8 @@ extern int ZEXPORT unzOpenCurrentFile3(unzFile file, int* method,
       pfile_in_zip_read_info->raw=1;
 #endif
     }
-    else if ((s->cur_file_info.compression_method==Z_DEFLATED) && (!raw))
+    else if ((s->cur_file_info.compression_method==Z_DEFLATED) ||
+            (s->cur_file_info.compression_method==Z_ENHANCED_DEFLATED) && (!raw))
     {
       pfile_in_zip_read_info->stream.zalloc = (alloc_func)0;
       pfile_in_zip_read_info->stream.zfree = (free_func)0;
@@ -1449,7 +1452,8 @@ extern int ZEXPORT unzOpenCurrentFile3(unzFile file, int* method,
       pfile_in_zip_read_info->stream.next_in = 0;
       pfile_in_zip_read_info->stream.avail_in = 0;
 
-      err=inflateInit2(&pfile_in_zip_read_info->stream, -MAX_WBITS);
+      int wbits = s->cur_file_info.compression_method==Z_ENHANCED_DEFLATED ? 16 : MAX_WBITS;
+      err=inflateInit2(&pfile_in_zip_read_info->stream, -wbits);
       if (err == Z_OK)
         pfile_in_zip_read_info->stream_initialised=Z_DEFLATED;
       else

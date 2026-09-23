@@ -30,7 +30,7 @@ typedef struct {
 /* op values as set by inflate_table():
     00000000 - literal
     0000tttt - table link, tttt != 0 is the number of table index bits
-    0001eeee - length or distance, eeee is the number of extra bits
+    100eeeee - length or distance, eeeee is the number of extra bits
     01100000 - end of block
     01000000 - invalid code
  */
@@ -65,6 +65,7 @@ typedef enum {
 
 int ZLIB_INTERNAL inflate_table(codetype type, unsigned short FAR *lens,
                                 unsigned codes, code FAR * FAR *table,
-                                unsigned FAR *bits, unsigned short FAR *work);
+                                unsigned FAR *bits, unsigned short FAR *work,
+                                unsigned wbits);
 struct inflate_state;
 void ZLIB_INTERNAL inflate_fixed(struct inflate_state FAR *state);
