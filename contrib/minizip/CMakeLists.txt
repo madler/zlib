@@ -77,6 +77,11 @@ check_function_exists(fseeko HAVE_FSEEKO)
 check_include_file(unistd.h HAVE_UNISTD_H)
 
 #
+# Check for dirent.h
+#
+check_include_file(dirent.h HAVE_DIRENT_H)
+
+#
 # Check to see if we have large file support
 #
 set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
@@ -167,6 +172,7 @@ if(MINIZIP_BUILD_SHARED)
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
             $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
             $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
+            $<$<BOOL:${HAVE_DIRENT_H}>:HAVE_DIRENT_H=1>
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
@@ -246,6 +252,7 @@ if(MINIZIP_BUILD_STATIC)
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
             $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
             $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H=1>
+            $<$<BOOL:${HAVE_DIRENT_H}>:HAVE_DIRENT_H=1>
         PUBLIC
             $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>
             $<$<BOOL:${BZIP2_FOUND}>:HAVE_BZIP2=1>
