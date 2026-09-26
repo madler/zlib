@@ -160,6 +160,35 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         printf("gzgets() after gzseek: %s\n", (char*)uncompr);
     }
 
+    /* zlib.h: "If any characters are read or if len is one, the string is
+       terminated with a null character."  A len of one therefore has to
+       return buf holding an empty string, not NULL.  ChangeLog for 1.2.3.9
+       recorded this behaviour, and 1.2.5.2's fix for concatenated empty
+       gzip streams moved the buf == str test out of the end-of-file branch
+       and lost it. */
+    memset(uncompr, 'X', 8);
+    uncompr[7] = 0;
+    if (gzgets(file, (char*)uncompr, 1) != (char*)uncompr) {
+        fprintf(stderr, "gzgets with len of one did not return buf\n");
+        exit(1);
+    }
+    if (uncompr[0] != 0) {
+        fprintf(stderr, "gzgets with len of one did not null-terminate\n");
+        exit(1);
+    }
+
+    /* A len below one is still rejected and must leave the buffer alone. */
+    memset(uncompr, 'X', 8);
+    uncompr[7] = 0;
+    if (gzgets(file, (char*)uncompr, 0) != NULL) {
+        fprintf(stderr, "gzgets with len of zero did not return NULL\n");
+        exit(1);
+    }
+    if (uncompr[0] != 'X') {
+        fprintf(stderr, "gzgets with len of zero wrote to the buffer\n");
+        exit(1);
+    }
+
     gzclose(file);
 #endif
 }

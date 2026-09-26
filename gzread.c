@@ -634,8 +634,11 @@ char * ZEXPORT gzgets(gzFile file, char *buf, int len) {
 
     /* append a terminating zero to the string (we don't check for a zero in
        the contents, let the user worry about that) -- return the terminated
-       string, or if nothing was read, NULL */
-    if (buf == str)
+       string, or if nothing was read, NULL.  A len of one reads nothing but
+       still returns an empty string, as zlib.h promises and as ChangeLog for
+       1.2.3.9 recorded; 1.2.5.2 moved the buf == str test here from the
+       end-of-file branch and lost that case. */
+    if (buf == str && len > 1)
         return NULL;
     buf[0] = 0;
     return str;
