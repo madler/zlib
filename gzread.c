@@ -671,7 +671,7 @@ char * ZEXPORT gzgets(gzFile file, char *buf, int len) {
     /* append a terminating zero to the string (we don't check for a zero in
        the contents, let the user worry about that) -- return the terminated
        string, or if nothing was read, NULL */
-    if (buf == str)
+    if (buf == str && len > 1)
         return NULL;
     buf[0] = 0;
     return str;
