@@ -328,4 +328,10 @@ local void z_once(z_once_t *state, void (*init)(void)) {
 
 #endif /* Z_ONCE */
 
+#if defined(_MSC_VER)
+#  define zalign(x) __declspec(align(x))
+#else
+#  define zalign(x) __attribute__((aligned((x))))
+#endif
+
 #endif /* ZUTIL_H */
