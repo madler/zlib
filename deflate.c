@@ -1642,7 +1642,9 @@ local void check_match(deflate_state *s, IPos start, IPos match, int length) {
 /* Same but force premature exit if necessary. */
 #define FLUSH_BLOCK(s, last) { \
    FLUSH_BLOCK_ONLY(s, last); \
-   if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
+   if (s->strm->avail_out == 0 && \
+       (!(last) || s->pending != 0 || s->wrap != 0)) \
+      return (last) ? finish_started : need_more; \
 }
 
 /* Maximum stored block length in deflate format (not including header). */

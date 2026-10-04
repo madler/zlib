@@ -202,6 +202,104 @@ static void test_deflate(Byte *compr, uLong comprLen) {
 }
 
 /* ===========================================================================
+ * Test Z_FINISH with output buffers at the deflateBound() boundary.
+ */
+static void test_deflate_bound(void) {
+    static const int window_bits[] = {-15, 15, 31};
+    uLong len = 16 * 16384UL - 1;
+    unsigned i, wrap;
+    int extra, err;
+    uLong bound;
+    Byte *input, *output, *decoded;
+    z_stream c_stream, d_stream;
+
+#if defined(MAXSEG_64K) || MAX_WBITS < 15 || MAX_MEM_LEVEL < 8
+    return;
+#endif
+    if ((uLong)(uInt)len != len)
+        return;
+
+    input = (Byte*)malloc(len);
+    output = (Byte*)malloc(len + 128);
+    decoded = (Byte*)malloc(len);
+    if (input == Z_NULL || output == Z_NULL || decoded == Z_NULL) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+
+    /* Uniform literal blocks are stored with five bytes of overhead each.
+       The final fifteen high-valued literals also select a stored block,
+       making the complete output exactly equal to deflateBound(). */
+    for (i = 0; i < len - 15; i++)
+        input[i] = (Byte)i;
+    for (i = 0; i < 15; i++)
+        input[len - 15 + i] = (Byte)(144 + i);
+
+    for (wrap = 0; wrap < sizeof(window_bits) / sizeof(window_bits[0]); wrap++) {
+        if (window_bits[wrap] == 31 &&
+            (zlibCompileFlags() & (1L << 17)))
+            continue;
+        for (extra = -1; extra <= 1; extra++) {
+            memset(&c_stream, 0, sizeof(c_stream));
+            c_stream.zalloc = zalloc;
+            c_stream.zfree = zfree;
+            err = deflateInit2(&c_stream, 1, Z_DEFLATED, window_bits[wrap],
+                               8, Z_HUFFMAN_ONLY);
+            CHECK_ERR(err, "deflateInit2");
+            bound = deflateBound(&c_stream, len);
+            memset(output, 0xa5, len + 128);
+            c_stream.next_in = input;
+            c_stream.avail_in = (uInt)len;
+            c_stream.next_out = output;
+            c_stream.avail_out = (uInt)(bound + extra);
+            err = deflate(&c_stream, Z_FINISH);
+            if (err != (extra < 0 ? Z_OK : Z_STREAM_END) ||
+                output[bound + extra] != 0xa5) {
+                fprintf(stderr, "bad deflate bound: bits=%d extra=%d err=%d\n",
+                        window_bits[wrap], extra, err);
+                exit(1);
+            }
+            if (extra < 0) {
+                c_stream.avail_out = 2;
+                err = deflate(&c_stream, Z_FINISH);
+                if (err != Z_STREAM_END) {
+                    fprintf(stderr, "bad deflate bound continuation\n");
+                    exit(1);
+                }
+            }
+            if (c_stream.total_out != bound || c_stream.avail_in != 0 ||
+                output[bound] != 0xa5) {
+                fprintf(stderr, "bad deflate bound output size\n");
+                exit(1);
+            }
+            err = deflateEnd(&c_stream);
+            CHECK_ERR(err, "deflateEnd");
+
+            memset(&d_stream, 0, sizeof(d_stream));
+            d_stream.zalloc = zalloc;
+            d_stream.zfree = zfree;
+            err = inflateInit2(&d_stream, window_bits[wrap]);
+            CHECK_ERR(err, "inflateInit2");
+            d_stream.next_in = output;
+            d_stream.avail_in = (uInt)bound;
+            d_stream.next_out = decoded;
+            d_stream.avail_out = (uInt)len;
+            err = inflate(&d_stream, Z_FINISH);
+            if (err != Z_STREAM_END || d_stream.total_out != len ||
+                d_stream.avail_in != 0 || memcmp(input, decoded, len)) {
+                fprintf(stderr, "bad inflate of deflate bound output\n");
+                exit(1);
+            }
+            err = inflateEnd(&d_stream);
+            CHECK_ERR(err, "inflateEnd");
+        }
+    }
+    free(input);
+    free(output);
+    free(decoded);
+}
+
+/* ===========================================================================
  * Test inflate() with small buffers
  */
 static void test_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
@@ -533,6 +631,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     test_deflate(compr, comprLen);
+    test_deflate_bound();
     test_inflate(compr, comprLen, uncompr, uncomprLen);
 
     test_large_deflate(compr, comprLen, uncompr, uncomprLen);
