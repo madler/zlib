@@ -175,8 +175,14 @@ local int gz_zero(gz_statep state) {
         n -= strm->avail_in;
         state->x.pos += n;
         state->skip -= n;
-        if (ret == -1)
+        if (ret == -1) {
+            /* discard any unconsumed zero fill -- it was not yet accounted
+               for in state->skip, so it will be generated again when the
+               operation is retried */
+            strm->avail_in = 0;
+            strm->next_in = state->in;
             return -1;
+        }
     } while (state->skip);
     return 0;
 }
