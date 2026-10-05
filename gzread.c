@@ -288,23 +288,28 @@ local int gz_fetch(gz_statep state) {
     return 0;
 }
 
+/* Apply as much of a pending skip request as the output already available in
+   state->x allows. */
+local void gz_skip_have(gz_statep state) {
+    unsigned n;
+
+    n = GT_OFF(state->x.have) ||
+        (z_off64_t)state->x.have > state->skip ?
+        (unsigned)state->skip : state->x.have;
+    state->x.have -= n;
+    state->x.next += n;
+    state->x.pos += n;
+    state->skip -= n;
+}
+
 /* Skip state->skip (> 0) uncompressed bytes of output.  Return -1 on error, 0
    on success. */
 local int gz_skip(gz_statep state) {
-    unsigned n;
-
     /* skip over len bytes or reach end-of-file, whichever comes first */
     do {
         /* skip over whatever is in output buffer */
-        if (state->x.have) {
-            n = GT_OFF(state->x.have) ||
-                (z_off64_t)state->x.have > state->skip ?
-                (unsigned)state->skip : state->x.have;
-            state->x.have -= n;
-            state->x.next += n;
-            state->x.pos += n;
-            state->skip -= n;
-        }
+        if (state->x.have)
+            gz_skip_have(state);
 
         /* output buffer empty -- return if we're at the end of the input */
         else if (state->eof && state->strm.avail_in == 0) {
@@ -683,8 +688,10 @@ int ZEXPORT gzdirect(gzFile file) {
 
     /* if the state is not known, but we can find out, then do so (this is
        mainly for right after a gzopen() or gzdopen()) */
-    if (state->mode == GZ_READ && state->how == LOOK && state->x.have == 0)
+    if (state->mode == GZ_READ && state->how == LOOK && state->x.have == 0) {
         (void)gz_look(state);
+        gz_skip_have(state);        /* apply skip to current buffer */
+    }
 
     /* return 1 if transparent, 0 if processing a gzip stream */
     return state->direct == 1;
