@@ -315,8 +315,12 @@ local int gz_skip(gz_statep state) {
 
         /* need more data to skip -- load up output buffer */
         else {
-            /* get more output, looking for header if required */
-            if (gz_fetch(state) == -1)
+            /* get more output, looking for header if required. If the fetch
+               stalled but provided some output, consume it before returning
+               so that x.have > 0 always implies the data is at the current
+               logical position (x.pos), as assumed by the gzgetc() fast path
+               in zlib.h and gzread.c */
+            if (gz_fetch(state) == -1 && state->x.have == 0)
                 return -1;
         }
     } while (state->skip);
