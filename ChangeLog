@@ -2,7 +2,7 @@
                 ChangeLog file for zlib
 
 Changes in 1.3.2.1 (xx Feb 2026)
-- 
+- Propagate Apple target settings to nested CMake tests [qeqx]
 
 Changes in 1.3.2 (17 Feb 2026)
 - Continued rewrite of CMake build [Vollstrecker]
