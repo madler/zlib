@@ -887,7 +887,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                concerning the ENOUGH constants, which depend on those values */
             state->next = state->codes;
             state->lencode = (const code FAR *)(state->next);
-            state->lenbits = 9;
+            state->lenbits = 10;
             ret = inflate_table(LENS, state->lens, state->nlen, &(state->next),
                                 &(state->lenbits), state->work);
             if (ret) {
@@ -896,7 +896,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 break;
             }
             state->distcode = (const code FAR *)(state->next);
-            state->distbits = 6;
+            state->distbits = 8;
             ret = inflate_table(DISTS, state->lens + state->nlen, state->ndist,
                             &(state->next), &(state->distbits), state->work);
             if (ret) {

@@ -36,23 +36,23 @@ typedef struct {
  */
 
 /* Maximum size of the dynamic table.  The maximum number of code structures is
-   1444, which is the sum of 852 for literal/length codes and 592 for distance
+   1732, which is the sum of 1332 for literal/length codes and 400 for distance
    codes.  These values were found by exhaustive searches using the program
    examples/enough.c found in the zlib distribution.  The arguments to that
    program are the number of symbols, the initial root table size, and the
-   maximum bit length of a code.  "enough 286 9 15" for literal/length codes
-   returns 852, and "enough 30 6 15" for distance codes returns 592. The
-   initial root table size (9 or 6) is found in the fifth argument of the
+   maximum bit length of a code.  "enough 286 10 15" for literal/length codes
+   returns 1332, and "enough 30 8 15" for distance codes returns 400. The
+   initial root table size (10 or 8) is found in the fifth argument of the
    inflate_table() calls in inflate.c and infback.c.  If the root table size is
    changed, then these maximum sizes would be need to be recalculated and
    updated. */
 #ifndef PKZIP_BUG_WORKAROUND
-#  define ENOUGH_LENS 852
-#  define ENOUGH_DISTS 592
+#  define ENOUGH_LENS 1332
+#  define ENOUGH_DISTS 400
 #else
 /* That workaround permits 288 literal/length codes and 32 distance codes. */
-#  define ENOUGH_LENS 854
-#  define ENOUGH_DISTS 594
+#  define ENOUGH_LENS 1334
+#  define ENOUGH_DISTS 402
 #endif
 #define ENOUGH (ENOUGH_LENS+ENOUGH_DISTS)
 
