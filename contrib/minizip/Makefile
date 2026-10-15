@@ -19,7 +19,13 @@ miniunz: $(UNZ_OBJS)
 minizip: $(ZIP_OBJS)
 	${CC} ${LDFLAGS} -o $@ $(ZIP_OBJS)
 
-test: miniunz minizip
+
+test_zip64_bounds.o: test_zip64_bounds.c unzip.h ioapi.h
+
+test_zip64_bounds: test_zip64_bounds.o unzip.o ioapi.o ../../libz.a
+	${CC} ${LDFLAGS} -o $@ test_zip64_bounds.o unzip.o ioapi.o ../../libz.a
+
+test: miniunz minizip test_zip64_bounds
 	@rm -f test.*
 	@echo hello hello hello > test.txt
 	./minizip test test.txt
@@ -28,6 +34,7 @@ test: miniunz minizip
 	./miniunz test.zip
 	@cmp test.txt test.old
 	@rm -f test.*
+	./test_zip64_bounds
 
 clean:
-	/bin/rm -f *.o *~ minizip miniunz test.*
+	/bin/rm -f *.o *~ minizip miniunz test.* test_zip64_bounds

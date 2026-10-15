@@ -780,6 +780,8 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
     uLong uMagic;
     long lSeek=0;
     uLong uL;
+    unsigned zip64_required;
+    unsigned zip64_consumed = 0;
 
     if (file==NULL)
         return UNZ_PARAMERROR;
@@ -850,6 +852,17 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
         err=UNZ_ERRNO;
     file_info_internal.offset_curfile = uL;
 
+
+    /* Remember ZIP64 requirements before replacing any values. */
+    if (err != UNZ_OK)
+        return err;
+
+    zip64_required =
+        (file_info.uncompressed_size == MAXU32 ? 1U : 0U) |
+        (file_info.compressed_size == MAXU32 ? 2U : 0U) |
+        (file_info_internal.offset_curfile == MAXU32 ? 4U : 0U) |
+        (file_info.disk_num_start == 0xffff ? 8U : 0U);
+
     lSeek+=file_info.size_filename;
     if ((err==UNZ_OK) && (szFileName!=NULL))
     {
@@ -913,53 +926,90 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
         while(acc < file_info.size_file_extra)
         {
             uLong headerId;
-                                                uLong dataSize;
+            uLong dataSize;
+            uLong used = 0;
+            uLong remaining = file_info.size_file_extra - acc;
 
-            if (unz64local_getShort(&s->z_filefunc, s->filestream,&headerId) != UNZ_OK)
-                err=UNZ_ERRNO;
+            /* Every extra-field record starts with four bytes. */
+            if (remaining < 4)
+                return UNZ_BADZIPFILE;
 
-            if (unz64local_getShort(&s->z_filefunc, s->filestream,&dataSize) != UNZ_OK)
-                err=UNZ_ERRNO;
+            if (unz64local_getShort(&s->z_filefunc, s->filestream,
+                                    &headerId) != UNZ_OK ||
+                unz64local_getShort(&s->z_filefunc, s->filestream,
+                                    &dataSize) != UNZ_OK)
+                return UNZ_ERRNO;
 
-            /* ZIP64 extra fields */
+            remaining -= 4;
+            if (dataSize > remaining)
+                return UNZ_BADZIPFILE;
+
+            /* ZIP64 values must fit within this record. */
             if (headerId == 0x0001)
             {
-                if(file_info.uncompressed_size == MAXU32)
+                if ((zip64_required & 1U) && !(zip64_consumed & 1U))
                 {
-                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
-                        err=UNZ_ERRNO;
+                    if (dataSize - used < 8)
+                        return UNZ_BADZIPFILE;
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,
+                                             &file_info.uncompressed_size) != UNZ_OK)
+                        return UNZ_ERRNO;
+                    used += 8;
+                    zip64_consumed |= 1U;
                 }
 
-                if(file_info.compressed_size == MAXU32)
+                if ((zip64_required & 2U) && !(zip64_consumed & 2U))
                 {
-                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
-                        err=UNZ_ERRNO;
+                    if (dataSize - used < 8)
+                        return UNZ_BADZIPFILE;
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,
+                                             &file_info.compressed_size) != UNZ_OK)
+                        return UNZ_ERRNO;
+                    used += 8;
+                    zip64_consumed |= 2U;
                 }
 
-                if(file_info_internal.offset_curfile == MAXU32)
+                if ((zip64_required & 4U) && !(zip64_consumed & 4U))
                 {
-                    /* Relative Header offset */
-                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,&file_info_internal.offset_curfile) != UNZ_OK)
-                        err=UNZ_ERRNO;
+                    if (dataSize - used < 8)
+                        return UNZ_BADZIPFILE;
+                    if (unz64local_getLong64(&s->z_filefunc, s->filestream,
+                                             &file_info_internal.offset_curfile) != UNZ_OK)
+                        return UNZ_ERRNO;
+                    used += 8;
+                    zip64_consumed |= 4U;
                 }
 
-                if(file_info.disk_num_start == 0xffff)
+                if ((zip64_required & 8U) && !(zip64_consumed & 8U))
                 {
-                    /* Disk Start Number */
-                    if (unz64local_getLong(&s->z_filefunc, s->filestream,&file_info.disk_num_start) != UNZ_OK)
-                        err=UNZ_ERRNO;
+                    if (dataSize - used < 4)
+                        return UNZ_BADZIPFILE;
+                    if (unz64local_getLong(&s->z_filefunc, s->filestream,
+                                           &file_info.disk_num_start) != UNZ_OK)
+                        return UNZ_ERRNO;
+                    used += 4;
+                    zip64_consumed |= 8U;
                 }
-
             }
-            else
-            {
-                if (ZSEEK64(s->z_filefunc, s->filestream,dataSize,ZLIB_FILEFUNC_SEEK_CUR)!=0)
-                    err=UNZ_ERRNO;
-            }
 
-            acc += 2 + 2 + dataSize;
+            /* Skip remaining bytes, but never leave this record. */
+            if (used < dataSize &&
+                ZSEEK64(s->z_filefunc, s->filestream,
+                        dataSize - used,
+                        ZLIB_FILEFUNC_SEEK_CUR) != 0)
+                return UNZ_ERRNO;
+
+            acc += 4 + dataSize;
         }
     }
+
+
+    /* Reject a missing required ZIP64 replacement value.
+       Compare consumed flags, not decoded numeric values:
+       0xffffffff is itself a representable ZIP64 value. */
+    if (err == UNZ_OK &&
+        zip64_consumed != zip64_required)
+        return UNZ_BADZIPFILE;
 
     if ((err==UNZ_OK) && (szComment!=NULL))
     {
