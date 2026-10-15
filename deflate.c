@@ -1331,10 +1331,15 @@ int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
 
     ss = source->state;
 
-    zmemcpy(dest, source, sizeof(z_stream));
-
-    ds = (deflate_state *) ZALLOC(dest, 1, sizeof(deflate_state));
+    /*
+     * Do not copy source state into dest until its first
+     * allocation succeeds. On allocation failure, leave
+     * the caller's destination structure unchanged.
+     */
+    ds = (deflate_state *) ZALLOC(source, 1, sizeof(deflate_state));
     if (ds == Z_NULL) return Z_MEM_ERROR;
+
+    zmemcpy(dest, source, sizeof(z_stream));
     zmemzero(ds, sizeof(deflate_state));
     dest->state = (struct internal_state FAR *) ds;
     zmemcpy(ds, ss, sizeof(deflate_state));

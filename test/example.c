@@ -490,6 +490,75 @@ static void test_dict_inflate(Byte *compr, uLong comprLen, Byte *uncompr,
     }
 }
 
+
+/* ===========================================================================
+ * Verify that the first deflateCopy allocation failure does not leave
+ * a non-owning alias to the original compressor state.
+ */
+#if defined(STDC) && !defined(MAXSEG_64K)
+typedef struct {
+    unsigned calls;
+    unsigned fail_at;
+} copy_alloc_state;
+
+static voidpf copy_alloc(voidpf opaque, uInt items, uInt size) {
+    copy_alloc_state *state = (copy_alloc_state *)opaque;
+
+    state->calls++;
+    if (state->calls == state->fail_at)
+        return Z_NULL;
+
+    return calloc(items, size);
+}
+
+static void copy_free(voidpf opaque, voidpf address) {
+    (void)opaque;
+    free(address);
+}
+
+/* The unsuccessful copy must not alias the source state. */
+static void test_deflate_copy_oom(int bits) {
+    z_stream source, dest;
+    copy_alloc_state allocator;
+    voidpf original_state;
+    int ret;
+
+    memset(&source, 0, sizeof(source));
+    memset(&dest, 0, sizeof(dest));
+    memset(&allocator, 0, sizeof(allocator));
+
+    source.zalloc = copy_alloc;
+    source.zfree = copy_free;
+    source.opaque = &allocator;
+
+    ret = deflateInit2(&source, 6, Z_DEFLATED, bits, 8,
+                       Z_DEFAULT_STRATEGY);
+    CHECK_ERR(ret, "copy test deflateInit2");
+
+    original_state = source.state;
+    allocator.fail_at = allocator.calls + 1;
+
+    ret = deflateCopy(&dest, &source);
+
+    if (ret != Z_MEM_ERROR || source.state != original_state) {
+        fprintf(stderr, "COPY_TEST_UNEXPECTED_RESULT\n");
+        exit(1);
+    }
+
+    if (dest.state != Z_NULL) {
+        fprintf(stderr, "COPY_TEST_ALIAS_RETAINED bits=%d\n", bits);
+        ret = deflateEnd(&source);
+        CHECK_ERR(ret, "copy test cleanup");
+        exit(1);
+    }
+
+    ret = deflateEnd(&source);
+    CHECK_ERR(ret, "copy test deflateEnd");
+
+    printf("COPY_TEST_PASS bits=%d\n", bits);
+}
+#endif /* defined(STDC) && !defined(MAXSEG_64K) */
+
 /* ===========================================================================
  * Usage:  example [output.gz  [input.gz]]
  */
@@ -544,6 +613,12 @@ int main(int argc, char *argv[]) {
 
     test_dict_deflate(compr, comprLen);
     test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
+
+#if defined(STDC) && !defined(MAXSEG_64K)
+    test_deflate_copy_oom(-15);
+    test_deflate_copy_oom(15);
+    test_deflate_copy_oom(31);
+#endif
 
     free(compr);
     free(uncompr);
