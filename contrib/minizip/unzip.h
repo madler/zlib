@@ -1,4 +1,4 @@
-/* unzip.h -- IO for uncompress .zip files using zlib
+/* unzip.h -- IO for uncompressing .zip files using zlib
    part of the MiniZip project - ( https://www.winimage.com/zLibDll/minizip.html )
 
          Copyright (C) 1998-2026 Gilles Vollant (minizip) ( https://www.winimage.com/zLibDll/minizip.html )
@@ -167,7 +167,7 @@ extern int ZEXPORT unzStringFileNameCompare(const char* fileName1,
 extern unzFile ZEXPORT unzOpen(const char *path);
 extern unzFile ZEXPORT unzOpen64(const void *path);
 /*
-  Open a Zip file. path contain the full pathname (by example,
+  Open a Zip file. path contains the full pathname (by example,
      on a Windows XP computer "c:\\zlib\\zlib113.zip" or on an Unix computer
      "zlib/zlib113.zip".
      If the zipfile cannot be opened (file don't exist or in not valid), the
@@ -199,7 +199,7 @@ extern unzFile ZEXPORT unzOpen2_64(const void *path,
 extern int ZEXPORT unzClose(unzFile file);
 /*
   Close a ZipFile opened with unzOpen.
-  If there is files inside the .Zip opened with unzOpenCurrentFile (see later),
+  If there are files inside the .Zip opened with unzOpenCurrentFile (see later),
     these files MUST be closed with unzCloseCurrentFile before call unzClose.
   return UNZ_OK if there is no problem. */
 
@@ -225,7 +225,7 @@ extern int ZEXPORT unzGetGlobalComment(unzFile file,
 
 
 /***************************************************************************/
-/* Unzip package allow you browse the directory of the zipfile */
+/* Unzip package allows you to browse the directory of the zipfile */
 
 extern int ZEXPORT unzGoToFirstFile(unzFile file);
 /*
@@ -352,7 +352,7 @@ extern int ZEXPORT unzOpenCurrentFile2(unzFile file,
                                        int* level,
                                        int raw);
 /*
-  Same than unzOpenCurrentFile, but open for read raw the file (not uncompress)
+  Same as unzOpenCurrentFile, but open for read raw the file (not uncompress)
     if raw==1
   *method will receive method of compression, *level will receive level of
      compression
@@ -366,7 +366,7 @@ extern int ZEXPORT unzOpenCurrentFile3(unzFile file,
                                        int raw,
                                        const char* password);
 /*
-  Same than unzOpenCurrentFile, but open for read raw the file (not uncompress)
+  Same as unzOpenCurrentFile, but open for read raw the file (not uncompress)
     if raw==1
   *method will receive method of compression, *level will receive level of
      compression
