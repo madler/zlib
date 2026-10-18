@@ -309,6 +309,7 @@ local void block_init(block_t *block, linkedlist_data *list) {
    data is added to the datablocks. This is invoked if the central directory is
    invalid, so there is no longer any point in attempting to interpret it. */
 local void block_stop(block_t *block) {
+    block->node = NULL;
     block->left = 0;
     block->next = NULL;
 }
