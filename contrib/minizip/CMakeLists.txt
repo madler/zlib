@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12...3.31)
 
 project(
     minizip
-    VERSION 1.0.0
+    VERSION 1.3.2.1
     LANGUAGES C
     DESCRIPTION "A library for creating zipfiles based in zlib"
     HOMEPAGE_URL "https://www.winimage.com/zLibDll/minizip.html")
