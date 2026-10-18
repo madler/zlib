@@ -2199,23 +2199,37 @@ extern int ZEXPORT zipClose(zipFile file, const char* global_comment) {
 extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHeader) {
   char* p = pData;
   int size = 0;
+  int remaining;
   char* pNewHeader;
   char* pTmp;
   short header;
-  short dataSize;
+  unsigned short dataSize;
 
   int retVal = ZIP_OK;
 
   if(pData == NULL || dataLen == NULL || *dataLen < 4)
     return ZIP_PARAMERROR;
 
+  remaining = *dataLen;
   pNewHeader = (char*)ALLOC((unsigned)*dataLen);
   pTmp = pNewHeader;
 
-  while(p < (pData + *dataLen))
+  while(remaining > 0)
   {
+    if(remaining < 4)
+    {
+      retVal = ZIP_BADZIPFILE;
+      break;
+    }
+
     header = *(short*)p;
-    dataSize = *(((short*)p)+1);
+    dataSize = (unsigned short)*(((unsigned short*)p)+1);
+
+    if((int)dataSize > remaining - 4)
+    {
+      retVal = ZIP_BADZIPFILE;
+      break;
+    }
 
     if( header == sHeader ) /* Header found. */
     {
@@ -2225,10 +2239,18 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
     {
       /* Extra Info block should not be removed, So copy it to the temp buffer. */
       memcpy(pTmp, p, dataSize + 4);
+      pTmp += dataSize + 4;
       p += dataSize + 4;
       size += dataSize + 4;
     }
 
+    remaining -= dataSize + 4;
+  }
+
+  if(retVal != ZIP_OK)
+  {
+    free(pNewHeader);
+    return retVal;
   }
 
   if(size < *dataLen)
