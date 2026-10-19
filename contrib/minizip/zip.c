@@ -447,6 +447,7 @@ local char *block_central_name(block_t *block, set_t *set) {
                name. (Who the heck is putting nuls inside their zip file entry
                names anyway?) */
             set_free(set, name);
+            name = NULL;
             continue;
         }
 
