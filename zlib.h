@@ -868,9 +868,14 @@ ZEXTERN int ZEXPORT inflateInit2(z_streamp strm,
    this version of the library.  The default value is 15 if inflateInit is used
    instead.  windowBits must be greater than or equal to the windowBits value
    provided to deflateInit2() while compressing, or it must be equal to 15 if
-   deflateInit2() was not used.  If a compressed stream with a larger window
-   size is given as input, inflate() will return with the error code
-   Z_DATA_ERROR instead of trying to allocate a larger window.
+   deflateInit2() was not used.  If a zlib stream declares a larger window
+   size in its header, inflate() will return with the error code Z_DATA_ERROR
+   instead of trying to allocate a larger window.  Raw deflate and gzip
+   streams do not declare a window size.  For those streams, a smaller window
+   may suffice if the needed history is still in the output produced by the
+   current inflate() call.  Otherwise a match distance exceeding the available
+   history will result in Z_DATA_ERROR.  Applications should not rely on this
+   buffer-dependent behavior; use a window large enough for the stream.
 
      windowBits can also be zero to request that inflate use the window size in
    the zlib header of the compressed stream.
