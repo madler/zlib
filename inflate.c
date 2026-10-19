@@ -646,6 +646,18 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 have -= copy;
                 next += copy;
                 if (len) goto inf_leave;
+                /* Truncation safety (CWE-170): when the true name did not
+                   fit, length is capped at name_max and the buffer would
+                   otherwise hold max bytes with no terminating zero.
+                   Force NUL at the last byte so strlen/strcpy stay in
+                   bounds. No-op when it fits (last byte already zero),
+                   and skipped when max is zero or name is Z_NULL. */
+                if (state->head != Z_NULL &&
+                        state->head->name != Z_NULL &&
+                        state->head->name_max != 0 &&
+                        state->length == state->head->name_max &&
+                        state->head->name[state->head->name_max - 1] != 0)
+                    state->head->name[state->head->name_max - 1] = 0;
             }
             else if (state->head != Z_NULL)
                 state->head->name = Z_NULL;
@@ -668,6 +680,15 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 have -= copy;
                 next += copy;
                 if (len) goto inf_leave;
+                /* Truncation safety (CWE-170): same guarantee for comment.
+                   No-op when it fits or when comm_max is zero or comment
+                   is Z_NULL. Normal (fitting) byte sequence unchanged. */
+                if (state->head != Z_NULL &&
+                        state->head->comment != Z_NULL &&
+                        state->head->comm_max != 0 &&
+                        state->length == state->head->comm_max &&
+                        state->head->comment[state->head->comm_max - 1] != 0)
+                    state->head->comment[state->head->comm_max - 1] = 0;
             }
             else if (state->head != Z_NULL)
                 state->head->comment = Z_NULL;

@@ -1092,7 +1092,15 @@ ZEXTERN int ZEXPORT inflateGetHeader(z_streamp strm,
    written there.  If comment is not Z_NULL, then up to comm_max characters,
    including the terminating zero, are written there.  The application can tell
    that the name or comment did not fit in the provided space by the absence of
-   a terminating zero.  If any of extra, name, or comment are not present in
+   a terminating zero.  When the name or comment is truncated to fit, the
+   library guarantees a terminating zero at name[name_max - 1] or
+   comment[comm_max - 1] (when the corresponding max is not zero), so the
+   stored string stays zero-terminated and strlen() remains in bounds.
+   A zero found only at the last position therefore means the true field may
+   be longer; an exact fit cannot be distinguished from truncation without
+   retrying with a larger buffer.  Unlike extra, which reports the true
+   length in extra_len, name and comment have no true-length report.  If any
+   of extra, name, or comment are not present in
    the header, then that field's pointer is set to Z_NULL.  This allows the use
    of deflateSetHeader() with the returned structure to duplicate the header.
    Note that if those fields initially pointed to allocated memory, then the
