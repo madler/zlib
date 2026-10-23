@@ -1899,6 +1899,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
     if(datasize > 0)
     {
       char* p = NULL;
+      uLong size_comment;
 
       if((uLong)(datasize + 4) > zi->ci.size_centralExtraFree)
       {
@@ -1906,7 +1907,12 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
         return ZIP_BADZIPFILE;
       }
 
-      p = zi->ci.central_header + zi->ci.size_centralheader;
+      /* Insert the ZIP64 field at the end of the extra field, which is ahead
+         of the file comment, so move the comment up to make room. */
+      size_comment = (unsigned char)zi->ci.central_header[32] |
+                     ((uLong)(unsigned char)zi->ci.central_header[33] << 8);
+      p = zi->ci.central_header + zi->ci.size_centralheader - size_comment;
+      memmove(p + datasize + 4, p, size_comment);
 
       /* Add Extra Information Header for 'ZIP64 information' */
       zip64local_putValue_inmemory(p, 0x0001, 2); /* HeaderID */
