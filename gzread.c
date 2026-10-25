@@ -255,6 +255,11 @@ local int gz_decomp(gz_statep state) {
 local int gz_fetch(gz_statep state) {
     z_streamp strm = &(state->strm);
 
+    /* after a serious error, only what is already in the output buffer is
+       delivered -- don't try to decompress any more */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+        return -1;
+
     do {
         switch(state->how) {
         case LOOK:      /* -> LOOK, COPY (only if never GZIP), or GZIP */
@@ -416,16 +421,21 @@ int ZEXPORT gzread(gzFile file, voidp buf, unsigned len) {
     if (state->mode != GZ_READ)
         return -1;
 
-    /* check that there was no (serious) error */
-    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+    /* check that there was no (serious) error -- if there was, deliver any
+       data read before the error until it is exhausted, and only then return
+       the error */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
+            state->x.have == 0)
         return -1;
     if (state->again)
         gz_error(state, Z_OK, NULL);
 
     /* since an int is returned, make sure len fits in one, otherwise return
-       with an error (this avoids a flaw in the interface) */
+       with an error (this avoids a flaw in the interface) -- keep a pending
+       serious error, which is the one the caller needs to see */
     if ((int)len < 0) {
-        gz_error(state, Z_STREAM_ERROR, "request does not fit in an int");
+        if (state->err == Z_OK || state->err == Z_BUF_ERROR)
+            gz_error(state, Z_STREAM_ERROR, "request does not fit in an int");
         return -1;
     }
 
@@ -462,16 +472,21 @@ z_size_t ZEXPORT gzfread(voidp buf, z_size_t size, z_size_t nitems,
     if (state->mode != GZ_READ)
         return 0;
 
-    /* check that there was no (serious) error */
-    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+    /* check that there was no (serious) error -- if there was, deliver any
+       data read before the error until it is exhausted, and only then return
+       the error */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
+            state->x.have == 0)
         return 0;
     if (state->again)
         gz_error(state, Z_OK, NULL);
 
-    /* compute bytes to read -- error on overflow */
+    /* compute bytes to read -- error on overflow, keeping a pending serious
+       error, which is the one the caller needs to see */
     len = nitems * size;
     if (size && len / size != nitems) {
-        gz_error(state, Z_STREAM_ERROR, "request does not fit in a size_t");
+        if (state->err == Z_OK || state->err == Z_BUF_ERROR)
+            gz_error(state, Z_STREAM_ERROR, "request does not fit in a size_t");
         return 0;
     }
 
@@ -496,8 +511,11 @@ int ZEXPORT gzgetc(gzFile file) {
     if (state->mode != GZ_READ)
         return -1;
 
-    /* check that there was no (serious) error */
-    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+    /* check that there was no (serious) error -- if there was, deliver any
+       data read before the error until it is exhausted, and only then return
+       the error, as the gzgetc() macro does */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
+            state->x.have == 0)
         return -1;
     if (state->again)
         gz_error(state, Z_OK, NULL);
@@ -532,8 +550,12 @@ int ZEXPORT gzungetc(int c, gzFile file) {
     if (state->how == LOOK && state->x.have == 0)
         (void)gz_look(state);
 
-    /* check that there was no (serious) error */
-    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+    /* check that there was no (serious) error -- a character can still be
+       pushed back after one, since it is data that was read before the
+       error, and it will be returned before the error is signaled -- but only
+       if there is an output buffer to put it in */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
+            state->size == 0)
         return -1;
     if (state->again)
         gz_error(state, Z_OK, NULL);
@@ -558,7 +580,8 @@ int ZEXPORT gzungetc(int c, gzFile file) {
 
     /* if no room, give up (must have already done a gzungetc()) */
     if (state->x.have == (state->size << 1)) {
-        gz_error(state, Z_DATA_ERROR, "out of room to push characters");
+        if (state->err == Z_OK || state->err == Z_BUF_ERROR)
+            gz_error(state, Z_DATA_ERROR, "out of room to push characters");
         return -1;
     }
 
@@ -594,8 +617,11 @@ char * ZEXPORT gzgets(gzFile file, char *buf, int len) {
     if (state->mode != GZ_READ)
         return NULL;
 
-    /* check that there was no (serious) error */
-    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again)
+    /* check that there was no (serious) error -- if there was, deliver any
+       data read before the error until it is exhausted, and only then return
+       the error */
+    if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
+            state->x.have == 0)
         return NULL;
     if (state->again)
         gz_error(state, Z_OK, NULL);
@@ -610,8 +636,9 @@ char * ZEXPORT gzgets(gzFile file, char *buf, int len) {
     left = (unsigned)len - 1;
     if (left) do {
         /* assure that something is in the output buffer */
-        if (state->x.have == 0 && gz_fetch(state) == -1)
-            break;                      /* error */
+        if (state->x.have == 0 && gz_fetch(state) == -1 &&
+                state->x.have == 0)
+            break;                      /* error, and nothing left to return */
         if (state->x.have == 0) {       /* end of file */
             state->past = 1;            /* read past end */
             break;                      /* return what we have */

@@ -1501,9 +1501,12 @@ ZEXTERN z_size_t ZEXPORT gzfread(voidp buf, z_size_t size, z_size_t nitems,
      gzfread() returns the number of full items read of size size, or zero if
    the end of the file was reached and a full item could not be read, or if
    there was an error.  gzerror() must be consulted if zero is returned in
-   order to determine if there was an error.  If the multiplication of size and
-   nitems overflows, i.e. the product does not fit in a z_size_t, then nothing
-   is read, zero is returned, and the error state is set to Z_STREAM_ERROR.
+   order to determine if there was an error.  If some data was read before an
+   error, then that data is returned until exhausted, after which the next call
+   will return zero and gzerror() will report the error.  If the multiplication
+   of size and nitems overflows, i.e. the product does not fit in a z_size_t,
+   then nothing is read, zero is returned, and the error state is set to
+   Z_STREAM_ERROR.
 
      In the event that the end of file is reached and only a partial item is
    available at the end, i.e. the remaining uncompressed data length is not a
@@ -1780,7 +1783,8 @@ ZEXTERN const char * ZEXPORT gzerror(gzFile file, int *errnum);
    If errnum is not NULL, *errnum is set to zlib error number.  If an error
    occurred in the file system and not in the compression library, *errnum is
    set to Z_ERRNO and the application may consult errno to get the exact error
-   code.
+   code.  The error is reported by gzerror() as soon as it is detected, which
+   may be before all of the data read prior to the error has been returned.
 
      The application must not modify the returned string.  Future calls to
    this function may invalidate the previously returned string.  If file is

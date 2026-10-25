@@ -559,10 +559,6 @@ void ZLIB_INTERNAL gz_error(gz_statep state, int err, const char *msg) {
         state->msg = NULL;
     }
 
-    /* if fatal, set state->x.have to 0 so that the gzgetc() macro fails */
-    if (err != Z_OK && err != Z_BUF_ERROR && !state->again)
-        state->x.have = 0;
-
     /* set error code, and if no message, then done */
     state->err = err;
     if (msg == NULL)
