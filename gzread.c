@@ -160,7 +160,7 @@ local int gz_look(gz_statep state) {
             strm->next_in[2] == 8 && strm->next_in[3] < 32) {
         inflateReset(strm);
         state->how = GZIP;
-        state->junk = 1;
+        state->junk = 0;
         state->direct = 0;
         return 0;
     }
