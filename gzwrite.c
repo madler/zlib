@@ -41,8 +41,8 @@ local int gz_init(gz_statep state) {
             gz_error(state, Z_MEM_ERROR, "out of memory");
             return -1;
         }
-        strm->next_in = NULL;
     }
+    strm->next_in = NULL;
 
     /* mark state as initialized */
     state->size = state->want;
@@ -259,6 +259,7 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
                 return state->again ? put - len : 0;
             }
         } while (len);
+        state->strm.next_in = state->in;
     }
 
     /* input was all buffered or compressed */
