@@ -385,9 +385,10 @@ int ZEXPORT gzputs(gzFile file, const char *s) {
     return len && put == 0 ? -1 : (int)put;
 }
 
-#if (((!defined(STDC) && !defined(Z_HAVE_STDARG_H)) || !defined(NO_vsnprintf)) && \
-     (defined(STDC) || defined(Z_HAVE_STDARG_H) || !defined(NO_snprintf))) || \
-    defined(ZLIB_INSECURE)
+#if (((!defined(STDC) && !defined(Z_HAVE_STDARG_H)) || \
+      !defined(NO_vsnprintf)) && \
+     (defined(STDC) || defined(Z_HAVE_STDARG_H) || \
+     !defined(NO_snprintf))) || defined(ZLIB_INSECURE)
 /* If the second half of the input buffer is occupied, write out the contents.
    If there is any input remaining due to a non-blocking stall on write, move
    it to the start of the buffer. Return true if this did not open up the

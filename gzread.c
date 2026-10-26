@@ -495,7 +495,8 @@ z_size_t ZEXPORT gzfread(voidp buf, z_size_t size, z_size_t nitems,
     len = nitems * size;
     if (size && len / size != nitems) {
         if (state->err == Z_OK || state->err == Z_BUF_ERROR)
-            gz_error(state, Z_STREAM_ERROR, "request does not fit in a size_t");
+            gz_error(state, Z_STREAM_ERROR,
+                     "request does not fit in a size_t");
         return 0;
     }
 

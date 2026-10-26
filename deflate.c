@@ -2028,7 +2028,8 @@ local block_state deflate_slow(deflate_state *s, int flush) {
             uInt max_insert = s->strstart + s->lookahead - MIN_MATCH;
             /* Do not insert strings in hash table beyond this. */
 
-            check_match(s, s->strstart - 1, s->prev_match, (int)s->prev_length);
+            check_match(s, s->strstart - 1, s->prev_match,
+                        (int)s->prev_length);
 
             _tr_tally_dist(s, s->strstart - 1 - s->prev_match,
                            s->prev_length - MIN_MATCH, bflush);
