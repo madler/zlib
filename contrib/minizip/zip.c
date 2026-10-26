@@ -1401,6 +1401,8 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     zi->ci.size_centralExtraFree = 32; /* Extra space we have reserved in case we need to add ZIP64 extra info data */
 
     zi->ci.central_header = (char*)ALLOC((uInt)zi->ci.size_centralheader + zi->ci.size_centralExtraFree);
+    if (zi->ci.central_header == NULL)
+        return ZIP_INTERNALERROR;
 
     zi->ci.size_centralExtra = size_extrafield_global;
     zip64local_putValue_inmemory(zi->ci.central_header,(uLong)CENTRALHEADERMAGIC,4);
@@ -1443,8 +1445,6 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     for (i=0;i<size_comment;i++)
         *(zi->ci.central_header+SIZECENTRALHEADER+size_filename+
               size_extrafield_global+i) = *(comment+i);
-    if (zi->ci.central_header == NULL)
-        return ZIP_INTERNALERROR;
 
     zi->ci.zip64 = zip64;
     zi->ci.totalCompressedData = 0;
