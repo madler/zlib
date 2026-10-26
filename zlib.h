@@ -696,7 +696,9 @@ ZEXTERN int ZEXPORT deflateCopy(z_streamp dest,
      deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
    (such as zalloc being Z_NULL).  msg is left unchanged in both source and
-   destination.
+   destination.  If deflateCopy fails and dest is not Z_NULL, then dest->state
+   is set to Z_NULL with dest otherwise unchanged, so that deflateEnd(dest) can
+   be called safely, though dest is not a usable stream.
 */
 
 ZEXTERN int ZEXPORT deflateReset(z_streamp strm);
@@ -980,7 +982,9 @@ ZEXTERN int ZEXPORT inflateCopy(z_streamp dest,
      inflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
    (such as zalloc being Z_NULL).  msg is left unchanged in both source and
-   destination.
+   destination.  If inflateCopy fails and dest is not Z_NULL, then dest->state
+   is set to Z_NULL with dest otherwise unchanged, so that inflateEnd(dest) can
+   be called safely, though dest is not a usable stream.
 */
 
 ZEXTERN int ZEXPORT inflateReset(z_streamp strm);

@@ -1317,39 +1317,49 @@ int ZEXPORT deflateEnd(z_streamp strm) {
  */
 int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
 #ifdef MAXSEG_64K
-    (void)dest;
     (void)source;
+    if (dest != Z_NULL)
+        dest->state = Z_NULL;
     return Z_STREAM_ERROR;
 #else
     deflate_state *ds;
     deflate_state *ss;
 
-
-    if (deflateStateCheck(source) || dest == Z_NULL) {
+    if (dest == Z_NULL)
+        return Z_STREAM_ERROR;
+    if (deflateStateCheck(source)) {
+        dest->state = Z_NULL;
         return Z_STREAM_ERROR;
     }
 
     ss = source->state;
 
-    zmemcpy(dest, source, sizeof(z_stream));
-
-    ds = (deflate_state *) ZALLOC(dest, 1, sizeof(deflate_state));
-    if (ds == Z_NULL) return Z_MEM_ERROR;
-    zmemzero(ds, sizeof(deflate_state));
-    dest->state = (struct internal_state FAR *) ds;
-    zmemcpy(ds, ss, sizeof(deflate_state));
-    ds->strm = dest;
-
-    ds->window = (Bytef *) ZALLOC(dest, ds->w_size, 2*sizeof(Byte));
-    ds->prev   = (Posf *)  ZALLOC(dest, ds->w_size, sizeof(Pos));
-    ds->head   = (Posf *)  ZALLOC(dest, ds->hash_size, sizeof(Pos));
-    ds->pending_buf = (uchf *) ZALLOC(dest, ds->lit_bufsize, LIT_BUFS);
-
-    if (ds->window == Z_NULL || ds->prev == Z_NULL || ds->head == Z_NULL ||
-        ds->pending_buf == Z_NULL) {
-        deflateEnd (dest);
+    ds = (deflate_state *) ZALLOC(source, 1, sizeof(deflate_state));
+    if (ds == Z_NULL) {
+        dest->state = Z_NULL;
         return Z_MEM_ERROR;
     }
+    zmemcpy(ds, ss, sizeof(deflate_state));
+    ds->window = (Bytef *) ZALLOC(source, ds->w_size, 2*sizeof(Byte));
+    ds->prev   = (Posf *)  ZALLOC(source, ds->w_size, sizeof(Pos));
+    ds->head   = (Posf *)  ZALLOC(source, ds->hash_size, sizeof(Pos));
+    ds->pending_buf = (uchf *) ZALLOC(source, ds->lit_bufsize, LIT_BUFS);
+    if (ds->window == Z_NULL || ds->prev == Z_NULL || ds->head == Z_NULL ||
+        ds->pending_buf == Z_NULL) {
+        TRY_FREE(source, ds->pending_buf);
+        TRY_FREE(source, ds->head);
+        TRY_FREE(source, ds->prev);
+        TRY_FREE(source, ds->window);
+        ZFREE(source, ds);
+        dest->state = Z_NULL;
+        return Z_MEM_ERROR;
+    }
+
+    /* copy the stream and attach the new state */
+    zmemcpy(dest, source, sizeof(z_stream));
+    dest->state = (struct internal_state FAR *) ds;
+    ds->strm = dest;
+
     /* following zmemcpy's do not work for 16-bit MSDOS */
     zmemcpy(ds->window, ss->window, ss->high_water);
     zmemcpy(ds->prev, ss->prev,

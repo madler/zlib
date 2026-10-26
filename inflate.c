@@ -1331,14 +1331,21 @@ int ZEXPORT inflateCopy(z_streamp dest, z_streamp source) {
     unsigned char FAR *window;
 
     /* check input */
-    if (inflateStateCheck(source) || dest == Z_NULL)
+    if (dest == Z_NULL)
         return Z_STREAM_ERROR;
+    if (inflateStateCheck(source)) {
+        dest->state = Z_NULL;
+        return Z_STREAM_ERROR;
+    }
     state = (struct inflate_state FAR *)source->state;
 
     /* allocate space */
     copy = (struct inflate_state FAR *)
            ZALLOC(source, 1, sizeof(struct inflate_state));
-    if (copy == Z_NULL) return Z_MEM_ERROR;
+    if (copy == Z_NULL) {
+        dest->state = Z_NULL;
+        return Z_MEM_ERROR;
+    }
     zmemzero(copy, sizeof(struct inflate_state));
     window = Z_NULL;
     if (state->window != Z_NULL) {
@@ -1346,6 +1353,7 @@ int ZEXPORT inflateCopy(z_streamp dest, z_streamp source) {
                  ZALLOC(source, 1U << state->wbits, sizeof(unsigned char));
         if (window == Z_NULL) {
             ZFREE(source, copy);
+            dest->state = Z_NULL;
             return Z_MEM_ERROR;
         }
     }
