@@ -781,7 +781,7 @@ ZEXTERN z_size_t ZEXPORT deflateBound_z(z_streamp strm, z_size_t sourceLen);
   is possible for the compressed size to be larger than the value returned by
   deflateBound() if flush options other than Z_FINISH or Z_NO_FLUSH are used.
 
-     delfateBound_z() is the same, but takes and returns a size_t length.  Note
+     deflateBound_z() is the same, but takes and returns a size_t length.  Note
    that a long is 32 bits on Windows.
 */
 
@@ -791,7 +791,7 @@ ZEXTERN int ZEXPORT deflatePending(z_streamp strm,
 /*
      deflatePending() returns the number of bytes and bits of output that have
    been generated, but not yet provided in the available output.  The bytes not
-   provided would be due to the available output space having being consumed.
+   provided would be due to the available output space having been consumed.
    The number of bits of output not provided are between 0 and 7, where they
    await more bits to join them in order to fill out a full byte.  If pending
    or bits are Z_NULL, then those values are not set.
