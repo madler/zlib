@@ -1306,6 +1306,14 @@ int ZEXPORT inflateSync(z_streamp strm) {
     inflateReset(strm);
     strm->total_in = in;  strm->total_out = out;
     state->flags = flags;
+    if (state->wbits == 0) {
+        /* we never got to see a header for the window size -- set to max */
+        if (state->window != Z_NULL) {
+            ZFREE(strm, state->window);
+            state->window = Z_NULL;
+        }
+        state->wbits = 15;
+    }
     state->mode = TYPE;
     return Z_OK;
 }
