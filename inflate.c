@@ -134,6 +134,7 @@ int ZEXPORT inflateReset(z_streamp strm) {
         }
         state->wbits = state->reqbits;
     }
+    state->wrap = state->reqwrap;
     state->wsize = 0;
     state->whave = 0;
     state->wnext = 0;
@@ -172,7 +173,7 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits) {
     }
 
     /* update state and reset the rest of it */
-    state->wrap = wrap;
+    state->reqwrap = state->wrap = wrap;
     state->reqbits = state->wbits = (unsigned)windowBits;
     return inflateReset(strm);
 }
@@ -1304,15 +1305,15 @@ int ZEXPORT inflateSync(z_streamp strm) {
 
     /* return no joy or set up to restart inflate() on a new block */
     if (state->have != 4) return Z_DATA_ERROR;
-    if (state->flags == -1)
-        state->wrap = 0;    /* if no header yet, treat as raw */
-    else
-        state->wrap &= ~4;  /* no point in computing a check value now */
     flags = state->flags;
     in = strm->total_in;  out = strm->total_out;
     inflateReset(strm);
     strm->total_in = in;  strm->total_out = out;
     state->flags = flags;
+    if (flags == -1)
+        state->wrap = 0;    /* if no header yet, treat as raw */
+    else
+        state->wrap &= ~4;  /* no point in computing a check value now */
     if (state->wbits == 0) {
         /* we never got to see a header for the window size -- set to max */
         if (state->window != Z_NULL) {
@@ -1415,6 +1416,10 @@ int ZEXPORT inflateValidate(z_streamp strm, int check) {
         state->wrap |= 4;
     else
         state->wrap &= ~4;
+    if (check && state->reqwrap)
+        state->reqwrap |= 4;
+    else
+        state->reqwrap &= ~4;
     return Z_OK;
 }
 

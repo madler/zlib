@@ -85,6 +85,7 @@ struct inflate_state {
     int last;                   /* true if processing last block */
     int wrap;                   /* bit 0 true for zlib, bit 1 true for gzip,
                                    bit 2 true to validate check value */
+    int reqwrap;                /* requested wrap */
     int havedict;               /* true if dictionary provided */
     int flags;                  /* gzip header method and flags, 0 if zlib, or
                                    -1 if raw or no header yet */
