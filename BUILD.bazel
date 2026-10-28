@@ -51,33 +51,40 @@ exports_files([
     "LICENSE",
 ])
 
-_ZLIB_HEADERS = [
+# Headers that are not self contained
+_ZLIB_TEXTUAL_HEADERS = [
     "crc32.h",
-    "deflate.h",
-    "gzguts.h",
-    "inffast.h",
+    "trees.h",
     "inffixed.h",
     "inflate.h",
     "inftrees.h",
-    "trees.h",
+    "inffast.h",
+]
+
+_ZLIB_HEADERS = [
+    "deflate.h",
+    "gzguts.h",
     "zconf.h",
     "zlib.h",
     "zutil.h",
 ]
 
+_ZLIB_ALL_HEADERS = _ZLIB_HEADERS + _ZLIB_TEXTUAL_HEADERS
+
 _ZLIB_PREFIXED_HEADERS = ["zlib/include/" + hdr for hdr in _ZLIB_HEADERS]
+_ZLIB_PREFIXED_TEXTUAL_HEADERS = ["zlib/include/" + hdr for hdr in _ZLIB_TEXTUAL_HEADERS]
 
 # In order to limit the damage from the `includes` propagation
 # via `:zlib`, copy the public headers to a subdirectory and
 # expose those.
 genrule(
     name = "copy_public_headers",
-    srcs = _ZLIB_HEADERS,
-    outs = _ZLIB_PREFIXED_HEADERS,
+    srcs = _ZLIB_ALL_HEADERS,
+    outs = _ZLIB_PREFIXED_HEADERS + _ZLIB_PREFIXED_TEXTUAL_HEADERS,
     cmd_bash = "cp $(SRCS) $(@D)/zlib/include/",
     cmd_bat = " && ".join(
         ["@copy /Y \"$(location %s)\" \"$(@D)\\zlib\\include\\\"  >NUL" %
-         s for s in _ZLIB_HEADERS],
+         s for s in _ZLIB_ALL_HEADERS],
     ),
 )
 
@@ -112,6 +119,7 @@ cc_library(
         # choice of <> or "" delimiter when including itself.
     ] + _ZLIB_HEADERS,
     hdrs = _ZLIB_PREFIXED_HEADERS,
+    textual_hdrs = _ZLIB_PREFIXED_TEXTUAL_HEADERS,
     copts = select({
         ":mingw_gcc_compiler": [
             "-fpermissive",
