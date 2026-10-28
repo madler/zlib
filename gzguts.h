@@ -92,8 +92,8 @@
 #        define vsnprintf _vsnprintf
 #      endif
 #    endif
-#  elif !defined(__STDC_VERSION__) || __STDC_VERSION__-0 < 199901L
-/* Otherwise if C89/90, assume no C99 snprintf() or vsnprintf() */
+#  elif (!defined(__STDC_VERSION__) || __STDC_VERSION__-0 < 199901L) && !defined(HAS_vsnprintf)
+/* Otherwise if C89/90, assume no C99 snprintf() or vsnprintf() unless configure detected it */
 #    ifndef NO_snprintf
 #      define NO_snprintf
 #    endif
