@@ -2,6 +2,12 @@
 #ifndef zfstream_h
 #define zfstream_h
 
+
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include <fstream.h>
 #include "zlib.h"
 

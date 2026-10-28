@@ -10,6 +10,12 @@
 #ifndef ZFSTREAM_H
 #define ZFSTREAM_H
 
+
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include <istream>  // not iostream, since we don't need cin/cout
 #include <ostream>
 #include "zlib.h"

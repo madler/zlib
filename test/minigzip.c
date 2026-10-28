@@ -173,8 +173,11 @@ static char *string_copy(char *dst, char const *src, z_size_t len) {
 #ifdef Z_SOLO
 /* for Z_SOLO, create simplified gz* functions using deflate and inflate */
 
-#if defined(Z_HAVE_UNISTD_H) || defined(Z_LARGE)
-#  include <unistd.h>       /* for unlink() */
+
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
 #endif
 
 static void *myalloc(void *q, unsigned n, unsigned m) {
