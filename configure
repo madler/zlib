@@ -969,8 +969,8 @@ EOF
 
     # prepare compiling for s390x
     if test $HAVE_S390X_VX -eq 1; then
-        CFLAGS="$CFLAGS -DHAVE_S390X_VX"
-        SFLAGS="$SFLAGS -DHAVE_S390X_VX"
+        CFLAGS="$CFLAGS -DHAVE_S390X_VX $VGFMAFLAG"
+        SFLAGS="$SFLAGS -DHAVE_S390X_VX $VGFMAFLAG"
         OBJC="$OBJC crc32_vx.o"
         PIC_OBJC="$PIC_OBJC crc32_vx.lo"
     else
