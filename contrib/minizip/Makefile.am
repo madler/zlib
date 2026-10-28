@@ -40,7 +40,7 @@ pkgconfig_DATA = minizip.pc
 EXTRA_PROGRAMS = miniunzip minizip
 
 miniunzip_SOURCES = miniunz.c
-miniunzip_LDADD = libminizip.la
+miniunzip_LDADD = libminizip.la -lz
 
 minizip_SOURCES = minizip.c
 minizip_LDADD = libminizip.la -lz
