@@ -17,6 +17,21 @@ if(NOT DEFINED ZLIB_BUILD_MINIZIP)
             FIXTURES_SETUP minizip_install)
 endif(NOT DEFINED ZLIB_BUILD_MINIZIP)
 
+if(TARGET MINIZIP::minizip)
+    set(MINIZIP_TEST_LIBRARY MINIZIP::minizip)
+elseif(TARGET MINIZIP::minizipstatic)
+    set(MINIZIP_TEST_LIBRARY MINIZIP::minizipstatic)
+endif()
+
+if(MINIZIP_TEST_LIBRARY)
+    add_executable(minizip_zip64_locator_test zip64_locator_test.c)
+    target_link_libraries(minizip_zip64_locator_test PRIVATE ${MINIZIP_TEST_LIBRARY})
+    add_test(
+        NAME minizip_zip64_locator
+        COMMAND minizip_zip64_locator_test
+                "${CMAKE_CURRENT_SOURCE_DIR}/zip64_locator_false_positive.zip")
+endif()
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/find_package_test.cmake.in
     ${WORK_DIR}/minizip_find_package_test/CMakeLists.txt @ONLY)

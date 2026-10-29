@@ -379,29 +379,28 @@ local ZPOS64_T unz64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
 
 
 /*
-  Locate the Central directory 64 of a zipfile (at the end, just before
-    the global comment)
+  Locate the ZIP64 end of central directory record using the locator immediately
+    preceding the classic end of central directory record.
 */
 local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib_filefunc_def,
                                              voidpf filestream) {
     unsigned char* buf;
     ZPOS64_T uSizeFile;
     ZPOS64_T uBackRead;
-    ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
+    ZPOS64_T uMaxBack=0xffff+42; /* maximum comment, EOCD and ZIP64 locator */
     ZPOS64_T uPosFound=CENTRALDIRINVALID;
     uLong uL;
-                ZPOS64_T relativeOffset;
+    ZPOS64_T relativeOffset;
 
     if (ZSEEK64(*pzlib_filefunc_def,filestream,0,ZLIB_FILEFUNC_SEEK_END) != 0)
         return CENTRALDIRINVALID;
-
 
     uSizeFile = ZTELL64(*pzlib_filefunc_def,filestream);
 
     if (uMaxBack>uSizeFile)
         uMaxBack = uSizeFile;
 
-    buf = (unsigned char*)ALLOC(BUFREADCOMMENT+4);
+    buf = (unsigned char*)ALLOC(BUFREADCOMMENT+42);
     if (buf==NULL)
         return CENTRALDIRINVALID;
 
@@ -417,19 +416,33 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
             uBackRead+=BUFREADCOMMENT;
         uReadPos = uSizeFile-uBackRead ;
 
-        uReadSize = ((BUFREADCOMMENT+4) < (uSizeFile-uReadPos)) ?
-                     (BUFREADCOMMENT+4) : (uLong)(uSizeFile-uReadPos);
+        uReadSize = ((BUFREADCOMMENT+42) < (uSizeFile-uReadPos)) ?
+                     (BUFREADCOMMENT+42) : (uLong)(uSizeFile-uReadPos);
         if (ZSEEK64(*pzlib_filefunc_def,filestream,uReadPos,ZLIB_FILEFUNC_SEEK_SET)!=0)
             break;
 
         if (ZREAD64(*pzlib_filefunc_def,filestream,buf,uReadSize)!=uReadSize)
             break;
 
-        for (i=(int)uReadSize-3; (i--)>0;)
+        for (i=(int)uReadSize-4; i>=0; --i)
             if (((*(buf+i))==0x50) && ((*(buf+i+1))==0x4b) &&
                 ((*(buf+i+2))==0x06) && ((*(buf+i+3))==0x07))
             {
-                uPosFound = uReadPos+(unsigned)i;
+                ZPOS64_T candidatePos = uReadPos+(unsigned)i;
+                uLong commentSize;
+
+                /* A locator signature in file data is not sufficient. The
+                   locator must be followed immediately by a valid EOCD whose
+                   comment ends at the end of the archive. */
+                if (uSizeFile-candidatePos < 42 || i+42 > (int)uReadSize ||
+                    buf[i+20] != 0x50 || buf[i+21] != 0x4b ||
+                    buf[i+22] != 0x05 || buf[i+23] != 0x06)
+                    continue;
+                commentSize = (uLong)buf[i+40] | ((uLong)buf[i+41] << 8);
+                if (uSizeFile-(candidatePos+42) != commentSize)
+                    continue;
+
+                uPosFound = candidatePos;
                 break;
             }
 
@@ -440,12 +453,12 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
     if (uPosFound == CENTRALDIRINVALID)
         return CENTRALDIRINVALID;
 
-    /* Zip64 end of central directory locator */
     if (ZSEEK64(*pzlib_filefunc_def,filestream, uPosFound,ZLIB_FILEFUNC_SEEK_SET)!=0)
         return CENTRALDIRINVALID;
 
-    /* the signature, already checked */
-    if (unz64local_getLong(pzlib_filefunc_def,filestream,&uL)!=UNZ_OK)
+    /* The ZIP64 end of central directory locator signature */
+    if (unz64local_getLong(pzlib_filefunc_def,filestream,&uL)!=UNZ_OK ||
+        uL != 0x07064b50)
         return CENTRALDIRINVALID;
 
     /* number of the disk with the start of the zip64 end of central directory */
