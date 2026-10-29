@@ -17,8 +17,8 @@ static int check_current_file(unzFile archive, const char *expected_name)
 
 int main(int argc, char **argv)
 {
-    /* The fixture has a false ZIP64 locator in a local file's payload. That
-       locator points to a hidden manifest with different contents. */
+    /* The fixture embeds a false ZIP64 directory and EOCD in file data. It
+       points to a hidden manifest with different contents than the real EOCD. */
     static const char expected_manifest[] = "{\"status\":\"safe\"}\n";
     char data[64];
     unz_global_info64 global_info;
