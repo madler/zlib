@@ -267,7 +267,7 @@ static int do_list(unzFile uf) {
               string_method="Defl:N";
             else if (iLevel==1)
               string_method="Defl:X";
-            else if ((iLevel==2) || (iLevel==3))
+            else        /* iLevel==2 || iLevel==3 */
               string_method="Defl:F"; /* 2:fast , 3 : extra fast*/
         }
         else
