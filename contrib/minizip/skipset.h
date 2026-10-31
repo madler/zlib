@@ -1,6 +1,5 @@
 /* skipset.h -- set operations using a skiplist
    Copyright (C) 2024-2026 Mark Adler
-   See MiniZip_info.txt for the license.
  */
 
 /*
