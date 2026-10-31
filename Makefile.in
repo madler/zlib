@@ -164,6 +164,15 @@ crc32.o: $(SRCDIR)crc32.c
 crc32_vx.o: $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	$(CC) $(CFLAGS) $(VGFMAFLAG) $(ZINC) -c -o $@ $(SRCDIR)contrib/crc32vx/crc32_vx.c
 
+crc32_x86_pclmul.o: $(SRCDIR)contrib/x86_64/crc32_x86_pclmul.c
+	$(CC) $(CFLAGS) $(VGFMAFLAG) $(ZINC) -c -o $@ $(SRCDIR)contrib/x86_64/crc32_x86_pclmul.c
+
+crc32_x86_vpclmulqdq.o: $(SRCDIR)contrib/x86_64/crc32_x86_vpclmulqdq.c
+	$(CC) $(CFLAGS) $(VGFMAFLAG) $(ZINC) -c -o $@ $(SRCDIR)contrib/x86_64/crc32_x86_vpclmulqdq.c
+
+crc32_x86.o: $(SRCDIR)contrib/x86_64/crc32_x86.c
+	$(CC) $(CFLAGS) $(VGFMAFLAG) $(ZINC) -c -o $@ $(SRCDIR)contrib/x86_64/crc32_x86.c
+
 deflate.o: $(SRCDIR)deflate.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)deflate.c
 
@@ -218,6 +227,21 @@ crc32_vx.lo: $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	-@mkdir objs 2>/dev/null || test -d objs
 	$(CC) $(SFLAGS) $(VGFMAFLAG) $(ZINC) -DPIC -c -o objs/crc32_vx.o $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	-@mv objs/crc32_vx.o $@
+
+crc32_x86_pclmul.lo: $(SRCDIR)contrib/x86_64/crc32_x86_pclmul.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/crc32_x86_pclmul.o $(SRCDIR)contrib/x86_64/crc32_x86_pclmul.c
+	-@mv objs/crc32_x86_pclmul.o $@
+
+crc32_x86_vpclmulqdq.lo: $(SRCDIR)contrib/x86_64/crc32_x86_vpclmulqdq.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/crc32_x86_vpclmulqdq.o $(SRCDIR)contrib/x86_64/crc32_x86_vpclmulqdq.c
+	-@mv objs/crc32_x86_vpclmulqdq.o $@
+
+crc32_x86.lo: $(SRCDIR)contrib/x86_64/crc32_x86.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/crc32_x86.o $(SRCDIR)contrib/x86_64/crc32_x86.c
+	-@mv objs/crc32_x86.o $@
 
 deflate.lo: $(SRCDIR)deflate.c
 	-@mkdir objs 2>/dev/null || test -d objs
@@ -412,6 +436,9 @@ inffast.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR
 inftrees.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
 crc32_vx.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/crc32vx/crc32_vx_hooks.h
+crc32_pclmul.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
+crc32_vpclmulqdq.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
+crc32_x86.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
 
 adler32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
 zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
@@ -424,3 +451,6 @@ inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDI
 inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
 crc32_vx.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/crc32vx/crc32_vx_hooks.h
+crc32_pclmul.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
+crc32_vpclmulqdq.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
+crc32_x86.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/x86_64/crc32_x86_hooks.h
