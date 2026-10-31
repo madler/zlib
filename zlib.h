@@ -871,8 +871,7 @@ ZEXTERN int ZEXPORT inflateInit2(z_streamp strm,
    instead.  windowBits must be greater than or equal to the windowBits value
    provided to deflateInit2() while compressing, or it must be equal to 15 if
    deflateInit2() was not used.  If a compressed stream with a larger window
-   size is given as input, inflate() will return with the error code
-   Z_DATA_ERROR instead of trying to allocate a larger window.
+   size is given as input, inflate() may return with a Z_DATA_ERROR.
 
      windowBits can also be zero to request that inflate use the window size in
    the zlib header of the compressed stream.
