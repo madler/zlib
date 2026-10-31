@@ -26,7 +26,7 @@ if test $SRCDIR = "."; then
     SRCDIR=""
 else
     ZINC='-I. -include zconf.h'
-    ZINCOUT='-I. -I$(SRCDIR)'
+    ZINCOUT='-I. -I$(SRCDIR) -include zconf.h'
     SRCDIR="$SRCDIR/"
 fi
 
@@ -403,6 +403,7 @@ else
          fi
          if test -n "$ZINC"; then
              ZINC='-I- -I. -I$(SRCDIR)'
+             ZINCOUT='-I- -I. -I$(SRCDIR)'
          fi
          ;;
   SunOS\ 4*) SFLAGS=${CFLAGS-"-O2 -PIC"}
