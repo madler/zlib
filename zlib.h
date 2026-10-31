@@ -1983,7 +1983,8 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);       /* backward compatibility */
  * change the regular functions to 64 bits if _FILE_OFFSET_BITS is 64 (if
  * both are true, the application gets the *64 functions, and the regular
  * functions are changed to 64 bits) -- in case these are set on systems
- * without large file support, _LFS64_LARGEFILE must also be true
+ * without large file support, _LFS64_LARGEFILE must also be true, except on
+ * native Windows, where 64-bit offsets are always available
  */
 #ifdef Z_LARGE64
    ZEXTERN gzFile ZEXPORT gzopen64(const char *, const char *);
