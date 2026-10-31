@@ -860,7 +860,11 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
             uSizeRead = file_info.size_filename;
         }
         else
-            uSizeRead = fileNameBufferSize;
+        {
+            uSizeRead = fileNameBufferSize > 0 ? fileNameBufferSize - 1 : 0;
+            if (fileNameBufferSize > 0)
+                *(szFileName+uSizeRead)='\0';
+        }
 
         if ((file_info.size_filename>0) && (fileNameBufferSize>0))
             if (ZREAD64(s->z_filefunc, s->filestream,szFileName,uSizeRead)!=uSizeRead)
@@ -970,7 +974,11 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
             uSizeRead = file_info.size_file_comment;
         }
         else
-            uSizeRead = commentBufferSize;
+        {
+            uSizeRead = commentBufferSize > 0 ? commentBufferSize - 1 : 0;
+            if (commentBufferSize > 0)
+                *(szComment+uSizeRead)='\0';
+        }
 
         if (lSeek!=0)
         {
