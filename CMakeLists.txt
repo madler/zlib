@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.12...3.31)
 
+# Determine if zlib is built as a subproject (using add_subdirectory) or if it
+# is the master project.
+if (NOT DEFINED ZLIB_MASTER_PROJECT)
+    set(ZLIB_MASTER_PROJECT OFF)
+    # Checking project name is more reliable than checking source directories.
+    if (NOT DEFINED PROJECT_NAME)
+        set(ZLIB_MASTER_PROJECT ON)
+    endif(NOT DEFINED PROJECT_NAME)
+endif(NOT DEFINED ZLIB_MASTER_PROJECT)
+
 project(
     zlib
     LANGUAGES C
@@ -19,10 +29,10 @@ set(CPACK_RESOURCE_FILE_README ${zlib_SOURCE_DIR}/README)
 # configuration
 # ============================================================================
 
-option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ON)
+option(ZLIB_BUILD_TESTING "Enable Zlib Examples as tests" ${BUILD_TESTING})
 option(ZLIB_BUILD_SHARED "Enable building zlib shared library" ON)
 option(ZLIB_BUILD_STATIC "Enable building zlib static library" ON)
-option(ZLIB_INSTALL "Enable installation of zlib" ON)
+option(ZLIB_INSTALL "Enable installation of zlib" ${ZLIB_MASTER_PROJECT})
 set(ZLIB_PREFIX "" CACHE STRING
     "prefix for all types and library functions, see zconf.h.in")
 mark_as_advanced(ZLIB_PREFIX)
