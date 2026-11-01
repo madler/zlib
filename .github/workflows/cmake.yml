@@ -145,3 +145,46 @@ jobs:
           ../build/CMakeFiles/CMakeOutput.log
           ../build/CMakeFiles/CMakeError.log
         retention-days: 7
+
+  ci-cmake-minimum:
+    name: Ubuntu GCC minimum CMake
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Install packages
+      run: |
+        sudo apt install libbz2-dev
+
+    - name: Install the minimum CMake version
+      run: |
+        min=$(sed -n 's/^cmake_minimum_required(VERSION \([0-9]*\.[0-9]*\).*/\1/p' CMakeLists.txt)
+        python3 -m venv "$RUNNER_TEMP/cmake-min"
+        "$RUNNER_TEMP/cmake-min/bin/pip" install "cmake==$min.*"
+        echo "$RUNNER_TEMP/cmake-min/bin" >> "$GITHUB_PATH"
+
+    - name: Generate project files
+      run: |
+        cmake --version
+        cmake -S . -B ../build -D CMAKE_BUILD_TYPE=Release -DZLIB_BUILD_BLAST=ON -DZLIB_BUILD_IOSTREAM3=ON -DZLIB_BUILD_MINIZIP=ON -DZLIB_BUILD_PUFF=ON -DMINIZIP_ENABLE_BZIP2=ON
+      env:
+        CC: gcc
+        CFLAGS: -Wall -Wextra
+
+    - name: Compile source code
+      run: cmake --build ../build --config Release
+
+    - name: Run test cases
+      run: ctest -C Release --output-on-failure
+      working-directory: ../build
+
+    - name: Upload build errors
+      uses: actions/upload-artifact@v6
+      if: failure()
+      with:
+        name: Ubuntu GCC minimum CMake (cmake)
+        path: |
+          ../build/CMakeFiles/CMakeOutput.log
+          ../build/CMakeFiles/CMakeError.log
+        retention-days: 7

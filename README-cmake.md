@@ -1,4 +1,4 @@
-# For building with cmake at least version 3.12 (minizip 3.12) is needed
+# For building with cmake at least version 3.15 (minizip 3.15) is needed
 
 In most cases the usual
 
