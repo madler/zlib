@@ -180,7 +180,7 @@ add_test(
         "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
         "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_test)
 
@@ -225,7 +225,7 @@ add_test(
         "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
         "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_no_components_test)
 
@@ -254,7 +254,7 @@ add_test(
         "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
         "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/zlib_find_package_wrong_components_test)
 
@@ -278,7 +278,7 @@ add_test(
         "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
         "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_test)
 
@@ -323,7 +323,7 @@ add_test(
         "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
         "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/test_install
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/zlib_add_subdirectory_exclude_test)
 
