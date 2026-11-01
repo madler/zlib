@@ -137,7 +137,7 @@ add_test(
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install
         ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_test)
 
@@ -167,7 +167,7 @@ add_test(
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_test)
 
@@ -196,7 +196,7 @@ add_test(
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/add_subdirectory_exclude_test)
 
@@ -226,7 +226,7 @@ add_test(
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_no_components_test)
 
@@ -252,7 +252,7 @@ add_test(
         -DCMAKE_BUILD_TYPE=$<CONFIG> -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test/test_install ${ZLIB_ARG}
-        --fresh
+        $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
         -G "${CMAKE_GENERATOR}"
         -S${CMAKE_CURRENT_BINARY_DIR}/findpackage_wrong_components_test)
 
