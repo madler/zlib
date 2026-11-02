@@ -1342,9 +1342,18 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     if ((comment!=NULL) && (strlen(comment)>0xffff))
         return ZIP_PARAMERROR;
     /* The extra field length must fit in 16 bits. If the member also requires
-       a Zip64 extra block, that will also need to fit within that 16-bit
-       length, but that will be checked for later. */
+       Zip64 extra blocks, those also need to fit within that same 16-bit
+       length: Write_LocalFileHeader() adds an inline 20-byte Zip64 extended
+       info field to the local extra, and the central directory can get a
+       block of up to 28 bytes (header id + size + up to three 8-byte values)
+       appended at close. Reserve room for them here, since
+       zip64local_putValue() writes an all-0xff sentinel when a value does not
+       fit, so an oversized sum silently produces headers that disagree with
+       the bytes written. */
     if ((size_extrafield_local>0xffff) || (size_extrafield_global>0xffff))
+        return ZIP_PARAMERROR;
+    if (zip64 && ((size_extrafield_local>0xffff-20) ||
+                  (size_extrafield_global>0xffff-28)))
         return ZIP_PARAMERROR;
 
     zi = (zip64_internal*)file;

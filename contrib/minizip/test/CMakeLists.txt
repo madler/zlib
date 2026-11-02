@@ -203,3 +203,16 @@ set_tests_properties(minizip_add_subdirectory_exclude_configure
 set_tests_properties(minizip_add_subdirectory_exclude_build
     PROPERTIES
         FIXTURES_REQUIRED mzasx_config)
+
+# The Zip64 extra-length regression test is wired to the static library
+# only: the shared build has Windows search-path quirks that would need a
+# copy of zlib/test's test-env helper to work around, and the pipeline
+# exercises the static build, so a regression is caught there.
+if(MINIZIP_BUILD_STATIC)
+    add_executable(${ZLIB_CONTRIB_PREFIX}test_zip64_extra_len
+        test_zip64_extra_len.c)
+    target_link_libraries(${ZLIB_CONTRIB_PREFIX}test_zip64_extra_len
+        PRIVATE MINIZIP::minizipstatic)
+    add_test(NAME minizip_test_zip64_extra_len
+        COMMAND ${ZLIB_CONTRIB_PREFIX}test_zip64_extra_len)
+endif(MINIZIP_BUILD_STATIC)

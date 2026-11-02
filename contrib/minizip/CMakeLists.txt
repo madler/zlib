@@ -380,5 +380,6 @@ endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)
     enable_testing()
+
     add_subdirectory(test)
 endif(MINIZIP_BUILD_TESTING)
