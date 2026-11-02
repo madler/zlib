@@ -298,7 +298,7 @@ local void inf(char *hex, char *what, unsigned step, int win, unsigned len,
         mem_done(&strm, what);
         return;
     }
-    out = malloc(len);                          assert(out != NULL);
+    out = malloc(len ? len : 1);                assert(out != NULL);
     if (win == 47) {
         head.extra = out;
         head.extra_max = len;
