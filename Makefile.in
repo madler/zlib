@@ -164,6 +164,9 @@ crc32.o: $(SRCDIR)crc32.c
 crc32_vx.o: $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	$(CC) $(CFLAGS) $(VGFMAFLAG) $(ZINC) -c -o $@ $(SRCDIR)contrib/crc32vx/crc32_vx.c
 
+dfltcc.o: $(SRCDIR)contrib/dfltcc/dfltcc.c
+	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)contrib/dfltcc/dfltcc.c
+
 deflate.o: $(SRCDIR)deflate.c
 	$(CC) $(CFLAGS) $(ZINC) -c -o $@ $(SRCDIR)deflate.c
 
@@ -218,6 +221,11 @@ crc32_vx.lo: $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	-@mkdir objs 2>/dev/null || test -d objs
 	$(CC) $(SFLAGS) $(VGFMAFLAG) $(ZINC) -DPIC -c -o objs/crc32_vx.o $(SRCDIR)contrib/crc32vx/crc32_vx.c
 	-@mv objs/crc32_vx.o $@
+
+dfltcc.lo: $(SRCDIR)contrib/dfltcc/dfltcc.c
+	-@mkdir objs 2>/dev/null || test -d objs
+	$(CC) $(SFLAGS) $(ZINC) -DPIC -c -o objs/dfltcc.o $(SRCDIR)contrib/dfltcc/dfltcc.c
+	-@mv objs/dfltcc.o $@
 
 deflate.lo: $(SRCDIR)deflate.c
 	-@mkdir objs 2>/dev/null || test -d objs
@@ -292,6 +300,9 @@ placebo $(SHAREDLIBV): $(PIC_OBJS) libz.a $(SRCDIR)zlib.map
 	ln -s $@ $(SHAREDLIBM)
 	-@rmdir objs
 
+crc32_test$(EXE): crc32_test.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ crc32_test.o $(TEST_LIBS)
+
 example$(EXE): example.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ example.o $(TEST_LIBS)
 
@@ -303,6 +314,9 @@ examplesh$(EXE): example.o $(SHAREDLIBV)
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(LDFLAGS) -L. $(SHAREDLIBV)
+
+crc32_test64$(EXE): crc32_test64.o $(STATICLIB)
+	$(CC) $(CFLAGS) -o $@ crc32_test64.o $(TEST_LIBS)
 
 example64$(EXE): example64.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ example64.o $(TEST_LIBS)
@@ -405,22 +419,28 @@ adler32.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
 zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 compress.o example.o minigzip.o uncompr.o: $(SRCDIR)zlib.h zconf.h
+compress.o: $(SRCDIR)contrib/dfltcc/hooks.h
 crc32.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
-deflate.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+deflate.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/dfltcc/hooks.h
 infback.o inflate.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h
+inflate.o: $(SRCDIR)contrib/dfltcc/hooks.h
 inffast.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
 inftrees.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
 crc32_vx.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/crc32vx/crc32_vx_hooks.h
+dfltcc.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/dfltcc/dfltcc_hooks.h $(SRCDIR)contrib/dfltcc/dfltcc.h
 
 adler32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
 zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)zlib.h zconf.h $(SRCDIR)gzguts.h
 compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)zlib.h zconf.h
+compress.lo: $(SRCDIR)contrib/dfltcc/hooks.h
 crc32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)crc32.h
-deflate.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h
+deflate.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/dfltcc/hooks.h
 infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h
+inflate.lo: $(SRCDIR)contrib/dfltcc/hooks.h
 inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
 inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)inftrees.h
 trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)trees.h
 crc32_vx.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/crc32vx/crc32_vx_hooks.h
+dfltcc.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h zconf.h $(SRCDIR)contrib/dfltcc/dfltcc_hooks.h $(SRCDIR)contrib/dfltcc/dfltcc.h
