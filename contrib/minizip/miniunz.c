@@ -184,6 +184,35 @@ static int makedir(const char *newdir) {
   return 1;
 }
 
+/* Return the part of name that can be created under the extraction directory:
+   skip to the last "..", then past any leading separators, dots, or (on
+   Windows) drive specifiers, so that the result is always a relative path. */
+static const char* safe_path(const char* name) {
+    if (name[0]!='\0')
+    {
+        const char* relative_check = name;
+        while (relative_check[1]!='\0')
+        {
+            if (relative_check[0]=='.' && relative_check[1]=='.')
+                name = relative_check;
+            relative_check++;
+        }
+    }
+
+    for (;;)
+    {
+        if (name[0]=='/' || name[0]=='\\' || name[0]=='.')
+            name++;
+#ifdef _WIN32
+        else if (name[0]!='\0' && name[1]==':')
+            name += 2;
+#endif
+        else
+            break;
+    }
+    return name;
+}
+
 static void do_banner(void) {
     printf("MiniUnz 1.1, demo of zLib + Unz package written by Gilles Vollant\n");
     printf("more info at https://www.winimage.com/zLibDll/unzip.html\n\n");
@@ -339,10 +368,11 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
 
     if ((*filename_withoutpath)=='\0')
     {
-        if ((*popt_extract_without_path)==0)
+        const char* write_dirname = safe_path(filename_inzip);
+        if (((*popt_extract_without_path)==0) && (write_dirname[0]!='\0'))
         {
-            printf("creating directory: %s\n",filename_inzip);
-            mymkdir(filename_inzip);
+            printf("creating directory: %s\n",write_dirname);
+            mymkdir(write_dirname);
         }
     }
     else
@@ -354,20 +384,7 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
             write_filename = filename_inzip;
         else
             write_filename = filename_withoutpath;
-
-        if (write_filename[0]!='\0')
-        {
-            const char* relative_check = write_filename;
-            while (relative_check[1]!='\0')
-            {
-                if (relative_check[0]=='.' && relative_check[1]=='.')
-                    write_filename = relative_check;
-                relative_check++;
-            }
-        }
-
-        while (write_filename[0]=='/' || write_filename[0]=='.')
-            write_filename++;
+        write_filename = safe_path(write_filename);
 
         err = unzOpenCurrentFilePassword(uf,password);
         if (err!=UNZ_OK)
