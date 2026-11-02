@@ -321,7 +321,9 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         esac ;;
   AIX*)
         LDSHARED=${LDSHARED-"$cc -shared"}
-        LDFLAGS="${LDFLAGS} -Wl,-brtl" ;;
+        LDFLAGS="${LDFLAGS} -Wl,-brtl"
+        SHAREDEXP=libz.exp
+        SHAREDEXPFLAG=-Wl,-bE:libz.exp ;;
   Darwin* | darwin* | *-darwin*)
         shared_ext='.dylib'
         SHAREDLIB=libz$shared_ext
@@ -1039,6 +1041,8 @@ sed < ${SRCDIR}Makefile.in "
 /^RANLIB *=/s#=.*#=$RANLIB#
 /^LDCONFIG *=/s#=.*#=$LDCONFIG#
 /^LDSHAREDLIBC *=/s#=.*#=$LDSHAREDLIBC#
+/^SHAREDEXP *=/s#=.*#=$SHAREDEXP#
+/^SHAREDEXPFLAG *=/s#=.*#=$SHAREDEXPFLAG#
 /^EXE *=/s#=.*#=$EXE#
 /^SRCDIR *=/s#=.*#=$SRCDIR#
 /^ZINC *=/s#=.*#=$ZINC#
