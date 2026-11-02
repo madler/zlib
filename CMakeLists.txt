@@ -284,8 +284,8 @@ if(ZLIB_BUILD_SHARED)
 
     if(UNIX
         AND NOT APPLE
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL SunOS))
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL "AIX")
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL "SunOS"))
         # On unix-like platforms the library is almost always called libz
         set_target_properties(
             zlib
@@ -294,8 +294,8 @@ if(ZLIB_BUILD_SHARED)
     endif(
         UNIX
         AND NOT APPLE
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL AIX)
-        AND NOT (CMAKE_SYSTEM_NAME STREQUAL SunOS))
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL "AIX")
+        AND NOT (CMAKE_SYSTEM_NAME STREQUAL "SunOS"))
 endif(ZLIB_BUILD_SHARED)
 
 if(ZLIB_BUILD_STATIC)
