@@ -673,7 +673,21 @@ int ZEXPORT deflateResetKeep(z_streamp strm) {
 
     s->gzhead = Z_NULL;
 
-    _tr_init(s);
+    {
+        /* At level 0, s->matches is the hash work that deflateParams() owes
+           (see deflate_stored()). _tr_init() sets it to 0, so keep it. */
+        int matches = s->level == 0 ? s->matches : 0;
+        _tr_init(s);
+        s->matches = matches;
+    }
+
+    /* Keep the window and the hash as history for the next stream, but drop
+       what the old stream left unfinished: input read but not compressed, the
+       block not emitted, and a pending match or literal. */
+    s->block_start = (long)s->strstart;
+    s->lookahead = 0;
+    s->match_length = s->prev_length = MIN_MATCH-1;
+    s->match_available = 0;
 
     return Z_OK;
 }
@@ -685,6 +699,7 @@ local void lm_init(deflate_state *s) {
     s->window_size = (ulg)2L*s->w_size;
 
     CLEAR_HASH(s);
+    s->matches = 0;         /* the hash is clear, so no hash work is owed */
 
     /* Set the default configuration parameters:
      */
