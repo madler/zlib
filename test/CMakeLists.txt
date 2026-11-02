@@ -346,7 +346,7 @@ set_tests_properties(zlib_add_subdirectory_exclude_configure
 
 set_tests_properties(zlib_add_subdirectory_exclude_build
     PROPERTIES
-        FIXTURES_REQUIRED as_config
+        FIXTURES_REQUIRED asx_config
         FIXTURES_SETUP asx_build)
 
 set_tests_properties(zlib_add_subdirectory_exclude_test

@@ -95,11 +95,11 @@ add_test(
 set_tests_properties(zlib1-dll_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
-        FIXTURES_SETUP z1dll_config)
+        FIXTURES_SETUP z1dllas_config)
 
 set_tests_properties(zlib1-dll_add_subdirectory_build
     PROPERTIES
-        FIXTURES_REQUIRED z1dll_config)
+        FIXTURES_REQUIRED z1dllas_config)
 
 #
 # add_subdirectory_exclude_test

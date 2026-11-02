@@ -109,7 +109,7 @@ add_test(
 set_tests_properties(zlib_iostream3_add_subdirectory_configure
     PROPERTIES
         FIXTURES_REQUIRED ${inst_setup}
-        FIXTURES_SETUP iostream3as_config)
+        FIXTURES_SETUP iostream3_as_config)
 
 set_tests_properties(zlib_iostream3_add_subdirectory_build
     PROPERTIES
