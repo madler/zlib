@@ -510,6 +510,29 @@ else
   leave 1
 fi
 
+# turn off useless GCC 5 warning about PowerPC vector type alignments.
+if test "$gcc" -eq 1; then
+  cat > $test.c << EOF
+typedef int zvec __attribute__((vector_size(8)));
+struct zstruct { char c; zvec v; };
+int zfunc(struct zstruct *s) { return s->c; }
+EOF
+  echo "Checking for gcc vector ABI notes..." >> configure.log
+  show $CC -c $CFLAGS $test.c
+  got=`( $CC -c $CFLAGS $test.c ) 2>&1`
+  if test "$got" != ""; then
+    printf "%s\n" "$got" >> configure.log
+  fi
+  case "$got" in
+  *"changed in GCC 5"*)
+    if tryboth $CC -c $CFLAGS -Wno-psabi $test.c; then
+      echo "... turning the notes off with -Wno-psabi" >> configure.log
+      CFLAGS="${CFLAGS} -Wno-psabi"
+      SFLAGS="${SFLAGS} -Wno-psabi"
+    fi ;;
+  esac
+fi
+
 echo >> configure.log
 
 # see if shared library build supported
