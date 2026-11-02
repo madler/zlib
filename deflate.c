@@ -567,7 +567,8 @@ int ZEXPORT deflateSetDictionary(z_streamp strm, const Bytef *dictionary,
         return Z_STREAM_ERROR;
     s = strm->state;
     wrap = s->wrap;
-    if (wrap == 2 || (wrap == 1 && s->status != INIT_STATE) || s->lookahead)
+    if (wrap == 2 || (wrap == 1 && s->status != INIT_STATE) || s->lookahead ||
+        (wrap == 0 && (long)s->strstart != s->block_start))
         return Z_STREAM_ERROR;
 
     /* when using zlib wrappers, compute Adler-32 for provided dictionary */
