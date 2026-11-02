@@ -673,7 +673,18 @@ int ZEXPORT deflateResetKeep(z_streamp strm) {
 
     s->gzhead = Z_NULL;
 
-    _tr_init(s);
+    {
+        /* Retain the hash work done for level 0. */
+        int matches = s->level == 0 ? s->matches : 0;
+        _tr_init(s);
+        s->matches = matches;
+    }
+
+    /* Keep the window and the hash, but drop what was left unfinished */
+    s->block_start = (long)s->strstart;
+    s->lookahead = 0;
+    s->match_length = s->prev_length = MIN_MATCH-1;
+    s->match_available = 0;
 
     return Z_OK;
 }
@@ -685,6 +696,7 @@ local void lm_init(deflate_state *s) {
     s->window_size = (ulg)2L*s->w_size;
 
     CLEAR_HASH(s);
+    s->matches = 0;             /* the hash is clear */
 
     /* Set the default configuration parameters:
      */
