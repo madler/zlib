@@ -226,7 +226,7 @@ local gzFile gz_open(const void *path, int fd, const char *mode) {
 #if !defined(NO_snprintf) && !defined(NO_vsnprintf)
         (void)snprintf(state->path, len + 1, "%s", (const char *)path);
 #else
-        strcpy(state->path, path);
+        strcpy(state->path, (const char *)path);
 #endif
     }
 
