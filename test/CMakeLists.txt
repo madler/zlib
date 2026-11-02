@@ -17,7 +17,7 @@ if(ZLIB_BUILD_SHARED)
     add_executable(zlib_example example.c)
     target_link_libraries(zlib_example ZLIB::ZLIB)
     target_compile_definitions(zlib_example PRIVATE ZLIB_BUILD)
-    add_test(NAME zlib_example COMMAND zlib_example)
+    add_test(NAME zlib_example COMMAND zlib_example zlib_example.gz)
 
     add_executable(minigzip minigzip.c)
     target_compile_definitions(
@@ -42,7 +42,7 @@ if(ZLIB_BUILD_SHARED)
             PRIVATE ZLIB_BUILD
                     $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
         target_link_libraries(zlib_example64 ZLIB::ZLIB)
-        add_test(NAME zlib_example64 COMMAND zlib_example64)
+        add_test(NAME zlib_example64 COMMAND zlib_example64 zlib_example64.gz)
 
         if(MSVC
            OR MSYS
@@ -64,7 +64,7 @@ if(ZLIB_BUILD_STATIC)
         zlib_examplestatic
         PRIVATE ZLIB_BUILD
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
-    add_test(NAME zlib_examplestatic COMMAND zlib_examplestatic)
+    add_test(NAME zlib_examplestatic COMMAND zlib_examplestatic zlib_examplestatic.gz)
 
     add_executable(minigzipstatic minigzip.c)
     target_link_libraries(minigzipstatic ZLIB::ZLIBSTATIC)
@@ -124,7 +124,7 @@ if(ZLIB_BUILD_STATIC)
                 ZLIB_BUILD
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
         target_link_libraries(zlib_example64static ZLIB::ZLIBSTATIC)
-        add_test(NAME zlib_example64static COMMAND zlib_example64static)
+        add_test(NAME zlib_example64static COMMAND zlib_example64static zlib_example64static.gz)
     endif(HAVE_OFF64_T)
 endif(ZLIB_BUILD_STATIC)
 
