@@ -1341,10 +1341,12 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
         return ZIP_PARAMERROR;
     if ((comment!=NULL) && (strlen(comment)>0xffff))
         return ZIP_PARAMERROR;
-    /* The extra field length must fit in 16 bits. If the member also requires
-       a Zip64 extra block, that will also need to fit within that 16-bit
-       length, but that will be checked for later. */
-    if ((size_extrafield_local>0xffff) || (size_extrafield_global>0xffff))
+    /* The extra field lengths must fit in 16 bits, including a 20-byte
+       Zip64 sub-field in the local header if zip64 is true. There might
+       be a Zip64 sub-field needed in the central directory header as
+       well, but that won't be known until later. */
+    if ((size_extrafield_local>(0xffff-(zip64?20:0))) ||
+        (size_extrafield_global>0xffff))
         return ZIP_PARAMERROR;
 
     zi = (zip64_internal*)file;
@@ -1903,9 +1905,14 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
       char* p = NULL;
       uLong size_comment;
 
-      if((uLong)(datasize + 4) > zi->ci.size_centralExtraFree)
+      if (zi->ci.size_centralExtra + datasize + 4 > 0xffff)
       {
-        /* we cannot write more data to the buffer that we have room for. */
+        /* the extra field is now too big with the Zip64 sub-field -- leave
+           this entry out of the central directory, so that the zip file can be
+           completed with the remaining entries, if desired */
+        free(zi->ci.central_header);
+        zi->ci.central_header = NULL;
+        zi->in_opened_file_inzip = 0;
         return ZIP_BADZIPFILE;
       }
 
