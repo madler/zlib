@@ -705,7 +705,7 @@ local ZPOS64_T zip64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
   unsigned char* buf;
   ZPOS64_T uSizeFile;
   ZPOS64_T uBackRead;
-  ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
+  ZPOS64_T uMaxBack=0xffff+22; /* maximum comment and end-of-central-directory record */
   ZPOS64_T uPosFound=0;
 
   if (ZSEEK64(*pzlib_filefunc_def,filestream,0,ZLIB_FILEFUNC_SEEK_END) != 0)
@@ -741,7 +741,7 @@ local ZPOS64_T zip64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
     if (ZREAD64(*pzlib_filefunc_def,filestream,buf,uReadSize)!=uReadSize)
       break;
 
-    for (i=(int)uReadSize-3; (i--)>0;)
+    for (i=(int)uReadSize-4; i>=0; --i)
       if (((*(buf+i))==0x50) && ((*(buf+i+1))==0x4b) &&
         ((*(buf+i+2))==0x05) && ((*(buf+i+3))==0x06))
       {
@@ -757,74 +757,28 @@ local ZPOS64_T zip64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
 }
 
 /*
-Locate the End of Zip64 Central directory locator and from there find the CD of a zipfile (at the end, just before
-the global comment)
+  Locate the Zip64 end of central directory record using the locator
+    immediately preceding the end of central directory record at
+    centralDirPos.
 */
-local ZPOS64_T zip64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib_filefunc_def, voidpf filestream) {
-  unsigned char* buf;
-  ZPOS64_T uSizeFile;
-  ZPOS64_T uBackRead;
-  ZPOS64_T uMaxBack=0xffff; /* maximum size of global comment */
-  ZPOS64_T uPosFound=0;
+local ZPOS64_T zip64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib_filefunc_def, voidpf filestream,
+                                             ZPOS64_T centralDirPos) {
+  ZPOS64_T uPosFound;
   uLong uL;
   ZPOS64_T relativeOffset;
 
-  if (ZSEEK64(*pzlib_filefunc_def,filestream,0,ZLIB_FILEFUNC_SEEK_END) != 0)
+  /* The Zip64 locator immediately precedes the end of central directory
+     record. Checking only there prevents a locator signature in the file
+     data from overriding the central directory that record refers to. */
+  if (centralDirPos < 20)
     return 0;
 
-  uSizeFile = ZTELL64(*pzlib_filefunc_def,filestream);
-
-  if (uMaxBack>uSizeFile)
-    uMaxBack = uSizeFile;
-
-  buf = (unsigned char*)ALLOC(BUFREADCOMMENT+4);
-  if (buf==NULL)
-    return 0;
-
-  uBackRead = 4;
-  while (uBackRead<uMaxBack)
-  {
-    uLong uReadSize;
-    ZPOS64_T uReadPos;
-    int i;
-    if (uBackRead+BUFREADCOMMENT>uMaxBack)
-      uBackRead = uMaxBack;
-    else
-      uBackRead+=BUFREADCOMMENT;
-    uReadPos = uSizeFile-uBackRead ;
-
-    uReadSize = ((BUFREADCOMMENT+4) < (uSizeFile-uReadPos)) ?
-      (BUFREADCOMMENT+4) : (uLong)(uSizeFile-uReadPos);
-    if (ZSEEK64(*pzlib_filefunc_def,filestream,uReadPos,ZLIB_FILEFUNC_SEEK_SET)!=0)
-      break;
-
-    if (ZREAD64(*pzlib_filefunc_def,filestream,buf,uReadSize)!=uReadSize)
-      break;
-
-    for (i=(int)uReadSize-3; (i--)>0;)
-    {
-      /* Signature "0x07064b50" Zip64 end of central directory locator */
-      if (((*(buf+i))==0x50) && ((*(buf+i+1))==0x4b) && ((*(buf+i+2))==0x06) && ((*(buf+i+3))==0x07))
-      {
-        uPosFound = uReadPos+(unsigned)i;
-        break;
-      }
-    }
-
-      if (uPosFound!=0)
-        break;
-  }
-
-  free(buf);
-  if (uPosFound == 0)
-    return 0;
-
-  /* Zip64 end of central directory locator */
+  uPosFound = centralDirPos - 20;
   if (ZSEEK64(*pzlib_filefunc_def,filestream, uPosFound,ZLIB_FILEFUNC_SEEK_SET)!=0)
     return 0;
 
-  /* the signature, already checked */
-  if (zip64local_getLong(pzlib_filefunc_def,filestream,&uL)!=ZIP_OK)
+  if (zip64local_getLong(pzlib_filefunc_def,filestream,&uL)!=ZIP_OK ||
+      uL != 0x07064b50)
     return 0;
 
   /* number of the disk with the start of the zip64 end of central directory */
@@ -864,6 +818,7 @@ local int LoadCentralDirectoryRecord(zip64_internal* pziinit) {
   ZPOS64_T size_central_dir;     /* size of the central directory  */
   ZPOS64_T offset_central_dir;   /* offset of start of central directory */
   ZPOS64_T central_pos;
+  ZPOS64_T central_pos64;
   uLong uL;
 
   uLong number_disk;          /* number of the current disk, used for
@@ -880,15 +835,15 @@ local int LoadCentralDirectoryRecord(zip64_internal* pziinit) {
 
   int hasZIP64Record = 0;
 
-  /* check first if we find a ZIP64 record */
-  central_pos = zip64local_SearchCentralDir64(&pziinit->z_filefunc,pziinit->filestream);
-  if(central_pos > 0)
+  /* find the end of central directory record, and then a ZIP64 record if
+     there is one immediately before it */
+  central_pos = zip64local_SearchCentralDir(&pziinit->z_filefunc,pziinit->filestream);
+  central_pos64 = zip64local_SearchCentralDir64(&pziinit->z_filefunc,pziinit->filestream,
+                                                central_pos);
+  if (central_pos64 > 0)
   {
     hasZIP64Record = 1;
-  }
-  else if(central_pos == 0)
-  {
-    central_pos = zip64local_SearchCentralDir(&pziinit->z_filefunc,pziinit->filestream);
+    central_pos = central_pos64;
   }
 
 /* disable to allow appending to empty ZIP archive
