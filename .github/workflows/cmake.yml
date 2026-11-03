@@ -114,7 +114,12 @@ jobs:
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
       run: |
-        choco install --no-progress nsis
+        foreach ($try in 1..3) {
+          choco install --no-progress nsis
+          if (Test-Path "${env:ProgramFiles(x86)}\NSIS\makensis.exe") { exit 0 }
+          Start-Sleep -Seconds 60
+        }
+        exit 1
 
     - name: Install packages (Linux)
       if: runner.os == 'Linux'
@@ -142,8 +147,9 @@ jobs:
       with:
         name: ${{ matrix.name }} (cmake)
         path: |
-          ../build/CMakeFiles/CMakeOutput.log
-          ../build/CMakeFiles/CMakeError.log
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeConfigureLog.yaml
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeOutput.log
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeError.log
         retention-days: 7
 
   ci-cmake-minimum:
@@ -185,6 +191,7 @@ jobs:
       with:
         name: Ubuntu GCC minimum CMake (cmake)
         path: |
-          ../build/CMakeFiles/CMakeOutput.log
-          ../build/CMakeFiles/CMakeError.log
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeConfigureLog.yaml
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeOutput.log
+          ${{ runner.workspace }}/build/CMakeFiles/CMakeError.log
         retention-days: 7

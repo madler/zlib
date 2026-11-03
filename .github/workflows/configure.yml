@@ -142,5 +142,5 @@ jobs:
       with:
         name: ${{ matrix.name }} (configure)
         path: |
-          ${{ matrix.build-dir || '.' }}/configure.log
+          ${{ matrix.build-dir && format('{0}/build', runner.workspace) || github.workspace }}/configure.log
         retention-days: 7
