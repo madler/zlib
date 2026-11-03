@@ -675,7 +675,7 @@ int ZEXPORT deflateResetKeep(z_streamp strm) {
 
     {
         /* Retain the hash work done for level 0. */
-        int matches = s->level == 0 ? s->matches : 0;
+        uInt matches = s->level == 0 ? s->matches : 0;
         _tr_init(s);
         s->matches = matches;
     }
