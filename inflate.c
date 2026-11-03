@@ -545,13 +545,13 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
             }
             DROPBITS(4);
             len = BITS(4) + 8;
-            if (state->wbits == 0)
-                state->wbits = len;
-            if (len > 15 || len > state->wbits) {
+            if (len > 15 || (state->wbits != 0 && len > state->wbits)) {
                 strm->msg = (z_const char *)"invalid window size";
                 state->mode = BAD;
                 break;
             }
+            if (state->wbits == 0)
+                state->wbits = len;
             state->dmax = 1U << len;
             state->flags = 0;               /* indicate zlib header */
             Tracev((stderr, "inflate:   zlib header ok\n"));
