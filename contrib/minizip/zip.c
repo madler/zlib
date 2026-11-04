@@ -1310,8 +1310,8 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
        Zip64 sub-field in the local header if zip64 is true. There might
        be a Zip64 sub-field needed in the central directory header as
        well, but that won't be known until later. */
-    if ((size_extrafield_local>(0xffff-(zip64?20:0))) ||
-        (size_extrafield_global>0xffff))
+    if ((size_extrafield_local>(0xffffu-(zip64?20u:0u))) ||
+        (size_extrafield_global>0xffffu))
         return ZIP_PARAMERROR;
 
     zi = (zip64_internal*)file;
