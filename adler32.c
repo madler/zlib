@@ -68,6 +68,8 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
 
     /* in case user likes doing a byte at a time, keep it fast */
     if (len == 1) {
+        if (buf == Z_NULL)
+            return 1L;
         adler += buf[0];
         if (adler >= BASE)
             adler -= BASE;

@@ -512,6 +512,12 @@ int main(int argc, char *argv[]) {
     printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
             ZLIB_VERSION, (unsigned)ZLIB_VERNUM, zlibCompileFlags());
 
+    if (adler32(0L, Z_NULL, 1) != 1L ||
+            adler32_z(0L, Z_NULL, 1) != 1L) {
+        fprintf(stderr, "adler32 null buffer error\n");
+        exit(1);
+    }
+
     compr    = (Byte*)calloc((uInt)comprLen, 1);
     uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);
     /* compr and uncompr are cleared to avoid reading uninitialized
