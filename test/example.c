@@ -120,6 +120,11 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     }
     strcpy((char*)uncompr, "garbage");
 
+    if (gzungetc('x', file) != 'x' || gzseek(file, 1L, SEEK_CUR) != 0) {
+        fprintf(stderr, "gzseek after initial gzungetc error\n");
+        exit(1);
+    }
+
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
         exit(1);

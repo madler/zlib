@@ -392,7 +392,7 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
     /* compute the absolute position */
     pos = whence == SEEK_SET ? 0 :
           state->x.pos + (state->past ? 0 : state->skip);
-    if (offset > GZ_OFF_MAX - pos)
+    if (pos > 0 && offset > GZ_OFF_MAX - pos)
         return -1;                          /* would overflow z_off64_t */
     if (offset < -pos)
         return -1;                          /* before start of file */
