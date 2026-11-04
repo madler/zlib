@@ -520,7 +520,6 @@ extern int ZEXPORT zipAlreadyThere(zipFile file, char const *name) {
 
 /****************************************************************************/
 
-#ifndef NO_ADDFILEINEXISTINGZIP
 /* ===========================================================================
    Inputs a long in LSB order to the given file
    nbByte == 1, 2 ,4 or 8 (byte, short or long, ZPOS64_T)
@@ -582,6 +581,7 @@ local uLong zip64local_TmzDateToDosDate(const tm_zip* ptm) {
 
 /****************************************************************************/
 
+#ifndef NO_ADDFILEINEXISTINGZIP
 local int zip64local_getByte(const zlib_filefunc64_32_def* pzlib_filefunc_def, voidpf filestream, int* pi) {
     unsigned char c;
     int err = (int)ZREAD64(*pzlib_filefunc_def,filestream,&c,1);
