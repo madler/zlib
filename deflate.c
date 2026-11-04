@@ -51,6 +51,75 @@
 
 #include "deflate.h"
 
+/* ===========================================================================
+ * AVX2 inner-scan helper for longest_match.
+ *
+ * longest_match is the dominant CPU hotspot in the file-compression
+ * workload (~25% of profile, ~33s self on Windows AVX2 build).  The bulk
+ * of that time is spent in the inner byte-compare do-while that walks two
+ * bytes at a time looking for the first mismatch between scan[] and
+ * match[].  Where the runner has AVX2, replace that scan with a
+ * vectorized 32-byte-stride compare that uses _mm256_cmpeq_epi8 plus a
+ * count-trailing-zeros on the inverted PMOVMSKB mask to locate the first
+ * mismatching byte in a single fused operation.
+ *
+ * The helper takes scan_in / match_in pointers at the first byte that
+ * still needs to be compared (the caller has already validated the
+ * scan_start / scan_end / two-byte prefix), and strend as the inclusive
+ * upper bound permitted by zlib's MAX_MATCH window guard.  It returns
+ * the number of additional bytes that match starting at scan_in.
+ *
+ * The 32-byte stride is safe because zlib reserves a guard region of at
+ * least MIN_LOOKAHEAD bytes after strstart and longest_match's existing
+ * scalar implementation already issues an unaligned 2-byte (ushf) read
+ * one past strend in the worst case; a 32-byte unaligned load at the
+ * last in-range stride is bounded by the same window-end padding.
+ *
+ * A scalar tail handles the residual <32-byte region so the helper
+ * remains exactly equivalent to the original loop's stopping condition.
+ */
+#if defined(__AVX2__)
+#  include <immintrin.h>
+#  if defined(_MSC_VER)
+#    include <intrin.h>
+#  endif
+#  define Z_HAVE_AVX2_LONGEST_MATCH 1
+
+local int z_longest_match_inner_avx2(const Bytef *scan_in,
+                                     const Bytef *match_in,
+                                     const Bytef *strend) {
+    const Bytef *scan = scan_in;
+    const Bytef *match = match_in;
+
+    while (scan + 32 <= strend) {
+        __m256i v_scan  = _mm256_loadu_si256((const __m256i *)scan);
+        __m256i v_match = _mm256_loadu_si256((const __m256i *)match);
+        __m256i v_eq    = _mm256_cmpeq_epi8(v_scan, v_match);
+        unsigned eq_mask = (unsigned)_mm256_movemask_epi8(v_eq);
+        if (eq_mask != 0xFFFFFFFFu) {
+            unsigned inv = ~eq_mask;
+#if defined(_MSC_VER)
+            unsigned long bit_index;
+            _BitScanForward(&bit_index, inv);
+            return (int)(scan - scan_in) + (int)bit_index;
+#else
+            return (int)(scan - scan_in) + __builtin_ctz(inv);
+#endif
+        }
+        scan  += 32;
+        match += 32;
+    }
+    /* Scalar residual tail (< 32 bytes): exits on first mismatch or on
+     * reaching strend, matching the stopping condition of the original
+     * two-byte do-while loop. */
+    while (scan < strend && *scan == *match) {
+        ++scan;
+        ++match;
+    }
+    return (int)(scan - scan_in);
+}
+#endif /* __AVX2__ */
+
 const char deflate_copyright[] =
    " deflate 1.3.2.1 Copyright 1995-2026 Jean-loup Gailly and Mark Adler ";
 /*
@@ -1490,6 +1559,15 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
          */
         Assert(scan[2] == match[2], "scan[2]?");
         scan++, match++;
+#if defined(Z_HAVE_AVX2_LONGEST_MATCH)
+        /* Structural rewrite: AVX2 32-byte stride compare replaces the
+         * scalar 2-byte do-while.  Counts additional matching bytes from
+         * (scan, match) up to strend, then advances scan by that count.
+         * The helper's scalar tail subsumes the trailing
+         * `if (*scan == *match) scan++;` follow-up of the original loop.
+         */
+        scan += z_longest_match_inner_avx2(scan, match, strend);
+#else
         do {
         } while (*(ushf*)(scan += 2) == *(ushf*)(match += 2) &&
                  *(ushf*)(scan += 2) == *(ushf*)(match += 2) &&
@@ -1502,6 +1580,7 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
         Assert(scan <= s->window + (unsigned)(s->window_size - 1),
                "wild scan");
         if (*scan == *match) scan++;
+#endif /* Z_HAVE_AVX2_LONGEST_MATCH */
 
         len = (MAX_MATCH - 1) - (int)(strend - scan);
         scan = strend - (MAX_MATCH-1);
@@ -1522,6 +1601,16 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
         scan += 2, match++;
         Assert(*scan == *match, "match[2]?");
 
+#if defined(Z_HAVE_AVX2_LONGEST_MATCH)
+        /* Structural rewrite (non-UNALIGNED path): same AVX2 32-byte
+         * stride compare as above.  The original scalar do-while pre-
+         * increments both pointers, which advances them by exactly one
+         * before each compare; the AVX2 helper counts equal bytes starting
+         * at the current scan/match (which already point at the first
+         * not-yet-compared pair) and the result corresponds to the same
+         * stopping position. */
+        scan += z_longest_match_inner_avx2(scan, match, strend);
+#else
         /* We check for insufficient lookahead only every 8th comparison;
          * the 256th check will be made at strstart + 258.
          */
@@ -1531,6 +1620,7 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
                  *++scan == *++match && *++scan == *++match &&
                  *++scan == *++match && *++scan == *++match &&
                  scan < strend);
+#endif /* Z_HAVE_AVX2_LONGEST_MATCH */
 
         Assert(scan <= s->window + (unsigned)(s->window_size - 1),
                "wild scan");
