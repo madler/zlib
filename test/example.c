@@ -513,7 +513,9 @@ int main(int argc, char *argv[]) {
             ZLIB_VERSION, (unsigned)ZLIB_VERNUM, zlibCompileFlags());
 
     if (adler32(0L, Z_NULL, 1) != 1L ||
-            adler32_z(0L, Z_NULL, 1) != 1L) {
+            adler32_z(0L, Z_NULL, 1) != 1L ||
+            adler32(123L, Z_NULL, 1) != 1L ||
+            adler32_z(123L, Z_NULL, 1) != 1L) {
         fprintf(stderr, "adler32 null buffer error\n");
         exit(1);
     }
