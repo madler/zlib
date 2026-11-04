@@ -1380,9 +1380,8 @@ int ZEXPORT inflateCopy(z_streamp dest, z_streamp source) {
     zmemcpy(dest, source, sizeof(z_stream));
     zmemcpy(copy, state, sizeof(struct inflate_state));
     copy->strm = dest;
-    if (state->lencode >= state->codes &&
-        state->lencode <= state->codes + ENOUGH - 1) {
-        copy->lencode = copy->codes + (state->lencode - state->codes);
+    if (state->lencode == state->codes) {
+        copy->lencode = copy->codes;
         copy->distcode = copy->codes + (state->distcode - state->codes);
     }
     copy->next = copy->codes + (state->next - state->codes);
