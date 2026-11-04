@@ -398,6 +398,10 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         return -1;                          /* before start of file */
     pos += offset;
 
+    /* the displacement from a negative position must fit in z_off64_t */
+    if (state->x.pos < 0 && pos > GZ_OFF_MAX + state->x.pos)
+        return -1;
+
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY) {
         ret = LSEEK(state->fd, pos - state->x.pos - (z_off64_t)state->x.have,
