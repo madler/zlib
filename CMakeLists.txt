@@ -233,6 +233,15 @@ set(ZLIB_SRCS
     uncompr.c
     zutil.c)
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$")
+    list(APPEND ZLIB_SRCS crc32_simd.c)
+    add_compile_definitions(CRC32_SIMD_SSE42_PCLMUL)
+    if(NOT MSVC)
+        set_source_files_properties(crc32_simd.c PROPERTIES
+            COMPILE_OPTIONS "-msse4.2;-mpclmul")
+    endif()
+endif()
+
 if(WIN32)
     set(zlib_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")

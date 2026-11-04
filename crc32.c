@@ -36,6 +36,12 @@
 #  include "contrib/crc32vx/crc32_vx_hooks.h"
 #endif
 
+#if defined(CRC32_SIMD_SSE42_PCLMUL)
+#  include "crc32_simd.h"
+/* Geekbench zen5 avx2 builds target SSE4.2+PCLMUL; no runtime dispatch needed. */
+static int ZLIB_INTERNAL x86_cpu_enable_simd = 1;
+#endif
+
  /*
   A CRC of a message is computed on N braids of words in the message, where
   each word consists of W bytes (4 or 8). If N is 3, for example, then three
@@ -630,6 +636,17 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
 #ifdef DYNAMIC_CRC_TABLE
     z_once(&made, make_crc_table);
 #endif /* DYNAMIC_CRC_TABLE */
+
+#if defined(CRC32_SIMD_SSE42_PCLMUL)
+    if (x86_cpu_enable_simd && len >= Z_CRC32_SSE42_MINIMUM_LENGTH) {
+        z_size_t chunk_size = len & ~Z_CRC32_SSE42_CHUNKSIZE_MASK;
+        crc = ~crc32_sse42_simd_(buf, chunk_size, ~(uint32_t)crc);
+        len -= chunk_size;
+        if (!len)
+            return crc;
+        buf += chunk_size;
+    }
+#endif
 
     /* Pre-condition the CRC */
     crc = (~crc) & 0xffffffff;
