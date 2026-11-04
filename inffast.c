@@ -61,7 +61,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-    unsigned long hold;         /* local strm->hold */
+    unsigned long long hold;    /* local strm->hold (P2O: 64-bit bit buffer) */
     unsigned bits;              /* local strm->bits */
     code const FAR *lcode;      /* local strm->lencode */
     code const FAR *dcode;      /* local strm->distcode */
@@ -98,10 +98,15 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     /* decode literals and length/distances until end-of-block or not enough
        input data or output space */
     do {
-        if (bits < 15) {
-            hold += (unsigned long)(*in++) << bits;
-            bits += 8;
-            hold += (unsigned long)(*in++) << bits;
+        /* P2O (inflate-fast-64bit-bitbuffer): the entry contract guarantees at
+         * least 6 input bytes are available while in < last, and a single
+         * length/distance pair consumes at most 48 bits.  With a 64-bit bit
+         * buffer we can top up to >= 48 bits ONCE here and drop every per-field
+         * refill branch below -- those data-dependent `if (bits < N)` refills are
+         * the branch-mispredict hotspot.  The loop reads at most 6 bytes per
+         * iteration, matching the original guarantee. */
+        while (bits < 48) {
+            hold += (unsigned long long)(*in++) << bits;
             bits += 8;
         }
         here = lcode + (hold & lmask);
@@ -120,21 +125,12 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
             len = (unsigned)(here->val);
             op &= 15;                           /* number of extra bits */
             if (op) {
-                if (bits < op) {
-                    hold += (unsigned long)(*in++) << bits;
-                    bits += 8;
-                }
+                /* P2O: bits already topped up at loop head; no refill needed. */
                 len += (unsigned)hold & ((1U << op) - 1);
                 hold >>= op;
                 bits -= op;
             }
             Tracevv((stderr, "inflate:         length %u\n", len));
-            if (bits < 15) {
-                hold += (unsigned long)(*in++) << bits;
-                bits += 8;
-                hold += (unsigned long)(*in++) << bits;
-                bits += 8;
-            }
             here = dcode + (hold & dmask);
           dodist:
             op = (unsigned)(here->bits);
@@ -144,14 +140,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
             if (op & 16) {                      /* distance base */
                 dist = (unsigned)(here->val);
                 op &= 15;                       /* number of extra bits */
-                if (bits < op) {
-                    hold += (unsigned long)(*in++) << bits;
-                    bits += 8;
-                    if (bits < op) {
-                        hold += (unsigned long)(*in++) << bits;
-                        bits += 8;
-                    }
-                }
+                /* P2O: bits already topped up at loop head; no refill needed. */
                 dist += (unsigned)hold & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
                 if (dist > dmax) {
