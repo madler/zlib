@@ -66,6 +66,11 @@ if(ZLIB_BUILD_STATIC)
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>)
     add_test(NAME zlib_examplestatic COMMAND zlib_examplestatic zlib_examplestatic.gz)
 
+    add_executable(zlib_inflate_fast_roundtrip inflate_fast_roundtrip.c)
+    target_link_libraries(zlib_inflate_fast_roundtrip ZLIB::ZLIBSTATIC)
+    add_test(NAME zlib_inflate_fast_roundtrip
+             COMMAND zlib_inflate_fast_roundtrip)
+
     add_executable(minigzipstatic minigzip.c)
     target_link_libraries(minigzipstatic ZLIB::ZLIBSTATIC)
 
