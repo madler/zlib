@@ -987,7 +987,9 @@ local int LoadCentralDirectoryRecord(zip64_internal* pziinit) {
     ZPOS64_T size_central_dir_to_read = size_central_dir;
     size_t buf_size = SIZEDATA_INDATABLOCK;
     void* buf_read = (void*)ALLOC(buf_size);
-    if (ZSEEK64(pziinit->z_filefunc, pziinit->filestream, offset_central_dir + byte_before_the_zipfile, ZLIB_FILEFUNC_SEEK_SET) != 0)
+    if (buf_read == NULL)
+      err=ZIP_INTERNALERROR;
+    else if (ZSEEK64(pziinit->z_filefunc, pziinit->filestream, offset_central_dir + byte_before_the_zipfile, ZLIB_FILEFUNC_SEEK_SET) != 0)
       err=ZIP_ERRNO;
 
     while ((size_central_dir_to_read>0) && (err==ZIP_OK))
@@ -1075,10 +1077,6 @@ extern zipFile ZEXPORT zipOpen3(const void *pathname, int append, zipcharpc* glo
       err = LoadCentralDirectoryRecord(&ziinit);
     }
 
-    if (globalcomment)
-    {
-      *globalcomment = ziinit.globalcomment;
-    }
 #    endif /* !NO_ADDFILEINEXISTINGZIP*/
 
     if (err != ZIP_OK)
@@ -1088,10 +1086,16 @@ extern zipFile ZEXPORT zipOpen3(const void *pathname, int append, zipcharpc* glo
         free_linkedlist(&(ziinit.central_dir));
 #    endif /* !NO_ADDFILEINEXISTINGZIP*/
         free(zi);
+        if (globalcomment)
+            *globalcomment = NULL;
         return NULL;
     }
     else
     {
+#    ifndef NO_ADDFILEINEXISTINGZIP
+        if (globalcomment)
+            *globalcomment = ziinit.globalcomment;
+#    endif /* !NO_ADDFILEINEXISTINGZIP*/
         *zi = ziinit;
         return (zipFile)zi;
     }
