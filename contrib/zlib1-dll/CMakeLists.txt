@@ -112,16 +112,17 @@ if(MSVC)
 else(MSVC)
     set(CMAKE_REQUIRED_FLAGS "-Werror")
 endif(MSVC)
-
 check_c_source_compiles(
     "
-        #include <stdlib.h>
-        static void f(void) __attribute__ ((visibility(\"hidden\")));
-        int main(void) {return 0;}
+        #define ZLIB_INTERNAL __attribute__((visibility (\"hidden\")))
+        int ZLIB_INTERNAL foo;
+        int main()
+        {
+          return 0;
+        }
     "
     HAVE___ATTR__VIS_HIDDEN)
-
-unset(CMAKE_COMPILE_FLAGS)
+unset(CMAKE_REQUIRED_FLAGS)
 
 if(ZCONF_IN_ZLIB1)
     configure_file(${zlib1-dll_BINARY_DIR}/zconf.h.cmakein
