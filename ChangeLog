@@ -1,6 +1,9 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.4.0.1 (xx Nov 2026)
+- 
+
 Changes in 1.4 (4 Nov 2026)
 - Change CMake library names on MSVC
 - Return z_off_t default to long for portability

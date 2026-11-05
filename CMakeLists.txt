@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.31)
 project(
     zlib
     LANGUAGES C
-    VERSION 1.4
+    VERSION 1.4.0.1
     HOMEPAGE_URL "https://zlib.net/"
     DESCRIPTION "a general-purpose lossless data-compression library")
 
