@@ -2,6 +2,9 @@ name: anyVM-OSes
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
 
   dragonflybsd:

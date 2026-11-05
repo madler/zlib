@@ -1,5 +1,9 @@
 name: Configure
 on: [push, pull_request]
+
+permissions:
+  contents: read
+
 jobs:
   ci-configure:
     name: ${{ matrix.name }}
