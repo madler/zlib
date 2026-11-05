@@ -1,0 +1,79 @@
+Dependencies:
+uadk2.4 or higher
+g++
+numactl
+
+UADK Installation:
+1.Download and unzip from https://github.com/Linaro/uadk/archive/refs/tags/v2.4.zip
+2.Step into unzip directory and execute following commands:
+./cleanup.sh
+./autogen.sh
+./conf.sh
+make
+make install
+
+
+Compile command:
+g++ -shared -fPIC -O3  -I/usr/local/include/uadk -L/usr/local/lib -lwd -lwd_comp -lnuma -lhisi_zip -o libzuadk.so zlib_uadk.cc
+
+Symbol links(libz.so和libz.so.1) must be created for library file libzuadk.so and move to a directory different with system zlib library path(/usr/local/lib is recommended).
+
+How to use UADK zlib library:
+execute command as follow:
+LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH ./your_command
+
+Available environment variables:
+
+UADK_USE_SINGLE_DEV
+Whether allocate context from single accelerator.
+0:Allocate from all accelerators.
+1:Allocate from accelerator which cpu is used by current process.
+Default 0
+
+WD_COMP_EPOLL_EN
+Whether enable epoll mode.
+0:Disable epoll mode, process is looping before accelerator send response.Small block size is Recommended.
+1:Enable epoll mode, process is sleeping before accelerator send response.Large block size is Recommended.
+Default 0.
+
+UADK_COMPRESS_CTX_NUM
+Allocated context num for compression.Set appappropriate value based on compression task.
+Default 4
+
+UADK_DECOMPRESS_CTX_NUM
+Allocated context num for compression.Set appappropriate value based on decompression task.
+Default 4
+
+UADK_USE_COMP_BUFFER
+Whether use inner buffer for compression.
+0:Use user buffer directly for acelerator.
+1:Use inner buffer for acelerator.
+Default 1
+
+UADK_USE_DECOMP_BUFFER
+Whether use inner buffer for decompression.
+0:Use user buffer directly for acelerator.
+1:Use inner buffer for acelerator.
+Default 1
+
+UADK_COMP_INPUT_BUFFER_SIZE
+Inner input buffer size for compression
+Default 65536
+
+UADK_COMP_OUTPUT_BUFFER_SIZE
+Inner output buffer size for compression
+Default 65536
+
+UADK_DECOMP_INPUT_BUFFER_SIZE
+Inner input buffer size for decompression
+Default 65536
+
+UADK_DECOMP_OUTPUT_BUFFER_SIZE
+Inner output buffer size for decompression
+Default 65536
+
+UADK_INFLATE_FORCE_FLUSH
+Whether send request to accelerator when inner input buffer is not empty.Available only when UADK_USE_DECOMP_BUFFER=1.
+0:Request will be sent only if flush != Z_NOFLUSH or inner input buffer is full.
+1:Request will be sent any time.
+Default 0
