@@ -2,6 +2,10 @@ name: mingw/cygwin
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   MSys:
     runs-on: ${{ matrix.os || 'windows-latest' }}
