@@ -152,6 +152,12 @@ case "$1" in
     -c* | --const) zconst=1; shift ;;
     -w* | --warn) warn=$((warn + 1)); shift ;;
     -d* | --debug) debug=1; shift ;;
+    # This option in configure is needed as passing CHOST from powershell core
+    # on linux to the configure script is not possible without this. And some
+    # people invoke configure within a common powershell build script that
+    # allows building their code for Windows, Linux, and MacOS with the least
+    # amount of files just for building their project.
+    --cross-prefix) CROSS_PREFIX="$2"; shift; shift ;;
     --sanitize) address=1; shift ;;
     --address) address=1; shift ;;
     --memory) memory=1; shift ;;
