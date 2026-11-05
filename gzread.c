@@ -269,10 +269,10 @@ local int gz_fetch(gz_statep state) {
                 return 0;
             break;
         case COPY:      /* -> COPY */
+            state->x.next = state->out;
             if (gz_load(state, state->out, state->size << 1, &(state->x.have))
                     == -1)
                 return -1;
-            state->x.next = state->out;
             return 0;
         case GZIP:      /* -> GZIP or LOOK (if end of gzip stream) */
             strm->avail_out = state->size << 1;
