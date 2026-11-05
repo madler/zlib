@@ -1,3 +1,48 @@
+ZLIB_1.1.4 {
+  global:
+    adler32;
+    compress2;
+    compress;
+    crc32;
+    deflate;
+    deflateCopy;
+    deflateEnd;
+    deflateInit2_;
+    deflateInit_;
+    deflateParams;
+    deflateReset;
+    deflateSetDictionary;
+    get_crc_table;
+    gzclose;
+    gzdopen;
+    gzeof;
+    gzerror;
+    gzflush;
+    gzgetc;
+    gzgets;
+    gzopen;
+    gzprintf;
+    gzputc;
+    gzputs;
+    gzread;
+    gzrewind;
+    gzseek;
+    gzsetparams;
+    gztell;
+    gzwrite;
+    inflate;
+    inflateEnd;
+    inflateInit2_;
+    inflateInit_;
+    inflateReset;
+    inflateSetDictionary;
+    inflateSync;
+    inflateSyncPoint;
+    uncompress;
+    zError;
+    zlibVersion;
+};
+
 ZLIB_1.2.0 {
   global:
     compressBound;
@@ -17,7 +62,7 @@ ZLIB_1.2.0 {
     gz_error;
     gz_intmax;
     _*;
-};
+} ZLIB_1.1.4;
 
 ZLIB_1.2.0.2 {
     gzclearerr;
