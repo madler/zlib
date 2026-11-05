@@ -1,0 +1,242 @@
+version = 1
+
+[[annotations]]
+path = [
+  "**",
+]
+SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly (jloup@gzip.org) and Mark Adler (madler@alumni.caltech.edu)"
+SPDX-License-Identifier = "Zlib"
+
+
+[[annotations]]
+path = [
+  "amiga/Makefile.sas",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Osma Ahvenlampi <Osma.Ahvenlampi@hut.fi>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "win32/README-WIN32.txt",
+  "README",
+  "deflate.c",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly (jloup@gzip.org) and Mark Adler (madler@alumni.caltech.edu)"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "examples/gzappend.c",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2003, 2012 Mark Adler, all rights reserved"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "doc/rfc1950.txt",
+  "doc/rfc1951.txt",
+  "doc/rfc1952.txt",
+]
+SPDX-License-Identifier = "LPD-document"
+
+[[annotations]]
+path = [
+  "examples/zpipe.c",
+  "examples/fitblk.c",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "Mark Adler"
+
+[[annotations]]
+path = [
+  "examples/gun.c",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2003, 2005, 2008, 2010, 2012 Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "examples/zlib_how.html",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2004-2026 Mark Adler"
+SPDX-License-Identifier = "CC-BY-ND-4.0"
+
+[[annotations]]
+path = [
+  "BUILD.bazel",
+]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = [
+  "contrib/ada/**",
+]
+SPDX-FileCopyrightText = "Dmitriy Anisimkov <anisimkov@yahoo.com>"
+SPDX-License-Identifier = "GPL-2.0-or-later WITH GNAT-exception"
+
+[[annotations]]
+path = [
+  "contrib/blast/**",
+  "contrib/infback9/**",
+  "contrib/puff/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Mark Adler <madler@alumni.caltech.edu>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/delphi/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Cosmin Truta <cosmint@cs.ubbcluj.ro>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/dotzlib/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2004 Henrik Ravn"
+SPDX-License-Identifier = "BSL-1.0"
+
+[[annotations]]
+path = [
+  "contrib/gcc_gvmat64/**",
+]
+SPDX-FileCopyrightText = "Gilles Vollant <info@winimage.com>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/iostream/**",
+]
+SPDX-FileCopyrightText = "Kevin Ruland <kevin@rodin.wustl.edu>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/iostream2/**",
+]
+SPDX-FileCopyrightText = "Tyge Løvset <Tyge.Lovset@cmr.no>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/iostream2/zstream.h",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "1997 Christian Michelsen Research AS; Advanced Computing; Fantoftvegen 38, 5036 BERGEN, Norway"
+SPDX-License-Identifier = "LicenseRef-MIT-like"
+
+[[annotations]]
+path = [
+  "contrib/iostream3/**",
+]
+SPDX-FileCopyrightText = [
+  "Ludwig Schwardt <schwardt@sun.ac.za>",
+  "Kevin Ruland <kevin@rodin.wustl.edu>",
+]
+SPDX-License-Identifier = "LicenseRef-NoFee"
+
+[[annotations]]
+path = [
+  "contrib/minizip/**",
+]
+SPDX-FileCopyrightText = "Gilles Vollant <info@winimage.com>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/minizip/skipset.h",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+  "(c) 2014 M.E. O'Neill / www.pcg-random.org",
+]
+SPDX-License-Identifier = "Zlib AND Apache-2.0"
+
+[[annotations]]
+path = [
+  "contrib/minizip/zip.c",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2009-2010 Mathias Svensson ( https://result42.com )",
+  "1998-2026 Gilles Vollant (minizip) ( https://www.winimage.com/zLibDll/minizip.html )",
+]
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/minizip/MiniZip64_info.txt",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "1998-2026 Gilles Vollant"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/minizip/unzip.c",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "1998-2026 Gilles Vollant (minizip) ( https://www.winimage.com/zLibDll/minizip.html )",
+  "2007-2008 Even Rouault",
+  "2009-2010 Mathias Svensson ( https://result42.com )",
+  "1990-2000 Info-ZIP.  All rights reserved.",
+  "1998 - 2010 Gilles Vollant, Even Rouault, Mathias Svensson",
+]
+SPDX-License-Identifier = "Zlib AND Info-ZIP"
+
+[[annotations]]
+path = [
+  "contrib/pascal/**"
+]
+SPDX-FileCopyrightText = "Bob Dellaca <bobdl@xtra.co.nz> et al."
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/pascal/zlibpas.pas"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+  "1995-2003 Jean-loup Gailly and Mark Adler",
+  "Bob Dellaca <bobdl@xtra.co.nz> et al.",
+]
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/pascal/readme.txt"
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Bob Dellaca <bobdl@xtra.co.nz> et al."
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/crc32vx/**"
+]
+SPDX-FileCopyrightText = "Ilya Leoshkevich <iii@linux.ibm.com>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/testzlib/**"
+]
+SPDX-FileCopyrightText = "Gilles Vollant <info@winimage.com>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = [
+  "contrib/zlib1-dll/**"
+]
+SPDX-FileCopyrightText = "@Vollstrecker on github.com"
+SPDX-License-Identifier = "Zlib"
