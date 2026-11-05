@@ -11,6 +11,7 @@
 
 #include "zlib.h"
 #include <stdio.h>
+#include <limits.h>
 
 #ifdef STDC
 #  include <string.h>
@@ -119,6 +120,23 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         exit(1);
     }
     strcpy((char*)uncompr, "garbage");
+
+    if (gzungetc('x', file) != 'x') {
+        fprintf(stderr, "gzseek after initial gzungetc error\n");
+        exit(1);
+    }
+    if (sizeof(z_off_t) == sizeof(z_off64_t)) {
+        z_off_t limit = (z_off_t)1 << (sizeof(z_off_t) * CHAR_BIT - 2);
+        limit += limit - 1;
+        if (gzseek(file, limit, SEEK_SET) != -1) {
+            fprintf(stderr, "gzseek at offset limit after gzungetc error\n");
+            exit(1);
+        }
+    }
+    if (gzseek(file, 1L, SEEK_CUR) != 0) {
+        fprintf(stderr, "gzseek after initial gzungetc error\n");
+        exit(1);
+    }
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
