@@ -23,6 +23,11 @@
  * $Id: zstream.h 1.1 1997-06-25 12:00:56+02 tyge Exp tyge $
  */
 
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include <strstream.h>
 #include <string.h>
 #include <stdio.h>

@@ -56,7 +56,11 @@
 #include <stdio.h>      /* fputs(), fprintf(), fwrite(), putc() */
 #include <stdlib.h>     /* exit(), malloc(), free() */
 #include <fcntl.h>      /* open() */
-#include <unistd.h>     /* close(), read(), lseek() */
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include "zlib.h"
     /* crc32(), crc32_combine(), inflateInit2(), inflate(), inflateEnd() */
 

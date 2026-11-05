@@ -62,7 +62,11 @@
 #include <string.h>         /* strerror(), strcmp(), strlen(), memcpy() */
 #include <errno.h>          /* errno */
 #include <fcntl.h>          /* open() */
-#include <unistd.h>         /* read(), write(), close(), chown(), unlink() */
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>       /* stat(), chmod() */
 #include <utime.h>          /* utime() */
