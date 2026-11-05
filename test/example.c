@@ -201,6 +201,36 @@ static void test_deflate(Byte *compr, uLong comprLen) {
     CHECK_ERR(err, "deflateEnd");
 }
 
+#ifndef NO_GZIP
+/* Check the bound for a gzip extra length whose 32-bit sum with two wraps.
+   Only deflateBound_z() is called, so no extra data is read. */
+static void test_deflate_bound_gzip_extra(void) {
+    z_stream stream = {0};
+    gz_header head = {0};
+    Byte extra = 0;
+    z_size_t base, bound;
+    int err;
+
+    err = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+                       15 + 16, 8, Z_DEFAULT_STRATEGY);
+    CHECK_ERR(err, "deflateInit2");
+    head.extra = &extra;
+    err = deflateSetHeader(&stream, &head);
+    CHECK_ERR(err, "deflateSetHeader");
+
+    base = deflateBound_z(&stream, 0);
+    head.extra_len = (uInt)0xfffffffeUL;
+    bound = deflateBound_z(&stream, 0);
+    if (bound != base + 0xfffe) {
+        fprintf(stderr, "deflateBound_z gzip extra length error\n");
+        exit(1);
+    }
+
+    err = deflateEnd(&stream);
+    CHECK_ERR(err, "deflateEnd");
+}
+#endif
+
 /* ===========================================================================
  * Test inflate() with small buffers
  */
@@ -533,6 +563,9 @@ int main(int argc, char *argv[]) {
 #endif
 
     test_deflate(compr, comprLen);
+#ifndef NO_GZIP
+    test_deflate_bound_gzip_extra();
+#endif
     test_inflate(compr, comprLen, uncompr, uncomprLen);
 
     test_large_deflate(compr, comprLen, uncompr, uncomprLen);
