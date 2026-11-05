@@ -248,16 +248,24 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                 }
                 else {
                     from = out - dist;          /* copy direct from output */
-                    do {                        /* minimum length is three */
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        *out++ = *from++;
-                        len -= 3;
-                    } while (len > 2);
-                    if (len) {
-                        *out++ = *from++;
-                        if (len > 1)
+                    if (dist == 1) {
+                        unsigned char copy = *from;
+                        do {
+                            *out++ = copy;
+                        } while (--len);
+                    }
+                    else {
+                        do {                    /* minimum length is three */
                             *out++ = *from++;
+                            *out++ = *from++;
+                            *out++ = *from++;
+                            len -= 3;
+                        } while (len > 2);
+                        if (len) {
+                            *out++ = *from++;
+                            if (len > 1)
+                                *out++ = *from++;
+                        }
                     }
                 }
             }
