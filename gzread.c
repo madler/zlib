@@ -297,7 +297,8 @@ local void gz_skip_have(gz_statep state) {
         (z_off64_t)state->x.have > state->skip ?
         (unsigned)state->skip : state->x.have;
     state->x.have -= n;
-    state->x.next += n;
+    if (n)
+        state->x.next += n;
     state->x.pos += n;
     state->skip -= n;
 }

@@ -103,7 +103,7 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         exit(1);
     }
     pos = ((((z_off_t)1 << (sizeof(z_off_t) * CHAR_BIT - 2)) - 1) * 2 + 1);
-    if (gzseek(file, pos, SEEK_SET) != pos ||
+    if (gzdirect(file) != 0 || gzseek(file, pos, SEEK_SET) != pos ||
         gzseek(file, 1, SEEK_CUR) != -1 || gztell(file) != pos ||
         gzseek(file, 0, SEEK_SET) != 0) {
         fprintf(stderr, "gzseek offset limit error\n");
