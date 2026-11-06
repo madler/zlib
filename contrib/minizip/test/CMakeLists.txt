@@ -121,7 +121,6 @@ if(NOT MSVC)
                 "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
                 "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
                 -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
-                ${ZLIB_ARG}
                 $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
                 -G "${CMAKE_GENERATOR}"
                 -S${WORK_DIR}/minizip_pkg_config_test)

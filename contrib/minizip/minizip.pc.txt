@@ -11,4 +11,4 @@ Version: @minizip_VERSION@
 Requires:
 Libs: -L${libdir} -L${sharedlibdir} -l@MINIZIP_PC_LIBRARY@
 Libs.private: @MINIZIP_PC_LIBS_PRIVATE@
-Cflags: -I${includedir} -I${includedir}/minizip
+Cflags: -I${includedir} -I${includedir}/minizip @MINIZIP_PC_CFLAGS@

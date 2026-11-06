@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 project(minizip_pkg_config LANGUAGES C)
 
-find_package(ZLIB CONFIG REQUIRED COMPONENTS @MINIZIP_PC_ZLIB_COMPONENT@)
 set(prefix "@WORK_DIR@/test_install")
 set(package "${prefix}/@CMAKE_INSTALL_LIBDIR@/pkgconfig/minizip.pc")
 
@@ -24,7 +23,5 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/consumer.c
     "    return file ? unzClose(file) : 0;\n"
     "}\n")
 add_executable(pkg_config_consumer ${CMAKE_CURRENT_BINARY_DIR}/consumer.c)
-target_include_directories(pkg_config_consumer PRIVATE
-    $<TARGET_PROPERTY:@MINIZIP_PC_ZLIB_TARGET@,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(pkg_config_consumer PRIVATE ${pc_cflags})
 target_link_libraries(pkg_config_consumer PRIVATE ${pc_libs})
