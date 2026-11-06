@@ -39,6 +39,7 @@ include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
+include(CMakePushCheckState)
 include(GNUInstallDirs)
 
 if(NOT CPACK_INCLUDED)
@@ -64,6 +65,8 @@ endif(MINIZIP_ENABLE_BZIP2)
 #
 # Check for fopen64
 #
+cmake_push_check_state()
+list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
 check_symbol_exists(fopen64 stdio.h HAVE_FOPEN64)
 
 #
@@ -79,9 +82,8 @@ check_include_file(unistd.h HAVE_UNISTD_H)
 #
 # Check to see if we have large file support
 #
-set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
 check_type_size(off64_t OFF64_T)
-unset(CMAKE_REQUIRED_DEFINITIONS) # clear variable
+cmake_pop_check_state()
 
 #
 # Check visibility attribute is supported
@@ -144,9 +146,6 @@ set(MINIUNZIP_HDRS
     unzip.h
     zip.h)
 
-set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/minizip.pc)
-configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt ${LIBMINIZIP_PC} @ONLY)
-
 if(WIN32 OR CYGWIN)
     set(minizip_static_suffix "s")
     set(CMAKE_DEBUG_POSTFIX "d")
@@ -161,7 +160,8 @@ if(MINIZIP_BUILD_SHARED)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizip
         PUBLIC
             $<BUILD_INTERFACE:${minizip_SOURCE_DIR}>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/minizip>)
     target_compile_definitions(${ZLIB_CONTRIB_PREFIX}libminizip
         PRIVATE
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
@@ -179,8 +179,8 @@ if(MINIZIP_BUILD_SHARED)
     else(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
             PROPERTIES
-                SOVERSION ${zlib_VERSION_MAJOR}
-                VERSION ${INSTALL_VERSION})
+                SOVERSION ${minizip_VERSION_MAJOR}
+                VERSION ${minizip_VERSION})
     endif(CYGWIN)
 
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -240,7 +240,8 @@ if(MINIZIP_BUILD_STATIC)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PUBLIC
             $<BUILD_INTERFACE:${minizip_SOURCE_DIR}>
-           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/minizip>)
     target_compile_definitions(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PRIVATE
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
@@ -309,6 +310,88 @@ if(MINIZIP_BUILD_STATIC)
         PRIVATE MINIZIP::minizipstatic)
 endif(MINIZIP_BUILD_STATIC)
 
+if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
+    if(MINIZIP_BUILD_SHARED)
+        set(MINIZIP_PC_TARGET MINIZIP::minizip)
+        set(MINIZIP_PC_ZLIB_TARGET ZLIB::ZLIB)
+    else()
+        set(MINIZIP_PC_TARGET MINIZIP::minizipstatic)
+        set(MINIZIP_PC_ZLIB_TARGET ZLIB::ZLIBSTATIC)
+    endif()
+    function(minizip_pc_library_name target output)
+        get_target_property(_minizip_imported ${target} IMPORTED)
+        if(NOT _minizip_imported)
+            set(${output} "$<TARGET_LINKER_FILE_BASE_NAME:${target}>" PARENT_SCOPE)
+            return()
+        endif()
+        # Imported targets do not expose their filename through the base-name expression.
+        set(_minizip_library "")
+        set(_minizip_configs NOCONFIG ${CMAKE_CONFIGURATION_TYPES} ${CMAKE_BUILD_TYPE})
+        list(REMOVE_DUPLICATES _minizip_configs)
+        get_target_property(_minizip_imported_configs
+                            ${target} IMPORTED_CONFIGURATIONS)
+        foreach(_minizip_config IN LISTS _minizip_configs)
+            string(TOUPPER "${_minizip_config}" _minizip_upper)
+            get_target_property(_minizip_file ${target}
+                                LOCATION_${_minizip_upper})
+            get_target_property(_minizip_mapped ${target}
+                                MAP_IMPORTED_CONFIG_${_minizip_upper})
+            if(NOT _minizip_mapped)
+                set(_minizip_mapped "")
+            endif()
+            foreach(_minizip_import IN ITEMS ${_minizip_mapped}
+                    ${_minizip_upper} NOCONFIG ${_minizip_imported_configs})
+                string(TOUPPER "${_minizip_import}" _minizip_import)
+                get_target_property(_minizip_implib ${target}
+                                    IMPORTED_IMPLIB_${_minizip_import})
+                if(_minizip_implib)
+                    set(_minizip_file "${_minizip_implib}")
+                    break()
+                endif()
+            endforeach()
+            if(NOT _minizip_implib)
+                get_target_property(_minizip_implib ${target} IMPORTED_IMPLIB)
+                if(_minizip_implib)
+                    set(_minizip_file "${_minizip_implib}")
+                endif()
+            endif()
+            get_filename_component(_minizip_name "${_minizip_file}" NAME_WE)
+            if(CMAKE_STATIC_LIBRARY_PREFIX)
+                string(REGEX REPLACE "^${CMAKE_STATIC_LIBRARY_PREFIX}" ""
+                       _minizip_name "${_minizip_name}")
+            endif()
+            if(_minizip_config STREQUAL "NOCONFIG")
+                set(_minizip_config "")
+            endif()
+            string(APPEND _minizip_library
+                "$<$<CONFIG:${_minizip_config}>:${_minizip_name}>")
+        endforeach()
+        set(${output} "${_minizip_library}" PARENT_SCOPE)
+    endfunction()
+    minizip_pc_library_name(${MINIZIP_PC_TARGET} MINIZIP_PC_LIBRARY)
+    minizip_pc_library_name(${MINIZIP_PC_ZLIB_TARGET} MINIZIP_PC_ZLIB_LIBRARY)
+    set(MINIZIP_PC_LIBS_PRIVATE "")
+    set(MINIZIP_PC_CFLAGS "")
+    get_target_property(_minizip_zlib_imported ${MINIZIP_PC_ZLIB_TARGET} IMPORTED)
+    if(_minizip_zlib_imported)
+        string(APPEND MINIZIP_PC_LIBS_PRIVATE
+            "-L\"$<TARGET_LINKER_FILE_DIR:${MINIZIP_PC_ZLIB_TARGET}>\" ")
+        set(MINIZIP_PC_CFLAGS
+            "-I\"$<JOIN:$<TARGET_PROPERTY:${MINIZIP_PC_ZLIB_TARGET},INTERFACE_INCLUDE_DIRECTORIES>,\" -I\">\"")
+    endif()
+    string(APPEND MINIZIP_PC_LIBS_PRIVATE "-l${MINIZIP_PC_ZLIB_LIBRARY}")
+    if(MINIZIP_ENABLE_BZIP2)
+        minizip_pc_library_name(BZip2::BZip2 MINIZIP_PC_BZIP2_LIBRARY)
+        string(APPEND MINIZIP_PC_LIBS_PRIVATE
+            " -L\"$<TARGET_LINKER_FILE_DIR:BZip2::BZip2>\" -l${MINIZIP_PC_BZIP2_LIBRARY}")
+    endif(MINIZIP_ENABLE_BZIP2)
+    set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/$<CONFIG>/minizip.pc)
+    configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt
+                   ${minizip_BINARY_DIR}/minizip.pc.in @ONLY)
+    file(GENERATE OUTPUT ${LIBMINIZIP_PC}
+                  INPUT ${minizip_BINARY_DIR}/minizip.pc.in)
+endif()
+
 if(MINIZIP_INSTALL)
     if(MINIZIP_BUILD_SHARED)
         install(
@@ -372,10 +455,12 @@ if(MINIZIP_INSTALL)
     install(FILES ${minizip_BINARY_DIR}/minizipConfig.cmake
                   ${minizip_BINARY_DIR}/minizipConfigVersion.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minizip)
-    install(
-        FILES ${LIBMINIZIP_PC}
-        COMPONENT Development
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
+        install(
+            FILES ${LIBMINIZIP_PC}
+            COMPONENT Development
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    endif()
 endif(MINIZIP_INSTALL)
 
 if(MINIZIP_BUILD_TESTING)

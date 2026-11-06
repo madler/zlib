@@ -1,3 +1,28 @@
+foreach(variant IN ITEMS shared static)
+    if(variant STREQUAL "shared" AND MINIZIP_BUILD_SHARED)
+        set(library MINIZIP::minizip)
+    elseif(variant STREQUAL "static" AND MINIZIP_BUILD_STATIC)
+        set(library MINIZIP::minizipstatic)
+    else()
+        continue()
+    endif()
+
+    set(target minizip_archive_${variant})
+    add_executable(${target} archive-test.c)
+    target_link_libraries(${target} PRIVATE ${library})
+    target_compile_definitions(${target}
+        PRIVATE $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>)
+    if((WIN32 OR CYGWIN) AND variant STREQUAL "shared")
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:MINIZIP::minizip> $<TARGET_FILE_DIR:${target}>
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:ZLIB::ZLIB> $<TARGET_FILE_DIR:${target}>)
+    endif()
+    add_test(NAME ${target}
+        COMMAND ${target} ${CMAKE_CURRENT_BINARY_DIR}/${target}.zip)
+endforeach()
+
 # if we are built from with zlib, use this path's)
 if(NOT DEFINED ZLIB_BUILD_MINIZIP)
     set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -80,6 +105,35 @@ set_tests_properties(minizip_find_package_configure
 set_tests_properties(minizip_find_package_build
     PROPERTIES
         FIXTURES_REQUIRED mzfp_config)
+
+if(NOT MSVC)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/pkg-config-test.cmake.in
+            ${WORK_DIR}/minizip_pkg_config_test/CMakeLists.txt @ONLY)
+        add_test(NAME minizip_pkg_config_configure
+            COMMAND ${CMAKE_COMMAND} ${PLATFORM}
+                -B${WORK_DIR}/minizip_pkg_config_test_build
+                -DCMAKE_BUILD_TYPE=$<CONFIG>
+                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+                $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
+                -G "${CMAKE_GENERATOR}"
+                -S${WORK_DIR}/minizip_pkg_config_test)
+        add_test(NAME minizip_pkg_config_build
+            COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
+            WORKING_DIRECTORY ${WORK_DIR}/minizip_pkg_config_test_build)
+        set_tests_properties(minizip_pkg_config_configure PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            FIXTURES_SETUP mzpc_config)
+        set_tests_properties(minizip_pkg_config_build PROPERTIES
+            FIXTURES_REQUIRED mzpc_config)
+    endif(PKG_CONFIG_FOUND)
+endif(NOT MSVC)
 
 #
 # find_package_no_components_test

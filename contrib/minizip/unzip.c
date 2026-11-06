@@ -366,7 +366,21 @@ local ZPOS64_T unz64local_SearchCentralDir(const zlib_filefunc64_32_def* pzlib_f
             if (((*(buf+i))==0x50) && ((*(buf+i+1))==0x4b) &&
                 ((*(buf+i+2))==0x05) && ((*(buf+i+3))==0x06))
             {
-                uPosFound = uReadPos+(unsigned)i;
+                ZPOS64_T candidate = uReadPos+(unsigned)i;
+                unsigned char end[22];
+                uLong size_comment;
+
+                if (uSizeFile-candidate < 22)
+                    continue;
+                if (ZSEEK64(*pzlib_filefunc_def,filestream,candidate,ZLIB_FILEFUNC_SEEK_SET)!=0)
+                    continue;
+                if (ZREAD64(*pzlib_filefunc_def,filestream,end,22)!=22)
+                    continue;
+                size_comment = end[20] | ((uLong)end[21] << 8);
+                /* The EOCD record and its comment must reach the end of the file. */
+                if (size_comment != uSizeFile-candidate-22)
+                    continue;
+                uPosFound = candidate;
                 break;
             }
 
