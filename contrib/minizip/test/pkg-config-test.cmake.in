@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 3.15...3.31)
+project(minizip_pkg_config LANGUAGES C)
+
+find_package(ZLIB CONFIG REQUIRED COMPONENTS @MINIZIP_PC_ZLIB_COMPONENT@)
+set(prefix "@WORK_DIR@/test_install")
+set(package "${prefix}/@CMAKE_INSTALL_LIBDIR@/pkgconfig/minizip.pc")
+
+foreach(kind IN ITEMS cflags libs)
+    execute_process(
+        COMMAND "@PKG_CONFIG_EXECUTABLE@" --static --${kind}
+            "--define-variable=prefix=${prefix}"
+            "--define-variable=exec_prefix=${prefix}" "${package}"
+        RESULT_VARIABLE result OUTPUT_VARIABLE flags ERROR_VARIABLE error)
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "pkg-config --${kind} failed: ${error}")
+    endif()
+    separate_arguments(pc_${kind} UNIX_COMMAND "${flags}")
+endforeach()
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/consumer.c
+    "#include <unzip.h>\n"
+    "int main(void) {\n"
+    "    unzFile file = unzOpen(\"missing.zip\");\n"
+    "    return file ? unzClose(file) : 0;\n"
+    "}\n")
+add_executable(pkg_config_consumer ${CMAKE_CURRENT_BINARY_DIR}/consumer.c)
+target_include_directories(pkg_config_consumer PRIVATE
+    $<TARGET_PROPERTY:@MINIZIP_PC_ZLIB_TARGET@,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_directories(pkg_config_consumer PRIVATE
+    $<TARGET_LINKER_FILE_DIR:@MINIZIP_PC_ZLIB_TARGET@>)
+target_compile_options(pkg_config_consumer PRIVATE ${pc_cflags})
+target_link_libraries(pkg_config_consumer PRIVATE ${pc_libs})

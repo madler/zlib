@@ -31,6 +31,7 @@ jobs:
         pacboy: >-
           toolchain:p
           cmake:p
+          pkgconf:p
     - name: Configure
       if: matrix.sys != 'clang64'
       run: |
@@ -55,6 +56,18 @@ jobs:
       run: cmake --build build --config Release
     - name: Run tests
       run: ctest --output-on-failure --test-dir build -C Release
+
+    - name: Test static-only minizip pkg-config
+      if: matrix.sys == 'mingw64'
+      run: |
+        cmake -G"Unix Makefiles" -S . -B build-static \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DZLIB_BUILD_MINIZIP=ON \
+          -DMINIZIP_BUILD_SHARED=OFF \
+          -DMINIZIP_ENABLE_BZIP2=ON
+        cmake --build build-static --config Release
+        ctest --output-on-failure --no-tests=error --test-dir build-static \
+          -C Release -R '^minizip_(archive|pkg_config)'
 
   cygwin:
     strategy:

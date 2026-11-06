@@ -106,6 +106,36 @@ set_tests_properties(minizip_find_package_build
     PROPERTIES
         FIXTURES_REQUIRED mzfp_config)
 
+if(NOT MSVC)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/pkg-config-test.cmake.in
+            ${WORK_DIR}/minizip_pkg_config_test/CMakeLists.txt @ONLY)
+        add_test(NAME minizip_pkg_config_configure
+            COMMAND ${CMAKE_COMMAND} ${PLATFORM}
+                -B${WORK_DIR}/minizip_pkg_config_test_build
+                -DCMAKE_BUILD_TYPE=$<CONFIG>
+                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}"
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/test_install
+                ${ZLIB_ARG}
+                $<$<VERSION_GREATER_EQUAL:${CMAKE_VERSION},3.24>:--fresh>
+                -G "${CMAKE_GENERATOR}"
+                -S${WORK_DIR}/minizip_pkg_config_test)
+        add_test(NAME minizip_pkg_config_build
+            COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG>
+            WORKING_DIRECTORY ${WORK_DIR}/minizip_pkg_config_test_build)
+        set_tests_properties(minizip_pkg_config_configure PROPERTIES
+            FIXTURES_REQUIRED ${inst_setup}
+            FIXTURES_SETUP mzpc_config)
+        set_tests_properties(minizip_pkg_config_build PROPERTIES
+            FIXTURES_REQUIRED mzpc_config)
+    endif(PKG_CONFIG_FOUND)
+endif(NOT MSVC)
+
 #
 # find_package_no_components_test
 #
