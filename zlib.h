@@ -1821,7 +1821,7 @@ ZEXTERN uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len);
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. An Adler-32 value is in the range of a 32-bit
    unsigned integer. If buf is Z_NULL, this function returns the required
-   initial value for the checksum.
+   initial value for the checksum. In that case, len must be zero.
 
      An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed
    much faster.
