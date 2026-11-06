@@ -8,6 +8,14 @@ project(
 option(MINIZIP_BUILD_SHARED "" @MINIZIP_BUILD_SHARED@)
 option(MINIZIP_BUILD_STATIC "" @MINIZIP_BUILD_STATIC@)
 
+# Simulate a consumer cache left by a package with the opposite feature setting.
+if(@MINIZIP_ENABLE_BZIP2@)
+    set(minizip_HAS_BZIP2 OFF CACHE BOOL "" FORCE)
+else()
+    set(minizip_HAS_BZIP2 ON CACHE BOOL "" FORCE)
+    set(CMAKE_DISABLE_FIND_PACKAGE_BZip2 TRUE)
+endif()
+
 set(MINIZIP_SRCS
     @minizip_SOURCE_DIR@/ioapi.c
     $<$<BOOL:${WIN32}>:@minizip_SOURCE_DIR@/iowin32.c>

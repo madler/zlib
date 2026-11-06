@@ -39,6 +39,7 @@ include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CMakePackageConfigHelpers)
 include(CheckTypeSize)
+include(CMakePushCheckState)
 include(GNUInstallDirs)
 
 if(NOT CPACK_INCLUDED)
@@ -64,6 +65,8 @@ endif(MINIZIP_ENABLE_BZIP2)
 #
 # Check for fopen64
 #
+cmake_push_check_state()
+list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
 check_symbol_exists(fopen64 stdio.h HAVE_FOPEN64)
 
 #
@@ -79,9 +82,8 @@ check_include_file(unistd.h HAVE_UNISTD_H)
 #
 # Check to see if we have large file support
 #
-set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
 check_type_size(off64_t OFF64_T)
-unset(CMAKE_REQUIRED_DEFINITIONS) # clear variable
+cmake_pop_check_state()
 
 #
 # Check visibility attribute is supported

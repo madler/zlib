@@ -1,3 +1,28 @@
+foreach(variant IN ITEMS shared static)
+    if(variant STREQUAL "shared" AND MINIZIP_BUILD_SHARED)
+        set(library MINIZIP::minizip)
+    elseif(variant STREQUAL "static" AND MINIZIP_BUILD_STATIC)
+        set(library MINIZIP::minizipstatic)
+    else()
+        continue()
+    endif()
+
+    set(target minizip_archive_${variant})
+    add_executable(${target} archive-test.c)
+    target_link_libraries(${target} PRIVATE ${library})
+    target_compile_definitions(${target}
+        PRIVATE $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>)
+    if(WIN32 AND variant STREQUAL "shared")
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:MINIZIP::minizip> $<TARGET_FILE_DIR:${target}>
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:ZLIB::ZLIB> $<TARGET_FILE_DIR:${target}>)
+    endif()
+    add_test(NAME ${target}
+        COMMAND ${target} ${CMAKE_CURRENT_BINARY_DIR}/${target}.zip)
+endforeach()
+
 # if we are built from with zlib, use this path's)
 if(NOT DEFINED ZLIB_BUILD_MINIZIP)
     set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
