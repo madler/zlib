@@ -320,22 +320,23 @@ if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
         set(MINIZIP_PC_ZLIB_TARGET ZLIB::ZLIBSTATIC)
         set(MINIZIP_PC_ZLIB_COMPONENT static)
     endif()
-    set(MINIZIP_PC_LIBRARY "$<TARGET_LINKER_FILE_BASE_NAME:${MINIZIP_PC_TARGET}>")
-    set(MINIZIP_PC_ZLIB_LIBRARY
-        "$<TARGET_LINKER_FILE_BASE_NAME:${MINIZIP_PC_ZLIB_TARGET}>")
-    get_target_property(_minizip_zlib_imported ${MINIZIP_PC_ZLIB_TARGET} IMPORTED)
-    if(_minizip_zlib_imported)
+    function(minizip_pc_library_name target output)
+        get_target_property(_minizip_imported ${target} IMPORTED)
+        if(NOT _minizip_imported)
+            set(${output} "$<TARGET_LINKER_FILE_BASE_NAME:${target}>" PARENT_SCOPE)
+            return()
+        endif()
         # Imported targets do not expose their filename through the base-name expression.
-        set(MINIZIP_PC_ZLIB_LIBRARY "")
+        set(_minizip_library "")
         set(_minizip_configs NOCONFIG ${CMAKE_CONFIGURATION_TYPES} ${CMAKE_BUILD_TYPE})
         list(REMOVE_DUPLICATES _minizip_configs)
         get_target_property(_minizip_imported_configs
-                            ${MINIZIP_PC_ZLIB_TARGET} IMPORTED_CONFIGURATIONS)
+                            ${target} IMPORTED_CONFIGURATIONS)
         foreach(_minizip_config IN LISTS _minizip_configs)
             string(TOUPPER "${_minizip_config}" _minizip_upper)
-            get_target_property(_minizip_file ${MINIZIP_PC_ZLIB_TARGET}
+            get_target_property(_minizip_file ${target}
                                 LOCATION_${_minizip_upper})
-            get_target_property(_minizip_mapped ${MINIZIP_PC_ZLIB_TARGET}
+            get_target_property(_minizip_mapped ${target}
                                 MAP_IMPORTED_CONFIG_${_minizip_upper})
             if(NOT _minizip_mapped)
                 set(_minizip_mapped "")
@@ -343,13 +344,19 @@ if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
             foreach(_minizip_import IN ITEMS ${_minizip_mapped}
                     ${_minizip_upper} NOCONFIG ${_minizip_imported_configs})
                 string(TOUPPER "${_minizip_import}" _minizip_import)
-                get_target_property(_minizip_implib ${MINIZIP_PC_ZLIB_TARGET}
+                get_target_property(_minizip_implib ${target}
                                     IMPORTED_IMPLIB_${_minizip_import})
                 if(_minizip_implib)
                     set(_minizip_file "${_minizip_implib}")
                     break()
                 endif()
             endforeach()
+            if(NOT _minizip_implib)
+                get_target_property(_minizip_implib ${target} IMPORTED_IMPLIB)
+                if(_minizip_implib)
+                    set(_minizip_file "${_minizip_implib}")
+                endif()
+            endif()
             get_filename_component(_minizip_name "${_minizip_file}" NAME_WE)
             if(CMAKE_STATIC_LIBRARY_PREFIX)
                 string(REGEX REPLACE "^${CMAKE_STATIC_LIBRARY_PREFIX}" ""
@@ -358,13 +365,24 @@ if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
             if(_minizip_config STREQUAL "NOCONFIG")
                 set(_minizip_config "")
             endif()
-            string(APPEND MINIZIP_PC_ZLIB_LIBRARY
+            string(APPEND _minizip_library
                 "$<$<CONFIG:${_minizip_config}>:${_minizip_name}>")
         endforeach()
+        set(${output} "${_minizip_library}" PARENT_SCOPE)
+    endfunction()
+    minizip_pc_library_name(${MINIZIP_PC_TARGET} MINIZIP_PC_LIBRARY)
+    minizip_pc_library_name(${MINIZIP_PC_ZLIB_TARGET} MINIZIP_PC_ZLIB_LIBRARY)
+    set(MINIZIP_PC_LIBS_PRIVATE "")
+    get_target_property(_minizip_zlib_imported ${MINIZIP_PC_ZLIB_TARGET} IMPORTED)
+    if(_minizip_zlib_imported)
+        string(APPEND MINIZIP_PC_LIBS_PRIVATE
+            "-L\"$<TARGET_LINKER_FILE_DIR:${MINIZIP_PC_ZLIB_TARGET}>\" ")
     endif()
-    set(MINIZIP_PC_LIBS_PRIVATE "-l${MINIZIP_PC_ZLIB_LIBRARY}")
+    string(APPEND MINIZIP_PC_LIBS_PRIVATE "-l${MINIZIP_PC_ZLIB_LIBRARY}")
     if(MINIZIP_ENABLE_BZIP2)
-        string(APPEND MINIZIP_PC_LIBS_PRIVATE " -lbz2")
+        minizip_pc_library_name(BZip2::BZip2 MINIZIP_PC_BZIP2_LIBRARY)
+        string(APPEND MINIZIP_PC_LIBS_PRIVATE
+            " -L\"$<TARGET_LINKER_FILE_DIR:BZip2::BZip2>\" -l${MINIZIP_PC_BZIP2_LIBRARY}")
     endif(MINIZIP_ENABLE_BZIP2)
     set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/$<CONFIG>/minizip.pc)
     configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt

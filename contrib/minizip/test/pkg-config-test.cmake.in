@@ -26,7 +26,5 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/consumer.c
 add_executable(pkg_config_consumer ${CMAKE_CURRENT_BINARY_DIR}/consumer.c)
 target_include_directories(pkg_config_consumer PRIVATE
     $<TARGET_PROPERTY:@MINIZIP_PC_ZLIB_TARGET@,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_directories(pkg_config_consumer PRIVATE
-    $<TARGET_LINKER_FILE_DIR:@MINIZIP_PC_ZLIB_TARGET@>)
 target_compile_options(pkg_config_consumer PRIVATE ${pc_cflags})
 target_link_libraries(pkg_config_consumer PRIVATE ${pc_libs})
