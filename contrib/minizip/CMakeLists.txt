@@ -145,6 +145,10 @@ set(MINIUNZIP_HDRS
     zip.h)
 
 set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/minizip.pc)
+set(MINIZIP_PC_LIBS_PRIVATE "-lz")
+if(MINIZIP_ENABLE_BZIP2)
+    string(APPEND MINIZIP_PC_LIBS_PRIVATE " -lbz2")
+endif(MINIZIP_ENABLE_BZIP2)
 configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt ${LIBMINIZIP_PC} @ONLY)
 
 if(WIN32 OR CYGWIN)
@@ -161,7 +165,8 @@ if(MINIZIP_BUILD_SHARED)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizip
         PUBLIC
             $<BUILD_INTERFACE:${minizip_SOURCE_DIR}>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/minizip>)
     target_compile_definitions(${ZLIB_CONTRIB_PREFIX}libminizip
         PRIVATE
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
@@ -179,8 +184,8 @@ if(MINIZIP_BUILD_SHARED)
     else(CYGWIN)
         set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
             PROPERTIES
-                SOVERSION ${zlib_VERSION_MAJOR}
-                VERSION ${INSTALL_VERSION})
+                SOVERSION ${minizip_VERSION_MAJOR}
+                VERSION ${minizip_VERSION})
     endif(CYGWIN)
 
     set_target_properties(${ZLIB_CONTRIB_PREFIX}libminizip
@@ -240,7 +245,8 @@ if(MINIZIP_BUILD_STATIC)
     target_include_directories(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PUBLIC
             $<BUILD_INTERFACE:${minizip_SOURCE_DIR}>
-           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/minizip>)
     target_compile_definitions(${ZLIB_CONTRIB_PREFIX}libminizipstatic
         PRIVATE
             $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
