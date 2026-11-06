@@ -431,7 +431,8 @@ local z_off64_t gz_seek(gzFile file, z_off64_t offset, int whence, int wide) {
         n = GT_OFF(state->x.have) || (z_off64_t)state->x.have > offset ?
             (unsigned)offset : state->x.have;
         state->x.have -= n;
-        state->x.next += n;
+        if (n)
+            state->x.next += n;
         state->x.pos += n;
         offset -= n;
     }

@@ -121,6 +121,19 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     gzseek(file, 1L, SEEK_CUR); /* add one zero byte */
     gzclose(file);
 
+    for (pos = 0; pos <= 1; pos++) {
+        file = gzopen(fname, "rb");
+        if (file == NULL) {
+            fprintf(stderr, "gzopen error\n");
+            exit(1);
+        }
+        if (gzseek(file, pos, SEEK_SET) != pos ||
+            gzgetc(file) != hello[pos] || gzclose(file) != Z_OK) {
+            fprintf(stderr, "gzseek on fresh reader error\n");
+            exit(1);
+        }
+    }
+
     file = gzopen(fname, "rb");
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
