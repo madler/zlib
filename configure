@@ -1019,7 +1019,6 @@ echo AR = $AR >> configure.log
 echo ARFLAGS = $ARFLAGS >> configure.log
 echo CC = $CC >> configure.log
 echo CFLAGS = $CFLAGS >> configure.log
-echo CPP = $CPP >> configure.log
 echo EXE = $EXE >> configure.log
 echo LDCONFIG = $LDCONFIG >> configure.log
 echo LDFLAGS = $LDFLAGS >> configure.log
@@ -1056,7 +1055,6 @@ sed < ${SRCDIR}Makefile.in "
 /^SFLAGS *=/s#=.*#=$SFLAGS#
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
-/^CPP *=/s#=.*#=$CPP#
 /^VGFMAFLAG *=/s#=.*#=$VGFMAFLAG#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
@@ -1089,7 +1087,6 @@ sed < ${SRCDIR}Makefile.in "
 sed < ${SRCDIR}zlib.pc.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
-/^CPP *=/s#=.*#=$CPP#
 /^VGFMAFLAG *=/s#=.*#=$VGFMAFLAG#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
