@@ -1,3 +1,34 @@
+# Test extraction without following existing links in the destination.
+if(MINIZIP_BUILD_STATIC OR MINIZIP_BUILD_SHARED)
+    if(MINIZIP_BUILD_STATIC)
+        set(extractor ${ZLIB_CONTRIB_PREFIX}miniunzipstatic)
+    else()
+        set(extractor ${ZLIB_CONTRIB_PREFIX}miniunzip)
+    endif()
+    if(UNIX OR WIN32)
+        find_package(Python3 COMPONENTS Interpreter QUIET)
+        if(Python3_Interpreter_FOUND)
+            if(WIN32 AND NOT CYGWIN)
+                set(link_test_name minizip_junction_escape)
+                set(link_type junction)
+            else()
+                set(link_test_name minizip_symlink_escape)
+                set(link_type symlink)
+            endif()
+            add_test(NAME ${link_test_name}
+                COMMAND ${Python3_EXECUTABLE}
+                        ${CMAKE_CURRENT_SOURCE_DIR}/reproduce_symlink_escape.py
+                        $<TARGET_FILE:${extractor}>
+                        --link-type ${link_type})
+            if(WIN32 AND NOT CYGWIN AND NOT MINIZIP_BUILD_STATIC)
+                string(REPLACE ";" "\;" test_path "$ENV{PATH}")
+                set_tests_properties(${link_test_name} PROPERTIES ENVIRONMENT
+                    "PATH=$<TARGET_FILE_DIR:MINIZIP::minizip>\;$<TARGET_FILE_DIR:ZLIB::ZLIB>\;${test_path}")
+            endif()
+        endif()
+    endif()
+endif()
+
 # if we are built from with zlib, use this path's)
 if(NOT DEFINED ZLIB_BUILD_MINIZIP)
     set(WORK_DIR ${CMAKE_CURRENT_BINARY_DIR})
