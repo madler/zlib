@@ -12,7 +12,7 @@ foreach(variant IN ITEMS shared static)
     target_link_libraries(${target} PRIVATE ${library})
     target_compile_definitions(${target}
         PRIVATE $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>)
-    if(WIN32 AND variant STREQUAL "shared")
+    if((WIN32 OR CYGWIN) AND variant STREQUAL "shared")
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:MINIZIP::minizip> $<TARGET_FILE_DIR:${target}>
