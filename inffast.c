@@ -147,7 +147,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
 #ifdef Z_U8
     Z_U8 hold8;                 /* 64-bit bit buffer of the fast loop */
     z_const unsigned char FAR *last8;   /* two refills fit after in */
-    unsigned char FAR *end8;    /* room for a match and fifteen more */
+    unsigned char FAR *end8;    /* room for two literals, a match and 15 more */
 #endif
 
     /* copy state to local variables */
@@ -173,13 +173,15 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
 
 #ifdef Z_U8
     /* Fast loop, while sixteen bytes can be read at in (two refills of
-       eight bytes, the first advancing in by up to seven) and a match plus
-       fifteen bytes fits in the output. Each length/literal code starts with
+       eight bytes, the first advancing in by up to seven) and the output has
+       room for two literals and a match plus fifteen bytes: one iteration can
+       write two literals and then a match, and copy_back() may write fifteen
+       bytes past the match. Each length/literal code starts with
        at least 56 bits in hold8, enough for a length/distance pair (at most
        48 bits). */
-    if (strm->avail_in >= 16 && strm->avail_out >= 258 + 15) {
+    if (strm->avail_in >= 16 && strm->avail_out >= 2 + 258 + 15) {
         last8 = in + (strm->avail_in - 16);
-        end8 = out + (strm->avail_out - (258 + 15));
+        end8 = out + (strm->avail_out - (2 + 258 + 15));
         hold8 = hold;
         do {
             hold8 |= load64(in) << bits;
@@ -325,7 +327,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                 state->mode = BAD;
                 break;
             }
-        } while (in <= last8 && out < end8);
+        } while (in <= last8 && out <= end8);
 
         /* return the whole bytes not used, leaving fewer than eight bits */
         len = bits >> 3;
