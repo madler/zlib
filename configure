@@ -4,10 +4,12 @@
 # Normally configure builds both a static and a shared library.
 # If you want to build just a static library, use: ./configure --static
 #
-# To impose specific compiler or flags or install directory, use for example:
+# Options in configure variables can come from the environment, for example:
 #    prefix=$HOME CC=cc CFLAGS="-O4" ./configure
-# or for csh/tcsh users:
+# similarly for csh/tcsh users:
 #    (setenv prefix $HOME; setenv CC cc; setenv CFLAGS "-O4"; ./configure)
+# or they can be provided instead as arguments to configure:
+#    ./configure --prefix=$HOME CC=cc CFLAGS="-O4"
 
 # Incorrect settings of CC or CFLAGS may prevent creating a shared library.
 # If you have problems, try without defining CC and CFLAGS before reporting
@@ -17,6 +19,16 @@
 echo -------------------- >> configure.log
 echo $0 $* >> configure.log
 date >> configure.log
+
+# get variable assignments from the command line
+for arg
+do
+case "$arg" in
+    CC=* | CFLAGS=* | LDFLAGS=* | LDSHARED=* | LDSHAREDLIBC=* | LDCONFIG=* | \
+    AR=* | ARFLAGS=* | RANLIB=* | NM=* | CHOST=* | CROSS_PREFIX=*)
+      eval "${arg%%=*}=\${arg#*=}" ;;
+esac
+done
 
 # get source directory
 SRCDIR=`dirname $0`
@@ -124,6 +136,8 @@ case "$1" in
       echo '    [--insecure] [--static] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--mandir=MANDIR]' | tee -a configure.log
       echo '    [--archs="-arch i386 -arch x86_64"] [--disable-crcvx]' | tee -a configure.log
+      echo '    [CC=...] [CFLAGS=...] [LDFLAGS=...] [LDSHARED=...] [AR=...]' | tee -a configure.log
+      echo '    [ARFLAGS=...] [RANLIB=...] [NM=...] [CHOST=...] [CROSS_PREFIX=...]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/[^=]*=//'`; shift ;;
@@ -158,6 +172,9 @@ case "$1" in
     --undefined) undefined=1; shift ;;
     --insecure) insecure=1; shift ;;
     --disable-crcvx) enable_crcvx=0; shift ;;
+    CC=* | CFLAGS=* | LDFLAGS=* | LDSHARED=* | LDSHAREDLIBC=* | LDCONFIG=* | \
+    AR=* | ARFLAGS=* | RANLIB=* | NM=* | CHOST=* | CROSS_PREFIX=*)
+      shift ;;                                  # already taken
     *) unknown=1; echo "unknown option ignored: $1" | tee -a configure.log; shift;;
     esac
 done
@@ -213,30 +230,30 @@ esac
 if test $cover -eq 1; then
   if test "$clang" -eq 1; then
     if test "$cc" = "clang"; then
-	  if command -v llvm-cov >/dev/null 2>&1; then
-	    GCOV="llvm-cov"
-	    LLVM_GCOV_FLAG="gcov"
-	    GCOV="llvm-cov"
-	    LLVM_GCOV_FLAG="gcov"
-	    echo "Using ${GCOV} for coverage"
-	  else
-	    cover=0
-	    GCOV=""
-	    LLVM_GCOV_FLAG=""
-	    echo "Deactivating cover as no suitable gcov can be found"
-	  fi
+      if command -v llvm-cov >/dev/null 2>&1; then
+        GCOV="llvm-cov"
+        LLVM_GCOV_FLAG="gcov"
+        GCOV="llvm-cov"
+        LLVM_GCOV_FLAG="gcov"
+        echo "Using ${GCOV} for coverage"
+      else
+        cover=0
+        GCOV=""
+        LLVM_GCOV_FLAG=""
+        echo "Deactivating cover as no suitable gcov can be found"
+      fi
     else
-	  clangV=`echo "$cc" | sed -e 's/^.*-//'`
-	  if command -v llvm-cov-${clangV} >/dev/null 2>&1; then
-	    GCOV="llvm-cov-${clangV}"
-	    LLVM_GCOV_FLAG="gcov"
-	    echo "Using ${GCOV} for coverage"
-	  else
-	    cover=0
-	    GCOV=""
-	    LLVM_GCOV_FLAG=""
-	    echo "Deactivating cover as no suitable gcov can be found"
-	  fi
+      clangV=`echo "$cc" | sed -e 's/^.*-//'`
+      if command -v llvm-cov-${clangV} >/dev/null 2>&1; then
+        GCOV="llvm-cov-${clangV}"
+        LLVM_GCOV_FLAG="gcov"
+        echo "Using ${GCOV} for coverage"
+      else
+        cover=0
+        GCOV=""
+        LLVM_GCOV_FLAG=""
+        echo "Deactivating cover as no suitable gcov can be found"
+      fi
     fi
   fi
 fi
@@ -955,7 +972,7 @@ cat > $test.c << EOF
     #error
 #endif
 EOF
-if try $CC -c $CFLAGS $test.c; then 
+if try $CC -c $CFLAGS $test.c; then
     echo "Checking for s390x build ... Yes." | tee -a configure.log
     HAVE_S390X=1
 else
@@ -996,7 +1013,7 @@ EOF
         HAVE_S390X_VX=1
         VGFMAFLAG="$VGFMAFLAG -march=z13"
     # else we are not on s390x
-    else 
+    else
         echo "Checking for s390x vx vector extension ... No." | tee -a configure.log
     fi
 
