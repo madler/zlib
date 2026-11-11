@@ -426,6 +426,26 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
+/* Find a four-byte unsigned integer type, Z_U4, for z_crc_t. Start with the
+   sizes that gcc, clang, and compatible compilers predefine. Then try MSVC's
+   fixed sizes. Lastly, use limits.h. The first two need no header, so they
+   work with Z_SOLO. */
+#if !defined(Z_U4) && defined(__CHAR_BIT__) && defined(__SIZEOF_SHORT__) && \
+    defined(__SIZEOF_INT__) && defined(__SIZEOF_LONG__)
+#  if __CHAR_BIT__ != 8
+#  elif __SIZEOF_INT__ == 4
+#    define Z_U4 unsigned
+#  elif __SIZEOF_LONG__ == 4
+#    define Z_U4 unsigned long
+#  elif __SIZEOF_SHORT__ == 4
+#    define Z_U4 unsigned short
+#  endif
+#endif
+#if !defined(Z_U4) && defined(_MSC_VER)
+#  if _MSC_VER >= 1400
+#    define Z_U4 unsigned
+#  endif
+#endif
 #if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
 #  if (UINT_MAX == 0xffffffffUL)

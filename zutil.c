@@ -10,6 +10,27 @@
 #  include "gzguts.h"
 #endif
 
+/* Check, when building zlib, that the sizes the compiler predefines, from
+   which Z_U4 and Z_U8 are found, agree with limits.h. */
+#if defined(STDC) && !defined(Z_SOLO) && defined(__CHAR_BIT__) && \
+    defined(__SIZEOF_SHORT__) && defined(__SIZEOF_INT__) && \
+    defined(__SIZEOF_LONG__)
+#  include <limits.h>
+#  if __CHAR_BIT__ != CHAR_BIT || \
+      (__SIZEOF_SHORT__ == 4) != (USHRT_MAX == 0xffffffffUL) || \
+      (__SIZEOF_INT__ == 4) != (UINT_MAX == 0xffffffffUL) || \
+      (__SIZEOF_LONG__ == 4) != (ULONG_MAX == 0xffffffffUL) || \
+      (__SIZEOF_INT__ == 8) != (UINT_MAX == 0xffffffffffffffff) || \
+      (__SIZEOF_LONG__ == 8) != (ULONG_MAX == 0xffffffffffffffff)
+#    error predefined integer sizes disagree with limits.h
+#  endif
+#  if defined(__SIZEOF_LONG_LONG__) && defined(ULLONG_MAX)
+#    if (__SIZEOF_LONG_LONG__ == 8) != (ULLONG_MAX == 0xffffffffffffffff)
+#      error predefined integer sizes disagree with limits.h
+#    endif
+#  endif
+#endif
+
 z_const char * const z_errmsg[10] = {
     (z_const char *)"need dictionary",     /* Z_NEED_DICT       2  */
     (z_const char *)"stream end",          /* Z_STREAM_END      1  */

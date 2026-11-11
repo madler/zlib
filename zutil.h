@@ -46,6 +46,25 @@ typedef unsigned short ush;
 typedef ush FAR ushf;
 typedef unsigned long  ulg;
 
+/* Find an eight-byte unsigned integer type, Z_U8, the same way as Z_U4 in
+   zconf.h: first from the predefined sizes, then for MSVC, lastly from
+   limits.h. */
+#if !defined(Z_U8) && defined(__CHAR_BIT__) && defined(__SIZEOF_INT__) && \
+    defined(__SIZEOF_LONG__) && defined(__SIZEOF_LONG_LONG__)
+#  if __CHAR_BIT__ != 8
+#  elif __SIZEOF_LONG__ == 8
+#    define Z_U8 unsigned long
+#  elif __SIZEOF_LONG_LONG__ == 8
+#    define Z_U8 unsigned long long
+#  elif __SIZEOF_INT__ == 8
+#    define Z_U8 unsigned
+#  endif
+#endif
+#if !defined(Z_U8) && defined(_MSC_VER)
+#  if _MSC_VER >= 1400
+#    define Z_U8 unsigned long long
+#  endif
+#endif
 #if !defined(Z_U8) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
 #  if (ULONG_MAX == 0xffffffffffffffff)
