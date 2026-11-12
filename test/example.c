@@ -164,6 +164,54 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
 #endif
 }
 
+
+/* ===========================================================================
+ * Test that "G" (gzip only) still refuses a non-gzip file after gzrewind()
+ */
+static void test_gzio_gzip_only(const char *fname, Byte *uncompr,
+                                uLong uncomprLen) {
+#ifdef NO_GZCOMPRESS
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int err;
+    gzFile file;
+
+    file = gzopen(fname, "wbT");        /* no gzip header */
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    if (gzputs(file, hello) != (int)strlen(hello)) {
+        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    gzclose(file);
+
+    file = gzopen(fname, "rbG");        /* transparent reading disabled */
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    if (gzdirect(file) != 0) {
+        fprintf(stderr, "gzdirect error with \"G\"\n");
+        exit(1);
+    }
+    if (gzrewind(file) != 0) {
+        fprintf(stderr, "gzrewind err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    if (gzread(file, uncompr, (unsigned)uncomprLen) != -1) {
+        fprintf(stderr, "gzread with \"G\" read a non-gzip file after "
+                        "gzrewind\n");
+        exit(1);
+    } else {
+        printf("gzread() with \"G\" after gzrewind(): %s\n",
+               gzerror(file, &err));
+    }
+    gzclose(file);
+#endif
+}
+
 #endif /* Z_SOLO */
 
 /* ===========================================================================
@@ -530,6 +578,8 @@ int main(int argc, char *argv[]) {
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
               uncompr, uncomprLen);
+    test_gzio_gzip_only((argc > 1 ? argv[1] : TESTFILE),
+                        uncompr, uncomprLen);
 #endif
 
     test_deflate(compr, comprLen);
