@@ -1081,14 +1081,15 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
         case CHECK:
             if (state->wrap) {
                 NEEDBITS(32);
-                out -= left;
                 /* out is reset below, so give the window the output of
                    this call so far now, as inf_leave would have */
-                if (out && (state->wsize || flush != Z_FINISH) &&
-                    updatewindow(strm, put, out)) {
+                if (out != left && (state->wsize || flush != Z_FINISH) &&
+                    updatewindow(strm, put, out - left)) {
                     state->mode = MEM;
-                    return Z_MEM_ERROR;
+                    ret = Z_MEM_ERROR;
+                    goto inf_leave;
                 }
+                out -= left;
                 strm->total_out += out;
                 state->total += out;
                 if ((state->wrap & 4) && out)
