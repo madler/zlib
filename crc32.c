@@ -620,6 +620,24 @@ local z_word_t crc_word_big(z_word_t data) {
     return data;
 }
 
+/*
+  The CRC of one braid's word w, using braid table t: the table entries for
+  its W bytes, combined in pairs. This is written out rather than looped over
+  the bytes, since gcc at -O2 does not unroll such a loop, which leaves the
+  shift and the table offset to be computed for each byte, and is up to twice
+  as slow.
+ */
+#define CRCB(t, w, k) t[k][((w) >> ((k) << 3)) & 0xff]
+#if W == 8
+#  define CRCWORD(t, w) (((CRCB(t, w, 0) ^ CRCB(t, w, 1)) ^ \
+                          (CRCB(t, w, 2) ^ CRCB(t, w, 3))) ^ \
+                         ((CRCB(t, w, 4) ^ CRCB(t, w, 5)) ^ \
+                          (CRCB(t, w, 6) ^ CRCB(t, w, 7))))
+#else
+#  define CRCWORD(t, w) ((CRCB(t, w, 0) ^ CRCB(t, w, 1)) ^ \
+                         (CRCB(t, w, 2) ^ CRCB(t, w, 3)))
+#endif
+
 #endif
 
 /* ========================================================================= */
@@ -641,7 +659,6 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
         z_size_t blks;
         z_word_t const *words;
         unsigned endian;
-        int k;
 
         /* Compute the CRC up to a z_word_t boundary. */
         while (len && ((z_size_t)buf & (W - 1)) != 0) {
@@ -727,42 +744,23 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
 #endif
                 words += N;
 
-                /* Compute and update the CRC for each word. The loop should
-                   get unrolled. */
-                crc0 = crc_braid_table[0][word0 & 0xff];
+                /* Compute and update the CRC for each word. */
+                crc0 = CRCWORD(crc_braid_table, word0);
 #if N > 1
-                crc1 = crc_braid_table[0][word1 & 0xff];
+                crc1 = CRCWORD(crc_braid_table, word1);
 #if N > 2
-                crc2 = crc_braid_table[0][word2 & 0xff];
+                crc2 = CRCWORD(crc_braid_table, word2);
 #if N > 3
-                crc3 = crc_braid_table[0][word3 & 0xff];
+                crc3 = CRCWORD(crc_braid_table, word3);
 #if N > 4
-                crc4 = crc_braid_table[0][word4 & 0xff];
+                crc4 = CRCWORD(crc_braid_table, word4);
 #if N > 5
-                crc5 = crc_braid_table[0][word5 & 0xff];
+                crc5 = CRCWORD(crc_braid_table, word5);
 #endif
 #endif
 #endif
 #endif
 #endif
-                for (k = 1; k < W; k++) {
-                    crc0 ^= crc_braid_table[k][(word0 >> (k << 3)) & 0xff];
-#if N > 1
-                    crc1 ^= crc_braid_table[k][(word1 >> (k << 3)) & 0xff];
-#if N > 2
-                    crc2 ^= crc_braid_table[k][(word2 >> (k << 3)) & 0xff];
-#if N > 3
-                    crc3 ^= crc_braid_table[k][(word3 >> (k << 3)) & 0xff];
-#if N > 4
-                    crc4 ^= crc_braid_table[k][(word4 >> (k << 3)) & 0xff];
-#if N > 5
-                    crc5 ^= crc_braid_table[k][(word5 >> (k << 3)) & 0xff];
-#endif
-#endif
-#endif
-#endif
-#endif
-                }
             }
 
             /*
@@ -849,42 +847,23 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
 #endif
                 words += N;
 
-                /* Compute and update the CRC for each word. The loop should
-                   get unrolled. */
-                crc0 = crc_braid_big_table[0][word0 & 0xff];
+                /* Compute and update the CRC for each word. */
+                crc0 = CRCWORD(crc_braid_big_table, word0);
 #if N > 1
-                crc1 = crc_braid_big_table[0][word1 & 0xff];
+                crc1 = CRCWORD(crc_braid_big_table, word1);
 #if N > 2
-                crc2 = crc_braid_big_table[0][word2 & 0xff];
+                crc2 = CRCWORD(crc_braid_big_table, word2);
 #if N > 3
-                crc3 = crc_braid_big_table[0][word3 & 0xff];
+                crc3 = CRCWORD(crc_braid_big_table, word3);
 #if N > 4
-                crc4 = crc_braid_big_table[0][word4 & 0xff];
+                crc4 = CRCWORD(crc_braid_big_table, word4);
 #if N > 5
-                crc5 = crc_braid_big_table[0][word5 & 0xff];
+                crc5 = CRCWORD(crc_braid_big_table, word5);
 #endif
 #endif
 #endif
 #endif
 #endif
-                for (k = 1; k < W; k++) {
-                    crc0 ^= crc_braid_big_table[k][(word0 >> (k << 3)) & 0xff];
-#if N > 1
-                    crc1 ^= crc_braid_big_table[k][(word1 >> (k << 3)) & 0xff];
-#if N > 2
-                    crc2 ^= crc_braid_big_table[k][(word2 >> (k << 3)) & 0xff];
-#if N > 3
-                    crc3 ^= crc_braid_big_table[k][(word3 >> (k << 3)) & 0xff];
-#if N > 4
-                    crc4 ^= crc_braid_big_table[k][(word4 >> (k << 3)) & 0xff];
-#if N > 5
-                    crc5 ^= crc_braid_big_table[k][(word5 >> (k << 3)) & 0xff];
-#endif
-#endif
-#endif
-#endif
-#endif
-                }
             }
 
             /*
