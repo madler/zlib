@@ -1020,6 +1020,13 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
     if (s->pending != 0) {
         flush_pending(strm);
         if (strm->avail_out == 0) {
+            /* If that was the end of a finished stream, then the output
+             * space was enough, so report the end now, as promised in
+             * zlib.h.
+             */
+            if (flush == Z_FINISH && s->status == FINISH_STATE &&
+                s->pending == 0 && s->wrap <= 0 && strm->avail_in == 0)
+                return Z_STREAM_END;
             /* Since avail_out is 0, deflate will be called again with
              * more output space, but possibly with both pending and
              * avail_in equal to zero. There won't be anything to do,
