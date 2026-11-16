@@ -34,17 +34,21 @@
 /* Return the eight bytes at p in little-endian order. This should compile to
    one load on little-endian, or to one load and a swap (sometimes one
    instruction) on big-endian. Either way, inlined with no function call and no
-   if condition surviving. */
+   if condition surviving. Z_INFLATE_BYTES is for testing only. */
 local Z_U8 load64(z_const unsigned char FAR *p) {
     Z_U8 v = 1;
 
+#ifndef Z_INFLATE_BYTES
     if (*(unsigned char *)&v) {
         zmemcpy(&v, p, 8);
         return v;
     }
-#ifdef Z_BSWAP64
+#  ifdef Z_BSWAP64
     zmemcpy(&v, p, 8);
     return Z_BSWAP64(v);
+#  endif
+#else
+    (void)v;
 #endif
     return (Z_U8)p[0] | ((Z_U8)p[1] << 8) | ((Z_U8)p[2] << 16) |
            ((Z_U8)p[3] << 24) | ((Z_U8)p[4] << 32) | ((Z_U8)p[5] << 40) |
