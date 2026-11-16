@@ -342,7 +342,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
         in -= len;
         bits -= len << 3;
         hold = (unsigned long)(hold8 & ((1U << bits) - 1));
-        if (state->mode != LEN || in >= last || out >= end)
+        if (state->mode != LEN || out >= end)
             goto leave;
     }
 #endif
