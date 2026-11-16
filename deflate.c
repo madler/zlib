@@ -849,13 +849,13 @@ int ZEXPORT deflateTune(z_streamp strm, int good_length, int max_lazy,
 }
 
 /* =========================================================================
- * For the default windowBits of 15 and memLevel of 8, this function returns a
- * close to exact, as well as small, upper bound on the compressed size. This
- * is an expansion of ~0.03%, plus a small constant.
+ * For the default windowBits of 15 and memLevel of 8, unless Z_FIXED is used,
+ * this function returns a small, close to exact upper bound on the compressed
+ * size: an expansion of ~0.03%, plus a small constant.
  *
- * For any setting other than those defaults for windowBits and memLevel, one
- * of two worst case bounds is returned. This is at most an expansion of ~4% or
- * ~13%, plus a small constant.
+ * For other windowBits or memLevel settings, or with Z_FIXED, one of two worst
+ * case bounds is returned. This is at most an expansion of ~4% or ~13%, plus a
+ * small constant.
  *
  * Both the 0.03% and 4% derive from the overhead of stored blocks. The first
  * one is for stored blocks of 16383 bytes (memLevel == 8), whereas the second
@@ -932,8 +932,10 @@ z_size_t ZEXPORT deflateBound_z(z_streamp strm, z_size_t sourceLen) {
         wraplen = 18;
     }
 
-    /* if not default parameters, return one of the conservative bounds */
-    if (s->w_bits != 15 || s->hash_bits != 8 + 7) {
+    /* if not default parameters, or if fixed codes are forced, return one of
+       the conservative bounds -- a fixed-code block that crosses a window slide
+       has no stored fallback, and can exceed its input */
+    if (s->w_bits != 15 || s->hash_bits != 8 + 7 || s->strategy == Z_FIXED) {
         bound = s->w_bits <= s->hash_bits && s->level ? fixedlen :
                                                         storelen;
         return bound + wraplen < bound ? (z_size_t)-1 : bound + wraplen;
