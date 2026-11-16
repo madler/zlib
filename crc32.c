@@ -105,9 +105,9 @@
 #  endif
 #endif
 
-/* If available, use the ARM processor CRC32 instruction. */
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && \
-    defined(W) && W == 8
+/* If available, use the ARM processor CRC32 instruction. This works on 64-bit
+   words, and so does not depend on W, the word size for the braids. */
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && defined(Z_U8)
 #  define ARMCRC32
 #endif
 
@@ -507,9 +507,9 @@ const z_crc_t FAR * ZEXPORT get_crc_table(void) {
 
 uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     uLong val;
-    z_word_t crc1, crc2;
-    const z_word_t *word;
-    z_word_t val0, val1, val2;
+    Z_U8 crc1, crc2;
+    const Z_U8 *word;
+    Z_U8 val0, val1, val2;
     z_size_t last, last2, i;
     z_size_t num;
 
@@ -531,7 +531,7 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     }
 
     /* Prepare to compute the CRC on full 64-bit words word[0..num-1]. */
-    word = (z_word_t const *)buf;
+    word = (Z_U8 const *)buf;
     num = len >> 3;
     len &= 7;
 
