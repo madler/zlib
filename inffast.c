@@ -21,9 +21,20 @@
             "inflate:         literal '%c'\n" : \
             "inflate:         literal 0x%02x\n", (here)->val))
 
-/* The eight bytes at p, little-endian: one load on a little-endian machine,
-   the bytes one by one on big-endian, though the compiler should turn that
-   into a single load and a byte swap. */
+/* A byte swap of a 64-bit word, where the compiler has one. */
+#if defined(__has_builtin)
+#  if __has_builtin(__builtin_bswap64)
+#    define Z_BSWAP64 __builtin_bswap64
+#  endif
+#elif defined(__GNUC__) && \
+      (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
+#  define Z_BSWAP64 __builtin_bswap64
+#endif
+
+/* Return the eight bytes at p in little-endian order. This should compile to
+   one load on little-endian, or to one load and a swap (sometimes one
+   instruction) on big-endian. Either way, inlined with no function call and no
+   if condition surviving. */
 local Z_U8 load64(z_const unsigned char FAR *p) {
     Z_U8 v = 1;
 
@@ -31,6 +42,10 @@ local Z_U8 load64(z_const unsigned char FAR *p) {
         zmemcpy(&v, p, 8);
         return v;
     }
+#ifdef Z_BSWAP64
+    zmemcpy(&v, p, 8);
+    return Z_BSWAP64(v);
+#endif
     return (Z_U8)p[0] | ((Z_U8)p[1] << 8) | ((Z_U8)p[2] << 16) |
            ((Z_U8)p[3] << 24) | ((Z_U8)p[4] << 32) | ((Z_U8)p[5] << 40) |
            ((Z_U8)p[6] << 48) | ((Z_U8)p[7] << 56);
