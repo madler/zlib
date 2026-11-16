@@ -8,19 +8,57 @@
 #include "inflate.h"
 #include "inffast.h"
 
+/* Z_INFLATE_FETCH defines how compressed data is read from the buffer into the
+   processor, and is the number of bits loaded by a single instruction, with
+   the value 64, 32, or 8. 64 or 32-bit loads are unaligned, and so are used
+   only where that's fast, when Z_UNALIGNED_FAST is defined. In that case, 64
+   bits is used if Z_REG64 is defined, otherwise 32 bits is used. Z_REG32 can
+   be defined to override what would be a 64-bit ruling below. Where unaligned
+   loads are slow or not known to be fast, or the register size was not
+   determined, the byte-loading loop, 8, is the default. That loop is always
+   present to pick up remaining work after the fast word-loading loop is done.
+   Any of the three choices can be forced by defining Z_INFLATE_FETCH before
+   this. To help the compiler do the right thing, zmemcpy() is used in certain
+   cases to load the word. Z_INFLATE_BYTES can be defined to avoid the use of
+   zmemcpy(), instead loading byte-by-byte in the source code. This is to
+   facilitate testing the code for coverage and to expose compiler behaviors.
+   It should not be defined for production code. Both the 64-bit and 32-bit
+   fetch loops copy matches in blocks of eight or sixteen bytes, which are
+   performed only if unaligned access is fast. */
+#ifndef Z_INFLATE_FETCH
+#  if defined(Z_UNALIGNED_FAST) && defined(Z_REG64)
+#    define Z_INFLATE_FETCH 64
+#  elif defined(Z_UNALIGNED_FAST) && defined(Z_U4)
+#    define Z_INFLATE_FETCH 32
+#  else
+#    define Z_INFLATE_FETCH 8
+#  endif
+#endif
+#if Z_INFLATE_FETCH == 64 && !defined(Z_U8)
+#  error Z_INFLATE_FETCH 64 needs a 64-bit type (Z_U8)
+#endif
+#if Z_INFLATE_FETCH == 32 && !defined(Z_U4)
+#  error Z_INFLATE_FETCH 32 needs a 32-bit type (Z_U4)
+#endif
+#if Z_INFLATE_FETCH != 8 && Z_INFLATE_FETCH != 32 && Z_INFLATE_FETCH != 64
+#  error Z_INFLATE_FETCH must be 8, 32, or 64
+#endif
+
 #ifdef ASMINF
 #  pragma message("Assembler code may have bugs -- use at your own risk")
 #else
 
-#ifdef Z_U8
-/* Fast loop: with a 64-bit type the bit buffer is refilled eight bytes at a
-   time, and matches are copied eight or sixteen bytes at a time. */
+#if Z_INFLATE_FETCH != 8
+/* Fast loops. The bit buffer is refilled eight bytes at a time in the 64-bit
+   loop and four in the 32-bit loop, and in both, matches are copied eight or
+   sixteen bytes at a time. Only the 64-bit loop needs a 64-bit type. */
 
 #define TRACE_LITERAL(here) \
     Tracevv((stderr, (here)->val >= 0x20 && (here)->val < 0x7f ? \
             "inflate:         literal '%c'\n" : \
             "inflate:         literal 0x%02x\n", (here)->val))
 
+#if Z_INFLATE_FETCH == 64
 /* A byte swap of a 64-bit word, where the compiler has one. */
 #if defined(__has_builtin)
 #  if __has_builtin(__builtin_bswap64)
@@ -36,9 +74,8 @@
    instruction) on big-endian. Either way, inlined with no function call and no
    if condition surviving. Z_INFLATE_BYTES is for testing only. */
 local Z_U8 load64(z_const unsigned char FAR *p) {
-    Z_U8 v = 1;
-
 #ifndef Z_INFLATE_BYTES
+    Z_U8 v = 1;
     if (*(unsigned char *)&v) {
         zmemcpy(&v, p, 8);
         return v;
@@ -47,13 +84,12 @@ local Z_U8 load64(z_const unsigned char FAR *p) {
     zmemcpy(&v, p, 8);
     return Z_BSWAP64(v);
 #  endif
-#else
-    (void)v;
 #endif
     return (Z_U8)p[0] | ((Z_U8)p[1] << 8) | ((Z_U8)p[2] << 16) |
            ((Z_U8)p[3] << 24) | ((Z_U8)p[4] << 32) | ((Z_U8)p[5] << 40) |
            ((Z_U8)p[6] << 48) | ((Z_U8)p[7] << 56);
 }
+#endif
 
 /* Copy len >= 1 bytes from dist bytes back in the output to out, and return
    out + len. It may write up to fifteen bytes after out + len, so the caller
@@ -80,6 +116,7 @@ local unsigned char FAR *copy_back(unsigned char FAR *out, unsigned dist,
         return stop;
     }
     if (dist == 1) {                    /* a run of one byte, eight at once */
+#ifdef Z_U8
         Z_U8 run = *from;
         run |= run << 8;
         run |= run << 16;
@@ -88,18 +125,55 @@ local unsigned char FAR *copy_back(unsigned char FAR *out, unsigned dist,
             zmemcpy(out, &run, 8);
             out += 8;
         } while (out < stop);
+#else
+        Z_U4 run = *from;
+        run |= run << 8;
+        run |= run << 16;
+        do {
+            zmemcpy(out, &run, 4);
+            zmemcpy(out + 4, &run, 4);
+            out += 8;
+        } while (out < stop);
+#endif
         return stop;
     }
     /* dist 2..7: eight bytes per step, of which the first dist are right;
-       the next step rewrites the rest */
+       the next step rewrites the rest. All eight are read before any are
+       written, since they overlap. */
     do {
+#ifdef Z_U8
         Z_U8 v;
         zmemcpy(&v, from, 8);
         zmemcpy(out, &v, 8);
+#else
+        Z_U4 v0, v1;
+        zmemcpy(&v0, from, 4);
+        zmemcpy(&v1, from + 4, 4);
+        zmemcpy(out, &v0, 4);
+        zmemcpy(out + 4, &v1, 4);
+#endif
         out += dist;
         from += dist;
     } while (out < stop);
     return stop;
+}
+#endif
+
+#if Z_INFLATE_FETCH == 32
+/* Return the four bytes at p in little-endian order. This should compile to
+   one load on little-endian, or to one load and a swap (sometimes one
+   instruction) on big-endian. Either way, inlined with no function call and no
+   if condition surviving. Z_INFLATE_BYTES is for testing only. */
+local Z_U4 load32(z_const unsigned char FAR *p) {
+#ifndef Z_INFLATE_BYTES
+    Z_U4 v = 1;
+    if (*(unsigned char *)&v) {
+        zmemcpy(&v, p, 4);
+        return v;
+    }
+#endif
+    return (Z_U4)p[0] | ((Z_U4)p[1] << 8) | ((Z_U4)p[2] << 16) |
+           ((Z_U4)p[3] << 24);
 }
 #endif
 
@@ -152,7 +226,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-#ifdef Z_U8
+#if Z_INFLATE_FETCH != 8
     int back;                   /* decoding into the window: inflateBack() */
 #endif
     unsigned long hold;         /* local strm->hold */
@@ -167,10 +241,15 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     unsigned len;               /* match length, unused bytes */
     unsigned dist;              /* match distance */
     unsigned char FAR *from;    /* where to copy match from */
-#ifdef Z_U8
+#if Z_INFLATE_FETCH == 64
     Z_U8 hold8;                 /* 64-bit bit buffer of the fast loop */
     z_const unsigned char FAR *last8;   /* two refills fit after in */
     unsigned char FAR *end8;    /* room for two literals, a match, 15 more */
+#endif
+#if Z_INFLATE_FETCH == 32
+    Z_U4 hold4;                 /* 32-bit bit buffer of the fast loop */
+    z_const unsigned char FAR *last4;   /* three refills fit after in */
+    unsigned char FAR *end4;    /* room for a match and fifteen more */
 #endif
 
     /* copy state to local variables */
@@ -187,7 +266,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     whave = state->whave;
     wnext = state->wnext;
     window = state->window;
-#ifdef Z_U8
+#if Z_INFLATE_FETCH != 8
     /* For inflateBack(), only use the loop at the end, which does not write
        past the end of the copy. */
     back = window != Z_NULL && out + strm->avail_out == window + wsize;
@@ -199,7 +278,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     lmask = (1U << state->lenbits) - 1;
     dmask = (1U << state->distbits) - 1;
 
-#ifdef Z_U8
+#if Z_INFLATE_FETCH == 64
     /* Fast loop, while sixteen bytes are available at in (two refills of eight
        bytes, the first advancing in by up to seven) and the output has room
        for the longest match plus 17 bytes (one iteration can write two
@@ -362,6 +441,173 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
         bits -= len << 3;
         hold = (unsigned long)(hold8 & ((1U << bits) - 1));
         if (state->mode != LEN || out >= end)
+            goto leave;
+    }
+#endif
+#if Z_INFLATE_FETCH == 32
+    /* Fast loop with a 32-bit bit buffer, refilled four bytes at a time
+       without branches. This needs eleven bytes available at in (three refills
+       of four bytes, the first two advancing in by up to three each) and
+       enough room in the output for the longest match plus 15 bytes (an
+       iteration writes up to two literals or one match, which copy_back() may
+       overrun by fifteen bytes). A refill leaves at least 24 bits, enough for
+       a length/literal code and its extra bits (at most 20), or a distance
+       code (at most 15). The distance code gets its own refill, and its extra
+       bits another refill, when too few bits are left for them. */
+    if (!back && strm->avail_in >= 11 && strm->avail_out >= 258 + 15) {
+        last4 = in + (strm->avail_in - 11);
+        end4 = out + (strm->avail_out - (258 + 15));
+        hold4 = (Z_U4)hold;
+        do {
+            hold4 |= load32(in) << bits;
+            in += (31 - bits) >> 3;
+            bits |= 24;
+            here = lcode + (hold4 & lmask);
+            if (here->op == 0) {        /* a literal, and another */
+                hold4 >>= here->bits;
+                bits -= here->bits;
+                TRACE_LITERAL(here);
+                *out++ = (unsigned char)(here->val);
+                here = lcode + (hold4 & lmask);
+                if (here->op == 0 && (LENBITS <= 12 || here->bits <= bits)) {
+                    hold4 >>= here->bits;
+                    bits -= here->bits;
+                    TRACE_LITERAL(here);
+                    *out++ = (unsigned char)(here->val);
+                }
+                continue;
+            }
+          dolen4:
+            op = (unsigned)(here->bits);
+            hold4 >>= op;
+            bits -= op;
+            op = (unsigned)(here->op);
+            if (op == 0) {                      /* literal */
+                TRACE_LITERAL(here);
+                *out++ = (unsigned char)(here->val);
+            }
+            else if (op & 16) {                 /* length base */
+                len = (unsigned)(here->val);
+                op &= 15;                       /* number of extra bits */
+                len += (unsigned)hold4 & ((1U << op) - 1);
+                hold4 >>= op;
+                bits -= op;
+                Tracevv((stderr, "inflate:         length %u\n", len));
+                hold4 |= load32(in) << bits;    /* for the distance code */
+                in += (31 - bits) >> 3;
+                bits |= 24;
+                here = dcode + (hold4 & dmask);
+              dodist4:
+                op = (unsigned)(here->bits);
+                hold4 >>= op;
+                bits -= op;
+                op = (unsigned)(here->op);
+                if (op & 16) {                  /* distance base */
+                    dist = (unsigned)(here->val);
+                    op &= 15;                   /* number of extra bits */
+                    if (bits < op) {            /* for long distances */
+                        hold4 |= load32(in) << bits;
+                        in += (31 - bits) >> 3;
+                        bits |= 24;
+                    }
+                    dist += (unsigned)hold4 & ((1U << op) - 1);
+#ifdef INFLATE_STRICT
+                    if (dist > dmax) {
+                        strm->msg = (z_const char *)
+                            "invalid distance too far back";
+                        state->mode = BAD;
+                        break;
+                    }
+#endif
+                    hold4 >>= op;
+                    bits -= op;
+                    Tracevv((stderr, "inflate:         distance %u\n", dist));
+                    op = (unsigned)(out - beg); /* max distance in output */
+                    if (dist > op) {            /* see if copy from window */
+                        op = dist - op;         /* distance back in window */
+                        if (op > whave) {
+                            if (state->sane) {
+                                strm->msg = (z_const char *)
+                                    "invalid distance too far back";
+                                state->mode = BAD;
+                                break;
+                            }
+#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
+                            if (len <= op - whave) {
+                                do {
+                                    *out++ = 0;
+                                } while (--len);
+                                continue;
+                            }
+                            len -= op - whave;
+                            do {
+                                *out++ = 0;
+                            } while (--op > whave);
+                            if (op == 0) {
+                                out = copy_back(out, dist, len);
+                                continue;
+                            }
+#endif
+                        }
+                        from = window;
+                        if (wnext == 0)         /* very common case */
+                            from += wsize - op;
+                        else if (wnext < op) {  /* wrap around window */
+                            from += wsize + wnext - op;
+                            op -= wnext;
+                            if (op < len) {     /* end of window, then start */
+                                zmemcpy(out, from, op);
+                                out += op;
+                                len -= op;
+                                from = window;
+                                op = wnext;
+                            }
+                        }
+                        else                    /* contiguous in window */
+                            from += wnext - op;
+                        if (op > len)
+                            op = len;
+                        zmemcpy(out, from, op); /* from the window */
+                        out += op;
+                        len -= op;
+                        if (len)                /* rest from output */
+                            out = copy_back(out, dist, len);
+                    }
+                    else
+                        out = copy_back(out, dist, len);
+                }
+                else if ((op & 64) == 0) {      /* 2nd level distance code */
+                    here = dcode + here->val + (hold4 & ((1U << op) - 1));
+                    goto dodist4;
+                }
+                else {
+                    strm->msg = (z_const char *)"invalid distance code";
+                    state->mode = BAD;
+                    break;
+                }
+            }
+            else if ((op & 64) == 0) {          /* 2nd level length code */
+                here = lcode + here->val + (hold4 & ((1U << op) - 1));
+                goto dolen4;
+            }
+            else if (op & 32) {                 /* end-of-block */
+                Tracevv((stderr, "inflate:         end of block\n"));
+                state->mode = TYPE;
+                break;
+            }
+            else {
+                strm->msg = (z_const char *)"invalid literal/length code";
+                state->mode = BAD;
+                break;
+            }
+        } while (in <= last4 && out <= end4);
+
+        /* return the whole bytes not used, leaving fewer than eight bits */
+        len = bits >> 3;
+        in -= len;
+        bits -= len << 3;
+        hold = (unsigned long)(hold4 & ((1U << bits) - 1));
+        if (state->mode != LEN || in >= last || out >= end)
             goto leave;
     }
 #endif
@@ -558,7 +804,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
         }
     } while (in < last && out < end);
 
-#ifdef Z_U8
+#if Z_INFLATE_FETCH != 8
   leave:
 #endif
     /* return unused bytes (on entry, bits < 8, so in won't go too far back) */
