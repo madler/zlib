@@ -133,6 +133,9 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
     unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
+#ifdef Z_U8
+    int back;                   /* decoding into the window: inflateBack() */
+#endif
     unsigned long hold;         /* local strm->hold */
     unsigned bits;              /* local strm->bits */
     code const FAR *lcode;      /* local strm->lencode */
@@ -165,6 +168,11 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     whave = state->whave;
     wnext = state->wnext;
     window = state->window;
+#ifdef Z_U8
+    /* For inflateBack(), only use the loop at the end, which does not write
+       past the end of the copy. */
+    back = window != Z_NULL && out + strm->avail_out == window + wsize;
+#endif
     hold = state->hold;
     bits = state->bits;
     lcode = state->lencode;
@@ -179,7 +187,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
        literals and then a match, and copy_back() may write 15 bytes past the
        match). Each length/literal code starts with at least 56 bits in hold8,
        enough for a length/distance pair (at most 48 bits). */
-    if (strm->avail_in >= 16 && strm->avail_out >= 2 + 258 + 15) {
+    if (!back && strm->avail_in >= 16 && strm->avail_out >= 2 + 258 + 15) {
         last8 = in + (strm->avail_in - 16);
         end8 = out + (strm->avail_out - (2 + 258 + 15));
         hold8 = hold;
