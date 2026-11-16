@@ -59,6 +59,77 @@ typedef unsigned long  ulg;
 #  endif
 #endif
 
+/* Define Z_REG64 if the machine has 64-bit general registers. crc32.c uses
+   this to choose how many braids to compute, and inffast.c to choose its
+   decoding loop (along with Z_UNALIGNED_FAST -- see below). Each macro tested
+   here is defined by gcc, clang, or other compiler for that architecture if,
+   and only if, the general registers are 64 bits, including ABIs with 32-bit
+   pointers on 64-bit registers.
+
+   The logic here can be overridden by defining Z_REG64 to use the 64-bit code
+   on a machine not listed, or Z_REG32 to use the 32-bit code on one that is.
+   Z_REG64 is defined only if a 64-bit type has been found, that is, Z_U8 is
+   defined. */
+#if defined(Z_REG64) && defined(Z_REG32)
+#  error Only one of Z_REG64 and Z_REG32 can be defined
+#endif
+#if defined(Z_REG64) && !defined(Z_U8)
+#  error Z_REG64 needs a 64-bit integer type (Z_U8), which was not found
+#endif
+#if !defined(Z_REG64) && !defined(Z_REG32) && defined(Z_U8) && ( \
+        defined(__x86_64__) || defined(_M_X64) || \
+        defined(__aarch64__) || defined(_M_ARM64) || \
+        defined(__powerpc64__) || (defined(_AIX) && defined(__64BIT__)) || \
+        defined(__s390x__) || \
+        (defined(__riscv_xlen) && __riscv_xlen == 64) || \
+        (defined(__loongarch_grlen) && __loongarch_grlen == 64) || \
+        defined(__mips64) || \
+        defined(__arch64__) || defined(__sparcv9))
+#  define Z_REG64
+#endif
+
+/* Define Z_UNALIGNED_FAST if the machine loads and stores words at unaligned
+   addresses at about the same speed as aligned addresses. This important to
+   know in zlib where the compiler converts a zmemcpy() between memory and a
+   variable in the code into a single load or store instruction. Define
+   Z_UNALIGNED_SLOW if it is noticably slower, e.g. the processor traps
+   unaligned accesses to simulate them, like many RISC-V processors or early
+   ARM. If neither is defined, it is not known. inffast.c uses this to choose
+   its decoding loop. 32-bit ARM is considered fast when the compiler says so
+   (__ARM_FEATURE_UNALIGNED, ARMv6 and later), and RISC-V when the compiler
+   says so (__riscv_misaligned_fast, as with -mno-strict-align, or a -mcpu for
+   a core with fast misaligned access). RISC-V hardware that traps misaligned
+   accesses and emulates them, makes inflate's "fast" loop many times slower,
+   so -mno-strict-align should be given only for hardware known to conform.
+   LoongArch is fast, except with clang before 17, which assembles unaligned
+   loads from bytes. MIPS is slow, since its unaligned loads are pairs of
+   instructions (lwl/lwr, ldl/ldr).
+
+   The builder can define either Z_UNALIGNED_FAST or Z_UNALIGNED_SLOW to
+   override what would be found here. */
+#if defined(Z_UNALIGNED_FAST) && defined(Z_UNALIGNED_SLOW)
+#  error Only one of Z_UNALIGNED_FAST and Z_UNALIGNED_SLOW can be defined
+#endif
+#if !defined(Z_UNALIGNED_FAST) && !defined(Z_UNALIGNED_SLOW)
+#  if defined(__x86_64__) || defined(_M_X64) || \
+      defined(__i386__) || defined(_M_IX86) || \
+      defined(__aarch64__) || defined(_M_ARM64) || \
+      defined(__ARM_FEATURE_UNALIGNED) || defined(_M_ARM) || \
+      defined(__powerpc__) || defined(__powerpc64__) || defined(_ARCH_PPC) || \
+      defined(__s390__) || defined(__s390x__) || \
+      (defined(__loongarch__) && \
+       !(defined(__clang__) && __clang_major__ < 17)) || \
+      defined(__riscv_misaligned_fast)
+#    define Z_UNALIGNED_FAST
+#  elif defined(__arm__) || \
+        defined(__riscv_misaligned_slow) || \
+        defined(__riscv_misaligned_avoid) || \
+        defined(__mips__) || defined(__mips) || \
+        defined(__sparc__) || defined(__sparc)
+#    define Z_UNALIGNED_SLOW
+#  endif
+#endif
+
 extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 /* (size given to avoid silly warnings with Visual C++) */
 
