@@ -206,11 +206,11 @@ local const z_word_t FAR crc_big_table[] = {
 
 #endif
 
-#if N == 1
+#if N == 1 || NLOW == 1
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid1_table[][256] = {
    {0x00000000, 0xccaa009e, 0x4225077d, 0x8e8f07e3, 0x844a0efa,
     0x48e00e64, 0xc66f0987, 0x0ac50919, 0xd3e51bb5, 0x1f4f1b2b,
     0x91c01cc8, 0x5d6a1c56, 0x57af154f, 0x9b0515d1, 0x158a1232,
@@ -628,7 +628,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b,
     0x2d02ef8d}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid1_big_table[][256] = {
    {0x0000000000000000, 0x9630077700000000, 0x2c610eee00000000,
     0xba51099900000000, 0x19c46d0700000000, 0x8ff46a7000000000,
     0x35a563e900000000, 0xa395649e00000000, 0x3288db0e00000000,
@@ -1320,7 +1320,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid1_table[][256] = {
    {0x00000000, 0xb8bc6765, 0xaa09c88b, 0x12b5afee, 0x8f629757,
     0x37def032, 0x256b5fdc, 0x9dd738b9, 0xc5b428ef, 0x7d084f8a,
     0x6fbde064, 0xd7018701, 0x4ad6bfb8, 0xf26ad8dd, 0xe0df7733,
@@ -1530,7 +1530,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b,
     0x2d02ef8d}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid1_big_table[][256] = {
    {0x00000000, 0x96300777, 0x2c610eee, 0xba510999, 0x19c46d07,
     0x8ff46a70, 0x35a563e9, 0xa395649e, 0x3288db0e, 0xa4b8dc79,
     0x1ee9d5e0, 0x88d9d297, 0x2b4cb609, 0xbd7cb17e, 0x072db8e7,
@@ -1744,11 +1744,11 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #endif
 
-#if N == 2
+#if N == 2 || NLOW == 2
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid2_table[][256] = {
    {0x00000000, 0xae689191, 0x87a02563, 0x29c8b4f2, 0xd4314c87,
     0x7a59dd16, 0x539169e4, 0xfdf9f875, 0x73139f4f, 0xdd7b0ede,
     0xf4b3ba2c, 0x5adb2bbd, 0xa722d3c8, 0x094a4259, 0x2082f6ab,
@@ -2166,7 +2166,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x03d84904, 0x14a35d47, 0x70c2308e, 0x67b924cd, 0x5e341808,
     0x494f0c4b}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid2_big_table[][256] = {
    {0x0000000000000000, 0x43147b1700000000, 0x8628f62e00000000,
     0xc53c8d3900000000, 0x0c51ec5d00000000, 0x4f45974a00000000,
     0x8a791a7300000000, 0xc96d616400000000, 0x18a2d8bb00000000,
@@ -2858,7 +2858,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid2_table[][256] = {
    {0x00000000, 0xccaa009e, 0x4225077d, 0x8e8f07e3, 0x844a0efa,
     0x48e00e64, 0xc66f0987, 0x0ac50919, 0xd3e51bb5, 0x1f4f1b2b,
     0x91c01cc8, 0x5d6a1c56, 0x57af154f, 0x9b0515d1, 0x158a1232,
@@ -3068,7 +3068,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x028448fc, 0x3fe4614c, 0x8dc4bd5c, 0xb0a494ec, 0xf704ee3c,
     0xca64c78c}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid2_big_table[][256] = {
    {0x00000000, 0xb029603d, 0x6053c07a, 0xd07aa047, 0xc0a680f5,
     0x708fe0c8, 0xa0f5408f, 0x10dc20b2, 0xc14b7030, 0x7162100d,
     0xa118b04a, 0x1131d077, 0x01edf0c5, 0xb1c490f8, 0x61be30bf,
@@ -3282,11 +3282,11 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #endif
 
-#if N == 3
+#if N == 3 || NLOW == 3
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid3_table[][256] = {
    {0x00000000, 0x81256527, 0xd93bcc0f, 0x581ea928, 0x69069e5f,
     0xe823fb78, 0xb03d5250, 0x31183777, 0xd20d3cbe, 0x53285999,
     0x0b36f0b1, 0x8a139596, 0xbb0ba2e1, 0x3a2ec7c6, 0x62306eee,
@@ -3704,7 +3704,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0xec14dac2, 0x6bb21181, 0x4b206dca, 0xcc86a689, 0x9f1cfd0d,
     0x18ba364e}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid3_big_table[][256] = {
    {0x0000000000000000, 0x43cba68700000000, 0xc7903cd400000000,
     0x845b9a5300000000, 0xcf27087300000000, 0x8cecaef400000000,
     0x08b734a700000000, 0x4b7c922000000000, 0x9e4f10e600000000,
@@ -4396,7 +4396,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid3_table[][256] = {
    {0x00000000, 0x9ba54c6f, 0xec3b9e9f, 0x779ed2f0, 0x03063b7f,
     0x98a37710, 0xef3da5e0, 0x7498e98f, 0x060c76fe, 0x9da93a91,
     0xea37e861, 0x7192a40e, 0x050a4d81, 0x9eaf01ee, 0xe931d31e,
@@ -4606,7 +4606,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x03d84904, 0x14a35d47, 0x70c2308e, 0x67b924cd, 0x5e341808,
     0x494f0c4b}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid3_big_table[][256] = {
    {0x00000000, 0x43147b17, 0x8628f62e, 0xc53c8d39, 0x0c51ec5d,
     0x4f45974a, 0x8a791a73, 0xc96d6164, 0x18a2d8bb, 0x5bb6a3ac,
     0x9e8a2e95, 0xdd9e5582, 0x14f334e6, 0x57e74ff1, 0x92dbc2c8,
@@ -4820,11 +4820,11 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #endif
 
-#if N == 4
+#if N == 4 || NLOW == 4
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid4_table[][256] = {
    {0x00000000, 0xf1da05aa, 0x38c50d15, 0xc91f08bf, 0x718a1a2a,
     0x80501f80, 0x494f173f, 0xb8951295, 0xe3143454, 0x12ce31fe,
     0xdbd13941, 0x2a0b3ceb, 0x929e2e7e, 0x63442bd4, 0xaa5b236b,
@@ -5242,7 +5242,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x42537612, 0xe7d8e61c, 0x29881ab4, 0x8c038aba, 0xb9ee3ce9,
     0x1c65ace7}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid4_big_table[][256] = {
    {0x0000000000000000, 0x0e908ba500000000, 0x5d26669000000000,
     0x53b6ed3500000000, 0xfb4abdfb00000000, 0xf5da365e00000000,
     0xa66cdb6b00000000, 0xa8fc50ce00000000, 0xb7930b2c00000000,
@@ -5934,7 +5934,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid4_table[][256] = {
    {0x00000000, 0xae689191, 0x87a02563, 0x29c8b4f2, 0xd4314c87,
     0x7a59dd16, 0x539169e4, 0xfdf9f875, 0x73139f4f, 0xdd7b0ede,
     0xf4b3ba2c, 0x5adb2bbd, 0xa722d3c8, 0x094a4259, 0x2082f6ab,
@@ -6144,7 +6144,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x20c13fb5, 0xfd57e630, 0x8024e068, 0x5db239ed, 0xe0785523,
     0x3dee8ca6}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid4_big_table[][256] = {
    {0x00000000, 0x85d996dd, 0x4bb55c60, 0xce6ccabd, 0x966ab9c0,
     0x13b32f1d, 0xdddfe5a0, 0x5806737d, 0x6dd3035a, 0xe80a9587,
     0x26665f3a, 0xa3bfc9e7, 0xfbb9ba9a, 0x7e602c47, 0xb00ce6fa,
@@ -6358,11 +6358,11 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #endif
 
-#if N == 5
+#if N == 5 || NLOW == 5
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid5_table[][256] = {
    {0x00000000, 0xaf449247, 0x85f822cf, 0x2abcb088, 0xd08143df,
     0x7fc5d198, 0x55796110, 0xfa3df357, 0x7a7381ff, 0xd53713b8,
     0xff8ba330, 0x50cf3177, 0xaaf2c220, 0x05b65067, 0x2f0ae0ef,
@@ -6780,7 +6780,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0x190fa237, 0x2ffd32c4, 0xaf20c01d, 0x99d250ee, 0xc2c5e1fb,
     0xf4377108}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid5_big_table[][256] = {
    {0x0000000000000000, 0xf390f23600000000, 0xe621e56d00000000,
     0x15b1175b00000000, 0xcc43cadb00000000, 0x3fd338ed00000000,
     0x2a622fb600000000, 0xd9f2dd8000000000, 0xd981e56c00000000,
@@ -7472,7 +7472,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid5_table[][256] = {
    {0x00000000, 0x65673b46, 0xcace768c, 0xafa94dca, 0x4eedeb59,
     0x2b8ad01f, 0x84239dd5, 0xe144a693, 0x9ddbd6b2, 0xf8bcedf4,
     0x5715a03e, 0x32729b78, 0xd3363deb, 0xb65106ad, 0x19f84b67,
@@ -7682,7 +7682,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0xec14dac2, 0x6bb21181, 0x4b206dca, 0xcc86a689, 0x9f1cfd0d,
     0x18ba364e}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid5_big_table[][256] = {
    {0x00000000, 0x43cba687, 0xc7903cd4, 0x845b9a53, 0xcf270873,
     0x8cecaef4, 0x08b734a7, 0x4b7c9220, 0x9e4f10e6, 0xdd84b661,
     0x59df2c32, 0x1a148ab5, 0x51681895, 0x12a3be12, 0x96f82441,
@@ -7896,11 +7896,11 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #endif
 
-#if N == 6
+#if N == 6 || NLOW == 6
 
 #if W == 8
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid6_table[][256] = {
    {0x00000000, 0x3db1ecdc, 0x7b63d9b8, 0x46d23564, 0xf6c7b370,
     0xcb765fac, 0x8da46ac8, 0xb0158614, 0x36fe60a1, 0x0b4f8c7d,
     0x4d9db919, 0x702c55c5, 0xc039d3d1, 0xfd883f0d, 0xbb5a0a69,
@@ -8318,7 +8318,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0xc39adf05, 0x2b8d4fa4, 0xde78b600, 0x366f26a1, 0xd5269103,
     0x3d3101a2}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid6_big_table[][256] = {
    {0x0000000000000000, 0xa19017e800000000, 0x03275e0b00000000,
     0xa2b749e300000000, 0x064ebc1600000000, 0xa7deabfe00000000,
     0x0569e21d00000000, 0xa4f9f5f500000000, 0x0c9c782d00000000,
@@ -9010,7 +9010,7 @@ local const z_word_t FAR crc_braid_big_table[][256] = {
 
 #else /* W == 4 */
 
-local const z_crc_t FAR crc_braid_table[][256] = {
+local const z_crc_t FAR crc_braid6_table[][256] = {
    {0x00000000, 0x81256527, 0xd93bcc0f, 0x581ea928, 0x69069e5f,
     0xe823fb78, 0xb03d5250, 0x31183777, 0xd20d3cbe, 0x53285999,
     0x0b36f0b1, 0x8a139596, 0xbb0ba2e1, 0x3a2ec7c6, 0x62306eee,
@@ -9220,7 +9220,7 @@ local const z_crc_t FAR crc_braid_table[][256] = {
     0xdb48ef6d, 0x44926cf3, 0x2d75eaab, 0xb2af6935, 0xc9b1ebd6,
     0x566b6848}};
 
-local const z_word_t FAR crc_braid_big_table[][256] = {
+local const z_word_t FAR crc_braid6_big_table[][256] = {
    {0x00000000, 0x9e83da9f, 0x7d01c4e4, 0xe3821e7b, 0xbb04f912,
     0x2587238d, 0xc6053df6, 0x5886e769, 0x7609f225, 0xe88a28ba,
     0x0b0836c1, 0x958bec5e, 0xcd0d0b37, 0x538ed1a8, 0xb00ccfd3,

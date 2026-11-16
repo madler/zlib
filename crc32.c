@@ -49,23 +49,136 @@
   crc32.h would need to be regenerated, if the maximum N value is increased.
 
   N and W are chosen empirically by benchmarking the execution time on a given
-  processor. The choices for N and W below were based on testing on Intel Kaby
-  Lake i7, AMD Ryzen 7, ARM Cortex-A57, Sparc64-VII, PowerPC POWER9, and MIPS64
-  Octeon II processors. The Intel, AMD, and ARM processors were all fastest
-  with N=5, W=8. The Sparc, PowerPC, and MIPS64 were all fastest at N=5, W=4.
-  They were all tested with either gcc or clang, all using the -O3 optimization
-  level. Your mileage may vary.
+  processor. The choices below were based on testing on Intel Haswell, AMD Zen
+  4, Apple M1, ARM Cortex-A76, another ARM64 server, IBM POWER10, UltraSPARC
+  T5, LoongArch64, and ARM Cortex-A7 (32-bit) processors, with gcc and clang,
+  and MSVC and clang-cl on Windows, at -O2 and -O3. W=4 was faster than W=8 on
+  all of them for lengths up to 1K, and as fast or nearly so on most of them
+  for long lengths. With 64-bit registers (see Z_REG64 in zutil.h), N=5 was the
+  fastest, or within 10% of the fastest, for lengths of 1K and more. For
+  lengths less than about 320 bytes, N=2 was faster, due to the cost of
+  combining the N braids at the end. So both are used, divided at BRAID_CUT.
+  With 32-bit registers on the Cortex-A7, more than two braids ran out of
+  registers, and N=2 was the fastest at all lengths. Your mileage may vary.
  */
 
-/* Define N */
+/*
+  These can be defined when compiling, to change the calculation:
+
+    Z_REG64         Use the choices for 64-bit registers below. zutil.h
+                    defines Z_REG64 when the architecture has 64-bit general
+                    registers, unless Z_REG32 is defined. It requires an
+                    eight-byte unsigned integer type, Z_U8.
+    Z_REG32         Use the choices for 32-bit registers below, even if the
+                    architecture has 64-bit registers. Z_REG64 and Z_REG32
+                    cannot both be defined.
+    Z_TESTW=w       Use words of w bytes, 4 or 8, for the braids, in place of
+                    DEF_W. 8 requires Z_U8, and 4 is used without it. If w is
+                    0 or empty (-DZ_TESTW=), then the braided calculation is
+                    not compiled, and the CRC is computed a byte at a time.
+                    Any other value is taken as 4.
+    Z_TESTN=n       Use n braids, 1..6, in place of DEF_N. If Z_TESTCUT is not
+                    defined, then n braids are used at all lengths.
+    Z_TESTCUT=len   Use Z_TESTNLOW braids for lengths less than len, and N
+                    braids for lengths of len or more, in place of DEF_CUT and
+                    DEF_NLOW. Z_TESTCUT and Z_TESTNLOW must be defined
+                    together.
+    Z_TESTNLOW=n    The number of braids, 1..6, for lengths less than
+                    Z_TESTCUT. It may be more or less than N.
+    DYNAMIC_CRC_TABLE
+                    Compute the tables at run time, instead of using those in
+                    crc32.h. Only the braid tables for N and NLOW are made.
+    MAKECRCH        Compile a program that writes crc32.h, with the braid
+                    tables for N from 1 to 6, for both word sizes, and for
+                    both little and big-endian. It requires Z_U8.
+    Z_U4, Z_U8      The four and eight-byte unsigned integer types, if they are
+                    not found by zconf.h and zutil.h. Without Z_U4, the CRC is
+                    computed a byte at a time. Without Z_U8, Z_REG64 is not
+                    defined, and W is 4.
+
+  These are defined by the compiler or the build, and also change the
+  calculation:
+
+    __ARM_FEATURE_CRC32
+                    On 64-bit ARM, use the CRC32 instructions instead of the
+                    braided calculation. The compiler defines this when the
+                    target architecture has them, e.g. with
+                    -march=armv8-a+crc, -march=armv8.1-a, or -march=native on
+                    a machine that has them.
+    HAVE_S390X_VX   On s390x, crc32() uses the vector instruction code in
+                    contrib/crc32vx.
+ */
+
+/*
+  The default choices, used unless overridden by the defines above:
+
+    DEF_W       The size in bytes of the words that the braids are computed
+                on, 4 or 8.
+    DEF_N       The number of braids, 1..6, for lengths of DEF_CUT or more, or
+                for all lengths if there is no cutoff.
+    DEF_CUT     The length below which DEF_NLOW braids are used instead of
+                DEF_N. If it is empty or zero, then there is no cutoff, and
+                DEF_N braids are used at all lengths.
+    DEF_NLOW    The number of braids, 1..6, for lengths less than DEF_CUT. It
+                must be set if DEF_CUT is set. If it is equal to DEF_N, then
+                there is no cutoff.
+ */
+#ifdef Z_REG64
+#  define DEF_W 4
+#  define DEF_N 5
+#  define DEF_CUT 320
+#  define DEF_NLOW 2
+#else
+#  define DEF_W 4
+#  define DEF_N 2
+#  define DEF_CUT
+#  define DEF_NLOW
+#endif
+
+/*
+  Define N, and if there is a cutoff, BRAID_CUT and NLOW, from the defaults,
+  or from Z_TESTN, Z_TESTCUT, and Z_TESTNLOW. If there is no cutoff, then NLOW
+  is N.
+ */
 #ifdef Z_TESTN
 #  define N Z_TESTN
 #else
-#  define N 5
+#  define N DEF_N
 #endif
-#if N < 1 || N > 6
-#  error N must be in 1..6
+#if defined(Z_TESTCUT) != defined(Z_TESTNLOW)
+#  error Z_TESTCUT and Z_TESTNLOW must be set together
 #endif
+#ifdef Z_TESTCUT
+#  define BRAID_CUT Z_TESTCUT
+#  define NLOW Z_TESTNLOW
+#elif !defined(Z_TESTN) && DEF_CUT-1 != -1
+#  if DEF_NLOW-1 == -1
+#    error DEF_NLOW must be set when DEF_CUT is
+#    define NLOW N
+#  elif DEF_NLOW != DEF_N
+#    define BRAID_CUT DEF_CUT
+#    define NLOW DEF_NLOW
+#  else
+#    define NLOW N
+#  endif
+#else
+#  define NLOW N
+#endif
+#if N < 1 || N > 6 || NLOW < 1 || NLOW > 6
+#  error N and NLOW must be in 1..6
+#endif
+#if NLOW < N
+#  define NMIN NLOW     /* the fewest braids used */
+#else
+#  define NMIN N
+#endif
+
+/* The names of the braid tables for n braids, in crc32.h or made by
+   make_crc_table(). */
+#define BRAID_TABLE_(n) crc_braid##n##_table
+#define BRAID_TABLE(n) BRAID_TABLE_(n)
+#define BRAID_BIG_TABLE_(n) crc_braid##n##_big_table
+#define BRAID_BIG_TABLE(n) BRAID_BIG_TABLE_(n)
 
 /*
   z_crc_t must be at least 32 bits. z_word_t must be at least as long as
@@ -86,11 +199,7 @@
 #  ifdef MAKECRCH
 #    define W 8         /* required for MAKECRCH */
 #  else
-#    if defined(__x86_64__) || defined(__aarch64__)
-#      define W 8
-#    else
-#      define W 4
-#    endif
+#    define W DEF_W
 #  endif
 #endif
 #ifdef W
@@ -202,8 +311,12 @@ local uLong x2nmodp(z_off64_t n, unsigned k) {
 local z_crc_t FAR crc_table[256];
 #ifdef W
    local z_word_t FAR crc_big_table[256];
-   local z_crc_t FAR crc_braid_table[W][256];
-   local z_word_t FAR crc_braid_big_table[W][256];
+   local z_crc_t FAR BRAID_TABLE(N)[W][256];
+   local z_word_t FAR BRAID_BIG_TABLE(N)[W][256];
+#  if NLOW != N
+   local z_crc_t FAR BRAID_TABLE(NLOW)[W][256];
+   local z_word_t FAR BRAID_BIG_TABLE(NLOW)[W][256];
+#  endif
    local void braid(z_crc_t [][256], z_word_t [][256], int, int);
 #endif
 #ifdef MAKECRCH
@@ -263,7 +376,10 @@ local void make_crc_table(void) {
 
 #ifdef W
     /* initialize the braiding tables -- needs x2n_table[] */
-    braid(crc_braid_table, crc_braid_big_table, N, W);
+    braid(BRAID_TABLE(N), BRAID_BIG_TABLE(N), N, W);
+#  if NLOW != N
+    braid(BRAID_TABLE(NLOW), BRAID_BIG_TABLE(NLOW), NLOW, W);
+#  endif
 #endif
 
 #ifdef MAKECRCH
@@ -322,11 +438,11 @@ local void make_crc_table(void) {
             "\n"
             "#endif\n");
 
-        /* write out braid tables for each value of N */
+        /* write out braid tables for each value of N, and of NLOW */
         for (n = 1; n <= 6; n++) {
             fprintf(out,
             "\n"
-            "#if N == %d\n", n);
+            "#if N == %d || NLOW == %d\n", n, n);
 
             /* compute braid tables for this N and 64-bit word_t */
             braid(ltl, big, n, 8);
@@ -336,7 +452,7 @@ local void make_crc_table(void) {
             "\n"
             "#if W == 8\n"
             "\n"
-            "local const z_crc_t FAR crc_braid_table[][256] = {\n");
+            "local const z_crc_t FAR crc_braid%d_table[][256] = {\n", n);
             for (k = 0; k < 8; k++) {
                 fprintf(out, "   {");
                 write_table(out, ltl[k], 256);
@@ -345,7 +461,7 @@ local void make_crc_table(void) {
             fprintf(out,
             "};\n"
             "\n"
-            "local const z_word_t FAR crc_braid_big_table[][256] = {\n");
+            "local const z_word_t FAR crc_braid%d_big_table[][256] = {\n", n);
             for (k = 0; k < 8; k++) {
                 fprintf(out, "   {");
                 write_table64(out, big[k], 256);
@@ -362,7 +478,7 @@ local void make_crc_table(void) {
             "\n"
             "#else /* W == 4 */\n"
             "\n"
-            "local const z_crc_t FAR crc_braid_table[][256] = {\n");
+            "local const z_crc_t FAR crc_braid%d_table[][256] = {\n", n);
             for (k = 0; k < 4; k++) {
                 fprintf(out, "   {");
                 write_table(out, ltl[k], 256);
@@ -371,7 +487,7 @@ local void make_crc_table(void) {
             fprintf(out,
             "};\n"
             "\n"
-            "local const z_word_t FAR crc_braid_big_table[][256] = {\n");
+            "local const z_word_t FAR crc_braid%d_big_table[][256] = {\n", n);
             for (k = 0; k < 4; k++) {
                 fprintf(out, "   {");
                 write_table32hi(out, big[k], 256);
@@ -638,6 +754,281 @@ local z_word_t crc_word_big(z_word_t data) {
                          (CRCB(t, w, 2) ^ CRCB(t, w, 3)))
 #endif
 
+#ifdef BRAID_CUT
+/*
+  Return the CRC of buf[0..len-1] starting with crc, computed on NLOW braids.
+  crc is pre-conditioned, and the result is not post-conditioned. crc32_z()
+  uses this for lengths less than BRAID_CUT, and N braids for longer lengths.
+  The N braids are in crc32_z() itself, since compiled there, clang does not
+  spill a braid's CRC to the stack in the loop on x86-64 for N=5, as it did
+  when the N braids were here. A compiler can be expected to inline this, so
+  that short lengths do not incur a function call.
+ */
+local uLong crc32_braid(uLong crc, const unsigned char FAR *buf,
+                        z_size_t len) {
+    /* If provided enough bytes, do a braided CRC calculation. */
+    if (len >= NLOW * W + W - 1) {
+        z_size_t blks;
+        z_word_t const *words;
+        unsigned endian;
+
+        /* Compute the CRC up to a z_word_t boundary. */
+        while (len && ((z_size_t)buf & (W - 1)) != 0) {
+            len--;
+            crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        }
+
+        /* Compute the CRC on as many NLOW z_word_t blocks as are available. */
+        blks = len / (NLOW * W);
+        len -= blks * NLOW * W;
+        words = (z_word_t const *)buf;
+
+        /* Do endian check at execution time instead of compile time, since ARM
+           processors can change the endianness at execution time. If the
+           compiler knows what the endianness will be, it can optimize out the
+           check and the unused branch. */
+        endian = 1;
+        if (*(unsigned char *)&endian) {
+            /* Little endian. */
+
+            z_crc_t crc0;
+            z_word_t word0;
+#if NLOW > 1
+            z_crc_t crc1;
+            z_word_t word1;
+#if NLOW > 2
+            z_crc_t crc2;
+            z_word_t word2;
+#if NLOW > 3
+            z_crc_t crc3;
+            z_word_t word3;
+#if NLOW > 4
+            z_crc_t crc4;
+            z_word_t word4;
+#if NLOW > 5
+            z_crc_t crc5;
+            z_word_t word5;
+#endif
+#endif
+#endif
+#endif
+#endif
+
+            /* Initialize the CRC for each braid. */
+            crc0 = (z_crc_t)crc;
+#if NLOW > 1
+            crc1 = 0;
+#if NLOW > 2
+            crc2 = 0;
+#if NLOW > 3
+            crc3 = 0;
+#if NLOW > 4
+            crc4 = 0;
+#if NLOW > 5
+            crc5 = 0;
+#endif
+#endif
+#endif
+#endif
+#endif
+
+            /*
+              Process the first blks-1 blocks, computing the CRCs on each braid
+              independently.
+             */
+            while (--blks) {
+                /* Load the word for each braid into registers. */
+                word0 = crc0 ^ words[0];
+#if NLOW > 1
+                word1 = crc1 ^ words[1];
+#if NLOW > 2
+                word2 = crc2 ^ words[2];
+#if NLOW > 3
+                word3 = crc3 ^ words[3];
+#if NLOW > 4
+                word4 = crc4 ^ words[4];
+#if NLOW > 5
+                word5 = crc5 ^ words[5];
+#endif
+#endif
+#endif
+#endif
+#endif
+                words += NLOW;
+
+                /* Compute and update the CRC for each word. */
+                crc0 = CRCWORD(BRAID_TABLE(NLOW), word0);
+#if NLOW > 1
+                crc1 = CRCWORD(BRAID_TABLE(NLOW), word1);
+#if NLOW > 2
+                crc2 = CRCWORD(BRAID_TABLE(NLOW), word2);
+#if NLOW > 3
+                crc3 = CRCWORD(BRAID_TABLE(NLOW), word3);
+#if NLOW > 4
+                crc4 = CRCWORD(BRAID_TABLE(NLOW), word4);
+#if NLOW > 5
+                crc5 = CRCWORD(BRAID_TABLE(NLOW), word5);
+#endif
+#endif
+#endif
+#endif
+#endif
+            }
+
+            /*
+              Process the last block, combining the CRCs of the NLOW braids at
+              the same time.
+             */
+            crc = crc_word(crc0 ^ words[0]);
+#if NLOW > 1
+            crc = crc_word(crc1 ^ words[1] ^ crc);
+#if NLOW > 2
+            crc = crc_word(crc2 ^ words[2] ^ crc);
+#if NLOW > 3
+            crc = crc_word(crc3 ^ words[3] ^ crc);
+#if NLOW > 4
+            crc = crc_word(crc4 ^ words[4] ^ crc);
+#if NLOW > 5
+            crc = crc_word(crc5 ^ words[5] ^ crc);
+#endif
+#endif
+#endif
+#endif
+#endif
+            words += NLOW;
+        }
+        else {
+            /* Big endian. */
+
+            z_word_t crc0, word0, comb;
+#if NLOW > 1
+            z_word_t crc1, word1;
+#if NLOW > 2
+            z_word_t crc2, word2;
+#if NLOW > 3
+            z_word_t crc3, word3;
+#if NLOW > 4
+            z_word_t crc4, word4;
+#if NLOW > 5
+            z_word_t crc5, word5;
+#endif
+#endif
+#endif
+#endif
+#endif
+
+            /* Initialize the CRC for each braid. */
+            crc0 = byte_swap(crc);
+#if NLOW > 1
+            crc1 = 0;
+#if NLOW > 2
+            crc2 = 0;
+#if NLOW > 3
+            crc3 = 0;
+#if NLOW > 4
+            crc4 = 0;
+#if NLOW > 5
+            crc5 = 0;
+#endif
+#endif
+#endif
+#endif
+#endif
+
+            /*
+              Process the first blks-1 blocks, computing the CRCs on each braid
+              independently.
+             */
+            while (--blks) {
+                /* Load the word for each braid into registers. */
+                word0 = crc0 ^ words[0];
+#if NLOW > 1
+                word1 = crc1 ^ words[1];
+#if NLOW > 2
+                word2 = crc2 ^ words[2];
+#if NLOW > 3
+                word3 = crc3 ^ words[3];
+#if NLOW > 4
+                word4 = crc4 ^ words[4];
+#if NLOW > 5
+                word5 = crc5 ^ words[5];
+#endif
+#endif
+#endif
+#endif
+#endif
+                words += NLOW;
+
+                /* Compute and update the CRC for each word. */
+                crc0 = CRCWORD(BRAID_BIG_TABLE(NLOW), word0);
+#if NLOW > 1
+                crc1 = CRCWORD(BRAID_BIG_TABLE(NLOW), word1);
+#if NLOW > 2
+                crc2 = CRCWORD(BRAID_BIG_TABLE(NLOW), word2);
+#if NLOW > 3
+                crc3 = CRCWORD(BRAID_BIG_TABLE(NLOW), word3);
+#if NLOW > 4
+                crc4 = CRCWORD(BRAID_BIG_TABLE(NLOW), word4);
+#if NLOW > 5
+                crc5 = CRCWORD(BRAID_BIG_TABLE(NLOW), word5);
+#endif
+#endif
+#endif
+#endif
+#endif
+            }
+
+            /*
+              Process the last block, combining the CRCs of the NLOW braids at
+              the same time.
+             */
+            comb = crc_word_big(crc0 ^ words[0]);
+#if NLOW > 1
+            comb = crc_word_big(crc1 ^ words[1] ^ comb);
+#if NLOW > 2
+            comb = crc_word_big(crc2 ^ words[2] ^ comb);
+#if NLOW > 3
+            comb = crc_word_big(crc3 ^ words[3] ^ comb);
+#if NLOW > 4
+            comb = crc_word_big(crc4 ^ words[4] ^ comb);
+#if NLOW > 5
+            comb = crc_word_big(crc5 ^ words[5] ^ comb);
+#endif
+#endif
+#endif
+#endif
+#endif
+            words += NLOW;
+            crc = byte_swap(comb);
+        }
+
+        /*
+          Update the pointer to the remaining bytes to process.
+         */
+        buf = (unsigned char const *)words;
+    }
+
+    /* Complete the computation of the CRC on any remaining bytes. */
+    while (len >= 8) {
+        len -= 8;
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+    }
+    while (len) {
+        len--;
+        crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+    }
+
+    return crc;
+}
+#endif
+
 #endif
 
 /* ========================================================================= */
@@ -655,10 +1046,16 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
 #ifdef W
 
     /* If provided enough bytes, do a braided CRC calculation. */
-    if (len >= N * W + W - 1) {
+    if (len >= NMIN * W + W - 1) {
         z_size_t blks;
         z_word_t const *words;
         unsigned endian;
+
+#ifdef BRAID_CUT
+        /* For shorter lengths, use NLOW braids. */
+        if (len < BRAID_CUT || len < N * W + W - 1)
+            return crc32_braid(crc, buf, len) ^ 0xffffffff;
+#endif
 
         /* Compute the CRC up to a z_word_t boundary. */
         while (len && ((z_size_t)buf & (W - 1)) != 0) {
@@ -745,17 +1142,17 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
                 words += N;
 
                 /* Compute and update the CRC for each word. */
-                crc0 = CRCWORD(crc_braid_table, word0);
+                crc0 = CRCWORD(BRAID_TABLE(N), word0);
 #if N > 1
-                crc1 = CRCWORD(crc_braid_table, word1);
+                crc1 = CRCWORD(BRAID_TABLE(N), word1);
 #if N > 2
-                crc2 = CRCWORD(crc_braid_table, word2);
+                crc2 = CRCWORD(BRAID_TABLE(N), word2);
 #if N > 3
-                crc3 = CRCWORD(crc_braid_table, word3);
+                crc3 = CRCWORD(BRAID_TABLE(N), word3);
 #if N > 4
-                crc4 = CRCWORD(crc_braid_table, word4);
+                crc4 = CRCWORD(BRAID_TABLE(N), word4);
 #if N > 5
-                crc5 = CRCWORD(crc_braid_table, word5);
+                crc5 = CRCWORD(BRAID_TABLE(N), word5);
 #endif
 #endif
 #endif
@@ -848,17 +1245,17 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
                 words += N;
 
                 /* Compute and update the CRC for each word. */
-                crc0 = CRCWORD(crc_braid_big_table, word0);
+                crc0 = CRCWORD(BRAID_BIG_TABLE(N), word0);
 #if N > 1
-                crc1 = CRCWORD(crc_braid_big_table, word1);
+                crc1 = CRCWORD(BRAID_BIG_TABLE(N), word1);
 #if N > 2
-                crc2 = CRCWORD(crc_braid_big_table, word2);
+                crc2 = CRCWORD(BRAID_BIG_TABLE(N), word2);
 #if N > 3
-                crc3 = CRCWORD(crc_braid_big_table, word3);
+                crc3 = CRCWORD(BRAID_BIG_TABLE(N), word3);
 #if N > 4
-                crc4 = CRCWORD(crc_braid_big_table, word4);
+                crc4 = CRCWORD(BRAID_BIG_TABLE(N), word4);
 #if N > 5
-                crc5 = CRCWORD(crc_braid_big_table, word5);
+                crc5 = CRCWORD(BRAID_BIG_TABLE(N), word5);
 #endif
 #endif
 #endif
