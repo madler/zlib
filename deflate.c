@@ -681,6 +681,27 @@ int ZEXPORT deflateResetKeep(z_streamp strm) {
     }
 
     /* Keep the window and the hash, but drop what was left unfinished */
+    if (s->lookahead) {
+        /* The strings at the last MIN_MATCH-1 positions before strstart were
+           hashed with input that is dropped here. Take them out of the hash,
+           most recent first, and have fill_window() insert them again. */
+        uInt n = s->strstart < MIN_MATCH-1 ? s->strstart : MIN_MATCH-1;
+        uInt i, k, str, h;
+        for (i = 1; i <= n; i++) {
+            str = s->strstart - i;
+            h = 0;
+            for (k = 0; k < MIN_MATCH; k++)
+                UPDATE_HASH(s, h, s->window[str + k]);
+            if (str != 0 && s->head[h] == (Pos)str)     /* 0 is NIL */
+#ifdef FASTEST
+                s->head[h] = NIL;
+#else
+                s->head[h] = s->prev[str & s->w_mask];
+#endif
+        }
+        if (s->insert < n)
+            s->insert = n;
+    }
     s->block_start = (long)s->strstart;
     s->lookahead = 0;
     s->match_length = s->prev_length = MIN_MATCH-1;
