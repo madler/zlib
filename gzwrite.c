@@ -116,6 +116,8 @@ local int gz_comp(gz_statep state, int flush) {
                 if (writ < 0) {
                     if (BLOCKED(errno))
                         state->again = 1;
+                    if (flush == Z_FINISH && ret == Z_STREAM_END)
+                        state->reset = 1;
                     gz_error(state, Z_ERRNO, zstrerror());
                     return -1;
                 }
