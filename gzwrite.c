@@ -198,6 +198,7 @@ local int gz_zero(gz_statep state) {
    For any other error, 0 is returned. */
 local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     z_size_t put = len;
+    z_off64_t room;
     int ret;
 
     /* if len is zero, avoid unnecessary operations */
@@ -212,8 +213,10 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     if (state->skip && gz_zero(state) == -1)
         return 0;
 
-    /* the position must not overflow */
-    if ((z_off64_t)len < 0 || GZ_OFF_MAX - state->x.pos < (z_off64_t)len) {
+    /* the position must not overflow -- room that does not fit in z_size_t
+       is more than any len */
+    room = GZ_OFF_MAX - state->x.pos;
+    if ((z_off64_t)(z_size_t)room == room && (z_size_t)room < len) {
         gz_error(state, Z_DATA_ERROR, "position overflow");
         return 0;
     }
