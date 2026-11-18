@@ -433,7 +433,12 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         offset -= n;
     }
 
-    /* request skip (if not zero) */
+    /* request skip (if not zero) -- a successful seek re-establishes the
+       position, so clear the read-past-end flag: otherwise gztell() (which
+       ignores a pending skip while past is set) and a later SEEK_CUR
+       (which bases its position on x.pos + skip) would both use the stale
+       pre-seek position and the pending skip would be lost */
+        state->past = 0;
     state->skip = offset;
     return pos;
 }

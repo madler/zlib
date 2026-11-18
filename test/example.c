@@ -164,6 +164,91 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
 #endif
 }
 
+/* ===========================================================================
+ * Test gzseek()/gztell() after reading a .gz file to EOF
+ *
+ * Regression test: after a gzip stream is read to EOF, a forward gzseek()
+ * with SEEK_CUR must be reflected by gztell(), and a second SEEK_CUR seek
+ * must accumulate on the first instead of discarding it. Before the fix,
+ * gztell() returned the pre-seek position and the second seek lost the
+ * first seek's pending skip, because gzseek64() never cleared state->past
+ * on its GZIP success path (gzlib.c).
+ */
+static void test_gzseek_eof(const char *fname) {
+#ifdef NO_GZCOMPRESS
+    (void)fname;
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int err;
+    int n;
+    gzFile file;
+    z_off_t pos;
+    char buf[512];
+    static char data[3000];   /* all zeroes */
+
+    file = gzopen(fname, "wb");
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    if (gzwrite(file, data, (unsigned)sizeof(data)) != (int)sizeof(data)) {
+        fprintf(stderr, "gzwrite err: %s\n", gzerror(file, &err));
+        exit(1);
+    }
+    if (gzclose(file) != Z_OK) {
+        fprintf(stderr, "gzclose error\n");
+        exit(1);
+    }
+
+    file = gzopen(fname, "rb");
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    while ((n = gzread(file, buf, (unsigned)sizeof(buf))) > 0)
+        ;
+    if (!gzeof(file)) {
+        fprintf(stderr, "gzeof not set after drain\n");
+        exit(1);
+    }
+    if (gztell(file) != 3000) {
+        fprintf(stderr, "gztell after drain = %ld, expected 3000\n",
+                (long)gztell(file));
+        exit(1);
+    }
+    pos = gzseek(file, 187L, SEEK_CUR);
+    if (pos != 3187 || gztell(file) != pos) {
+        fprintf(stderr, "gzseek after EOF error, pos=%ld, gztell=%ld\n",
+                (long)pos, (long)gztell(file));
+        exit(1);
+    }
+    pos = gzseek(file, 10L, SEEK_CUR);
+    if (pos != 3197 || gztell(file) != pos) {
+        fprintf(stderr, "second gzseek after EOF error, pos=%ld, gztell=%ld\n",
+                (long)pos, (long)gztell(file));
+        exit(1);
+    }
+    gzclose(file);
+
+    /* SEEK_SET past EOF must agree with gztell() as well */
+    file = gzopen(fname, "rb");
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    while ((n = gzread(file, buf, (unsigned)sizeof(buf))) > 0)
+        ;
+    pos = gzseek(file, 3187L, SEEK_SET);
+    if (pos != 3187 || gztell(file) != pos) {
+        fprintf(stderr, "gzseek SEEK_SET after EOF error, pos=%ld, gztell=%ld\n",
+                (long)pos, (long)gztell(file));
+        exit(1);
+    }
+    gzclose(file);
+
+    printf("gzseek() after EOF: OK\n");
+#endif
+}
 #endif /* Z_SOLO */
 
 /* ===========================================================================
@@ -530,6 +615,8 @@ int main(int argc, char *argv[]) {
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
               uncompr, uncomprLen);
+
+    test_gzseek_eof((argc > 1 ? argv[1] : TESTFILE));
 #endif
 
     test_deflate(compr, comprLen);
