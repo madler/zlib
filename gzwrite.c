@@ -213,7 +213,7 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
         return 0;
 
     /* the position must not overflow */
-    if (GZ_OFF_MAX - state->x.pos < len) {
+    if ((z_off64_t)len < 0 || GZ_OFF_MAX - state->x.pos < (z_off64_t)len) {
         gz_error(state, Z_DATA_ERROR, "position overflow");
         return 0;
     }
