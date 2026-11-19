@@ -662,6 +662,54 @@ local void cover_fast(void)
         Z_STREAM_END);
 }
 
+/* cover the fast loop of inffast.c, which needs sixteen bytes of input and
+   room for 265 bytes of output: second-level codes with 10- and 8-bit root
+   tables, literal runs, copies at distances 1, 2..7 and 8 or more, window
+   copies (wrapped, contiguous, and with the write index at zero), and its
+   errors */
+local void cover_fast64(void)
+{
+    char *longcodes =
+        "ed ef d1 92 24 49 92 24 cb 7e 2b 5e 16 35 8f ec ff ff 0 2a 80 79 d9 "
+        "87 f3 9 f7 22 1d 96 55 1b 8f ce 5b fe 7f bb f7 fd fe fe fd ef bf ff "
+        "df ff fd 7f ff cf ff f7 ff e1 ff f9 7f fc 7f fc 1f fe ff ff bf ff ff "
+        "ff c0 ff fc ff e0 bf ff 80 0";
+    char *win12 =
+        "4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 28 2c 2a 2e 29 2d 2b "
+        "af a8 ac 1a 95 19 d 9b d1 b0 1a d ab d1 b0 1a d ab d1 b0 1a 75 c3 68 "
+        "58 8d 86 d5 68 cc 8f 86 d5 68 58 8d 86 d5 68 58 8d 86 d5 68 58 8d 86 "
+        "db 68 58 8d c6 d5 68 58 8d 96 d3 a3 61 35 1a 56 a3 ad ae d1 b0 1a f5 "
+        "e9 68 58 8d 86 ee 68 58 8d 86 d5 68 df 7d 34 ac 46 d3 e1 68 58 8d ba "
+        "6d 34 ac 46 c3 6a 34 45 8c 86 d5 68 6b 66 34 ac 46 5b e6 a3 61 35 1a "
+        "56 a3 e1 39 1a 56 a3 71 38 1a 56 a3 f1 3b 1a 56 a3 61 35 5a 5a 8f 86 "
+        "d5 68 8 8c 86 55 6a 5e a 0";
+    char *win9 =
+        "4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 28 2c 2a 2e 29 2d 2b "
+        "af a8 ac 1a 95 19 5 a3 61 35 1a e7 a3 76 8c a2 d1 f8 1f d 83 51 38 "
+        "1a 1f a3 8a 46 63 70 94 1e d cc d4 bc 14 0";
+
+    inf(longcodes, "fast long codes", 0, -15, 1000, Z_STREAM_END);
+    inf("4a 4c 4a 6 2c 25 35 2d 3d 23 33 2b 3b 27 37 2f bf a0 b0 a8 b8 a4 b4 "
+        "ac bc a2 b2 2a 31 29 39 25 35 2d 3d 23 33 2b 3b 27 37 2f bf 0 0",
+        "fast end of block", 0, -15, 300, Z_STREAM_END);
+    inf(longcodes, "long codes in small pieces", 3, -15, 100, Z_OK);
+    try(longcodes, "long codes", 0);
+    inf(win12, "fast window copies", 0, -12, 600, Z_OK);
+    inf(win9, "fast window write index zero", 0, -9, 600, Z_OK);
+    inf("4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 40 d8 91 98 94 9c 92 "
+        "9a 96 9e 91 99 95 9d 93 9b 97 5f 50 58 54 5c 52 5a 56 5e 51 59 95 98 "
+        "94 9c 92 9a 6 0",
+        "fast too far back", 0, -15, 300, Z_DATA_ERROR);
+    inf("4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 18 4b 4c 4a 4e 49 4d "
+        "4b cf c8 cc ca ce c9 cd cb 2f 28 2c 2a 2e 29 2d 2b af a8 ac 4a 4c 4a "
+        "4e 49 4d 3 0",
+        "fast invalid literal/length code", 0, -15, 300, Z_DATA_ERROR);
+    inf("4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 0 be c4 a4 e4 94 d4 "
+        "b4 f4 8c cc ac ec 9c dc bc fc 82 c2 a2 e2 92 d2 b2 f2 8a ca aa c4 a4 "
+        "e4 94 d4 34 0",
+        "fast invalid distance code", 0, -15, 300, Z_DATA_ERROR);
+}
+
 int main(void)
 {
     fprintf(stderr, "%s\n", zlibVersion());
@@ -671,5 +719,6 @@ int main(void)
     cover_inflate();
     cover_trees();
     cover_fast();
+    cover_fast64();
     return 0;
 }
