@@ -710,7 +710,7 @@ local void unz64local_DosDateToTmuDate(ZPOS64_T ulDosDate, tm_unz* ptm) {
     ZPOS64_T uDate;
     uDate = (ZPOS64_T)(ulDosDate>>16);
     ptm->tm_mday = (int)(uDate&0x1f) ;
-    ptm->tm_mon =  (int)((((uDate)&0x1E0)/0x20)-1) ;
+    ptm->tm_mon =  (int)(((uDate)&0x1E0)/0x20)-1 ;
     ptm->tm_year = (int)(((uDate&0x0FE00)/0x0200)+1980) ;
 
     ptm->tm_hour = (int) ((ulDosDate &0xF800)/0x800);
