@@ -1137,12 +1137,6 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
      */
   inf_leave:
     RESTORE();
-    if (state->wsize || (out != strm->avail_out && state->mode < BAD &&
-            (state->mode < CHECK || flush != Z_FINISH)))
-        if (updatewindow(strm, strm->next_out, out - strm->avail_out)) {
-            state->mode = MEM;
-            return Z_MEM_ERROR;
-        }
     in -= strm->avail_in;
     out -= strm->avail_out;
     strm->total_in += in;
@@ -1154,6 +1148,12 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
     strm->data_type = (int)state->bits + (state->last ? 64 : 0) +
                       (state->mode == TYPE ? 128 : 0) +
                       (state->mode == LEN_ || state->mode == COPY_ ? 256 : 0);
+    if (state->wsize || (out && state->mode < BAD &&
+            (state->mode < CHECK || flush != Z_FINISH)))
+        if (updatewindow(strm, strm->next_out, out)) {
+            state->mode = MEM;
+            return Z_MEM_ERROR;
+        }
     if (((in == 0 && out == 0) || flush == Z_FINISH) && ret == Z_OK)
         ret = Z_BUF_ERROR;
     return ret;
