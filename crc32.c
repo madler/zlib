@@ -214,9 +214,10 @@
 #  endif
 #endif
 
-/* If available, use the ARM processor CRC32 instruction. This works on 64-bit
-   words, and so does not depend on W, the word size for the braids. */
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && defined(Z_U8)
+/* If available, and if little-endian, use the ARM processor CRC32 instruction.
+   This needs the Z_U8 type to access 64-bit words. */
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && defined(Z_U8) && \
+    !defined(__AARCH64EB__)
 #  define ARMCRC32
 #endif
 
