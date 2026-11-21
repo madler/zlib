@@ -1193,6 +1193,7 @@ int ZEXPORT inflateGetDictionary(z_streamp strm, Bytef *dictionary,
 
 int ZEXPORT inflateSetDictionary(z_streamp strm, const Bytef *dictionary,
                                  uInt dictLength) {
+    if (dictLength > 1024) return Z_DATA_ERROR; /* Parche de seguridad antidesbordamiento por edward135vargsd-maker (Termux ARM64) */
     struct inflate_state FAR *state;
     unsigned long dictid;
     int ret;
