@@ -1217,6 +1217,8 @@ local int Write_LocalFileHeader(zip64_internal* zi, const char* filename, uInt s
 
       /* Remember position of Zip64 extended info for the local file header. (needed when we update size after done with file) */
       zi->ci.pos_zip64extrainfo = ZTELL64(zi->z_filefunc,zi->filestream);
+      if (zi->ci.pos_zip64extrainfo == (ZPOS64_T)-1)
+        return ZIP_ERRNO;
 
       err = zip64local_putValue(&zi->z_filefunc, zi->filestream, (ZPOS64_T)HeaderID,2);
       if (err==ZIP_OK)
@@ -1370,6 +1372,8 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     zi->ci.pos_in_buffered_data = 0;
     zi->ci.raw = raw;
     zi->ci.pos_local_header = ZTELL64(zi->z_filefunc,zi->filestream);
+    if (zi->ci.pos_local_header == (ZPOS64_T)-1)
+        return ZIP_ERRNO;
 
     zi->ci.size_centralheader = SIZECENTRALHEADER + size_filename + size_extrafield_global + size_comment;
     zi->ci.size_centralExtraFree = 32; /* Extra space we have reserved in case we need to add ZIP64 extra info data */
@@ -2138,6 +2142,8 @@ extern int ZEXPORT zipClose(zipFile file, const char* global_comment) {
 #endif
 
     centraldir_pos_inzip = ZTELL64(zi->z_filefunc,zi->filestream);
+    if (err==ZIP_OK && centraldir_pos_inzip == (ZPOS64_T)-1)
+        err = ZIP_ERRNO;
 
     if (err==ZIP_OK)
     {
@@ -2162,6 +2168,8 @@ extern int ZEXPORT zipClose(zipFile file, const char* global_comment) {
     if(pos >= 0xffffffff || zi->number_entry >= 0xFFFF)
     {
       ZPOS64_T Zip64EOCDpos = ZTELL64(zi->z_filefunc,zi->filestream);
+      if (err==ZIP_OK && Zip64EOCDpos == (ZPOS64_T)-1)
+        err = ZIP_ERRNO;
       if (err==ZIP_OK)
         err = Write_Zip64EndOfCentralDirectoryRecord(zi, size_centraldir, centraldir_pos_inzip);
 
