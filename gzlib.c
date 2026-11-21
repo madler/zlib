@@ -368,8 +368,9 @@ int ZEXPORT gzrewind(gzFile file) {
     return 0;
 }
 
-/* -- see zlib.h -- */
-z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
+/* Seek without changing the state if the result cannot be represented.
+   wide permits positions outside the range of z_off_t. */
+local z_off64_t gz_seek(gzFile file, z_off64_t offset, int whence, int wide) {
     unsigned n;
     z_off64_t ret, pos;
     gz_statep state;
@@ -392,11 +393,13 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
     /* compute the absolute position */
     pos = whence == SEEK_SET ? 0 :
           state->x.pos + (state->past ? 0 : state->skip);
-    if (offset > GZ_OFF_MAX - pos)
+    if (pos >= 0 && offset > GZ_OFF_MAX - pos)
         return -1;                          /* would overflow z_off64_t */
     if (offset < -pos)
         return -1;                          /* before start of file */
     pos += offset;
+    if (!wide && pos != (z_off_t)pos)
+        return -1;                          /* would overflow z_off_t */
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY) {
@@ -428,7 +431,8 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
         n = GT_OFF(state->x.have) || (z_off64_t)state->x.have > offset ?
             (unsigned)offset : state->x.have;
         state->x.have -= n;
-        state->x.next += n;
+        if (n)
+            state->x.next += n;
         state->x.pos += n;
         offset -= n;
     }
@@ -439,11 +443,13 @@ z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
 }
 
 /* -- see zlib.h -- */
-z_off_t ZEXPORT gzseek(gzFile file, z_off_t offset, int whence) {
-    z_off64_t ret;
+z_off64_t ZEXPORT gzseek64(gzFile file, z_off64_t offset, int whence) {
+    return gz_seek(file, offset, whence, 1);
+}
 
-    ret = gzseek64(file, (z_off64_t)offset, whence);
-    return ret == (z_off_t)ret ? (z_off_t)ret : -1;
+/* -- see zlib.h -- */
+z_off_t ZEXPORT gzseek(gzFile file, z_off_t offset, int whence) {
+    return (z_off_t)gz_seek(file, (z_off64_t)offset, whence, 0);
 }
 
 /* -- see zlib.h -- */
