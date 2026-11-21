@@ -911,8 +911,9 @@ z_size_t ZEXPORT deflateBound_z(z_streamp strm, z_size_t sourceLen) {
         wraplen = 18;
         if (s->gzhead != Z_NULL) {          /* user-supplied gzip header */
             Bytef *str;
+            /* gzip writes only the low 16 bits of the extra length */
             if (s->gzhead->extra != Z_NULL)
-                wraplen += 2 + s->gzhead->extra_len;
+                wraplen += 2 + (z_size_t)(s->gzhead->extra_len & 0xffff);
             str = s->gzhead->name;
             if (str != Z_NULL)
                 do {
