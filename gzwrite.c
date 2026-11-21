@@ -198,6 +198,7 @@ local int gz_zero(gz_statep state) {
    For any other error, 0 is returned. */
 local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     z_size_t put = len;
+    z_off64_t room;
     int ret;
 
     /* if len is zero, avoid unnecessary operations */
@@ -211,6 +212,14 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     /* check for seek request */
     if (state->skip && gz_zero(state) == -1)
         return 0;
+
+    /* the position must not overflow -- room that does not fit in z_size_t
+       is more than any len */
+    room = GZ_OFF_MAX - state->x.pos;
+    if ((z_off64_t)(z_size_t)room == room && (z_size_t)room < len) {
+        gz_error(state, Z_DATA_ERROR, "position overflow");
+        return 0;
+    }
 
     /* for small len, copy to input buffer, otherwise compress directly */
     if (len < state->size) {
@@ -346,7 +355,7 @@ int ZEXPORT gzputc(gzFile file, int c) {
         if (strm->avail_in == 0)
             strm->next_in = state->in;
         have = (unsigned)((strm->next_in + strm->avail_in) - state->in);
-        if (have < state->size) {
+        if (have < state->size && state->x.pos < GZ_OFF_MAX) {
             state->in[have] = (unsigned char)c;
             strm->avail_in++;
             state->x.pos++;
@@ -490,6 +499,12 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
     if (len == 0 || (unsigned)len >= state->size || next[state->size - 1] != 0)
         return 0;
 
+    /* the position must not overflow */
+    if (GZ_OFF_MAX - state->x.pos < len) {
+        gz_error(state, Z_DATA_ERROR, "position overflow");
+        return state->err;
+    }
+
     /* update buffer and position */
     strm->avail_in += (unsigned)len;
     state->x.pos += len;
@@ -611,6 +626,12 @@ int ZEXPORTVA gzprintf(gzFile file, const char *format, int a1, int a2, int a3,
     /* check that printf() results fit in buffer */
     if (len == 0 || len >= state->size || next[state->size - 1] != 0)
         return 0;
+
+    /* the position must not overflow */
+    if (GZ_OFF_MAX - state->x.pos < len) {
+        gz_error(state, Z_DATA_ERROR, "position overflow");
+        return state->err;
+    }
 
     /* update buffer and position, compress first half if past that */
     strm->avail_in += len;
