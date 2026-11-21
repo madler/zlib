@@ -1827,7 +1827,9 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
 #    endif
 
     /* update Current Item crc and sizes, */
-    if(compressed_size >= 0xffffffff || uncompressed_size >= 0xffffffff || zi->ci.pos_local_header >= 0xffffffff)
+    /* A reserved local zip64 extra means this entry uses zip64, even if the sizes fit. */
+    if(compressed_size >= 0xffffffff || uncompressed_size >= 0xffffffff || zi->ci.pos_local_header >= 0xffffffff ||
+       zi->ci.pos_zip64extrainfo > 0)
     {
       /*version Made by*/
       zip64local_putValue_inmemory(zi->ci.central_header+4,(uLong)45,2);
@@ -1940,7 +1942,8 @@ extern int ZEXPORT zipCloseFileInZipRaw64(zipFile file, ZPOS64_T uncompressed_si
         if (err==ZIP_OK)
             err = zip64local_putValue(&zi->z_filefunc,zi->filestream,crc32,4); /* crc 32, unknown */
 
-        if(uncompressed_size >= 0xffffffff || compressed_size >= 0xffffffff )
+        if(uncompressed_size >= 0xffffffff || compressed_size >= 0xffffffff ||
+           zi->ci.pos_zip64extrainfo > 0)
         {
           if(zi->ci.pos_zip64extrainfo > 0)
           {
