@@ -8,10 +8,26 @@ project(
 option(MINIZIP_BUILD_SHARED "" @MINIZIP_BUILD_SHARED@)
 option(MINIZIP_BUILD_STATIC "" @MINIZIP_BUILD_STATIC@)
 
+# Simulate a consumer cache left by a package with the opposite feature setting.
+if(@MINIZIP_ENABLE_BZIP2@)
+    set(minizip_HAS_BZIP2 OFF CACHE BOOL "" FORCE)
+else()
+    set(minizip_HAS_BZIP2 ON CACHE BOOL "" FORCE)
+    set(CMAKE_DISABLE_FIND_PACKAGE_BZip2 TRUE)
+endif()
+
 set(MINIZIP_SRCS
     @minizip_SOURCE_DIR@/ioapi.c
     $<$<BOOL:${WIN32}>:@minizip_SOURCE_DIR@/iowin32.c>
     @minizip_SOURCE_DIR@/minizip.c @minizip_SOURCE_DIR@/zip.c)
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/installed_headers.c
+    "#include <zip.h>\n"
+    "#include <unzip.h>\n"
+    "int main(void) {\n"
+    "    unzFile file = unzOpen(\"missing.zip\");\n"
+    "    return file ? unzClose(file) : 0;\n"
+    "}\n")
 
 if(MINIZIP_BUILD_SHARED)
     find_package(minizip ${minizip_VERSION}
@@ -20,6 +36,9 @@ if(MINIZIP_BUILD_SHARED)
                  REQUIRED)
     add_executable(test_example ${MINIZIP_SRCS})
     target_link_libraries(test_example MINIZIP::minizip)
+    add_executable(test_installed_headers
+                   ${CMAKE_CURRENT_BINARY_DIR}/installed_headers.c)
+    target_link_libraries(test_installed_headers MINIZIP::minizip)
 endif(MINIZIP_BUILD_SHARED)
 
 if(MINIZIP_BUILD_STATIC)
@@ -29,4 +48,7 @@ if(MINIZIP_BUILD_STATIC)
                  REQUIRED)
     add_executable(test_example_static ${MINIZIP_SRCS})
     target_link_libraries(test_example_static MINIZIP::minizipstatic)
+    add_executable(test_installed_headers_static
+                   ${CMAKE_CURRENT_BINARY_DIR}/installed_headers.c)
+    target_link_libraries(test_installed_headers_static MINIZIP::minizipstatic)
 endif(MINIZIP_BUILD_STATIC)
