@@ -17,6 +17,15 @@
 #  include <stdlib.h>
 #endif
 
+/* The non-blocking gzwrite() test needs a pipe and O_NONBLOCK. */
+#if !defined(Z_SOLO) && !defined(NO_GZCOMPRESS) && \
+    (defined(__unix__) || defined(__APPLE__))
+#  define TEST_GZWRITE_STALL
+#  include <errno.h>
+#  include <fcntl.h>
+#  include <unistd.h>
+#endif
+
 #if defined(VMS)
 #  define TESTFILE "foo-gz"
 #elif defined(__riscos) && !defined(__TARGET_UNIXLIB__)
@@ -163,6 +172,130 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     gzclose(file);
 #endif
 }
+
+#ifdef TEST_GZWRITE_STALL
+/* ===========================================================================
+ * Test that gzwrite() can be used again after a non-blocking stall.
+ *
+ * When a gzwrite() of a large buffer stalls, the input pointer and count were
+ * left pointing into the caller's buffer.  The next small gzwrite() then
+ * computed its copy offset from them and wrote past the internal input buffer.
+ */
+#define STALL_LEN 70000
+
+/* Move whatever is readable from fd into buf at *used, without blocking. */
+static void drain_pipe(int fd, Byte *buf, size_t size, size_t *used) {
+    for (;;) {
+        ssize_t n = read(fd, buf + *used, size - *used);
+        if (n <= 0)
+            break;
+        *used += (size_t)n;
+    }
+}
+
+static void test_gzwrite_stall(void) {
+    int fds[2];
+    size_t used = 0, size = 2 * STALL_LEN;
+    unsigned i, off;
+    unsigned long seed = 1;
+    int put, err;
+    char filler[512];
+    Byte *src, *wire, *back;
+    gzFile file;
+    z_stream strm;
+
+    src = (Byte*)malloc(STALL_LEN);
+    wire = (Byte*)malloc(size);
+    back = (Byte*)malloc(STALL_LEN);
+    if (src == NULL || wire == NULL || back == NULL) {
+        fprintf(stderr, "out of memory\n");
+        exit(1);
+    }
+    /* incompressible data, so that deflate has output to write */
+    for (i = 0; i < STALL_LEN; i++) {
+        seed = seed * 1103515245UL + 12345UL;
+        src[i] = (Byte)(seed >> 16);
+    }
+
+    if (pipe(fds) != 0) {
+        fprintf(stderr, "pipe error\n");
+        exit(1);
+    }
+    fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
+    file = gzdopen(fds[1], "wbN");
+    if (file == NULL) {
+        fprintf(stderr, "gzdopen error\n");
+        exit(1);
+    }
+
+    /* fill the pipe, so that the next write to it stalls */
+    memset(filler, 0, sizeof(filler));
+    while (write(fds[1], filler, sizeof(filler)) > 0)
+        ;
+    if (errno != EAGAIN && errno != EWOULDBLOCK) {
+        fprintf(stderr, "could not fill pipe\n");
+        exit(1);
+    }
+
+    put = gzwrite(file, src, STALL_LEN);
+    if (put <= 0 || put >= STALL_LEN) {
+        fprintf(stderr, "gzwrite did not stall: %d\n", put);
+        exit(1);
+    }
+
+    /* drop the filler, then carry on with small writes */
+    drain_pipe(fds[0], wire, size, &used);
+    used = 0;
+    for (off = (unsigned)put; off < STALL_LEN; off += (unsigned)err) {
+        unsigned n = STALL_LEN - off > 100 ? 100 : STALL_LEN - off;
+        err = gzwrite(file, src + off, n);
+        if (err != (int)n) {
+            fprintf(stderr, "gzwrite after stall returned %d, wanted %u\n",
+                    err, n);
+            exit(1);
+        }
+        drain_pipe(fds[0], wire, size, &used);
+    }
+    /* finish the stream, draining the pipe whenever the flush stalls */
+    for (i = 0; i < 100; i++) {
+        err = gzflush(file, Z_FINISH);
+        drain_pipe(fds[0], wire, size, &used);
+        if (err == Z_OK)
+            break;
+        if (err != Z_ERRNO) {
+            fprintf(stderr, "gzflush error: %d\n", err);
+            exit(1);
+        }
+    }
+    if (gzclose(file) != Z_OK) {
+        fprintf(stderr, "gzclose error\n");
+        exit(1);
+    }
+    drain_pipe(fds[0], wire, size, &used);
+    close(fds[0]);
+
+    /* everything written must come back out the same */
+    memset(&strm, 0, sizeof(strm));
+    err = inflateInit2(&strm, 15 + 16);
+    CHECK_ERR(err, "inflateInit2");
+    strm.next_in = wire;
+    strm.avail_in = (uInt)used;
+    strm.next_out = back;
+    strm.avail_out = STALL_LEN;
+    err = inflate(&strm, Z_FINISH);
+    if (err != Z_STREAM_END || strm.total_out != STALL_LEN ||
+        memcmp(src, back, STALL_LEN) != 0) {
+        fprintf(stderr, "bad data after gzwrite stall, err=%d\n", err);
+        exit(1);
+    }
+    inflateEnd(&strm);
+    printf("gzwrite() after non-blocking stall: ok\n");
+
+    free(back);
+    free(wire);
+    free(src);
+}
+#endif /* TEST_GZWRITE_STALL */
 
 #endif /* Z_SOLO */
 
@@ -530,6 +663,9 @@ int main(int argc, char *argv[]) {
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
               uncompr, uncomprLen);
+#  ifdef TEST_GZWRITE_STALL
+    test_gzwrite_stall();
+#  endif
 #endif
 
     test_deflate(compr, comprLen);
