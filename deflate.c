@@ -164,6 +164,21 @@ local const config configuration_table[10] = {
 #endif
 
 /* ===========================================================================
+ * While the string at strstart is searched for a match, deflate_fast() and
+ * deflate_slow() look up the hash table entry for the next position, and
+ * prefetch the window at the string it names. Then the next insertion and the
+ * first comparison of the next search find them in the cache. This is only a
+ * hint: nothing loaded here is used. It needs the byte at strstart +
+ * MIN_MATCH, so lookahead must be more than MIN_MATCH. PREFETCH_AT() takes
+ * the window, the hash table, and the hash for the next position.
+ */
+#if defined(__GNUC__) && !defined(FASTEST)
+#  define PREFETCH_AT(window, head, h) __builtin_prefetch((window) + (head)[h])
+#else
+#  define PREFETCH_AT(window, head, h) ((void)0)
+#endif
+
+/* ===========================================================================
  * Initialize the hash table (avoiding 64K overflow for 16 bit systems).
  * prev[] will be initialized on the fly.
  */
@@ -2027,6 +2042,9 @@ local block_state deflate_fast(deflate_state *s, int flush) {
         hash_head = NIL;
         if (lookahead >= MIN_MATCH) {
             FAST_INSERT(strstart, hash_head);
+            if (lookahead > MIN_MATCH)
+                PREFETCH_AT(window, head,
+                            FAST_HASH(ins_h, window[strstart + MIN_MATCH]));
         }
 
         /* Find the longest match, discarding those <= prev_length.
@@ -2171,6 +2189,9 @@ local block_state deflate_slow(deflate_state *s, int flush) {
         hash_head = NIL;
         if (lookahead >= MIN_MATCH) {
             SLOW_INSERT(strstart, hash_head);
+            if (lookahead > MIN_MATCH)
+                PREFETCH_AT(window, head,
+                            SLOW_HASH(ins_h, window[strstart + MIN_MATCH]));
         }
 
         /* Find the longest match, discarding those <= prev_length.
