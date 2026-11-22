@@ -101,6 +101,33 @@ local Z_U8 load64(z_const unsigned char FAR *p) {
            ((Z_U8)p[3] << 24) | ((Z_U8)p[4] << 32) | ((Z_U8)p[5] << 40) |
            ((Z_U8)p[6] << 48) | ((Z_U8)p[7] << 56);
 }
+
+/* A table entry in the 64-bit loop. Where Z_ENTRY32 is 1 (see inftrees.h),
+   it is read as one 32-bit load with the bit count in the low byte, so that
+   the bit buffer is shifted by the entry as it is. Otherwise the fields are
+   read through a pointer. */
+#if Z_ENTRY32
+typedef Z_U4 entry;
+local entry get_entry(code const FAR *here) {
+    entry e;
+    zmemcpy(&e, here, 4);
+    return e;
+}
+#  define ENTRY(here) get_entry(here)
+#  define E_BITS(e) ((e) & 0xff)
+#  define E_OP(e) (((e) >> 8) & 0xff)
+#  define E_VAL(e) ((e) >> 16)
+#else
+typedef code const FAR *entry;
+#  define ENTRY(here) (here)
+#  define E_BITS(e) ((e)->bits)
+#  define E_OP(e) ((e)->op)
+#  define E_VAL(e) ((e)->val)
+#endif
+#define TRACE_LIT8(e) \
+    Tracevv((stderr, E_VAL(e) >= 0x20 && E_VAL(e) < 0x7f ? \
+            "inflate:         literal '%c'\n" : \
+            "inflate:         literal 0x%02x\n", (unsigned)E_VAL(e)))
 #endif
 
 /* Copy len >= 1 bytes from dist bytes back in the output to out, and return
@@ -321,6 +348,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     unsigned char FAR *from;    /* where to copy match from */
 #if Z_INFLATE_FETCH == 64
     Z_U8 hold8;                 /* 64-bit bit buffer of the fast loop */
+    entry here8;                /* table entry of the fast loop */
     z_const unsigned char FAR *last8;   /* two refills fit after in */
     unsigned char FAR *end8;    /* room for two literals, a match, 15 more */
 #endif
@@ -377,58 +405,58 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
         in += (63 - bits) >> 3;
         bits |= 56;
         do {
-            here = lcode + (hold8 & lmask);
+            here8 = ENTRY(lcode + (hold8 & lmask));
             hold8 |= load64(in) << bits;
             in += (63 - bits) >> 3;
             bits |= 56;
-            if (here->op == 0) {        /* up to three literals a refill */
-                hold8 >>= here->bits;
-                bits -= here->bits;
-                TRACE_LITERAL(here);
-                *out++ = (unsigned char)(here->val);
-                here = lcode + (hold8 & lmask);
-                if (here->op == 0) {
-                    hold8 >>= here->bits;
-                    bits -= here->bits;
-                    TRACE_LITERAL(here);
-                    *out++ = (unsigned char)(here->val);
-                    here = lcode + (hold8 & lmask);
-                    if (here->op == 0) {
-                        hold8 >>= here->bits;
-                        bits -= here->bits;
-                        TRACE_LITERAL(here);
-                        *out++ = (unsigned char)(here->val);
+            if (E_OP(here8) == 0) {        /* up to three literals a refill */
+                hold8 >>= E_BITS(here8);
+                bits -= E_BITS(here8);
+                TRACE_LIT8(here8);
+                *out++ = (unsigned char)(E_VAL(here8));
+                here8 = ENTRY(lcode + (hold8 & lmask));
+                if (E_OP(here8) == 0) {
+                    hold8 >>= E_BITS(here8);
+                    bits -= E_BITS(here8);
+                    TRACE_LIT8(here8);
+                    *out++ = (unsigned char)(E_VAL(here8));
+                    here8 = ENTRY(lcode + (hold8 & lmask));
+                    if (E_OP(here8) == 0) {
+                        hold8 >>= E_BITS(here8);
+                        bits -= E_BITS(here8);
+                        TRACE_LIT8(here8);
+                        *out++ = (unsigned char)(E_VAL(here8));
                         continue;
                     }
                 }
             }
           dolen8:
-            op = (unsigned)(here->bits);
+            op = (unsigned)(E_BITS(here8));
             hold8 >>= op;
             bits -= op;
-            op = (unsigned)(here->op);
+            op = (unsigned)(E_OP(here8));
             if (op == 0) {                      /* literal */
-                TRACE_LITERAL(here);
-                *out++ = (unsigned char)(here->val);
+                TRACE_LIT8(here8);
+                *out++ = (unsigned char)(E_VAL(here8));
             }
             else if (op & 16) {                 /* length base */
-                len = (unsigned)(here->val);
+                len = (unsigned)(E_VAL(here8));
                 op &= 15;                       /* number of extra bits */
                 len += (unsigned)hold8 & ((1U << op) - 1);
                 hold8 >>= op;
                 bits -= op;
                 Tracevv((stderr, "inflate:         length %u\n", len));
-                here = dcode + (hold8 & dmask);
+                here8 = ENTRY(dcode + (hold8 & dmask));
                 hold8 |= load64(in) << bits;
                 in += (63 - bits) >> 3;
                 bits |= 56;
               dodist8:
-                op = (unsigned)(here->bits);
+                op = (unsigned)(E_BITS(here8));
                 hold8 >>= op;
                 bits -= op;
-                op = (unsigned)(here->op);
+                op = (unsigned)(E_OP(here8));
                 if (op & 16) {                  /* distance base */
-                    dist = (unsigned)(here->val);
+                    dist = (unsigned)(E_VAL(here8));
                     op &= 15;                   /* number of extra bits */
                     dist += (unsigned)hold8 & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
@@ -495,7 +523,8 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                         out = copy_back(out, dist, len);
                 }
                 else if ((op & 64) == 0) {      /* 2nd level distance code */
-                    here = dcode + here->val + (hold8 & ((1U << op) - 1));
+                    here8 = ENTRY(dcode + E_VAL(here8) +
+                                  (hold8 & ((1U << op) - 1)));
                     goto dodist8;
                 }
                 else {
@@ -505,7 +534,8 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                 }
             }
             else if ((op & 64) == 0) {          /* 2nd level length code */
-                here = lcode + here->val + (hold8 & ((1U << op) - 1));
+                here8 = ENTRY(lcode + E_VAL(here8) +
+                              (hold8 & ((1U << op) - 1)));
                 goto dolen8;
             }
             else if (op & 32) {                 /* end-of-block */
