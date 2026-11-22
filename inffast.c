@@ -149,6 +149,39 @@ local COPY_INLINE unsigned char FAR *copy_back(unsigned char FAR *out,
 #endif
         return stop;
     }
+#if defined(Z_U8) && !defined(Z_INFLATE_BYTES)
+    /* dist 2..7 on a little-endian machine: the dist bytes before out are
+       repeated in a register, and stored eight bytes at a time, advancing by
+       the largest multiple of dist up to eight, so that no store waits for a
+       load of what the store before wrote. The step, 8 - 8 % dist, is 8, 6,
+       8, 5, 6, or 7 for dist 2 to 7. It is taken from a constant, since with
+       the division, gcc -O3 builds decode 4% to 7% slower on x86-64. On 64-bit
+       ARM, the division is 1% to 4% faster (Apple M5, clang). Z_INFLATE_BYTES
+       uses the copy below instead, to test it for coverage. */
+    {
+        Z_U8 v = 1;
+
+        if (*(unsigned char *)&v) {
+#  if defined(__aarch64__) || defined(_M_ARM64)
+            unsigned step = 8 - 8 % dist;
+#  else
+            unsigned step = (0x76586800U >> (dist << 2)) & 15;
+#  endif
+
+            zmemcpy(&v, from, 8);
+            v &= ((Z_U8)1 << (dist << 3)) - 1;
+            v |= v << (dist << 3);
+            if (dist < 4)
+                v |= v << (dist << 4);
+            do {
+                zmemcpy(out, &v, 8);
+                zmemcpy(out + step, &v, 8);
+                out += step << 1;
+            } while (out < stop);
+            return stop;
+        }
+    }
+#endif
     /* dist 2..7: eight bytes per step, of which the first dist are right;
        the next step rewrites the rest. All eight are read before any are
        written, since they overlap. */
