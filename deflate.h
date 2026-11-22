@@ -354,24 +354,34 @@ void ZLIB_INTERNAL _tr_stored_block(deflate_state *s, charf *buf,
     flush = (s->sym_next == s->sym_end); \
   }
 #else
+/* sym_buf and sym_next are loaded once and sym_next is stored once, since
+ * otherwise each byte stored in sym_buf could change them as far as the
+ * compiler knows.
+ */
 # define _tr_tally_lit(s, c, flush) \
   { uch cc = (c); \
-    s->sym_buf[s->sym_next++] = 0; \
-    s->sym_buf[s->sym_next++] = 0; \
-    s->sym_buf[s->sym_next++] = cc; \
+    uchf *sb_ = s->sym_buf; \
+    uInt sn_ = s->sym_next; \
+    sb_[sn_] = 0; \
+    sb_[sn_ + 1] = 0; \
+    sb_[sn_ + 2] = cc; \
+    s->sym_next = sn_ += 3; \
     s->dyn_ltree[cc].Freq++; \
-    flush = (s->sym_next == s->sym_end); \
+    flush = (sn_ == s->sym_end); \
    }
 # define _tr_tally_dist(s, distance, length, flush) \
   { uch len = (uch)(length); \
     ush dist = (ush)(distance); \
-    s->sym_buf[s->sym_next++] = (uch)dist; \
-    s->sym_buf[s->sym_next++] = (uch)(dist >> 8); \
-    s->sym_buf[s->sym_next++] = len; \
+    uchf *sb_ = s->sym_buf; \
+    uInt sn_ = s->sym_next; \
+    sb_[sn_] = (uch)dist; \
+    sb_[sn_ + 1] = (uch)(dist >> 8); \
+    sb_[sn_ + 2] = len; \
+    s->sym_next = sn_ += 3; \
     dist--; \
     s->dyn_ltree[_length_code[len]+LITERALS+1].Freq++; \
     s->dyn_dtree[d_code(dist)].Freq++; \
-    flush = (s->sym_next == s->sym_end); \
+    flush = (sn_ == s->sym_end); \
   }
 #endif
 #else
