@@ -696,6 +696,9 @@ local void cover_fast64(void)
     try(longcodes, "long codes", 0);
     inf(win12, "fast window copies", 0, -12, 600, Z_OK);
     inf(win9, "fast window write index zero", 0, -9, 600, Z_OK);
+    inf("4b 4c 1a 85 c4 c2 64 4 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 28 "
+        "2c 2a 2e 29 2d 2b af a8 ac 2 0", "fast short window copy", 0, -15,
+        300, Z_OK);
     inf("4b 4c 4a 4e 49 4d 4b cf c8 cc ca ce c9 cd cb 2f 40 d8 91 98 94 9c 92 "
         "9a 96 9e 91 99 95 9d 93 9b 97 5f 50 58 54 5c 52 5a 56 5e 51 59 95 98 "
         "94 9c 92 9a 6 0",

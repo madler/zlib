@@ -58,6 +58,18 @@
             "inflate:         literal '%c'\n" : \
             "inflate:         literal 0x%02x\n", (here)->val))
 
+/* The copies below sit in the fast loops, once per match or window copy.
+   Compilers may keep them out of line, as GCC 14 does copy_back(), and a call
+   there costs more than a short copy, with the bit buffer saved and restored
+   around it. */
+#if defined(__GNUC__)
+#  define COPY_INLINE __inline__ __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#  define COPY_INLINE __forceinline
+#else
+#  define COPY_INLINE
+#endif
+
 #if Z_INFLATE_FETCH == 64
 /* A byte swap of a 64-bit word, where the compiler has one. */
 #if defined(__has_builtin)
@@ -94,8 +106,8 @@ local Z_U8 load64(z_const unsigned char FAR *p) {
 /* Copy len >= 1 bytes from dist bytes back in the output to out, and return
    out + len. It may write up to fifteen bytes after out + len, so the caller
    must have that room. */
-local unsigned char FAR *copy_back(unsigned char FAR *out, unsigned dist,
-                                   unsigned len) {
+local COPY_INLINE unsigned char FAR *copy_back(unsigned char FAR *out,
+                                               unsigned dist, unsigned len) {
     unsigned char FAR *from = out - dist;
     unsigned char FAR *stop = out + len;
 
@@ -155,6 +167,39 @@ local unsigned char FAR *copy_back(unsigned char FAR *out, unsigned dist,
         out += dist;
         from += dist;
     } while (out < stop);
+    return stop;
+}
+
+/* Copy len bytes from the window at from to out, which does not overlap it,
+   and return out + len. Unlike copy_back(), it reads and writes nothing
+   outside the len bytes, as the window may end right after them: sixteen
+   bytes a step, the last step ending at len, and two overlapping steps of
+   eight or four below sixteen. */
+local COPY_INLINE unsigned char FAR *copy_window(unsigned char FAR *out,
+                                                 const unsigned char FAR *from,
+                                                 unsigned len) {
+    unsigned char FAR *stop = out + len;
+
+    if (len >= 16) {
+        while (len > 16) {
+            zmemcpy(out, from, 16);
+            out += 16;
+            from += 16;
+            len -= 16;
+        }
+        zmemcpy(stop - 16, from + len - 16, 16);
+    }
+    else if (len >= 8) {
+        zmemcpy(out, from, 8);
+        zmemcpy(stop - 8, from + len - 8, 8);
+    }
+    else if (len >= 4) {
+        zmemcpy(out, from, 4);
+        zmemcpy(stop - 4, from + len - 4, 4);
+    }
+    else
+        while (len--)
+            *out++ = *from++;
     return stop;
 }
 #endif
@@ -398,8 +443,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                             from += wsize + wnext - op;
                             op -= wnext;
                             if (op < len) {     /* end of window, then start */
-                                zmemcpy(out, from, op);
-                                out += op;
+                                out = copy_window(out, from, op);
                                 len -= op;
                                 from = window;
                                 op = wnext;
@@ -409,8 +453,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                             from += wnext - op;
                         if (op > len)
                             op = len;
-                        zmemcpy(out, from, op); /* from the window */
-                        out += op;
+                        out = copy_window(out, from, op);   /* window */
                         len -= op;
                         if (len)                /* rest from output */
                             out = copy_back(out, dist, len);
@@ -565,8 +608,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                             from += wsize + wnext - op;
                             op -= wnext;
                             if (op < len) {     /* end of window, then start */
-                                zmemcpy(out, from, op);
-                                out += op;
+                                out = copy_window(out, from, op);
                                 len -= op;
                                 from = window;
                                 op = wnext;
@@ -576,8 +618,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                             from += wnext - op;
                         if (op > len)
                             op = len;
-                        zmemcpy(out, from, op); /* from the window */
-                        out += op;
+                        out = copy_window(out, from, op);   /* window */
                         len -= op;
                         if (len)                /* rest from output */
                             out = copy_back(out, dist, len);
