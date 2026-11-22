@@ -662,8 +662,8 @@ local void cover_fast(void)
         Z_STREAM_END);
 }
 
-/* cover the fast loop of inffast.c, which needs sixteen bytes of input and
-   room for 265 bytes of output: second-level codes with 10- and 8-bit root
+/* cover the fast loop of inffast.c, which needs 24 bytes of input and room
+   for 275 bytes of output: second-level codes with 10- and 8-bit root
    tables, literal runs, copies at distances 1, 2..7 and 8 or more, window
    copies (wrapped, contiguous, and with the write index at zero), and its
    errors */

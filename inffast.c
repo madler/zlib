@@ -283,17 +283,26 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
        bytes, the first advancing in by up to seven) and the output has room
        for the longest match plus 17 bytes (one iteration can write two
        literals and then a match, and copy_back() may write 15 bytes past the
-       match). Each length/literal code starts with at least 56 bits in hold8,
-       enough for a length/distance pair (at most 48 bits). */
-    if (!back && strm->avail_in >= 16 && strm->avail_out >= 2 + 258 + 15) {
+       match). Each table lookup comes before the refill that follows it, so
+       that the lookup's load does not wait for the refill's load and shift.
+       A length/literal code is looked up in the bits left from before, at
+       least 21, enough for a root table index, and is then decoded from at
+       least 56. The distance code is looked up in at least 16 bits, and then
+       decoded with its extra bits (at most 28) from at least 56. One refill
+       before the loop gives the first lookup its bits, so the loop is entered
+       with 24 bytes available instead of 16. */
+    if (!back && strm->avail_in >= 24 && strm->avail_out >= 2 + 258 + 15) {
         last8 = in + (strm->avail_in - 16);
         end8 = out + (strm->avail_out - (2 + 258 + 15));
         hold8 = hold;
+        hold8 |= load64(in) << bits;
+        in += (63 - bits) >> 3;
+        bits |= 56;
         do {
+            here = lcode + (hold8 & lmask);
             hold8 |= load64(in) << bits;
             in += (63 - bits) >> 3;
             bits |= 56;
-            here = lcode + (hold8 & lmask);
             if (here->op == 0) {        /* up to three literals a refill */
                 hold8 >>= here->bits;
                 bits -= here->bits;
@@ -314,9 +323,6 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                         continue;
                     }
                 }
-                hold8 |= load64(in) << bits;    /* 56 bits for a pair */
-                in += (63 - bits) >> 3;
-                bits |= 56;
             }
           dolen8:
             op = (unsigned)(here->bits);
@@ -335,6 +341,9 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                 bits -= op;
                 Tracevv((stderr, "inflate:         length %u\n", len));
                 here = dcode + (hold8 & dmask);
+                hold8 |= load64(in) << bits;
+                in += (63 - bits) >> 3;
+                bits |= 56;
               dodist8:
                 op = (unsigned)(here->bits);
                 hold8 >>= op;
