@@ -178,33 +178,37 @@ local const config configuration_table[10] = {
  * Slide the hash table when sliding the window down (could be avoided with 32
  * bit values at the expense of memory usage). We slide even when level == 0 to
  * keep the hash table consistent if we switch back to level > 0 later.
+ *
+ * slide_table() subtracts wsize from the n entries at p, or sets them to NIL
+ * if less than wsize. n is a multiple of eight, since hash_size and w_size are
+ * powers of two no less than 256. The eight independent updates per step let
+ * compilers use vector instructions (a saturating 16-bit subtraction). In
+ * prev[], an entry not on any hash chain is garbage, but its value will never
+ * be used.
  */
 #if defined(__has_feature)
 #  if __has_feature(memory_sanitizer)
      __attribute__((no_sanitize("memory")))
 #  endif
 #endif
-local void slide_hash(deflate_state *s) {
-    unsigned n, m;
-    Posf *p;
-    uInt wsize = s->w_size;
+local void slide_table(Posf *p, unsigned n, unsigned wsize) {
+    Pos w = (Pos)wsize;
+    int i;
 
-    n = s->hash_size;
-    p = &s->head[n];
     do {
-        m = *--p;
-        *p = (Pos)(m >= wsize ? m - wsize : NIL);
-    } while (--n);
+        for (i = 0; i < 8; i++) {
+            Pos m = p[i];
+            p[i] = (Pos)(m >= w ? m - w : NIL);
+        }
+        p += 8;
+        n -= 8;
+    } while (n);
+}
+
+local void slide_hash(deflate_state *s) {
+    slide_table(s->head, s->hash_size, s->w_size);
 #ifndef FASTEST
-    n = wsize;
-    p = &s->prev[n];
-    do {
-        m = *--p;
-        *p = (Pos)(m >= wsize ? m - wsize : NIL);
-        /* If n is not on any hash chain, prev[n] is garbage but
-         * its value will never be used.
-         */
-    } while (--n);
+    slide_table(s->prev, s->w_size, s->w_size);
 #endif
     s->slid = 1;
 }
