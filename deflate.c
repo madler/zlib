@@ -1406,6 +1406,61 @@ int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
 }
 
 #ifndef FASTEST
+/* Where the machine has 64-bit registers and fast unaligned loads (Z_REG64
+   and Z_UNALIGNED_FAST in zutil.h), longest_match() compares two bytes at a
+   time to reject candidates, and eight bytes at a time to find the length of
+   a match. Otherwise it compares a byte at a time. MATCH_WORDS is not set
+   when UNALIGNED_OK is defined, which has its own two-byte comparisons. */
+#if defined(Z_REG64) && defined(Z_UNALIGNED_FAST) && !defined(UNALIGNED_OK)
+#  define MATCH_WORDS
+#endif
+
+#ifdef MATCH_WORDS
+#  if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+#    include <intrin.h>
+#  endif
+/* Return the two bytes at p as an unsigned short, in memory order. */
+local unsigned short load16(const Bytef *p) {
+    unsigned short v;
+
+    zmemcpy(&v, p, 2);
+    return v;
+}
+
+/* Return the number of leading bytes on which a and b agree, at most
+   MAX_MATCH - 2, comparing eight bytes at a time. The first difference in a
+   word is found from the exclusive-or of the two words, counting zero bits
+   from the end that holds the first byte in memory. */
+local unsigned count_match(const Bytef *a, const Bytef *b) {
+    unsigned n = 0;
+    Z_U8 x, y;
+
+    do {
+        zmemcpy(&x, a + n, 8);
+        zmemcpy(&y, b + n, 8);
+        if (x != y) {
+#  if defined(__GNUC__) && defined(__BYTE_ORDER__) && \
+      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+            return n + ((unsigned)__builtin_ctzll(x ^ y) >> 3);
+#  elif defined(__GNUC__) && defined(__BYTE_ORDER__) && \
+        __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            return n + ((unsigned)__builtin_clzll(x ^ y) >> 3);
+#  elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+            unsigned long i;
+            _BitScanForward64(&i, x ^ y);
+            return n + (unsigned)(i >> 3);
+#  else
+            while (a[n] == b[n])
+                n++;
+            return n;
+#  endif
+        }
+        n += 8;
+    } while (n < MAX_MATCH - 2);
+    return n;
+}
+#endif
+
 /* ===========================================================================
  * Set match_start to the longest match starting at the given string and
  * return its length. Matches shorter or equal to prev_length are discarded,
@@ -1438,9 +1493,14 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
     ush scan_start = *(ushf*)scan;
     ush scan_end   = *(ushf*)(scan + best_len - 1);
 #else
+#  ifdef MATCH_WORDS
+    unsigned short scan_start = load16(scan);
+    unsigned short scan_end = load16(scan + best_len - 1);
+#  else
     Bytef *strend = s->window + s->strstart + MAX_MATCH;
     Byte scan_end1  = scan[best_len - 1];
     Byte scan_end   = scan[best_len];
+#  endif
 #endif
 
     /* The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
@@ -1508,6 +1568,16 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
 
 #else /* UNALIGNED_OK */
 
+#  ifdef MATCH_WORDS
+        /* Check bytes best_len - 1 and best_len, and 0 and 1, two at a time.
+         * Then count the matching bytes from strstart + 2 up to strstart +
+         * 257, eight at a time. That reads no further than the byte-wise
+         * comparison below, and finds the same length.
+         */
+        if (load16(match + best_len - 1) != scan_end ||
+            load16(match) != scan_start) continue;
+        len = 2 + (int)count_match(scan + 2, match + 2);
+#  else
         if (match[best_len]     != scan_end  ||
             match[best_len - 1] != scan_end1 ||
             *match              != *scan     ||
@@ -1537,6 +1607,7 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
 
         len = MAX_MATCH - (int)(strend - scan);
         scan = strend - MAX_MATCH;
+#  endif
 
 #endif /* UNALIGNED_OK */
 
@@ -1546,6 +1617,8 @@ local uInt longest_match(deflate_state *s, IPos cur_match) {
             if (len >= nice_match) break;
 #ifdef UNALIGNED_OK
             scan_end = *(ushf*)(scan + best_len - 1);
+#elif defined(MATCH_WORDS)
+            scan_end = load16(scan + best_len - 1);
 #else
             scan_end1  = scan[best_len - 1];
             scan_end   = scan[best_len];
