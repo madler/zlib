@@ -74,8 +74,10 @@ local void gz_reset(gz_statep state) {
         state->how = LOOK;          /* look for gzip header */
         state->junk = -1;           /* mark first member */
     }
-    else                            /* for writing ... */
+    else {                          /* for writing ... */
         state->reset = 0;           /* no deflateReset pending */
+        state->finish = 0;          /* no Z_FINISH cut short */
+    }
     state->again = 0;               /* no stalled i/o yet */
     state->skip = 0;                /* no seek request pending */
     gz_error(state, Z_OK, NULL);    /* clear error */

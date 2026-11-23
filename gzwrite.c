@@ -90,6 +90,21 @@ local int gz_comp(gz_statep state, int flush) {
         return 0;
     }
 
+    /* if a write error cut a Z_FINISH short, then complete that gzip stream
+       before deflate() gets new input or a different flush */
+    if (state->finish) {
+        state->finish = 0;
+        if (strm->avail_in || flush != Z_FINISH) {
+            unsigned avail = strm->avail_in;
+
+            strm->avail_in = 0;
+            ret = gz_comp(state, Z_FINISH);
+            strm->avail_in = avail;
+            if (ret == -1)
+                return -1;
+        }
+    }
+
     /* check for a pending reset */
     if (state->reset) {
         /* don't start a new gzip member unless there is data to write and
@@ -118,6 +133,8 @@ local int gz_comp(gz_statep state, int flush) {
                         state->again = 1;
                     if (flush == Z_FINISH && ret == Z_STREAM_END)
                         state->reset = 1;
+                    else if (flush == Z_FINISH)
+                        state->finish = 1;
                     gz_error(state, Z_ERRNO, zstrerror());
                     return -1;
                 }
