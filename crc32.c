@@ -302,7 +302,8 @@
       strings. Define ARMPMULL_RT to check at run time if the instruction is
       available. The builder can define Z_NO_ARMPMULL to prevent the use of the
       instruction even if present. */
-#  if defined(ARMCRC32) && ARMCRC32_WORD == 8 && !defined(Z_NO_ARMPMULL)
+#  if defined(ARMCRC32) && ARMCRC32_WORD == 8 && !defined(Z_NO_ARMPMULL) && \
+      !defined(Z_NO_ARMCRC32_BATCH)
 #    if defined(__ARM_FEATURE_AES) || defined(__ARM_FEATURE_CRYPTO)
 #      define ARMPMULL
 #    elif defined(ARMCRC32_CAN_ASK)
@@ -313,8 +314,9 @@
 #  if defined(ARMCRC32_RT) || defined(ARMPMULL_RT)
 #    define ARMCRC32_ASK                /* ask the operating system */
 #  endif
-#  if defined(ARMCRC32) && (!defined(ARMPMULL) || defined(ARMPMULL_RT) || \
-                            defined(Z_TEST_ARMPMULL_ABSENT))
+#  if defined(ARMCRC32) && !defined(Z_NO_ARMCRC32_BATCH) && \
+      (!defined(ARMPMULL) || defined(ARMPMULL_RT) || \
+       defined(Z_TEST_ARMPMULL_ABSENT))
 #    define ARMCRC32_SOFT               /* the software multiply is used */
 #  endif
 #endif
@@ -348,7 +350,7 @@ local z_word_t byte_swap(z_word_t word) {
 }
 #endif
 
-#if defined(ARMCRC32) || defined(MAKECRCH)
+#if (defined(ARMCRC32) && !defined(Z_NO_ARMCRC32_BATCH)) || defined(MAKECRCH)
 /*
   batch[] is the count of bytes to process in each of the three interleaved
   streams. Stepping down through these counts provides the benefits of
@@ -1009,8 +1011,15 @@ typedef Z_U4 arm_word_t;
   that group. The other two CRCs are of those groups in isolation. Those two
   are combined with the first CRC by multiplying them by the appropriate x^n
   modulo the CRC polynomial, and then exclusive-oring the three together.
- */
 
+  If Z_NO_ARMCRC32_BATCH is defined, then the interleaving is skipped, and the
+  CRC is calculated a word at a time. Some ARM processors pipeline that to one
+  cycle per CRC instruction, so nothing is gained by the interleaving, and in
+  fact a little bit is lost due to the interleaving overhead. This is the case
+  for the Cortex-A76 and Cortex-A720 for example. The builder can measure this
+  on their processor and compiler and elect to define it if its faster.
+ */
+#ifndef Z_NO_ARMCRC32_BATCH
 #ifdef ARMCRC32_SOFT
 /* Return the carry-less product of c and and the value represented by the
    table t from batch_t[]. The table speeds up the multiplication by doing
@@ -1079,6 +1088,7 @@ local int arm_pmull(void) {
 #endif
 }
 #endif
+#endif /* !Z_NO_ARMCRC32_BATCH */
 
 /* Return the CRC-32 of len bytes at buf using ARM hardware instructions. */
 local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
@@ -1087,12 +1097,15 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
     int pm;
 #endif
     uLong val;
+#ifndef Z_NO_ARMCRC32_BATCH
     uLong crc1, crc2;
+    z_size_t n;
+    unsigned k;
+#endif
     const arm_word_t *word;
     arm_word_t val0, val1, val2;
-    z_size_t n, i;
+    z_size_t i;
     z_size_t num;
-    unsigned k;
 
     /* Return initial CRC, if requested. */
     if (buf == Z_NULL) return 0;
@@ -1116,6 +1129,7 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
     num = len / ARMCRC32_WORD;
     len &= ARMCRC32_WORD - 1;
 
+#ifndef Z_NO_ARMCRC32_BATCH
     /* Do batches of three interleaved CRCs, from the largest size down. */
     if (num >= 3 * (batch[BATCHES - 1] / ARMCRC32_WORD)) {
 #ifdef ARMPMULL
@@ -1149,6 +1163,7 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
             }
         }
     }
+#endif
 
     /* Compute the CRC on any remaining words, four at a time, and then one at
        a time. The four-at-a-time loop reduces the loop overhead and avoids
