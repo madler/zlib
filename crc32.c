@@ -297,8 +297,25 @@
 #    define ARMCRC32                    /* hardware and software code, ask */
 #    define ARMCRC32_RT                 /* the operating system at run time */
 #  endif
-#  ifdef ARMCRC32_RT
+   /* Define ARMPMULL to use the PMULL 64-bit carry-less multiply instruction,
+      along with the CRC32 instruction, to combine the CRCs of interleaved
+      strings. Define ARMPMULL_RT to check at run time if the instruction is
+      available. The builder can define Z_NO_ARMPMULL to prevent the use of the
+      instruction even if present. */
+#  if defined(ARMCRC32) && ARMCRC32_WORD == 8 && !defined(Z_NO_ARMPMULL)
+#    if defined(__ARM_FEATURE_AES) || defined(__ARM_FEATURE_CRYPTO)
+#      define ARMPMULL
+#    elif defined(ARMCRC32_CAN_ASK)
+#      define ARMPMULL
+#      define ARMPMULL_RT
+#    endif
+#  endif
+#  if defined(ARMCRC32_RT) || defined(ARMPMULL_RT)
 #    define ARMCRC32_ASK                /* ask the operating system */
+#  endif
+#  if defined(ARMCRC32) && (!defined(ARMPMULL) || defined(ARMPMULL_RT) || \
+                            defined(Z_TEST_ARMPMULL_ABSENT))
+#    define ARMCRC32_SOFT               /* the software multiply is used */
 #  endif
 #endif
 
@@ -353,8 +370,11 @@ local const unsigned batch[] = {32592, 16208, 8016, 3920, 2000, 976, 464};
  * CRCs of the ARM batches, filled in by make_crc_table() below.
  */
    local z_crc_t FAR x2n_table[32];
-#  if defined(ARMCRC32) || defined(MAKECRCH)
+#  if defined(ARMCRC32_SOFT) || defined(MAKECRCH)
    local Z_U8 FAR batch_t[BATCHES][2][16];
+#  endif
+#  if defined(ARMPMULL) || defined(MAKECRCH)
+   local z_crc_t FAR batch_k[BATCHES][2];
 #  endif
 #else
 /* =========================================================================
@@ -428,7 +448,7 @@ local z_crc_t FAR crc_table[256];
    local void write_table64(FILE *, const z_word_t FAR *, int);
 #endif /* MAKECRCH */
 
-#if defined(ARMCRC32) || defined(MAKECRCH)
+#if defined(ARMCRC32_SOFT) || defined(MAKECRCH)
 /* Set t[0..15] to the carry-less products of 0..15 and k. t is a table entry
    in batch_t[] that represents the multiplier k. It is used in place of k to
    speed up the multiplication. */
@@ -493,13 +513,19 @@ local void make_crc_table(void) {
     for (n = 1; n < 32; n++)
         x2n_table[n] = p = (z_crc_t)multmodp(p, p);
 
-#if defined(ARMCRC32) || defined(MAKECRCH)
+#if defined(ARMCRC32_SOFT) || defined(ARMPMULL) || defined(MAKECRCH)
     /* initialize the tables for combining the CRCs of the ARM batches */
     for (n = 0; n < BATCHES; n++) {
         z_crc_t k1 = (z_crc_t)x2nmodp(((z_off64_t)batch[n] << 3) - 33, 0);
         z_crc_t k2 = (z_crc_t)x2nmodp(((z_off64_t)batch[n] << 4) - 33, 0);
+#  if defined(ARMPMULL) || defined(MAKECRCH)
+        batch_k[n][0] = k1;
+        batch_k[n][1] = k2;
+#  endif
+#  if defined(ARMCRC32_SOFT) || defined(MAKECRCH)
         batch_products(batch_t[n][0], k1);
         batch_products(batch_t[n][1], k2);
+#  endif
     }
 #endif
 
@@ -645,7 +671,7 @@ local void make_crc_table(void) {
         /* write out the tables for combining the CRCs of the ARM batches */
         fprintf(out,
             "\n"
-            "#ifdef ARMCRC32\n"
+            "#ifdef ARMCRC32_SOFT\n"
             "\n"
             "local const Z_U8 FAR batch_t[][2][16] = {\n");
         for (n = 0; n < (int)BATCHES; n++) {
@@ -655,6 +681,19 @@ local void make_crc_table(void) {
             write_table64(out, batch_t[n][1], 16);
             fprintf(out, "}}%s", n < (int)BATCHES - 1 ? ",\n" : "");
         }
+        fprintf(out,
+            "};\n"
+            "\n"
+            "#endif\n");
+        fprintf(out,
+            "\n"
+            "#ifdef ARMPMULL\n"
+            "\n"
+            "local const z_crc_t FAR batch_k[][2] = {\n");
+        for (n = 0; n < (int)BATCHES; n++)
+            fprintf(out, "    {0x%08lx, 0x%08lx}%s",
+                    (unsigned long)batch_k[n][0], (unsigned long)batch_k[n][1],
+                    n < (int)BATCHES - 1 ? ",\n" : "\n");
         fprintf(out,
             "};\n"
             "\n"
@@ -815,10 +854,14 @@ local int arm_probe(int want) {
         caps |= ARM_HAVE_PMULL;
     (void)want;
 #elif defined(ARMCRC32_SYSCTL)
+#  ifdef ARMCRC32_RT
     if ((want & ARM_HAVE_CRC32) && arm_sysctl("hw.optional.armv8_crc32"))
         caps |= ARM_HAVE_CRC32;
+#  endif
+#  ifdef ARMPMULL_RT
     if ((want & ARM_HAVE_PMULL) && arm_sysctl("hw.optional.arm.FEAT_PMULL"))
         caps |= ARM_HAVE_PMULL;
+#  endif
 #else
     if ((want & ARM_HAVE_CRC32) &&
         IsProcessorFeaturePresent(PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE))
@@ -908,12 +951,28 @@ local inline int arm_caps(int want) {
 #else
 #  define ARMCRC32_ATTR __attribute__((target("arch=armv8-a+crc")))
 #endif
+#ifdef ARMPMULL
+#  if !defined(ARMCRC32_RT) && !defined(ARMPMULL_RT)
+#    define ARMPMULL_ATTR
+#  elif defined(Z_ARMPMULL_TARGET)
+#    define ARMPMULL_ATTR __attribute__((target(Z_ARMPMULL_TARGET)))
+#  elif defined(_MSC_VER) && !defined(__clang__)
+#    define ARMPMULL_ATTR
+#  elif defined(__clang__)
+#    define ARMPMULL_ATTR __attribute__((target("crc,crypto")))
+#  else
+#    define ARMPMULL_ATTR __attribute__((target("+crc+crypto")))
+#  endif
+#endif
 
 /* Define CRC32W() to operate on a word and CRC32B() to operate on a byte. */
 #if ARMCRC32_WORD == 8
 typedef Z_U8 arm_word_t;
 #  if defined(_MSC_VER) && !defined(__clang__)
 #    include <intrin.h>
+#    ifdef ARMPMULL
+#      include <arm64_neon.h>
+#    endif
 #    define CRC32B(c, b) (c = __crc32b((unsigned)(c), (unsigned char)(b)))
 #    define CRC32W(c, w) (c = __crc32d((unsigned)(c), w))
 #  else
@@ -952,6 +1011,7 @@ typedef Z_U4 arm_word_t;
   modulo the CRC polynomial, and then exclusive-oring the three together.
  */
 
+#ifdef ARMCRC32_SOFT
 /* Return the carry-less product of c and and the value represented by the
    table t from batch_t[]. The table speeds up the multiplication by doing
    four bits of c at a time. */
@@ -978,10 +1038,54 @@ local ARMCRC32_ATTR uLong batch_soft(uLong crc, uLong crc1, uLong crc2,
     CRC32_REDUCE(c, p);
     return c ^ crc2;
 }
+#endif
+
+#ifdef ARMPMULL
+local ARMPMULL_ATTR uLong batch_pmull(uLong crc, uLong crc1, uLong crc2,
+                                      unsigned k) {
+    Z_U8 p;
+    uLong c;
+#if defined(_MSC_VER) && !defined(__clang__)
+    __n64 a0, a1, b0, b1;
+
+    a0.n64_u64[0] = crc;
+    b0.n64_u64[0] = batch_k[k][1];
+    a1.n64_u64[0] = crc1;
+    b1.n64_u64[0] = batch_k[k][0];
+    p = vmull_p64(a0, b0).n128_u64[0] ^ vmull_p64(a1, b1).n128_u64[0];
+#else
+    Z_U8 a, b;
+
+    __asm__("pmull %0.1q, %1.1d, %2.1d" : "=w"(a)
+            : "w"((Z_U8)crc), "w"((Z_U8)batch_k[k][1]));
+    __asm__("pmull %0.1q, %1.1d, %2.1d" : "=w"(b)
+            : "w"((Z_U8)crc1), "w"((Z_U8)batch_k[k][0]));
+    p = a ^ b;
+#endif
+    CRC32_REDUCE(c, p);
+    return c ^ crc2;
+}
+#endif
+
+#ifdef ARMPMULL
+/* Return true to use the ARM carry-less multiply instruction. */
+local int arm_pmull(void) {
+#if defined(Z_TEST_ARMPMULL_ABSENT)
+    return 0;
+#elif !defined(ARMPMULL_RT)
+    return 1;
+#else
+    return (arm_caps(ARM_HAVE_PMULL) & ARM_HAVE_PMULL) != 0;
+#endif
+}
+#endif
 
 /* Return the CRC-32 of len bytes at buf using ARM hardware instructions. */
 local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
                                     z_size_t len) {
+#ifdef ARMPMULL
+    int pm;
+#endif
     uLong val;
     uLong crc1, crc2;
     const arm_word_t *word;
@@ -1014,6 +1118,9 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
 
     /* Do batches of three interleaved CRCs, from the largest size down. */
     if (num >= 3 * (batch[BATCHES - 1] / ARMCRC32_WORD)) {
+#ifdef ARMPMULL
+        pm = arm_pmull();
+#endif
         for (k = 0; k < BATCHES; k++) {
             n = batch[k] / ARMCRC32_WORD;
             while (num >= 3 * n) {
@@ -1029,7 +1136,16 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
                 }
                 word += 3 * n;
                 num -= 3 * n;
+#ifdef ARMPMULL
+                if (pm)
+                    crc = batch_pmull(crc, crc1, crc2, k);
+#  ifdef ARMCRC32_SOFT
+                else
+                    crc = batch_soft(crc, crc1, crc2, k);
+#  endif
+#else
                 crc = batch_soft(crc, crc1, crc2, k);
+#endif
             }
         }
     }

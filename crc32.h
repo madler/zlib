@@ -9445,7 +9445,7 @@ local const z_crc_t FAR x2n_table[] = {
     0x2e4e5eef, 0x4eaba214, 0xa8a472c0, 0x429a969e, 0x148d302a,
     0xc40ba6d0, 0xc4e22c3c};
 
-#ifdef ARMCRC32
+#ifdef ARMCRC32_SOFT
 
 local const Z_U8 FAR batch_t[][2][16] = {
    {{0x0000000000000000, 0x000000001ec34ef1, 0x000000003d869de2,
@@ -9532,5 +9532,19 @@ local const Z_U8 FAR batch_t[][2][16] = {
     0x000000048c01565b, 0x000000050eda4a9e, 0x000000058f6cbedd,
     0x000000060b6c7314, 0x000000068ada8757, 0x0000000708019b92,
     0x0000000789b76fd1}}};
+
+#endif
+
+#ifdef ARMPMULL
+
+local const z_crc_t FAR batch_k[][2] = {
+    {0x1ec34ef1, 0xb80a6da9},
+    {0x1bee170a, 0x167fe3c0},
+    {0xe82fcd6b, 0x6a88ed69},
+    {0x30050de5, 0x3896e336},
+    {0xca6a5e14, 0xe074d17f},
+    {0x357b9517, 0xaaa18a37},
+    {0x6d40f445, 0x81b6f443}
+};
 
 #endif
