@@ -1007,8 +1007,21 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
         }
     }
 
-    /* Compute the CRC on any remaining words. */
-    for (i = 0; i < num; i++) {
+    /* Compute the CRC on any remaining words, four at a time, and then one at
+       a time. The four-at-a-time loop reduces the loop overhead and avoids
+       a code alignment issue observed on one processor that would randomly
+       halve the speed of the single-word loop. */
+    for (i = 3; i < num; i += 4) {
+        val0 = word[i - 3];
+        val1 = word[i - 2];
+        val2 = word[i - 1];
+        CRC32W(crc, val0);
+        CRC32W(crc, val1);
+        CRC32W(crc, val2);
+        val0 = word[i];
+        CRC32W(crc, val0);
+    }
+    for (i -= 3; i < num; i++) {
         val0 = word[i];
         CRC32W(crc, val0);
     }
