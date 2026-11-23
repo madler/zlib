@@ -36,7 +36,7 @@
 #  include "contrib/crc32vx/crc32_vx_hooks.h"
 #endif
 
- /*
+/*
   A CRC of a message is computed on N braids of words in the message, where
   each word consists of W bytes (4 or 8). If N is 3, for example, then three
   running sparse CRCs are calculated respectively on each braid, at these
@@ -331,16 +331,36 @@ local z_word_t byte_swap(z_word_t word) {
 }
 #endif
 
+#if defined(ARMCRC32) || defined(MAKECRCH)
+/*
+  batch[] is the count of bytes to process in each of the three interleaved
+  streams. Stepping down through these counts provides the benefits of
+  interleaving across whatever length is provided, while avoiding on-the-fly
+  calculations of multipliers. Instead, constant multipliers in batch_t[] are
+  used, which correspond to the fixed counts. The batch[] counts are each a bit
+  less than a power of two, so as to spread out the use of new cache lines,
+  with the amounts less (172 and 48) determined empirically on a Cortex-A72.
+  The batch_t[] multipliers are calculated from these batch lengths. If these
+  counts are changed, then MAKECRCH must be run to rebuild crc32.h.
+ */
+local const unsigned batch[] = {32592, 16208, 8016, 3920, 2000, 976, 464};
+#  define BATCHES (sizeof(batch) / sizeof(batch[0]))
+#endif
+
 #ifdef DYNAMIC_CRC_TABLE
 /* =========================================================================
- * Table of powers of x for combining CRC-32s, filled in by make_crc_table()
- * below.
+ * Table of powers of x for combining CRC-32s, and tables for combining the
+ * CRCs of the ARM batches, filled in by make_crc_table() below.
  */
    local z_crc_t FAR x2n_table[32];
+#  if defined(ARMCRC32) || defined(MAKECRCH)
+   local Z_U8 FAR batch_t[BATCHES][2][16];
+#  endif
 #else
 /* =========================================================================
- * Tables for byte-wise and braided CRC-32 calculations, and a table of powers
- * of x for combining CRC-32s, all made by make_crc_table().
+ * Tables for byte-wise and braided CRC-32 calculations, a table of powers of x
+ * for combining CRC-32s, and tables for combining the CRCs of the ARM batches,
+ * all made by make_crc_table().
  */
 #  include "crc32.h"
 #endif
@@ -408,6 +428,22 @@ local z_crc_t FAR crc_table[256];
    local void write_table64(FILE *, const z_word_t FAR *, int);
 #endif /* MAKECRCH */
 
+#if defined(ARMCRC32) || defined(MAKECRCH)
+/* Set t[0..15] to the carry-less products of 0..15 and k. t is a table entry
+   in batch_t[] that represents the multiplier k. It is used in place of k to
+   speed up the multiplication. */
+local void batch_products(Z_U8 FAR *t, z_crc_t k) {
+    unsigned i, j;
+
+    for (i = 0; i < 16; i++) {
+        t[i] = 0;
+        for (j = 0; j < 4; j++)
+            if ((i >> j) & 1)
+                t[i] ^= (Z_U8)k << j;
+    }
+}
+#endif
+
 /* State for once(). */
 local z_once_t made = Z_ONCE_INIT;
 
@@ -456,6 +492,16 @@ local void make_crc_table(void) {
     x2n_table[0] = p;
     for (n = 1; n < 32; n++)
         x2n_table[n] = p = (z_crc_t)multmodp(p, p);
+
+#if defined(ARMCRC32) || defined(MAKECRCH)
+    /* initialize the tables for combining the CRCs of the ARM batches */
+    for (n = 0; n < BATCHES; n++) {
+        z_crc_t k1 = (z_crc_t)x2nmodp(((z_off64_t)batch[n] << 3) - 33, 0);
+        z_crc_t k2 = (z_crc_t)x2nmodp(((z_off64_t)batch[n] << 4) - 33, 0);
+        batch_products(batch_t[n][0], k1);
+        batch_products(batch_t[n][1], k2);
+    }
+#endif
 
 #ifdef W
     /* initialize the braiding tables -- needs x2n_table[] */
@@ -595,6 +641,24 @@ local void make_crc_table(void) {
         write_table(out, x2n_table, 32);
         fprintf(out,
             "};\n");
+
+        /* write out the tables for combining the CRCs of the ARM batches */
+        fprintf(out,
+            "\n"
+            "#ifdef ARMCRC32\n"
+            "\n"
+            "local const Z_U8 FAR batch_t[][2][16] = {\n");
+        for (n = 0; n < (int)BATCHES; n++) {
+            fprintf(out, "   {{");
+            write_table64(out, batch_t[n][0], 16);
+            fprintf(out, "},\n    {");
+            write_table64(out, batch_t[n][1], 16);
+            fprintf(out, "}}%s", n < (int)BATCHES - 1 ? ",\n" : "");
+        }
+        fprintf(out,
+            "};\n"
+            "\n"
+            "#endif\n");
         fclose(out);
     }
 #endif /* MAKECRCH */
@@ -818,9 +882,7 @@ local inline int arm_caps(void) {
 #  define ARMCRC32_ATTR __attribute__((target("arch=armv8-a+crc")))
 #endif
 
-/* Define CRC32W() to operate on a word and CRC32B() to operate on a byte.
-   Also define ARMCRC32_LOG, the log2 of the number of bits in a word for use
-   by x2nmodp() */
+/* Define CRC32W() to operate on a word and CRC32B() to operate on a byte. */
 #if ARMCRC32_WORD == 8
 typedef Z_U8 arm_word_t;
 #  if defined(_MSC_VER) && !defined(__clang__)
@@ -833,32 +895,73 @@ typedef Z_U8 arm_word_t;
 #    define CRC32W(c, w) \
         __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(c) : "r"(w))
 #  endif
-#  define ARMCRC32_LOG 6
+   /* set c to p times x^32, modulo the CRC polynomial */
+#  define CRC32_REDUCE(c, p) do { \
+        c = 0; \
+        CRC32W(c, p); \
+    } while (0)
 #else
 typedef Z_U4 arm_word_t;
 #  define CRC32B(c, b) (c = __builtin_arm_crc32b((unsigned)(c), \
                                                  (unsigned char)(b)))
 #  define CRC32W(c, w) (c = __builtin_arm_crc32w((unsigned)(c), w))
-#  define ARMCRC32_LOG 5
+    /* set c to p times x^32, modulo the CRC polynomial */
+#  define CRC32_REDUCE(c, p) do { \
+        c = 0; \
+        CRC32W(c, (Z_U4)(p)); \
+        CRC32W(c, (Z_U4)((p) >> 32)); \
+    } while (0)
 #endif
 
 /*
-   Constants empirically determined to maximize speed. These values are from
-   measurements on a Cortex-A57. Your mileage may vary. A batch is the same
-   number of bytes, 31920, for either word size.
+  The CRC is computed on three interleaved streams of words at once, to realize
+  a throughput of one CRC instruction per cycle, where each can have a latency
+  of up to three cycles. Do successively smaller batches so that any length
+  that is at least the smallest batch size will start with one of them. Below
+  that, do one word at a time in serial, and then one byte at a time for the
+  last few. The CRC from the first group is the CRC of all of the data through
+  that group. The other two CRCs are of those groups in isolation. Those two
+  are combined with the first CRC by multiplying them by the appropriate x^n
+  modulo the CRC polynomial, and then exclusive-oring the three together.
  */
-#define Z_BATCH (3990 * 8 / ARMCRC32_WORD)  /* number of words in a batch */
-#define Z_BATCH_ZEROS 0xa10d3d0c    /* computed from 31920 bytes */
-#define Z_BATCH_MIN (800 * 8 / ARMCRC32_WORD)  /* fewest words, final batch */
 
+/* Return the carry-less product of c and and the value represented by the
+   table t from batch_t[]. The table speeds up the multiplication by doing
+   four bits of c at a time. */
+local Z_U8 clmul_soft(z_crc_t c, const Z_U8 *t) {
+    Z_U8 p;
+    int j;
+
+    p = 0;
+    for (j = 0; j < 32; j += 4)
+        p ^= t[(c >> j) & 15] << j;
+    return p;
+}
+
+/* Return the CRC through three sequential streams of batch[k] bytes, given
+   crc, the running CRC through the first stream, and crc1 and crc2, the CRCs
+   of the second and third streams each starting from zero. */
+local ARMCRC32_ATTR uLong batch_soft(uLong crc, uLong crc1, uLong crc2,
+                                     unsigned k) {
+    Z_U8 p;
+    uLong c;
+
+    p = clmul_soft((z_crc_t)crc, batch_t[k][1]) ^
+        clmul_soft((z_crc_t)crc1, batch_t[k][0]);
+    CRC32_REDUCE(c, p);
+    return c ^ crc2;
+}
+
+/* Return the CRC-32 of len bytes at buf using ARM hardware instructions. */
 local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
                                     z_size_t len) {
     uLong val;
     uLong crc1, crc2;
     const arm_word_t *word;
     arm_word_t val0, val1, val2;
-    z_size_t last, last2, i;
+    z_size_t n, i;
     z_size_t num;
+    unsigned k;
 
     /* Return initial CRC, if requested. */
     if (buf == Z_NULL) return 0;
@@ -882,46 +985,26 @@ local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
     num = len / ARMCRC32_WORD;
     len &= ARMCRC32_WORD - 1;
 
-    /* Do three interleaved CRCs to realize the throughput of one CRC
-       instruction per cycle. Each CRC is calculated on Z_BATCH words. The
-       three CRCs are combined into a single CRC after each set of batches. */
-    while (num >= 3 * Z_BATCH) {
-        crc1 = 0;
-        crc2 = 0;
-        for (i = 0; i < Z_BATCH; i++) {
-            val0 = word[i];
-            val1 = word[i + Z_BATCH];
-            val2 = word[i + 2 * Z_BATCH];
-            CRC32W(crc, val0);
-            CRC32W(crc1, val1);
-            CRC32W(crc2, val2);
+    /* Do batches of three interleaved CRCs, from the largest size down. */
+    if (num >= 3 * (batch[BATCHES - 1] / ARMCRC32_WORD)) {
+        for (k = 0; k < BATCHES; k++) {
+            n = batch[k] / ARMCRC32_WORD;
+            while (num >= 3 * n) {
+                crc1 = 0;
+                crc2 = 0;
+                for (i = 0; i < n; i++) {
+                    val0 = word[i];
+                    val1 = word[i + n];
+                    val2 = word[i + 2 * n];
+                    CRC32W(crc, val0);
+                    CRC32W(crc1, val1);
+                    CRC32W(crc2, val2);
+                }
+                word += 3 * n;
+                num -= 3 * n;
+                crc = batch_soft(crc, crc1, crc2, k);
+            }
         }
-        word += 3 * Z_BATCH;
-        num -= 3 * Z_BATCH;
-        crc = multmodp(Z_BATCH_ZEROS, crc) ^ crc1;
-        crc = multmodp(Z_BATCH_ZEROS, crc) ^ crc2;
-    }
-
-    /* Do one last smaller batch with the remaining words, if there are enough
-       to pay for the combination of CRCs. */
-    last = num / 3;
-    if (last >= Z_BATCH_MIN) {
-        last2 = last << 1;
-        crc1 = 0;
-        crc2 = 0;
-        for (i = 0; i < last; i++) {
-            val0 = word[i];
-            val1 = word[i + last];
-            val2 = word[i + last2];
-            CRC32W(crc, val0);
-            CRC32W(crc1, val1);
-            CRC32W(crc2, val2);
-        }
-        word += 3 * last;
-        num -= 3 * last;
-        val = x2nmodp((int)last, ARMCRC32_LOG);
-        crc = multmodp(val, crc) ^ crc1;
-        crc = multmodp(val, crc) ^ crc2;
     }
 
     /* Compute the CRC on any remaining words. */
