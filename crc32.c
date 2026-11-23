@@ -214,14 +214,96 @@
 #  endif
 #endif
 
-/* If available, and if little-endian, use the ARM processor CRC32 instruction.
-   This needs the Z_U8 type to access 64-bit words. */
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && defined(Z_U8) && \
-    !defined(__AARCH64EB__)
-#  define ARMCRC32
+/*
+  Determine if ARM CRC-32 hardware instructions are to be used, and how.
+
+  If the compiler targets a processor that has the instructions, then it
+  defines __ARM_FEATURE_CRC32 and they are used unconditionally, with only the
+  code to use the hardware instructions compiled. Otherwise, if the compiler
+  can produce CRC-32 instructions and if there is a way to ask the operating
+  system if the instructions are present, then both the hardware and software
+  CRC-32 calculations are compiled, and which to use is decided at run time.
+  Otherwise the CRC-32 is calculated in software. If the target is big-endian,
+  then the calculation is in software regardless.
+
+  Define ARMCRC32 to compile the code to use the hardware instructions. Define
+  ARMCRC32_WORD as the number of bytes to be processed by the word CRC-32
+  instruction. Define ARMCRC32_RT to decide at run time whether or not to use
+  the hardware instructions.
+
+  Define ARMCRC32_ASK to ask the operating system if the feature is present, in
+  which case define one of ARMCRC32_AUXV, ARMCRC32_ELFAUX, ARMCRC32_SYSCTL, or
+  ARMCRC32_WIN to use, respectively, getauxval() on Linux, elf_aux_info() on
+  FreeBSD, sysctlbyname() on Apple systems, or IsProcessorFeaturePresent() on
+  Windows.
+
+  The build can define Z_NO_ARMCRC32_RT to disallow the run-time check.
+ */
+#if (defined(__aarch64__) || defined(_M_ARM64)) && defined(Z_U8)
+#  define ARMCRC32_WORD 8               /* eight bytes per instruction */
+#elif defined(__arm__) && defined(Z_U4)
+#  define ARMCRC32_WORD 4               /* four bytes per instruction */
+#endif
+#if defined(ARMCRC32_WORD) && (defined(__ARMEB__) || \
+                               defined(__AARCH64EB__) || \
+                               defined(__ARM_BIG_ENDIAN))
+#  undef ARMCRC32_WORD
 #endif
 
-#if defined(W) && (!defined(ARMCRC32) || defined(DYNAMIC_CRC_TABLE))
+#ifdef ARMCRC32_WORD
+#  ifndef Z_NO_ARMCRC32_RT
+#    if defined(_MSC_VER) && !defined(__clang__)
+#      if ARMCRC32_WORD == 8
+#        define ARMCRC32_CC
+#      endif
+#    elif defined(__clang__)
+#      define ARMCRC32_CC
+#    elif defined(__GNUC__) && __GNUC__ >= (ARMCRC32_WORD == 8 ? 6 : 8)
+#      define ARMCRC32_CC
+#    endif
+#    if defined(__linux__)
+#      if defined(__has_include)
+#        if __has_include(<sys/auxv.h>)
+#          define ARMCRC32_AUXV         /* getauxval() */
+#        endif
+#      elif defined(__GLIBC__) && (__GLIBC__ > 2 || \
+                                   (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 16))
+#        define ARMCRC32_AUXV
+#      endif
+#      if defined(__ANDROID__) && defined(__ANDROID_API__) && \
+          __ANDROID_API__ < 18
+#        undef ARMCRC32_AUXV
+#      endif
+#      ifdef ARMCRC32_AUXV
+#        define ARMCRC32_OS
+#      endif
+#    elif defined(__FreeBSD__) && __FreeBSD__ >= 12
+#      define ARMCRC32_ELFAUX           /* elf_aux_info() */
+#      define ARMCRC32_OS
+#    elif defined(__APPLE__)
+#      define ARMCRC32_SYSCTL           /* sysctlbyname() */
+#      define ARMCRC32_OS
+#    elif defined(_WIN32)
+#      define ARMCRC32_WIN              /* IsProcessorFeaturePresent() */
+#      define ARMCRC32_OS
+#    endif
+#    if defined(ARMCRC32_CC) && defined(ARMCRC32_OS)
+#      define ARMCRC32_CAN_ASK
+#    endif
+#  endif
+#  ifdef __ARM_FEATURE_CRC32
+#    define ARMCRC32                    /* just hardware instructions code */
+#  elif defined(ARMCRC32_CAN_ASK)
+#    define ARMCRC32                    /* hardware and software code, ask */
+#    define ARMCRC32_RT                 /* the operating system at run time */
+#  endif
+#  ifdef ARMCRC32_RT
+#    define ARMCRC32_ASK                /* ask the operating system */
+#  endif
+#endif
+
+#if defined(W) && (!defined(ARMCRC32) || defined(ARMCRC32_RT) || \
+                   defined(DYNAMIC_CRC_TABLE))
 /*
   Swap the bytes in a z_word_t to convert between little and big endian. Any
   self-respecting compiler will optimize this to a single machine byte-swap
@@ -603,30 +685,178 @@ const z_crc_t FAR * ZEXPORT get_crc_table(void) {
     return (const z_crc_t FAR *)crc_table;
 }
 
+#ifdef ARMCRC32_ASK
+/*
+  Ask the operating system whether the processor has the CRC32 instructions.
+  The capability bits are fixed by the Linux ABI (FreeBSD uses the same), so
+  they are defined here, in case the headers are too old to have them.
+ */
+#define ARM_HAVE_CRC32 1
+#if defined(ARMCRC32_AUXV) || defined(ARMCRC32_ELFAUX)
+#  include <sys/auxv.h>
+#  ifndef AT_HWCAP
+#    define AT_HWCAP 16
+#  endif
+#  ifndef AT_HWCAP2
+#    define AT_HWCAP2 26
+#  endif
+#  if ARMCRC32_WORD == 8
+#    define ARM_AT AT_HWCAP
+#    define ARM_BIT_CRC32 7         /* HWCAP_CRC32 */
+#  else
+#    define ARM_AT AT_HWCAP2
+#    define ARM_BIT_CRC32 4         /* HWCAP2_CRC32 */
+#  endif
+#elif defined(ARMCRC32_SYSCTL)
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#elif defined(ARMCRC32_WIN) && !defined(_WINBASE_)
+__declspec(dllimport) int __stdcall IsProcessorFeaturePresent(unsigned long);
+#endif
+#ifndef PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE
+#  define PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE 31
+#endif
+
+#ifdef ARMCRC32_SYSCTL
+local int arm_sysctl(const char *name) {
+    int have = 0;
+    size_t size = sizeof(have);
+    return sysctlbyname(name, &have, &size, NULL, 0) == 0 && have;
+}
+#endif
+
+local int arm_probe(void) {
+    int caps = 0;
+#if defined(ARMCRC32_AUXV) || defined(ARMCRC32_ELFAUX)
+    unsigned long bits;
+#  ifdef ARMCRC32_AUXV
+    bits = getauxval(ARM_AT);
+#  else
+    bits = 0;
+    if (elf_aux_info(ARM_AT, &bits, sizeof(bits)) != 0)
+        bits = 0;
+#  endif
+    if ((bits >> ARM_BIT_CRC32) & 1)
+        caps |= ARM_HAVE_CRC32;
+#elif defined(ARMCRC32_SYSCTL)
+    if (arm_sysctl("hw.optional.armv8_crc32"))
+        caps |= ARM_HAVE_CRC32;
+#else /* ARMCRC32_WIN */
+    if (IsProcessorFeaturePresent(PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE))
+        caps |= ARM_HAVE_CRC32;
+#endif
+    return caps;
+}
+
+/* Z_TEST_ARMCRC32_ABSENT asks, but answers no, to test the code used without
+   the instructions, and to measure the cost of asking. */
+local int arm_ask(void) {
+    volatile int caps = arm_probe();
+#ifdef Z_TEST_ARMCRC32_ABSENT
+    caps &= ~ARM_HAVE_CRC32;
+#endif
+    return caps;
+}
+
+/*
+  If lock-free C11 atomics are available, arm_probe() is only called once and
+  the answer is cached. If not, then arm_probe() is called for every crc32()
+  call above a data-length threshold (Z_ARMCRC32_PROBE_LEN).
+ */
+#if !defined(Z_ARMCRC32_NOCACHE) && defined(__STDC__) && \
+    defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && \
+    !defined(__STDC_NO_ATOMICS__)
+#  include <stdatomic.h>
+#  if ATOMIC_INT_LOCK_FREE == 2
+#    define ARMCRC32_CACHE
+#  endif
+#endif
+
+#ifdef ARMCRC32_CACHE
+local atomic_int arm_known;
+
+/* Ask the question and cache the answer. */
+local int arm_learn(void) {
+    int caps = arm_ask() | 4;
+    atomic_store_explicit(&arm_known, caps, memory_order_relaxed);
+    return caps;
+}
+
+local inline int arm_caps(void) {
+    int caps = atomic_load_explicit(&arm_known, memory_order_relaxed);
+    if (caps == 0)
+        caps = arm_learn();
+    return caps & ARM_HAVE_CRC32;
+}
+#else
+#  define arm_caps() arm_ask()
+#endif
+#endif /* ARMCRC32_ASK */
+
 /* =========================================================================
- * Use ARM machine instructions if available. This will compute the CRC about
- * ten times faster than the braided calculation. This code does not check for
- * the presence of the CRC instruction at run time. __ARM_FEATURE_CRC32 will
- * only be defined if the compilation specifies an ARM processor architecture
- * that has the instructions. For example, compiling with -march=armv8.1-a or
- * -march=armv8-a+crc, or -march=native if the compile machine has the crc32
- * instructions.
+ * Use the ARM CRC32 instructions, if available. This computes the CRC about
+ * ten times faster than the braided calculation.
  */
 #ifdef ARMCRC32
 
+/* Define ARMCRC32_ATTR to attribute to the function with hardware CRC
+   instructions, as needed to tell the compiler it can produce them. */
+#ifndef ARMCRC32_RT
+#  define ARMCRC32_ATTR
+#elif defined(Z_ARMCRC32_TARGET)
+#  define ARMCRC32_ATTR __attribute__((target(Z_ARMCRC32_TARGET)))
+#elif defined(_MSC_VER) && !defined(__clang__)
+#  define ARMCRC32_ATTR
+#elif defined(__clang__)
+#  define ARMCRC32_ATTR __attribute__((target("crc")))
+#elif ARMCRC32_WORD == 8
+#  define ARMCRC32_ATTR __attribute__((target("+crc")))
+#elif defined(__ARM_PCS_VFP)
+   /* gcc needs a floating-point unit for the hard-float calling convention */
+#  define ARMCRC32_ATTR __attribute__((target("arch=armv8-a+crc+simd")))
+#else
+#  define ARMCRC32_ATTR __attribute__((target("arch=armv8-a+crc")))
+#endif
+
+/* Define CRC32W() to operate on a word and CRC32B() to operate on a byte.
+   Also define ARMCRC32_LOG, the log2 of the number of bits in a word for use
+   by x2nmodp() */
+#if ARMCRC32_WORD == 8
+typedef Z_U8 arm_word_t;
+#  if defined(_MSC_VER) && !defined(__clang__)
+#    include <intrin.h>
+#    define CRC32B(c, b) (c = __crc32b((unsigned)(c), (unsigned char)(b)))
+#    define CRC32W(c, w) (c = __crc32d((unsigned)(c), w))
+#  else
+#    define CRC32B(c, b) \
+        __asm__ volatile("crc32b %w0, %w0, %w1" : "+r"(c) : "r"(b))
+#    define CRC32W(c, w) \
+        __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(c) : "r"(w))
+#  endif
+#  define ARMCRC32_LOG 6
+#else
+typedef Z_U4 arm_word_t;
+#  define CRC32B(c, b) (c = __builtin_arm_crc32b((unsigned)(c), \
+                                                 (unsigned char)(b)))
+#  define CRC32W(c, w) (c = __builtin_arm_crc32w((unsigned)(c), w))
+#  define ARMCRC32_LOG 5
+#endif
+
 /*
    Constants empirically determined to maximize speed. These values are from
-   measurements on a Cortex-A57. Your mileage may vary.
+   measurements on a Cortex-A57. Your mileage may vary. A batch is the same
+   number of bytes, 31920, for either word size.
  */
-#define Z_BATCH 3990                /* number of words in a batch */
-#define Z_BATCH_ZEROS 0xa10d3d0c    /* computed from Z_BATCH = 3990 */
-#define Z_BATCH_MIN 800             /* fewest words in a final batch */
+#define Z_BATCH (3990 * 8 / ARMCRC32_WORD)  /* number of words in a batch */
+#define Z_BATCH_ZEROS 0xa10d3d0c    /* computed from 31920 bytes */
+#define Z_BATCH_MIN (800 * 8 / ARMCRC32_WORD)  /* fewest words, final batch */
 
-uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
+local ARMCRC32_ATTR uLong crc32_arm(uLong crc, const unsigned char FAR *buf,
+                                    z_size_t len) {
     uLong val;
-    Z_U8 crc1, crc2;
-    const Z_U8 *word;
-    Z_U8 val0, val1, val2;
+    uLong crc1, crc2;
+    const arm_word_t *word;
+    arm_word_t val0, val1, val2;
     z_size_t last, last2, i;
     z_size_t num;
 
@@ -641,18 +871,18 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     crc = (~crc) & 0xffffffff;
 
     /* Compute the CRC up to a word boundary. */
-    while (len && ((z_size_t)buf & 7) != 0) {
+    while (len && ((z_size_t)buf & (ARMCRC32_WORD - 1)) != 0) {
         len--;
         val = *buf++;
-        __asm__ volatile("crc32b %w0, %w0, %w1" : "+r"(crc) : "r"(val));
+        CRC32B(crc, val);
     }
 
-    /* Prepare to compute the CRC on full 64-bit words word[0..num-1]. */
-    word = (Z_U8 const *)buf;
-    num = len >> 3;
-    len &= 7;
+    /* Prepare to compute the CRC on full words word[0..num-1]. */
+    word = (arm_word_t const *)buf;
+    num = len / ARMCRC32_WORD;
+    len &= ARMCRC32_WORD - 1;
 
-    /* Do three interleaved CRCs to realize the throughput of one crc32x
+    /* Do three interleaved CRCs to realize the throughput of one CRC
        instruction per cycle. Each CRC is calculated on Z_BATCH words. The
        three CRCs are combined into a single CRC after each set of batches. */
     while (num >= 3 * Z_BATCH) {
@@ -662,9 +892,9 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
             val0 = word[i];
             val1 = word[i + Z_BATCH];
             val2 = word[i + 2 * Z_BATCH];
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc) : "r"(val0));
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc1) : "r"(val1));
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc2) : "r"(val2));
+            CRC32W(crc, val0);
+            CRC32W(crc1, val1);
+            CRC32W(crc2, val2);
         }
         word += 3 * Z_BATCH;
         num -= 3 * Z_BATCH;
@@ -683,13 +913,13 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
             val0 = word[i];
             val1 = word[i + last];
             val2 = word[i + last2];
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc) : "r"(val0));
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc1) : "r"(val1));
-            __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc2) : "r"(val2));
+            CRC32W(crc, val0);
+            CRC32W(crc1, val1);
+            CRC32W(crc2, val2);
         }
         word += 3 * last;
         num -= 3 * last;
-        val = x2nmodp((int)last, 6);
+        val = x2nmodp((int)last, ARMCRC32_LOG);
         crc = multmodp(val, crc) ^ crc1;
         crc = multmodp(val, crc) ^ crc2;
     }
@@ -697,7 +927,7 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     /* Compute the CRC on any remaining words. */
     for (i = 0; i < num; i++) {
         val0 = word[i];
-        __asm__ volatile("crc32x %w0, %w0, %x1" : "+r"(crc) : "r"(val0));
+        CRC32W(crc, val0);
     }
     word += num;
 
@@ -706,14 +936,23 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     while (len) {
         len--;
         val = *buf++;
-        __asm__ volatile("crc32b %w0, %w0, %w1" : "+r"(crc) : "r"(val));
+        CRC32B(crc, val);
     }
 
     /* Return the CRC, post-conditioned. */
     return crc ^ 0xffffffff;
 }
 
-#else
+#ifndef ARMCRC32_RT
+/* ========================================================================= */
+uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
+    return crc32_arm(crc, buf, len);
+}
+#endif
+
+#endif /* ARMCRC32 */
+
+#if !defined(ARMCRC32) || defined(ARMCRC32_RT)
 
 #ifdef W
 
@@ -1033,7 +1272,12 @@ local uLong crc32_braid(uLong crc, const unsigned char FAR *buf,
 #endif
 
 /* ========================================================================= */
+#ifdef ARMCRC32_RT
+local uLong crc32_soft(uLong crc, const unsigned char FAR *buf,
+                       z_size_t len) {
+#else
 uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
+#endif
     /* Return initial CRC, if requested. */
     if (buf == Z_NULL) return 0;
 
@@ -1317,7 +1561,39 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
     return crc ^ 0xffffffff;
 }
 
+#endif /* !ARMCRC32 || ARMCRC32_RT */
+
+#ifdef ARMCRC32_RT
+#ifndef Z_ARMCRC32_PROBE_LEN
+#  define Z_ARMCRC32_PROBE_LEN 8
 #endif
+
+/* ========================================================================= */
+uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
+    int caps;
+
+#if Z_ARMCRC32_PROBE_LEN > 0
+    /* For a few bytes, the byte table is faster than finding out whether the
+       instructions can be used. */
+    if (len < Z_ARMCRC32_PROBE_LEN) {
+        if (buf == Z_NULL) return 0;
+#ifdef DYNAMIC_CRC_TABLE
+        z_once(&made, make_crc_table);
+#endif /* DYNAMIC_CRC_TABLE */
+        crc = (~crc) & 0xffffffff;
+        while (len) {
+            len--;
+            crc = (crc >> 8) ^ crc_table[(crc ^ *buf++) & 0xff];
+        }
+        return crc ^ 0xffffffff;
+    }
+#endif
+    caps = arm_caps();
+    if (caps & ARM_HAVE_CRC32)
+        return crc32_arm(crc, buf, len);
+    return crc32_soft(crc, buf, len);
+}
+#endif /* ARMCRC32_RT */
 
 /* ========================================================================= */
 uLong ZEXPORT crc32(uLong crc, const unsigned char FAR *buf, uInt len) {
