@@ -751,11 +751,13 @@ const z_crc_t FAR * ZEXPORT get_crc_table(void) {
 
 #ifdef ARMCRC32_ASK
 /*
-  Ask the operating system whether the processor has the CRC32 instructions.
-  The capability bits are fixed by the Linux ABI (FreeBSD uses the same), so
-  they are defined here, in case the headers are too old to have them.
+  Ask the operating system whether the processor has the CRC32 instructions, as
+  well as the 64-bit carry-less multiply, PMULL. The capability bits are fixed
+  by the Linux ABI (FreeBSD uses the same), so they are defined here, in case
+  the headers are too old to have them.
  */
 #define ARM_HAVE_CRC32 1
+#define ARM_HAVE_PMULL 2
 #if defined(ARMCRC32_AUXV) || defined(ARMCRC32_ELFAUX)
 #  include <sys/auxv.h>
 #  ifndef AT_HWCAP
@@ -767,15 +769,20 @@ const z_crc_t FAR * ZEXPORT get_crc_table(void) {
 #  if ARMCRC32_WORD == 8
 #    define ARM_AT AT_HWCAP
 #    define ARM_BIT_CRC32 7         /* HWCAP_CRC32 */
+#    define ARM_BIT_PMULL 4         /* HWCAP_PMULL */
 #  else
 #    define ARM_AT AT_HWCAP2
 #    define ARM_BIT_CRC32 4         /* HWCAP2_CRC32 */
+#    define ARM_BIT_PMULL 1         /* HWCAP2_PMULL */
 #  endif
 #elif defined(ARMCRC32_SYSCTL)
 #  include <sys/types.h>
 #  include <sys/sysctl.h>
 #elif defined(ARMCRC32_WIN) && !defined(_WINBASE_)
 __declspec(dllimport) int __stdcall IsProcessorFeaturePresent(unsigned long);
+#endif
+#ifndef PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE
+#  define PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE 30
 #endif
 #ifndef PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE
 #  define PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE 31
@@ -789,7 +796,9 @@ local int arm_sysctl(const char *name) {
 }
 #endif
 
-local int arm_probe(void) {
+/* Ask for the capabilities identified by the bits set in want. Return those
+   bits set if the respective capapility is present. */
+local int arm_probe(int want) {
     int caps = 0;
 #if defined(ARMCRC32_AUXV) || defined(ARMCRC32_ELFAUX)
     unsigned long bits;
@@ -802,22 +811,34 @@ local int arm_probe(void) {
 #  endif
     if ((bits >> ARM_BIT_CRC32) & 1)
         caps |= ARM_HAVE_CRC32;
+    if ((bits >> ARM_BIT_PMULL) & 1)
+        caps |= ARM_HAVE_PMULL;
+    (void)want;
 #elif defined(ARMCRC32_SYSCTL)
-    if (arm_sysctl("hw.optional.armv8_crc32"))
+    if ((want & ARM_HAVE_CRC32) && arm_sysctl("hw.optional.armv8_crc32"))
         caps |= ARM_HAVE_CRC32;
-#else /* ARMCRC32_WIN */
-    if (IsProcessorFeaturePresent(PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE))
+    if ((want & ARM_HAVE_PMULL) && arm_sysctl("hw.optional.arm.FEAT_PMULL"))
+        caps |= ARM_HAVE_PMULL;
+#else
+    if ((want & ARM_HAVE_CRC32) &&
+        IsProcessorFeaturePresent(PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE))
         caps |= ARM_HAVE_CRC32;
+    if ((want & ARM_HAVE_PMULL) &&
+        IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE))
+        caps |= ARM_HAVE_PMULL;
 #endif
     return caps;
 }
 
-/* Z_TEST_ARMCRC32_ABSENT asks, but answers no, to test the code used without
-   the instructions, and to measure the cost of asking. */
-local int arm_ask(void) {
-    volatile int caps = arm_probe();
+/* Z_TEST_ARMCRC32_ABSENT and Z_TEST_ARMPMULL_ABSENT ask, but answer no, to
+   test the code used without them, and to measure the cost of asking. */
+local int arm_ask(int want) {
+    volatile int caps = arm_probe(want);
 #ifdef Z_TEST_ARMCRC32_ABSENT
     caps &= ~ARM_HAVE_CRC32;
+#endif
+#ifdef Z_TEST_ARMPMULL_ABSENT
+    caps &= ~ARM_HAVE_PMULL;
 #endif
     return caps;
 }
@@ -841,19 +862,25 @@ local atomic_int arm_known;
 
 /* Ask the question and cache the answer. */
 local int arm_learn(void) {
-    int caps = arm_ask() | 4;
+    int caps = arm_ask(ARM_HAVE_CRC32 | ARM_HAVE_PMULL) | 4;
     atomic_store_explicit(&arm_known, caps, memory_order_relaxed);
     return caps;
 }
 
-local inline int arm_caps(void) {
+/* If there are lock-free C11 atomics, then the cache is filled by asking for
+   both of the capabilities, which is returned. Otherwise only the capabilities
+   with set bits in want are asked for. The return value has bits set for the
+   requested and available capabilities. The two bits are ARM_HAVE_CRC32 and
+   ARM_HAVE_PMULL. */
+local inline int arm_caps(int want) {
     int caps = atomic_load_explicit(&arm_known, memory_order_relaxed);
+    (void)want;
     if (caps == 0)
         caps = arm_learn();
-    return caps & ARM_HAVE_CRC32;
+    return caps & 3;
 }
 #else
-#  define arm_caps() arm_ask()
+#  define arm_caps(want) arm_ask(want)
 #endif
 #endif /* ARMCRC32_ASK */
 
@@ -1684,7 +1711,7 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len) {
         return crc ^ 0xffffffff;
     }
 #endif
-    caps = arm_caps();
+    caps = arm_caps(ARM_HAVE_CRC32);
     if (caps & ARM_HAVE_CRC32)
         return crc32_arm(crc, buf, len);
     return crc32_soft(crc, buf, len);
