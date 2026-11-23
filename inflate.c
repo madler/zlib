@@ -621,10 +621,11 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                 if (copy) {
                     if (state->head != Z_NULL &&
                         state->head->extra != Z_NULL &&
+                        state->length <= state->head->extra_len &&
                         (len = state->head->extra_len - state->length) <
                             state->head->extra_max) {
                         zmemcpy(state->head->extra + len, next,
-                                len + copy > state->head->extra_max ?
+                                copy > state->head->extra_max - len ?
                                 state->head->extra_max - len : copy);
                     }
                     if ((state->flags & 0x0200) && (state->wrap & 4))
