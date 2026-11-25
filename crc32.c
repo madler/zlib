@@ -280,6 +280,11 @@
 #    elif defined(__FreeBSD__) && __FreeBSD__ >= 12
 #      define ARMCRC32_ELFAUX           /* elf_aux_info() */
 #      define ARMCRC32_OS
+#    elif defined(__OpenBSD__) && defined(__has_include)
+#      if __has_include(<sys/auxv.h>)   /* OpenBSD 7.6 and later */
+#        define ARMCRC32_ELFAUX         /* elf_aux_info() */
+#        define ARMCRC32_OS
+#      endif
 #    elif defined(__APPLE__)
 #      define ARMCRC32_SYSCTL           /* sysctlbyname() */
 #      define ARMCRC32_OS
