@@ -1453,8 +1453,9 @@ ZEXTERN int ZEXPORT gzsetparams(gzFile file, int level, int strategy);
    provided data is flushed before applying the parameter changes.
 
      gzsetparams returns Z_OK if success, Z_STREAM_ERROR if the file was not
-   opened for writing, Z_ERRNO if there is an error writing the flushed data,
-   or Z_MEM_ERROR if there is a memory allocation error.
+   opened for writing, if level or strategy is invalid, Z_ERRNO if there is an
+   error writing the flushed data, or Z_MEM_ERROR if there is a memory
+   allocation error.
 */
 
 ZEXTERN int ZEXPORT gzread(gzFile file, voidp buf, unsigned len);

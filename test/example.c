@@ -164,6 +164,46 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
 #endif
 }
 
+/* ===========================================================================
+ * Test that gzsetparams() rejects invalid compression parameters
+ */
+static void test_gzio_setparams(const char *fname) {
+#ifdef NO_GZCOMPRESS
+    (void)fname;
+    fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
+#else
+    int len = (int)strlen(hello);
+    gzFile file;
+
+    file = gzopen(fname, "wb");
+    if (file == NULL) {
+        fprintf(stderr, "gzopen error\n");
+        exit(1);
+    }
+    if (gzsetparams(file, 10, Z_DEFAULT_STRATEGY) != Z_STREAM_ERROR) {
+        fprintf(stderr, "gzsetparams accepted level 10\n");
+        exit(1);
+    }
+    if (gzsetparams(file, Z_DEFAULT_COMPRESSION, 99) != Z_STREAM_ERROR) {
+        fprintf(stderr, "gzsetparams accepted strategy 99\n");
+        exit(1);
+    }
+    if (gzsetparams(file, 9, Z_FIXED) != Z_OK) {
+        fprintf(stderr, "gzsetparams rejected valid parameters\n");
+        exit(1);
+    }
+    if (gzwrite(file, hello, (unsigned)len) != len) {
+        fprintf(stderr, "gzwrite err after gzsetparams\n");
+        exit(1);
+    }
+    if (gzclose(file) != Z_OK) {
+        fprintf(stderr, "gzclose err after gzsetparams\n");
+        exit(1);
+    }
+    printf("gzsetparams() with invalid parameters: rejected\n");
+#endif
+}
+
 #endif /* Z_SOLO */
 
 /* ===========================================================================
@@ -530,6 +570,8 @@ int main(int argc, char *argv[]) {
 
     test_gzio((argc > 1 ? argv[1] : TESTFILE),
               uncompr, uncomprLen);
+
+    test_gzio_setparams((argc > 1 ? argv[1] : TESTFILE));
 #endif
 
     test_deflate(compr, comprLen);
