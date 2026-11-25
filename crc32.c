@@ -232,9 +232,10 @@
   the hardware instructions.
 
   Define ARMCRC32_ASK to ask the operating system if the feature is present, in
-  which case define one of ARMCRC32_AUXV, ARMCRC32_ELFAUX, ARMCRC32_SYSCTL, or
-  ARMCRC32_WIN to use, respectively, getauxval() on Linux, elf_aux_info() on
-  FreeBSD, sysctlbyname() on Apple systems, or IsProcessorFeaturePresent() on
+  which case define one of ARMCRC32_AUXV, ARMCRC32_ELFAUX, ARMCRC32_SYSCTL,
+  ARMCRC32_NETBSD, or ARMCRC32_WIN to use, respectively, getauxval() on Linux,
+  elf_aux_info() on FreeBSD and OpenBSD, sysctlbyname() on Apple systems, the
+  ID registers from sysctlbyname() on NetBSD, or IsProcessorFeaturePresent() on
   Windows.
 
   The build can define Z_NO_ARMCRC32_RT to disallow the run-time check.
@@ -285,6 +286,9 @@
 #        define ARMCRC32_ELFAUX         /* elf_aux_info() */
 #        define ARMCRC32_OS
 #      endif
+#    elif defined(__NetBSD__) && ARMCRC32_WORD == 8
+#      define ARMCRC32_NETBSD           /* sysctlbyname() for ID registers */
+#      define ARMCRC32_OS
 #    elif defined(__APPLE__)
 #      define ARMCRC32_SYSCTL           /* sysctlbyname() */
 #      define ARMCRC32_OS
@@ -824,6 +828,10 @@ const z_crc_t FAR * ZEXPORT get_crc_table(void) {
 #elif defined(ARMCRC32_SYSCTL)
 #  include <sys/types.h>
 #  include <sys/sysctl.h>
+#elif defined(ARMCRC32_NETBSD)
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#  include <aarch64/armreg.h>       /* for struct aarch64_sysctl_cpu_id */
 #elif defined(ARMCRC32_WIN) && !defined(_WINBASE_)
 __declspec(dllimport) int __stdcall IsProcessorFeaturePresent(unsigned long);
 #endif
@@ -869,6 +877,19 @@ local int arm_probe(int want) {
     if ((want & ARM_HAVE_PMULL) && arm_sysctl("hw.optional.arm.FEAT_PMULL"))
         caps |= ARM_HAVE_PMULL;
 #  endif
+#elif defined(ARMCRC32_NETBSD)
+    /* ID_AA64ISAR0_EL1 of cpu0: CRC32 in bits 16..19 (1 if present), and AES
+       in bits 4..7 (2 if PMULL is present) */
+    struct aarch64_sysctl_cpu_id id;
+    size_t size = sizeof(id);
+    if (sysctlbyname("machdep.cpu0.cpu_id", &id, &size, NULL, 0) == 0 &&
+        size == sizeof(id)) {
+        if (((id.ac_aa64isar0 >> 16) & 15) >= 1)
+            caps |= ARM_HAVE_CRC32;
+        if (((id.ac_aa64isar0 >> 4) & 15) >= 2)
+            caps |= ARM_HAVE_PMULL;
+    }
+    (void)want;
 #else
     if ((want & ARM_HAVE_CRC32) &&
         IsProcessorFeaturePresent(PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE))
