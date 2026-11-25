@@ -101,6 +101,11 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
+    if (gzsetparams(file, 10, Z_DEFAULT_STRATEGY) != Z_STREAM_ERROR ||
+        gzsetparams(file, 6, Z_FIXED + 1) != Z_STREAM_ERROR) {
+        fprintf(stderr, "gzsetparams accepted invalid parameters\n");
+        exit(1);
+    }
     gzputc(file, 'h');
     if (gzputs(file, "ello") != 4) {
         fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
