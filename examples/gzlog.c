@@ -228,8 +228,11 @@
 #include <stdlib.h>     /* malloc, free */
 #include <string.h>     /* strlen, strrchr, strcpy, strncpy, strcmp */
 #include <fcntl.h>      /* open */
-#include <unistd.h>     /* lseek, read, write, close, unlink, sleep, */
-                        /* ftruncate, fsync */
+#if defined( unix ) || defined( __unix ) || defined( __unix__ ) || \
+    (defined( __APPLE__ ) && defined( __MACH__ )) || \
+    HAVE_UNISTD_H
+#include <unistd.h>         /* lseek, read, write, close, chown, unlink, sleep, ftruncate, fsync */
+#endif
 #include <errno.h>      /* errno */
 #include <time.h>       /* time, ctime */
 #include <sys/stat.h>   /* stat */
