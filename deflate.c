@@ -760,10 +760,21 @@ int ZEXPORT deflatePrime(z_streamp strm, int bits, int value) {
     deflate_state *s;
     int put;
     int need;
+    ulg limit;
 
     if (deflateStateCheck(strm)) return Z_STREAM_ERROR;
     s = strm->state;
     if (bits < 0 || bits > 16)
+        return Z_BUF_ERROR;
+    need = (s->bi_valid + bits) >> 3;
+    limit = s->sym_next ?
+#ifdef LIT_MEM
+            (ulg)s->lit_bufsize << 1
+#else
+            (ulg)s->lit_bufsize
+#endif
+            : s->pending_buf_size;
+    if (s->pending > limit || limit - s->pending < (ulg)need)
         return Z_BUF_ERROR;
     if (s->pending_out != s->pending_buf) {
         /* move partially flushed pending output to buffer start */
@@ -773,9 +784,6 @@ int ZEXPORT deflatePrime(z_streamp strm, int bits, int value) {
             *to++ = *from++;
         s->pending_out = s->pending_buf;
     }
-    need = (s->bi_valid + bits) >> 3;
-    if (s->pending_buf_size - s->pending < (ulg)need)
-        return Z_BUF_ERROR;
     do {
         put = Buf_size - s->bi_valid;
         if (put > bits)
