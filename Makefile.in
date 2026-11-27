@@ -364,11 +364,24 @@ zlib.3.pdf: $(SRCDIR)zlib.3
 zconf: $(SRCDIR)zconf.h.in
 	cp -p $(SRCDIR)zconf.h.in zconf.h
 
+# minizip's sources stay in $(SRCDIR)contrib/minizip. An out-of-tree build
+# does not have that directory, so objects are written in this tree.
 minizip-test: static
-	cd contrib/minizip && { CC="$(CC)" CFLAGS="$(CFLAGS)" $(MAKE) test ; cd ../.. ; }
+	mkdir -p contrib/minizip
+	mzsrc=`CDPATH= cd "$(SRCDIR)contrib/minizip" && pwd` && \
+	cd contrib/minizip && \
+	  CC="$(CC)" CFLAGS="$(CFLAGS)" \
+	  $(MAKE) -f "$$mzsrc/Makefile" SRCDIR="$$mzsrc" ZLIBDIR=../.. test
 
 minizip-clean:
-	cd contrib/minizip && { $(MAKE) clean ; cd ../.. ; }
+	if [ -d contrib/minizip ]; then \
+	  mzsrc=`CDPATH= cd "$(SRCDIR)contrib/minizip" && pwd` && \
+	  (cd contrib/minizip && \
+	    $(MAKE) -f "$$mzsrc/Makefile" SRCDIR="$$mzsrc" ZLIBDIR=../.. clean) && \
+	  if [ ! -f contrib/minizip/minizip.c ]; then \
+	    rm -rf contrib/minizip && { rmdir contrib 2>/dev/null || true; }; \
+	  fi; \
+	fi
 
 mostlyclean: clean
 clean: minizip-clean
