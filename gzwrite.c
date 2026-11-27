@@ -676,6 +676,9 @@ int ZEXPORT gzsetparams(gzFile file, int level, int strategy) {
     if (state->mode != GZ_WRITE || (state->err != Z_OK && !state->again) ||
             state->direct)
         return Z_STREAM_ERROR;
+    if (level < Z_DEFAULT_COMPRESSION || level > 9 || strategy < 0 ||
+            strategy > Z_FIXED)
+        return Z_STREAM_ERROR;
     gz_error(state, Z_OK, NULL);
 
     /* if no change is requested, then do nothing */
@@ -689,7 +692,7 @@ int ZEXPORT gzsetparams(gzFile file, int level, int strategy) {
     /* change compression parameters for subsequent input */
     if (state->size) {
         /* flush previous input with previous parameters before changing */
-        if (strm->avail_in && gz_comp(state, Z_BLOCK) == -1)
+        if (gz_comp(state, Z_BLOCK) == -1)
             return state->err;
         deflateParams(strm, level, strategy);
     }
