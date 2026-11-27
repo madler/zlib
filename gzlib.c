@@ -483,7 +483,7 @@ z_off64_t ZEXPORT gzoffset64(gzFile file) {
 
     /* compute and return effective offset in file */
     offset = LSEEK(state->fd, 0, SEEK_CUR);
-    if (offset == -1)
+    if (offset < 0)                         /* error, or not a file offset */
         return -1;
     if (state->mode == GZ_READ)             /* reading */
         offset -= state->strm.avail_in;     /* don't count buffered input */
