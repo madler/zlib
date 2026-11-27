@@ -528,6 +528,14 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
     s->strategy = strategy;
     s->method = (Byte)method;
 
+    /* Set the default configuration parameters. They are set here and not in
+     * lm_init(), so that deflateReset() keeps any set by deflateTune().
+     */
+    s->max_lazy_match   = configuration_table[level].max_lazy;
+    s->good_match       = configuration_table[level].good_length;
+    s->nice_match       = configuration_table[level].nice_length;
+    s->max_chain_length = configuration_table[level].max_chain;
+
     return deflateReset(strm);
 }
 
@@ -697,13 +705,6 @@ local void lm_init(deflate_state *s) {
 
     CLEAR_HASH(s);
     s->matches = 0;             /* the hash is clear */
-
-    /* Set the default configuration parameters:
-     */
-    s->max_lazy_match   = configuration_table[s->level].max_lazy;
-    s->good_match       = configuration_table[s->level].good_length;
-    s->nice_match       = configuration_table[s->level].nice_length;
-    s->max_chain_length = configuration_table[s->level].max_chain;
 
     s->strstart = 0;
     s->block_start = 0L;
