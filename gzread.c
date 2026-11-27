@@ -438,8 +438,11 @@ int ZEXPORT gzread(gzFile file, voidp buf, unsigned len) {
     if (state->err != Z_OK && state->err != Z_BUF_ERROR && !state->again &&
             state->x.have == 0)
         return -1;
-    if (state->again)
+    if (state->again) {
+        /* a stall is reported only by the call whose read() stalled */
         gz_error(state, Z_OK, NULL);
+        state->again = 0;
+    }
 
     /* since an int is returned, make sure len fits in one, otherwise return
        with an error (this avoids a flaw in the interface) -- keep a pending
