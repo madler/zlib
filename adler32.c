@@ -57,10 +57,29 @@
 #  define MOD63(a) a %= BASE
 #endif
 
+/* Z_ADLER_WORDS chooses whether adler32_z() adds up eight bytes at a time in
+   64-bit words. That is the default where the machine has 64-bit registers
+   and fast unaligned loads, Z_REG64 and Z_UNALIGNED_FAST in zutil.h, as for
+   the 64-bit loop in inffast.c. Define Z_ADLER_WORDS as 0 to use the byte
+   loop below instead, or as 1 to use words on any machine with a 64-bit
+   type. */
+#ifndef Z_ADLER_WORDS
+#  if defined(Z_REG64) && defined(Z_UNALIGNED_FAST)
+#    define Z_ADLER_WORDS 1
+#  else
+#    define Z_ADLER_WORDS 0
+#  endif
+#endif
+#if Z_ADLER_WORDS && !defined(Z_U8)
+#  error Z_ADLER_WORDS needs a 64-bit type (Z_U8)
+#endif
+
 /* ========================================================================= */
 uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
     unsigned long sum2;
+#if !Z_ADLER_WORDS
     unsigned n;
+#endif
 
     /* split Adler-32 into component sums */
     sum2 = (adler >> 16) & 0xffff;
@@ -93,6 +112,56 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
         return adler | (sum2 << 16);
     }
 
+#if Z_ADLER_WORDS
+    /* Eight bytes at a time. With the even and the odd bytes of a word in
+       16-bit lanes, one multiplication adds them up and two weight them: the
+       top 16 bits of v * (c0 + c1 2^16 + c2 2^32 + c3 2^48) are
+       v0 c3 + v1 c2 + v2 c1 + v3 c0, as no partial sum reaches 2^16 (at most
+       255 * 20). A word adds 8 * adler + sum((8 - i) * byte[i]) to sum2. In
+       64 bits the sums need a modulo only every 2^20 bytes. */
+    {
+        Z_U8 one = 1, a = adler, s = sum2, x, e, o, we, wo;
+        Z_U8 m = ((Z_U8)0xff00ff << 32) | 0xff00ff;
+        Z_U8 ones = ((Z_U8)0x10001 << 32) | 0x10001;
+        z_size_t k;
+
+        /* The weights of the lanes of e and o, which hold bytes 0, 2, 4, 6
+           and 1, 3, 5, 7 of the word on a little-endian machine, and bytes 7,
+           5, 3, 1 and 6, 4, 2, 0 on a big-endian one. */
+        if (*(unsigned char *)&one) {
+            we = ((Z_U8)0x80006 << 32) | 0x40002;
+            wo = ((Z_U8)0x70005 << 32) | 0x30001;
+        }
+        else {
+            we = ((Z_U8)0x10003 << 32) | 0x50007;
+            wo = ((Z_U8)0x20004 << 32) | 0x60008;
+        }
+        do {
+            k = len < 0x100000 ? len >> 3 : 0x20000;
+            len -= k << 3;
+            do {
+                zmemcpy(&x, buf, 8);
+                e = x & m;
+                o = (x >> 8) & m;
+                s += (a << 3) + ((e * we) >> 48) + ((o * wo) >> 48);
+                a += ((e + o) * ones) >> 48;
+                buf += 8;
+            } while (--k);
+            a %= BASE;
+            s %= BASE;
+        } while (len >= 8);
+        adler = (unsigned long)a;
+        sum2 = (unsigned long)s;
+        while (len--) {
+            adler += *buf++;
+            sum2 += adler;
+        }
+        if (adler >= BASE)
+            adler -= BASE;
+        MOD28(sum2);
+        return adler | (sum2 << 16);
+    }
+#else
     /* do length NMAX blocks -- requires just one modulo operation */
     while (len >= NMAX) {
         len -= NMAX;
@@ -122,6 +191,7 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
 
     /* return recombined sums */
     return adler | (sum2 << 16);
+#endif
 }
 
 /* ========================================================================= */
