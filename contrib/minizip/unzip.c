@@ -866,7 +866,9 @@ local int unz64local_GetCurrentFileInfoInternal(unzFile file,
         lSeek += file_info.size_file_extra;
 
 
-    if ((err==UNZ_OK) && (file_info.size_file_extra != 0))
+    /* Parse the extra field only when ZIP64 values are needed from it. */
+    if ((err==UNZ_OK) && (file_info.size_file_extra != 0) &&
+        (zip64_required != 0))
     {
                                 uLong acc = 0;
 
