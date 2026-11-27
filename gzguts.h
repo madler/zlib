@@ -209,6 +209,7 @@ typedef struct {
     int level;              /* compression level */
     int strategy;           /* compression strategy */
     int reset;              /* true if a reset is pending after a Z_FINISH */
+    int finish;             /* true if a write error cut a Z_FINISH short */
         /* seek request */
     z_off64_t skip;         /* amount to skip (already rewound if backwards) */
         /* error information */
