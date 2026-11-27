@@ -20,6 +20,10 @@
 #include <vecintrin.h>
 #include <sys/auxv.h>
 
+#ifndef HWCAP_S390_VX
+#  define HWCAP_S390_VX (1UL << 11)
+#endif
+
 #ifdef __clang__
 #  if ((__clang_major__ == 18) || (__clang_major__ == 19 && (__clang_minor__ < 1 || (__clang_minor__ == 1 && __clang_patchlevel__ < 2))))
 # error crc32_vx optimizations are broken due to compiler bug in Clang versions: 18.0.0 <= clang_version < 19.1.2. \
