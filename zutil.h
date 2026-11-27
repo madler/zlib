@@ -26,7 +26,6 @@
 #    include <stddef.h>
 #  endif
 #  include <string.h>
-#  include <stdlib.h>
 #endif
 
 #ifndef local
