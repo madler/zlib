@@ -20,12 +20,38 @@
    the number of bits in this code or part of the code to drop off
    of the bit buffer.  val is the actual byte to output in the case
    of a literal, the base length or distance, or the offset from
-   the current table to the next table.  Each entry is four bytes. */
+   the current table to the next table.  Each entry is four bytes.
+
+   Where Z_ENTRY32 is 1, the 64-bit loop in inffast.c reads each entry as one
+   little-endian 32-bit word, and bits comes first in the entry, so that the
+   bit buffer can be shifted by the word itself, as a 64-bit shift uses only
+   the low six bits of its count. That is the default on little-endian 64-bit
+   ARM. Elsewhere op comes first, and the fields are read through a pointer.
+   Define Z_ENTRY32 as 1 or 0 to choose. 1 needs a little-endian machine.
+   CODE() writes an entry in either order, for inffixed.h. */
+#ifndef Z_ENTRY32
+#  if (defined(__aarch64__) && defined(__BYTE_ORDER__) && \
+       __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || defined(_M_ARM64)
+#    define Z_ENTRY32 1
+#  else
+#    define Z_ENTRY32 0
+#  endif
+#endif
+#if Z_ENTRY32
+typedef struct {
+    unsigned char bits;         /* bits in this part of the code */
+    unsigned char op;           /* operation, extra bits, table bits */
+    unsigned short val;         /* offset in table or code value */
+} code;
+#  define CODE(op, bits, val) {bits, op, val}
+#else
 typedef struct {
     unsigned char op;           /* operation, extra bits, table bits */
     unsigned char bits;         /* bits in this part of the code */
     unsigned short val;         /* offset in table or code value */
 } code;
+#  define CODE(op, bits, val) {op, bits, val}
+#endif
 
 /* op values as set by inflate_table():
     00000000 - literal
