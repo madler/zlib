@@ -2116,6 +2116,10 @@ extern int ZEXPORT zipClose(zipFile file, const char* global_comment) {
 
     zi = (zip64_internal*)file;
 
+    /* The global comment length must fit in 16 bits. */
+    if ((global_comment!=NULL) && (strlen(global_comment)>0xffff))
+        return ZIP_PARAMERROR;
+
     if (zi->in_opened_file_inzip == 1)
     {
         err = zipCloseFileInZip (file);
