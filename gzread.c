@@ -54,6 +54,7 @@ local int gz_load(gz_statep state, unsigned char *buf, unsigned len,
    the input buffer, and then the remainder of the buffer is loaded with the
    available data from the input file. */
 local int gz_avail(gz_statep state) {
+    int ret;
     unsigned got;
     z_streamp strm = &(state->strm);
 
@@ -72,11 +73,12 @@ local int gz_avail(gz_statep state) {
                 } while (--n);
             }
         }
-        if (gz_load(state, state->in + strm->avail_in,
-                    state->size - strm->avail_in, &got) == -1)
-            return -1;
+        ret = gz_load(state, state->in + strm->avail_in,
+                      state->size - strm->avail_in, &got);
         strm->avail_in += got;
         strm->next_in = state->in;
+        if (ret == -1)
+            return -1;
     }
     return 0;
 }
