@@ -135,7 +135,8 @@ local int gz_look(gz_statep state) {
         inflateReset(strm);
         state->how = GZIP;
         state->junk = state->junk != -1;
-        state->direct = 0;
+        if (state->direct != -1)        /* keep "G" (gzip only) across gzrewind() */
+            state->direct = 0;
         return 0;
     }
 
